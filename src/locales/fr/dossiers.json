@@ -1,0 +1,79 @@
+{
+  "dossiers": {
+    "title": "Personnes disparues",
+    "subtitle": "Base de données des cas de personnes disparues",
+    "create": {
+      "title": "Créer un dossier de personne disparue",
+      "subtitle": "Signaler une personne disparue",
+      "sections": {
+        "personal_info": "Informations personnelles",
+        "physical_description": "Description physique",
+        "circumstances": "Circonstances de la disparition",
+        "media": "Photos et vidéos",
+        "contact": "Informations de contact"
+      }
+    },
+    "list": {
+      "title": "Dossiers de personnes disparues",
+      "filters": {
+        "status": "Statut",
+        "region": "Région",
+        "age_range": "Groupe d'âge",
+        "date_range": "Date de disparition",
+        "gender": "Genre",
+        "case_type": "Type de dossier"
+      }
+    },
+    "detail": {
+      "title": "Détails du dossier",
+      "personal_info": "Informations personnelles",
+      "description": "Description",
+      "circumstances": "Circonstances de la disparition",
+      "location": "Lieu du dernier signalement",
+      "photos": "Photos",
+      "contact_info": "Informations de contact",
+      "case_status": "Statut du dossier",
+      "created_by": "Créé par",
+      "last_updated": "Dernière mise à jour",
+      "case_number": "Numéro de dossier",
+      "related_cases": "Dossiers connexes"
+    },
+    "fields": {
+      "full_name": "Nom complet",
+      "date_of_birth": "Date de naissance",
+      "age": "Âge",
+      "gender": "Genre",
+      "height": "Taille",
+      "weight": "Poids",
+      "hair_color": "Couleur des cheveux",
+      "eye_color": "Couleur des yeux",
+      "distinguishing_marks": "Marques distinctives",
+      "last_seen_date": "Date du dernier signalement",
+      "last_seen_location": "Lieu du dernier signalement",
+      "last_seen_clothing": "Vêtements portés",
+      "circumstances": "Circonstances de la disparition",
+      "medical_conditions": "Conditions médicales",
+      "medications": "Médicaments",
+      "contact_person": "Personne contact",
+      "relationship": "Relation",
+      "organization": "Organisation",
+      "case_status": "Statut du dossier",
+      "case_type": "Type de dossier"
+    },
+    "status": {
+      "active": "Actif",
+      "found": "Retrouvé",
+      "deceased": "Décédé",
+      "closed": "Fermé",
+      "on_hold": "En attente"
+    },
+    "no_cases": "Aucun dossier de personne disparue trouvé",
+    "view_details": "Voir les détails du dossier",
+    "edit_case": "Modifier le dossier",
+    "close_case": "Fermer le dossier",
+    "reopen_case": "Réouvrir le dossier",
+    "mark_found": "Marquer comme retrouvé",
+    "add_update": "Ajouter une mise à jour",
+    "send_alert": "Envoyer une alerte"
+  }
+}

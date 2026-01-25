@@ -1,0 +1,71 @@
+{
+  "forms": {
+    "required_field": "Ce champ est obligatoire",
+    "invalid_email": "Veuillez entrer une adresse e-mail valide",
+    "invalid_phone": "Veuillez entrer un numéro de téléphone valide",
+    "invalid_url": "Veuillez entrer une URL valide",
+    "invalid_date": "Veuillez entrer une date valide",
+    "password_mismatch": "Les mots de passe ne correspondent pas",
+    "password_weak": "Le mot de passe est trop faible",
+    "password_requirements": "Le mot de passe doit contenir au moins 8 caractères, incluant des majuscules, minuscules et chiffres",
+    "file_too_large": "La taille du fichier dépasse le maximum autorisé",
+    "invalid_file_type": "Type de fichier invalide",
+    "character_limit_exceeded": "Limite de caractères dépassée",
+    "minimum_characters": "Minimum {{count}} caractères requis",
+    "maximum_characters": "Maximum {{count}} caractères autorisés",
+    "minimum_items": "Sélectionnez au moins {{count}} éléments",
+    "maximum_items": "Maximum {{count}} éléments autorisés",
+    "invalid_input": "Entrée invalide",
+    "field_error": "Ce champ a une erreur",
+    "submit": "Soumettre",
+    "reset": "Réinitialiser le formulaire",
+    "clear": "Effacer",
+    "next_step": "Étape suivante",
+    "previous_step": "Étape précédente",
+    "step": "Étape {{current}} sur {{total}}",
+    "please_fill_required": "Veuillez remplir tous les champs obligatoires",
+    "form_submitted": "Formulaire soumis avec succès",
+    "form_error": "Veuillez corriger les erreurs ci-dessous"
+  },
+  "validation": {
+    "email": {
+      "required": "L'e-mail est obligatoire",
+      "invalid": "Veuillez entrer une adresse e-mail valide",
+      "already_registered": "Cet e-mail est déjà enregistré"
+    },
+    "password": {
+      "required": "Le mot de passe est obligatoire",
+      "too_short": "Le mot de passe doit contenir au moins 8 caractères",
+      "too_weak": "Le mot de passe est trop faible",
+      "no_match": "Les mots de passe ne correspondent pas"
+    },
+    "name": {
+      "required": "Le nom est obligatoire",
+      "too_short": "Le nom doit contenir au moins 2 caractères",
+      "invalid": "Le nom contient des caractères invalides"
+    },
+    "phone": {
+      "required": "Le numéro de téléphone est obligatoire",
+      "invalid": "Veuillez entrer un numéro de téléphone valide"
+    },
+    "url": {
+      "required": "L'URL est obligatoire",
+      "invalid": "Veuillez entrer une URL valide"
+    },
+    "date": {
+      "required": "La date est obligatoire",
+      "invalid": "Veuillez entrer une date valide",
+      "in_future": "La date ne peut pas être dans le futur",
+      "in_past": "La date ne peut pas être dans le passé"
+    },
+    "number": {
+      "required": "Le nombre est obligatoire",
+      "invalid": "Veuillez entrer un nombre valide",
+      "min": "Doit être au moins {{min}}",
+      "max": "Ne doit pas dépasser {{max}}"
+    },
+    "agreement": {
+      "required": "Vous devez accepter les conditions"
+    }
+  }
+}

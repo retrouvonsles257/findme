@@ -1,0 +1,357 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Citizen Alertes Page
+ * Page pour visualiser et gérer les alertes de proximité
+ * Intégré avec useAlertes et useProximityAlerts
+ * =====================================================
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAlertes } from '../../features/alertes/hooks/useAlertes';
+import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
+import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
+import { useI18n } from '../../hooks';
+import { CitizenLayout } from './CitizenLayout';
+import {
+  Bell,
+  MapPin,
+  AlertTriangle,
+  Clock,
+  Eye,
+  Share2,
+  Navigation,
+  Filter,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  ChevronRight,
+  Radio,
+  Users,
+  X,
+} from 'lucide-react';
+import styles from './AlertesPage.module.css';
+
+type FilterType = 'all' | 'active' | 'proximity' | 'closed';
+
+export const CitizenAlertesPage: React.FC = () => {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  
+  // Hooks
+  const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useAlertes();
+  const { 
+    proximityAlerts, 
+    activeAlerts, 
+    isLoading: loadingProximity,
+    error: errorProximity,
+    checkProximity,
+    dismissAlert 
+  } = useProximityAlerts();
+  const { currentLocation, error: geoError, getCurrentLocation } = useGeolocation();
+  
+  // Local state
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+
+  // Charger les alertes au montage
+  useEffect(() => {
+    fetchAlertes();
+  }, [fetchAlertes]);
+
+  // Vérifier les alertes de proximité quand la position change
+  useEffect(() => {
+    if (currentLocation) {
+      checkProximity({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        accuracy: currentLocation.accuracy || 0,
+        timestamp: Date.now(),
+      });
+    }
+  }, [currentLocation, checkProximity]);
+
+  // Rafraîchir les données
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchAlertes();
+    getCurrentLocation();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  // Mapper le statut pour le style
+  const getStatusClass = (statut: string) => {
+    switch (statut) {
+      case 'active':
+      case 'diffusee':
+        return styles['alerte__status--active'];
+      case 'expiree':
+      case 'cloturee':
+        return styles['alerte__status--closed'];
+      default:
+        return styles['alerte__status--pending'];
+    }
+  };
+
+  // Mapper le type pour l'icône
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'disparition_enfant':
+        return <Users size={18} />;
+      case 'urgente':
+        return <AlertTriangle size={18} />;
+      case 'info':
+        return <Bell size={18} />;
+      default:
+        return <Radio size={18} />;
+    }
+  };
+
+  // Formater la date relative
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return t('common.justNow') || 'À l\'instant';
+    if (minutes < 60) return `Il y a ${minutes}m`;
+    if (hours < 24) return `Il y a ${hours}h`;
+    return `Il y a ${days}j`;
+  };
+
+  // Filtrer les alertes
+  const filteredAlertes = alertes.filter((alerte: any) => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return alerte.statut === 'active' || alerte.statut === 'diffusee';
+    if (filter === 'closed') return alerte.statut === 'cloturee' || alerte.statut === 'expiree';
+    if (filter === 'proximity') {
+      // Alertes dans le rayon de l'utilisateur
+      return activeAlerts.includes(alerte.id);
+    }
+    return true;
+  });
+
+  // Cacher une alerte de proximité
+  const handleDismiss = (alertId: string) => {
+    setDismissedAlerts((prev) => new Set([...prev, alertId]));
+    dismissAlert(alertId);
+  };
+
+  // Naviguer vers les détails
+  const handleViewDetails = (alerteId: string, dossierId?: string) => {
+    if (dossierId) {
+      navigate(`/citizen/dossier/${dossierId}`);
+    }
+  };
+
+  const isLoading = loadingAlertes || loadingProximity;
+  const hasError = errorAlertes || errorProximity;
+
+  return (
+    <CitizenLayout activeNav="alerts">
+      <div className={styles.alertes}>
+        {/* Header avec localisation */}
+        <div className={styles['alertes__header']}>
+          <div className={styles['alertes__location']}>
+            {currentLocation ? (
+              <>
+                <Navigation size={18} className={styles['alertes__location-icon']} />
+                <span>
+                  {t('citizen.locationActive')} ({currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)})
+                </span>
+              </>
+            ) : (
+              <>
+                <MapPin size={18} />
+                <span>{geoError || t('citizen.locationDisabled')}</span>
+              </>
+            )}
+          </div>
+          <button 
+            className={styles['alertes__refresh-btn']}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw 
+              size={18} 
+              className={isRefreshing ? styles['alertes__refresh-spin'] : ''} 
+            />
+          </button>
+        </div>
+
+        {/* Alertes de proximité actives */}
+        {proximityAlerts.length > 0 && (
+          <div className={styles['alertes__proximity']}>
+            <h3 className={styles['alertes__proximity-title']}>
+              <AlertTriangle size={20} />
+              {t('citizen.proximityAlerts')} ({proximityAlerts.length})
+            </h3>
+            <div className={styles['alertes__proximity-list']}>
+              {(proximityAlerts as any[])
+                .filter((alert) => !dismissedAlerts.has(alert.id))
+                .map((alert) => (
+                  <div key={alert.id} className={styles['alertes__proximity-item']}>
+                    <div className={styles['alertes__proximity-content']}>
+                      <strong>{alert.titre || alert.type}</strong>
+                      <p>{alert.message || ''}</p>
+                      {alert.distance_km && (
+                        <span className={styles['alertes__proximity-distance']}>
+                          <MapPin size={14} />
+                          À {alert.distance_km.toFixed(1)} km
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      className={styles['alertes__proximity-dismiss']}
+                      onClick={() => handleDismiss(alert.id)}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* Filtres */}
+        <div className={styles['alertes__filters']}>
+          <Filter size={18} />
+          <button
+            className={`${styles['alertes__filter-btn']} ${filter === 'all' ? styles['alertes__filter-btn--active'] : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            {t('citizen.allAlerts')}
+          </button>
+          <button
+            className={`${styles['alertes__filter-btn']} ${filter === 'active' ? styles['alertes__filter-btn--active'] : ''}`}
+            onClick={() => setFilter('active')}
+          >
+            {t('citizen.activeAlerts')}
+          </button>
+          <button
+            className={`${styles['alertes__filter-btn']} ${filter === 'proximity' ? styles['alertes__filter-btn--active'] : ''}`}
+            onClick={() => setFilter('proximity')}
+          >
+            {t('citizen.nearbyAlerts')}
+          </button>
+          <button
+            className={`${styles['alertes__filter-btn']} ${filter === 'closed' ? styles['alertes__filter-btn--active'] : ''}`}
+            onClick={() => setFilter('closed')}
+          >
+            {t('citizen.closedAlerts')}
+          </button>
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className={styles['alertes__loading']}>
+            <Loader2 size={32} className={styles['alertes__loading-spin']} />
+            <p>{t('common.loading')}</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {hasError && !isLoading && (
+          <div className={styles['alertes__error']}>
+            <AlertCircle size={24} />
+            <p>{errorAlertes || errorProximity}</p>
+            <button onClick={handleRefresh}>{t('common.retry')}</button>
+          </div>
+        )}
+
+        {/* Liste des alertes */}
+        {!isLoading && !hasError && (
+          <div className={styles['alertes__list']}>
+            {filteredAlertes.length === 0 ? (
+              <div className={styles['alertes__empty']}>
+                <Bell size={48} />
+                <h3>{t('citizen.noAlerts')}</h3>
+                <p>{t('citizen.noAlertsDescription')}</p>
+              </div>
+            ) : (
+              filteredAlertes.map((alerte: any) => (
+                <div 
+                  key={alerte.id} 
+                  className={styles['alertes__card']}
+                  onClick={() => handleViewDetails(alerte.id, alerte.id_dossier)}
+                >
+                  <div className={styles['alertes__card-icon']}>
+                    {getTypeIcon(alerte.type_alerte)}
+                  </div>
+                  
+                  <div className={styles['alertes__card-content']}>
+                    <div className={styles['alertes__card-header']}>
+                      <h4 className={styles['alertes__card-title']}>{alerte.titre}</h4>
+                      <span className={`${styles['alertes__status']} ${getStatusClass(alerte.statut)}`}>
+                        {alerte.statut}
+                      </span>
+                    </div>
+                    
+                    <p className={styles['alertes__card-message']}>
+                      {alerte.message?.substring(0, 120)}
+                      {(alerte.message?.length || 0) > 120 ? '...' : ''}
+                    </p>
+                    
+                    <div className={styles['alertes__card-meta']}>
+                      <span className={styles['alertes__card-date']}>
+                        <Clock size={14} />
+                        {formatTimeAgo(alerte.created_at || new Date().toISOString())}
+                      </span>
+                      
+                      {alerte.rayon_km && (
+                        <span className={styles['alertes__card-radius']}>
+                          <MapPin size={14} />
+                          {alerte.rayon_km} km
+                        </span>
+                      )}
+                      
+                      {alerte.vues !== undefined && (
+                        <span className={styles['alertes__card-views']}>
+                          <Eye size={14} />
+                          {alerte.vues}
+                        </span>
+                      )}
+                      
+                      {alerte.partages !== undefined && (
+                        <span className={styles['alertes__card-shares']}>
+                          <Share2 size={14} />
+                          {alerte.partages}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <ChevronRight size={20} className={styles['alertes__card-arrow']} />
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Stats */}
+        {!isLoading && filteredAlertes.length > 0 && (
+          <div className={styles['alertes__stats']}>
+            <div className={styles['alertes__stat']}>
+              <span className={styles['alertes__stat-value']}>{alertes.length}</span>
+              <span className={styles['alertes__stat-label']}>{t('citizen.totalAlerts')}</span>
+            </div>
+            <div className={styles['alertes__stat']}>
+              <span className={styles['alertes__stat-value']}>
+                {(alertes as any[]).filter((a) => a.statut === 'active' || a.statut === 'diffusee').length}
+              </span>
+              <span className={styles['alertes__stat-label']}>{t('citizen.active')}</span>
+            </div>
+            <div className={styles['alertes__stat']}>
+              <span className={styles['alertes__stat-value']}>{activeAlerts.length}</span>
+              <span className={styles['alertes__stat-label']}>{t('citizen.nearby')}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </CitizenLayout>
+  );
+};

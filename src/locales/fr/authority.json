@@ -1,0 +1,134 @@
+{
+  "authority": {
+    "dashboard": "Tableau de bord autorité",
+    "alertes": "Alertes",
+    "coordination": "Coordination",
+    "dossiers": "Dossiers",
+    "dossierDetail": "Détails du dossier",
+    "analysis": "Analyse IA",
+    "investigation": "Enquête",
+    "signalements": "Signalements",
+    "statistiques": "Statistiques",
+    "welcome": "Bienvenue",
+    "supervisor": "Autorité",
+
+    "dashboardTitle": "Tableau de bord autorité",
+    "dashboardSubtitle": "Vue d'ensemble des dossiers et signalements",
+
+    "statistics": {
+      "activeDossiers": "Dossiers actifs",
+      "totalDossiers": "Total dossiers",
+      "foundCases": "Cas retrouvés",
+      "signals": "Signalements",
+      "newToday": "Nouveaux aujourd'hui"
+    },
+
+    "menu": {
+      "dashboard": "Tableau de bord",
+      "alertes": "Alertes",
+      "coordination": "Coordination",
+      "dossiers": "Dossiers",
+      "analysis": "Analyse IA",
+      "investigation": "Enquête",
+      "signalements": "Signalements",
+      "statistiques": "Statistiques"
+    },
+
+    "alertesTitle": "Gestion des alertes",
+    "alertesSubtitle": "Créez et gérez les alertes de disparition",
+    "newAlert": "Nouvelle alerte",
+    "alerts": "Alertes",
+    "urgentCases": "Cas urgents",
+    "createNewAlert": "Créer une nouvelle alerte",
+    "noAlerts": "Aucune alerte",
+    "activeAlerts": "Alertes actives",
+    "resolvedAlerts": "Alertes résolues",
+
+    "coordinationTitle": "Coordination",
+    "coordinationSubtitle": "Coordonnez les efforts avec les autres autorités",
+    "agencies": "Agences",
+    "assignedCases": "Dossiers assignés",
+    "sharedData": "Données partagées",
+    "inviteAgency": "Inviter une agence",
+    "sendMessage": "Envoyer un message",
+    "noCoordination": "Aucune coordination en cours",
+
+    "dossiersTitle": "Gestion des dossiers",
+    "dossiersSubtitle": "Consultez et gérez tous les dossiers",
+    "filters": {
+      "status": "Statut",
+      "urgency": "Urgence",
+      "location": "Lieu",
+      "search": "Rechercher...",
+      "allStatus": "Tous les statuts"
+    },
+    "sortBy": "Trier par",
+    "recent": "Récent",
+    "urgent": "Urgent",
+    "noDossiers": "Aucun dossier",
+
+    "dossierDetailTitle": "Détails du dossier",
+    "dossierDetailSubtitle": "Informations complètes du dossier",
+    "information": "Informations",
+    "reports": "Signalements",
+    "locations": "Localisations",
+    "timeline": "Chronologie",
+    "analysis": "Analyses",
+    "editDossier": "Modifier",
+    "closeDossier": "Fermer le dossier",
+    "markAsFound": "Marquer comme retrouvé",
+
+    "analysisTitle": "Analyse IA",
+    "analysisSubtitle": "Analyse et prédictions par intelligence artificielle",
+    "predictions": "Prédictions",
+    "patterns": "Motifs détectés",
+    "recommendations": "Recommandations",
+    "confidenceScore": "Score de confiance",
+    "analyze": "Analyser",
+    "noAnalysis": "Aucune analyse disponible",
+
+    "investigationTitle": "Gestion de l'enquête",
+    "investigationSubtitle": "Suivez les progrès de l'enquête",
+    "caseStatus": "Statut du cas",
+    "investigationTeam": "Équipe d'enquête",
+    "evidenceCollected": "Preuves recueillies",
+    "interviews": "Entretiens",
+    "investigationNotes": "Notes d'enquête",
+    "addNote": "Ajouter une note",
+    "assignTeam": "Assigner l'équipe",
+
+    "signallementsTitle": "Signalements",
+    "signallementsSubtitle": "Gérez les signalements reçus",
+    "validatedReports": "Signalements validés",
+    "pendingReports": "Signalements en attente",
+    "rejectedReports": "Signalements rejetés",
+    "viewReport": "Voir le signalement",
+    "noReports": "Aucun signalement",
+
+    "statistiquesTitle": "Statistiques",
+    "statistiquesSubtitle": "Rapport et analyse des données",
+    "period": "Période",
+    "7days": "Derniers 7 jours",
+    "30days": "Dernier mois",
+    "allTime": "Tous les temps",
+    "export": "Exporter",
+    "charts": {
+      "casesPerMonth": "Cas par mois",
+      "caseStatus": "Statut des cas",
+      "topLocations": "Top lieux",
+      "resolutionRate": "Taux de résolution"
+    },
+
+    "commonActions": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "view": "Voir",
+      "download": "Télécharger",
+      "share": "Partager",
+      "print": "Imprimer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "close": "Fermer"
+    }
+  }
+}

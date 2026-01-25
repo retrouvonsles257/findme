@@ -1,0 +1,82 @@
+{
+  "signalements": {
+    "title": "Signalements",
+    "subtitle": "Signalements et observations communautaires",
+    "create": {
+      "title": "Créer un signalement",
+      "subtitle": "Signaler une observation ou fournir des informations",
+      "sections": {
+        "sighting_details": "Détails de l'observation",
+        "location": "Localisation",
+        "timing": "Moment de l'observation",
+        "media": "Photos et vidéos",
+        "contact": "Informations de contact"
+      }
+    },
+    "list": {
+      "title": "Signalements récents",
+      "filters": {
+        "status": "Statut",
+        "type": "Type de signalement",
+        "date_range": "Plage de dates",
+        "location": "Localisation",
+        "case": "Dossier associé"
+      },
+      "sort_by": "Trier par",
+      "newest": "Plus récent en premier",
+      "oldest": "Plus ancien en premier",
+      "most_relevant": "Plus pertinent"
+    },
+    "detail": {
+      "title": "Détails du signalement",
+      "sighting_details": "Détails de l'observation",
+      "location": "Localisation",
+      "date_time": "Date et heure",
+      "description": "Description",
+      "photos": "Photos",
+      "videos": "Vidéos",
+      "reporter_info": "Informations du signalant",
+      "associated_case": "Dossier associé",
+      "status": "Statut",
+      "verified": "Vérifié",
+      "credibility": "Score de crédibilité",
+      "comments": "Commentaires",
+      "related_reports": "Signalements connexes"
+    },
+    "fields": {
+      "person_description": "Description de la personne",
+      "location": "Lieu de l'observation",
+      "date": "Date de l'observation",
+      "time": "Heure de l'observation",
+      "details": "Détails de l'observation",
+      "confidence": "Votre certitude?",
+      "contact_info": "Vos coordonnées",
+      "anonymous": "Signalement anonyme",
+      "associated_case": "Dossier de personne disparue associé",
+      "evidence_type": "Type de preuve"
+    },
+    "status": {
+      "new": "Nouveau",
+      "reviewing": "En cours d'examen",
+      "verified": "Vérifié",
+      "false": "Faux signalement",
+      "resolved": "Résolu",
+      "archived": "Archivé"
+    },
+    "types": {
+      "sighting": "Observation",
+      "information": "Information",
+      "evidence": "Preuve",
+      "tip": "Tuyau",
+      "update": "Mise à jour du dossier"
+    },
+    "no_reports": "Aucun signalement trouvé",
+    "view_details": "Voir le signalement",
+    "verify_report": "Vérifier le signalement",
+    "mark_false": "Marquer comme faux signalement",
+    "resolve": "Résoudre",
+    "add_comment": "Ajouter un commentaire",
+    "report_submitted": "Signalement soumis avec succès",
+    "thank_you": "Merci pour votre signalement"
+  }
+}

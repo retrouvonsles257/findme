@@ -1,0 +1,88 @@
+.progressBarContainer {
+  width: 100%;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+
+  &.sm {
+    height: 8px;
+  }
+
+  &.md {
+    height: 16px;
+  }
+
+  &.lg {
+    height: 24px;
+  }
+}
+
+.progressBar {
+  height: 100%;
+  transition: width 0.6s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &.primary {
+    background-color: #007bff;
+  }
+
+  &.secondary {
+    background-color: #6c757d;
+  }
+
+  &.success {
+    background-color: #28a745;
+  }
+
+  &.danger {
+    background-color: #dc3545;
+  }
+
+  &.warning {
+    background-color: #ffc107;
+  }
+
+  &.info {
+    background-color: #17a2b8;
+  }
+
+  &.striped {
+    background-image: linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.15) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.15) 75%,
+      transparent 75%,
+      transparent
+    );
+    background-size: 1rem 1rem;
+  }
+
+  &.animated {
+    animation: progress-bar-stripes 1s linear infinite;
+  }
+}
+
+.progressLabel {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes progress-bar-stripes {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 1rem 0;
+  }
+}

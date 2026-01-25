@@ -1,0 +1,360 @@
+/* ===================================================================
+   SUPER ADMIN DOSSIERS CRITIQUES - CSS MODULE
+   =================================================================== */
+
+:root {
+  --sa-primary: #1d4ed8;
+  --sa-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.sa-dossiers-critiques {
+  font-family: var(--sa-font);
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.sa-dossiers-critiques__stats {
+  margin-bottom: 1.5rem;
+}
+
+.sa-dossiers-critiques__stat-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sa-dossiers-critiques__stat-card--danger {
+  border-left: 4px solid #dc2626;
+}
+
+.sa-dossiers-critiques__stat-card--danger svg {
+  color: #dc2626;
+}
+
+.sa-dossiers-critiques__stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.sa-dossiers-critiques__stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: block;
+}
+
+.sa-dossiers-critiques__filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sa-dossiers-critiques__filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.sa-dossiers-critiques__filter-group svg { color: #6b7280; }
+
+.sa-dossiers-critiques__filter-group select {
+  font-family: var(--sa-font);
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sa-dossiers-critiques__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.sa-dossiers-critiques__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+}
+
+.sa-dossiers-critiques__spinner {
+  animation: sa-spin 1s linear infinite;
+}
+
+@keyframes sa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sa-dossiers-critiques__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.sa-dossiers-critiques__empty svg { margin-bottom: 1rem; }
+
+.sa-dossiers-critiques__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sa-dossiers-critiques__card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.sa-dossiers-critiques__card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sa-dossiers-critiques__card--critical {
+  border-left: 4px solid #dc2626;
+  background: linear-gradient(to right, #fef2f2, white);
+}
+
+.sa-dossiers-critiques__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.sa-dossiers-critiques__card-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sa-dossiers-critiques__badge {
+  font-family: var(--sa-font);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sa-dossiers-critiques__badge--danger { background: #fee2e2; color: #dc2626; }
+.sa-dossiers-critiques__badge--warning { background: #fef3c7; color: #d97706; }
+.sa-dossiers-critiques__badge--success { background: #dcfce7; color: #16a34a; }
+.sa-dossiers-critiques__badge--info { background: #dbeafe; color: #2563eb; }
+.sa-dossiers-critiques__badge--default { background: #f3f4f6; color: #6b7280; }
+
+.sa-dossiers-critiques__days {
+  font-family: var(--sa-font);
+  font-size: 0.875rem;
+  color: #dc2626;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sa-dossiers-critiques__card-title {
+  font-family: var(--sa-font);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sa-dossiers-critiques__card-title svg { color: var(--sa-primary); }
+
+.sa-dossiers-critiques__card-title small {
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.sa-dossiers-critiques__card-subtitle {
+  font-family: var(--sa-font);
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.sa-dossiers-critiques__card-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sa-dossiers-critiques__info-item {
+  font-family: var(--sa-font);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.sa-dossiers-critiques__info-item svg {
+  color: #9ca3af;
+}
+
+.sa-dossiers-critiques__card-actions {
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sa-dossiers-critiques__card-actions button {
+  font-family: var(--sa-font);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sa-dossiers-critiques__card-actions button:hover {
+  border-color: var(--sa-primary);
+  color: var(--sa-primary);
+  background: #eff6ff;
+}
+
+.sa-dossiers-critiques__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.sa-dossiers-critiques__pagination button {
+  font-family: var(--sa-font);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.sa-dossiers-critiques__pagination button:hover:not(:disabled) {
+  border-color: var(--sa-primary);
+  color: var(--sa-primary);
+}
+
+.sa-dossiers-critiques__pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sa-dossiers-critiques__pagination span {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Modal */
+.sa-dossiers-critiques__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.sa-dossiers-critiques__modal {
+  background: white;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 500px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.sa-dossiers-critiques__modal h2 {
+  font-family: var(--sa-font);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.sa-dossiers-critiques__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.sa-dossiers-critiques__details p {
+  font-family: var(--sa-font);
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0;
+}
+
+.sa-dossiers-critiques__details strong {
+  color: #1f2937;
+}
+
+.sa-dossiers-critiques__modal button {
+  font-family: var(--sa-font);
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--sa-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sa-dossiers-critiques__modal button:hover {
+  background: #1e40af;
+}
+
+@media (max-width: 768px) {
+  .sa-dossiers-critiques { padding: 1rem; }
+  .sa-dossiers-critiques__card-info { flex-direction: column; gap: 0.5rem; }
+}

@@ -1,0 +1,90 @@
+{
+  "alertes": {
+    "title": "Alerts",
+    "subtitle": "Missing person alerts and notifications",
+    "create": {
+      "title": "Create Alert",
+      "subtitle": "Set up a missing person alert",
+      "sections": {
+        "alert_details": "Alert Details",
+        "distribution": "Distribution Settings",
+        "recipients": "Recipients",
+        "schedule": "Schedule"
+      }
+    },
+    "list": {
+      "title": "Active Alerts",
+      "my_alerts": "My Alerts",
+      "all_alerts": "All Active Alerts",
+      "filters": {
+        "status": "Status",
+        "priority": "Priority",
+        "type": "Alert Type",
+        "date_range": "Date Range",
+        "region": "Region"
+      }
+    },
+    "detail": {
+      "title": "Alert Details",
+      "case_info": "Missing Person Information",
+      "alert_content": "Alert Content",
+      "distribution": "Distribution Details",
+      "reach": "Alert Reach",
+      "views": "Number of Views",
+      "shares": "Number of Shares",
+      "status": "Alert Status",
+      "created": "Created",
+      "expires": "Expires",
+      "responses": "Responses Received"
+    },
+    "fields": {
+      "alert_title": "Alert Title",
+      "alert_description": "Alert Description",
+      "associated_case": "Associated Missing Person Case",
+      "priority": "Priority Level",
+      "alert_type": "Alert Type",
+      "distribution_channels": "Distribution Channels",
+      "target_region": "Target Region",
+      "target_distance": "Target Distance (km)",
+      "expiration_date": "Expiration Date",
+      "contact_info": "Contact Information"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "types": {
+      "missing_person": "Missing Person",
+      "endangered": "Endangered Person",
+      "amber": "AMBER Alert",
+      "silver": "Silver Alert",
+      "update": "Case Update"
+    },
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "expired": "Expired",
+      "closed": "Closed",
+      "archived": "Archived"
+    },
+    "channels": {
+      "email": "Email",
+      "sms": "Text Message (SMS)",
+      "push": "Push Notification",
+      "social": "Social Media",
+      "public_broadcast": "Public Broadcast"
+    },
+    "no_alerts": "No active alerts",
+    "view_details": "View Alert Details",
+    "edit_alert": "Edit Alert",
+    "pause_alert": "Pause Alert",
+    "resume_alert": "Resume Alert",
+    "close_alert": "Close Alert",
+    "extend_alert": "Extend Duration",
+    "share_alert": "Share Alert",
+    "alert_active": "Alert is currently active",
+    "alert_views": "{{count}} people have viewed this alert"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "alertes": {
+    "title": "Alertes",
+    "subtitle": "Alertes et notifications de personnes disparues",
+    "create": {
+      "title": "Créer une alerte",
+      "subtitle": "Configurer une alerte de personne disparue",
+      "sections": {
+        "alert_details": "Détails de l'alerte",
+        "distribution": "Paramètres de distribution",
+        "recipients": "Destinataires",
+        "schedule": "Calendrier"
+      }
+    },
+    "list": {
+      "title": "Alertes actives",
+      "my_alerts": "Mes alertes",
+      "all_alerts": "Toutes les alertes actives",
+      "filters": {
+        "status": "Statut",
+        "priority": "Priorité",
+        "type": "Type d'alerte",
+        "date_range": "Plage de dates",
+        "region": "Région"
+      }
+    },
+    "detail": {
+      "title": "Détails de l'alerte",
+      "case_info": "Informations sur la personne disparue",
+      "alert_content": "Contenu de l'alerte",
+      "distribution": "Détails de la distribution",
+      "reach": "Portée de l'alerte",
+      "views": "Nombre de vues",
+      "shares": "Nombre de partages",
+      "status": "Statut de l'alerte",
+      "created": "Créée",
+      "expires": "Expire",
+      "responses": "Réponses reçues"
+    },
+    "fields": {
+      "alert_title": "Titre de l'alerte",
+      "alert_description": "Description de l'alerte",
+      "associated_case": "Dossier de personne disparue associé",
+      "priority": "Niveau de priorité",
+      "alert_type": "Type d'alerte",
+      "distribution_channels": "Canaux de distribution",
+      "target_region": "Région cible",
+      "target_distance": "Distance cible (km)",
+      "expiration_date": "Date d'expiration",
+      "contact_info": "Informations de contact"
+    },
+    "priority": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "critical": "Critique"
+    },
+    "types": {
+      "missing_person": "Personne disparue",
+      "endangered": "Personne en danger",
+      "amber": "Alerte AMBER",
+      "silver": "Alerte Silver",
+      "update": "Mise à jour du dossier"
+    },
+    "status": {
+      "active": "Actif",
+      "paused": "En pause",
+      "expired": "Expiré",
+      "closed": "Fermé",
+      "archived": "Archivé"
+    },
+    "channels": {
+      "email": "E-mail",
+      "sms": "SMS",
+      "push": "Notification push",
+      "social": "Réseaux sociaux",
+      "public_broadcast": "Diffusion publique"
+    },
+    "no_alerts": "Aucune alerte active",
+    "view_details": "Voir les détails de l'alerte",
+    "edit_alert": "Modifier l'alerte",
+    "pause_alert": "Mettre en pause l'alerte",
+    "resume_alert": "Reprendre l'alerte",
+    "close_alert": "Fermer l'alerte",
+    "extend_alert": "Prolonger la durée",
+    "share_alert": "Partager l'alerte",
+    "alert_active": "L'alerte est actuellement active",
+    "alert_views": "{{count}} personnes ont vu cette alerte"
+  }
+}

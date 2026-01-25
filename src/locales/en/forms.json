@@ -1,0 +1,71 @@
+{
+  "forms": {
+    "required_field": "This field is required",
+    "invalid_email": "Please enter a valid email address",
+    "invalid_phone": "Please enter a valid phone number",
+    "invalid_url": "Please enter a valid URL",
+    "invalid_date": "Please enter a valid date",
+    "password_mismatch": "Passwords do not match",
+    "password_weak": "Password is too weak",
+    "password_requirements": "Password must contain at least 8 characters, including uppercase, lowercase, and numbers",
+    "file_too_large": "File size exceeds maximum allowed",
+    "invalid_file_type": "Invalid file type",
+    "character_limit_exceeded": "Character limit exceeded",
+    "minimum_characters": "Minimum {{count}} characters required",
+    "maximum_characters": "Maximum {{count}} characters allowed",
+    "minimum_items": "Select at least {{count}} items",
+    "maximum_items": "Maximum {{count}} items allowed",
+    "invalid_input": "Invalid input",
+    "field_error": "This field has an error",
+    "submit": "Submit",
+    "reset": "Reset Form",
+    "clear": "Clear",
+    "next_step": "Next Step",
+    "previous_step": "Previous Step",
+    "step": "Step {{current}} of {{total}}",
+    "please_fill_required": "Please fill in all required fields",
+    "form_submitted": "Form submitted successfully",
+    "form_error": "Please fix the errors below"
+  },
+  "validation": {
+    "email": {
+      "required": "Email is required",
+      "invalid": "Please enter a valid email address",
+      "already_registered": "This email is already registered"
+    },
+    "password": {
+      "required": "Password is required",
+      "too_short": "Password must be at least 8 characters",
+      "too_weak": "Password is too weak",
+      "no_match": "Passwords do not match"
+    },
+    "name": {
+      "required": "Name is required",
+      "too_short": "Name must be at least 2 characters",
+      "invalid": "Name contains invalid characters"
+    },
+    "phone": {
+      "required": "Phone number is required",
+      "invalid": "Please enter a valid phone number"
+    },
+    "url": {
+      "required": "URL is required",
+      "invalid": "Please enter a valid URL"
+    },
+    "date": {
+      "required": "Date is required",
+      "invalid": "Please enter a valid date",
+      "in_future": "Date cannot be in the future",
+      "in_past": "Date cannot be in the past"
+    },
+    "number": {
+      "required": "Number is required",
+      "invalid": "Please enter a valid number",
+      "min": "Must be at least {{min}}",
+      "max": "Must not exceed {{max}}"
+    },
+    "agreement": {
+      "required": "You must agree to the terms"
+    }
+  }
+}

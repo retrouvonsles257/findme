@@ -1,0 +1,82 @@
+{
+  "signalements": {
+    "title": "Reports",
+    "subtitle": "Community reports and sightings",
+    "create": {
+      "title": "Create Report",
+      "subtitle": "Report a sighting or provide information",
+      "sections": {
+        "sighting_details": "Sighting Details",
+        "location": "Location",
+        "timing": "Timing",
+        "media": "Photos & Videos",
+        "contact": "Contact Information"
+      }
+    },
+    "list": {
+      "title": "Recent Reports",
+      "filters": {
+        "status": "Status",
+        "type": "Report Type",
+        "date_range": "Date Range",
+        "location": "Location",
+        "case": "Associated Case"
+      },
+      "sort_by": "Sort by",
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "most_relevant": "Most Relevant"
+    },
+    "detail": {
+      "title": "Report Details",
+      "sighting_details": "Sighting Details",
+      "location": "Location",
+      "date_time": "Date & Time",
+      "description": "Description",
+      "photos": "Photos",
+      "videos": "Videos",
+      "reporter_info": "Reporter Information",
+      "associated_case": "Associated Case",
+      "status": "Status",
+      "verified": "Verified",
+      "credibility": "Credibility Score",
+      "comments": "Comments",
+      "related_reports": "Related Reports"
+    },
+    "fields": {
+      "person_description": "Person Description",
+      "location": "Sighting Location",
+      "date": "Sighting Date",
+      "time": "Sighting Time",
+      "details": "Details of Sighting",
+      "confidence": "How Certain Are You?",
+      "contact_info": "Your Contact Information",
+      "anonymous": "Report Anonymously",
+      "associated_case": "Associated Missing Person Case",
+      "evidence_type": "Type of Evidence"
+    },
+    "status": {
+      "new": "New",
+      "reviewing": "Under Review",
+      "verified": "Verified",
+      "false": "False Report",
+      "resolved": "Resolved",
+      "archived": "Archived"
+    },
+    "types": {
+      "sighting": "Sighting",
+      "information": "Information",
+      "evidence": "Evidence",
+      "tip": "Tip",
+      "update": "Case Update"
+    },
+    "no_reports": "No reports found",
+    "view_details": "View Report",
+    "verify_report": "Verify Report",
+    "mark_false": "Mark as False Report",
+    "resolve": "Resolve",
+    "add_comment": "Add Comment",
+    "report_submitted": "Report submitted successfully",
+    "thank_you": "Thank you for your report"
+  }
+}

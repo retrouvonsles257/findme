@@ -1,0 +1,139 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Edit Dossier Page Styles
+ * =====================================================
+ */
+
+/* Back Button */
+.operator-edit-dossier__back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  margin-bottom: 1.25rem;
+}
+
+.operator-edit-dossier__back-button:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+  transform: translateX(-2px);
+}
+
+/* Subtitle */
+.operator-edit-dossier__subtitle {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+/* Messages */
+.operator-edit-dossier__error-message,
+.operator-edit-dossier__success-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.625rem;
+  font-size: 0.9375rem;
+  border-left: 4px solid;
+}
+
+.operator-edit-dossier__error-message {
+  background-color: #fef2f2;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.operator-edit-dossier__success-message {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.operator-edit-dossier__message-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Form Wrapper */
+.operator-edit-dossier__form-wrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 2rem;
+}
+
+/* Loading State */
+.operator-edit-dossier__loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+}
+
+.operator-edit-dossier__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #1d4ed8;
+  animation: operator-edit-dossier-spin 1s linear infinite;
+}
+
+@keyframes operator-edit-dossier-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.operator-edit-dossier__loading-text {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Not Found State */
+.operator-edit-dossier__not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.operator-edit-dossier__not-found-icon {
+  width: 4rem;
+  height: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.operator-edit-dossier__not-found-text {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .operator-edit-dossier__subtitle {
+    font-size: 0.875rem;
+  }
+
+  .operator-edit-dossier__form-wrapper {
+    padding: 1.5rem;
+  }
+}

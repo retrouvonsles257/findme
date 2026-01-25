@@ -1,0 +1,248 @@
+Projet d’application pour la recherche de personnes
+disparues
+1. Contexte et Problématique
+Chaque année, de très nombreuses personnes sont portées disparues au Cameroun,
+en Afrique et dans le monde, ce qui pose un grave problème humanitaire et sécuritaire.
+Quelques chiffres illustrent l’ampleur de ce phénomène :
+●​ Cameroun : Plus de 441 cas de disparitions ont été signalés au Cameroun sur
+les seuls six premiers mois de 2025, soit environ 2 personnes portées disparues
+par jour. Ce phénomène touche particulièrement les jeunes (36 % des cas ont
+13-17 ans) et davantage les femmes (55 % des disparus) que les hommes. Les
+disparitions surviennent surtout dans les grands centres urbains comme
+Yaoundé (40 % des cas) et Douala (24 %), et résultent souvent de circonstances
+telles que des fugues, des sorties non accompagnées (trajets scolaires, activités)
+ou des enlèvements présumés. Actuellement, l’alerte sur ces disparitions repose
+beaucoup sur les réseaux sociaux (Facebook représente 98 % des
+signalements), faute de système centralisé, ce qui limite l’efficacité des
+recherches.
+●​ Afrique : Sur l’ensemble du continent africain, le Comité international de la
+Croix-Rouge (CICR) a documenté environ 64 000 personnes portées disparues,
+dont près de 25 000 sont des mineurs. Ces disparitions s’expliquent par divers
+facteurs, notamment les conflits armés (plus de 35 conflits actifs sur le
+continent), les migrations massives à travers le Sahara et la Méditerranée, et
+autres crises provoquant des séparations familiales. Il s’agit d’un minimum, le
+CICR soulignant que ce chiffre ne représente que la partie émergée de l’iceberg
+du problème. Chaque année, de nouvelles familles se retrouvent sans nouvelles
+d’un proche, et les organisations humanitaires peinent à faire face à cette hausse
+continue.
+●​ Monde : À l’échelle mondiale, la tendance est tout aussi préoccupante. Fin 2024,
+environ 284 400 personnes étaient enregistrées comme disparues à travers le
+monde par le réseau familial du CICR. Ce nombre a bondi de près de 70 % en
+cinq ans (depuis 2019) en raison de la multiplication des conflits, des
+déplacements massifs de populations et d’autres crises. Le CICR avertit qu’il
+pourrait en réalité s’agir de millions de personnes séparées de leurs proches sur
+de longues périodes, tant le chiffre officiel est en-deçà de la réalité. Derrière ces
+statistiques, ce sont des milliers de familles confrontées à l’angoisse, à des
+souffrances psychologiques et souvent à des difficultés économiques en
+l’absence de leur être cher.Ces éléments montrent qu’il existe un véritable besoin de renforcer les mécanismes de
+recherche et de signalement des personnes disparues. Au Cameroun, des analystes
+recommandent par exemple de mettre en place une collaboration officielle avec des
+organismes de secours comme la Croix-Rouge, de créer une ligne verte dédiée aux
+signalements, ou encore d’établir des cellules d’écoute et de soutien pour les
+familles[14]. De même, au niveau international, les organisations appellent à des efforts
+accrus des autorités pour prévenir les disparitions et améliorer le partage
+d’informations[15][16].
+Par ailleurs, l’usage d’outils numériques innovants commence à montrer son efficacité
+pour retrouver des personnes disparues. Par exemple, la plateforme en ligne Trace the
+Face lancée par le CICR permet aux migrants et à leurs proches de publier des photos
+pour retrouver un membre de la famille, et s’est révélée utile même en pleine pandémie
+de Covid-19[17]. Ce succès des solutions numériques incite à développer une
+application mobile dédiée qui centraliserait les avis de recherche et exploiterait
+l’intelligence artificielle (IA) afin d’optimiser les chances de retrouver les disparus.
+2. Solution Proposée : Application de Recherche de Personnes
+Disparues
+Face à cette problématique, nous proposons la conception d’une application mobile (et
+web) innovante, à but humanitaire, destinée à faciliter le signalement et la recherche
+des personnes disparues. L’application utilisera l’intelligence artificielle et exploitera
+diverses données (liens de parenté, localisation, signalements, etc.) pour améliorer le
+repérage des personnes recherchées et la communication auprès du public. Voici les
+principales composantes du projet :
+2.1 Fonctionnalités Clés de l’Application
+●​ Base de données centralisée des personnes disparues : L’application fournira un
+répertoire unifié des avis de recherche, alimenté en partenariat avec les autorités
+compétentes (police, gendarmerie) et des organisations humanitaires. Chaque
+fiche comportera les informations clés sur la personne disparue (nom, photo,
+âge, description physique, dernières coordonnées connues, circonstances de la
+disparition, éventuel lien de filiation ou contacts familiaux, etc.), et sera mise à
+jour en temps réel dès qu’il y a du nouveau (signalement d’un indice, personne
+retrouvée, etc.). Une telle centralisation palliera la dispersion actuelle des
+annonces sur les réseaux sociaux[3] et facilitera l’accès à l’information pour tous.
+●​ Analyse par intelligence artificielle : Au cœur de l’application, des algorithmes
+d’IA traiteront et croiseront les données afin de prioriser et orienter les
+recherches. Concrètement, l’IA pourra par exemple :
+●​ Faire des recoupements entre des cas similaires ou des personnes susceptibles
+d’être ensemble (ex : grouper des disparitions possiblement liées à un même
+événement ou lieu).●​ Exploiter la “filiation possible” : en analysant les données familiales, l’outil
+pourrait détecter si une personne non identifiée correspond à un enfant
+recherché en se basant sur des critères physiques ou génétiques (via des
+données fournies par la famille, par exemple) ou suggérer un rapprochement
+entre un enfant trouvé et une famille déclarant une disparition.
+●​ Reconnaissance d’image et biométrie : l’IA de vision par ordinateur pourrait être
+utilisée pour comparer des photos ou vidéos (p. ex. images de caméras de
+surveillance, photos partagées sur les réseaux) avec les visages des personnes
+disparues enregistrées dans la base. Ceci permettrait de signaler
+automatiquement une possible correspondance si quelqu’un ressemblant
+fortement à une personne recherchée est détecté dans une image publique.
+●​ Prédictions de localisation : en fonction des données géographiques et des
+signalements antérieurs, l’application pourra estimer des zones où la personne
+disparue a le plus de chances de se trouver. Par exemple, si plusieurs
+témoignages la situent dans une certaine région, ou si l’historique montre un
+itinéraire (cas de migrations, déplacements), l’algorithme pourra cartographier les
+zones chaudes de recherche. De plus, l’IA peut tenir compte de facteurs
+contextuels (présence de réseaux de transport, frontières à proximité, etc.) pour
+orienter les efforts. L’objectif est de hiérarchiser les actions de recherche et de
+gagner en efficacité.
+●​ Alerte précoce et profilage : en analysant les circonstances types des
+disparitions (fugues, kidnappings, accidents, etc.[5]), l’IA pourrait aussi aider à
+détecter plus rapidement des situations à risque. Par exemple, si un enfant n’est
+pas rentré à la maison et que cela correspond à un schéma fréquent,
+l’application pourrait inciter à émettre une alerte plus tôt (principe inspiré du
+système d’Alerte Enlèvement / Amber Alert).
+●​ Géolocalisation et alertes de proximité : L’application intégrera un système
+d’alertes géolocalisées afin de mobiliser la population locale dans les
+recherches. Lorsqu’un nouvel avis de disparition est ajouté, tous les utilisateurs
+se trouvant dans un rayon géographique pertinent recevront une notification sur
+leur téléphone avec les informations de la personne disparue (photo, nom,
+description) et la date/lieu de la dernière observation. Par exemple, si un enfant a
+disparu à Yaoundé, l’application enverra une alerte aux utilisateurs se trouvant à
+Yaoundé et dans les localités voisines. De même, si l’IA prédit que la personne
+pourrait être dans telle zone (sur la base de déplacements probables), des
+notifications pourront être diffusées dans ces zones. Ce système de notification
+locale permettra d’informer immédiatement la communauté environnante,
+augmentant les chances qu’une personne qui correspond à la description soit
+repérée et signalée rapidement (sur le modèle des alertes SMS d’enlèvement,
+mais à plus large échelle et pour tout type de disparition).
+●​ Signalements participatifs et collaboration citoyenne : Les utilisateurs de
+l’application pourront contribuer activement aux recherches. Une fonctionnalité
+de signalement permettra à quiconque de rapporter une observation ou uneinformation potentiellement liée à une personne disparue. Par exemple, si un
+utilisateur pense avoir aperçu la personne recherchée (dans la rue, les
+transports, un marché, etc.), il pourra en quelques clics envoyer une alerte avec
+localisation et éventuellement une photo. L’IA pourra alors vérifier
+automatiquement si la photo ressemble à la personne disparue (via
+reconnaissance faciale) et classer le signalement par pertinence. Toutes les
+données transmises par le public seront transmises aux autorités via l’application
+pour investigation. Cette approche participative vise à étendre le réseau de veille
+bien au-delà des forces de l’ordre seules, en impliquant la population de façon
+structurée et sécurisée.
+●​ Protection des données et fiabilité : Compte tenu de la sensibilité des
+informations (identité des mineurs, données personnelles), l’application intègrera
+des mesures strictes de confidentialité et de vérification. Seuls des acteurs
+certifiés (forces de l’ordre, organisations autorisées) pourront ajouter de
+nouveaux cas ou valider des mises à jour critiques. Les signalements du public
+feront l’objet d’une modération et seront transférés aux autorités pour validation.
+Aucune donnée personnelle superflue ne sera exposée publiquement, hormis les
+éléments utiles à l’identification de la personne disparue. L’IA sera entraînée de
+manière éthique, en évitant les biais, et un audit régulier de l’usage des données
+sera effectué pour garantir le respect de la vie privée. La sécurité de la
+plateforme sera une priorité (stockage chiffré, protection contre les accès non
+autorisés) afin de préserver l’intégrité des informations et d’éviter les fausses
+alertes malveillantes.
+2.2 Interfaces dédiées : Autorités vs Grand Public
+Pour répondre aux besoins spécifiques de chaque acteur, l’application comportera deux
+espaces utilisateurs distincts : l’un réservé aux autorités compétentes, l’autre destiné au
+grand public.
+●​ Espace Autorités* : Accessible aux utilisateurs *accrédités (forces de l’ordre,
+organismes officiels de secours, ONG partenaires), cette section sécurisée
+permettra de gérer les cas de disparitions. Les autorités pourront y enregistrer de
+nouveaux dossiers (création d’un profil de personne disparue avec toutes les
+informations disponibles), mettre à jour le statut des dossiers (par ex. personne
+retrouvée saine et sauve, cas résolu, etc.), et consulter l’ensemble des
+signalements reçus du public. Cet espace offrira aussi des outils avancés,
+comme des tableaux de bord statistiques (pour repérer des tendances, zones à
+haut risque, pics de disparitions sur une période donnée) et un module de
+coordination pour échanger entre différentes agences (police, gendarmerie,
+protection civile) sur un cas particulier. Une fonction de chat interne ou de forum
+sécurisé pourrait y être intégrée pour faciliter la communication inter-services au
+sujet d’une enquête. Enfin, l’espace Autorités permettra de configurer les
+paramètres d’alerte (par exemple, valider la diffusion d’une notification publique
+pour un cas jugé critique). L’objectif est de fournir aux professionnels un outilcomplet de suivi et de collaboration, centralisant toutes les informations utiles à
+leurs investigations.
+●​ Espace Grand Public* : Ouvert à tous via une simple inscription (ou même sans
+inscription pour la consultation de base), cet espace permettra aux citoyens de
+*prendre connaissance des personnes disparues et de contribuer aux
+recherches. L’interface présentera un fil d’actualité ou une carte interactive des
+disparitions en cours, filtrable par région, par type (enfant, adulte, situation de
+danger, etc.). Chaque utilisateur pourra s’abonner à certaines zones
+géographiques ou types de cas afin de recevoir des notifications ciblées. Par
+exemple, un parent pourrait s’abonner aux alertes concernant des disparitions
+d’enfants dans sa ville. Le grand public pourra également soumettre des
+témoignages ou informations via le formulaire de signalement évoqué plus haut
+(texte libre, photo, localisation). Une rubrique conseils informera les utilisateurs
+sur la conduite à tenir s’ils retrouvent une personne (contacter les autorités, ne
+pas diffuser de fausses informations, etc.). L’espace public servira aussi de
+plateforme de sensibilisation : des messages de prévention (pour éviter les
+fugues, protéger les enfants lors de déplacements, etc.) y seront diffusés en
+partenariat avec les autorités, conformément aux recommandations des
+experts[14]. En somme, cette interface publique vise à mobiliser la communauté
+de façon responsable et efficace, en la tenant informée et en la rendant actrice
+de la recherche des disparus.
+Notons que ces deux espaces, bien que séparés dans leurs droits d’accès, sont
+étroitement connectés. Les informations validées par l’espace Autorités alimentent
+l’espace Public (après d’éventuels filtrages pour ne pas nuire à l’enquête), et
+inversement les informations du public (après modération) sont transmises aux
+autorités. Cette double interface garantit ainsi un partage d’information fluide tout en
+maintenant le niveau de contrôle approprié par les instances officielles sur les données
+sensibles.
+2.3 Modèle Économique et Viabilité du Projet
+Le modèle économique de l’application sera basé sur des donations et un
+fonctionnement à but non lucratif. L’objectif est de créer un service d’utilité publique,
+accessible gratuitement à tous les utilisateurs (familles de disparus, citoyens, forces de
+l’ordre), afin de maximiser son adoption et son impact humanitaire. Concrètement :
+●​ L’application ne comportera pas de publicités commerciales intrusives et ne
+vendra pas les données des utilisateurs. Au contraire, le respect de la vie privée
+et l’éthique seront des valeurs centrales, ce qui est cohérent avec un
+financement par dons plutôt que par la monétisation classique.
+●​ Les fonds nécessaires au développement, à la maintenance des serveurs, et aux
+améliorations continues de la plateforme proviendront de dons volontaires des
+usagers touchés par la cause, du mécénat d’entreprise (notamment des
+entreprises technologiques ou des fondations œuvrant pour la sécurité et lesdroits humains), et de subventions publiques ou d’organisations internationales.
+Par exemple, des partenariats pourront être noués avec des ONG (Croix-Rouge,
+UNICEF, etc.) ou des institutions étatiques pour soutenir financièrement le projet
+en échange de l’utilité sociale rendue.
+●​ L’application intégrera éventuellement un bouton ou une section « Soutenir le
+projet » permettant aux utilisateurs de faire un don en ligne sécurisé s’ils le
+souhaitent. Des campagnes de financement participatif (crowdfunding)
+pourraient également être lancées lors des phases initiales (développement) ou
+pour des fonctionnalités spécifiques (par ex. intégrer un module de
+reconnaissance faciale plus performant).
+●​ Grâce à ce modèle basé sur la solidarité, le projet vise une viabilité à long terme
+sans dépendre des logiques de profit. Les coûts opérationnels étant relativement
+maîtrisés (infrastructure cloud, petites équipes de développement et de
+modération, assistance utilisateur), un socle régulier de donations devrait suffire
+à maintenir le service actif. Une transparence totale sera assurée sur l’utilisation
+des fonds (rapport public indiquant les dépenses), afin de cultiver la confiance
+des donateurs et utilisateurs.
+En conclusion, cette application de recherche de personnes disparues représente un
+projet à fort impact social, tirant parti des nouvelles technologies (IA, mobile,
+géolocalisation) pour répondre à un enjeu pressant au Cameroun, en Afrique et dans le
+monde. En centralisant les informations, en mobilisant le grand public de manière
+organisée et en offrant aux autorités un outil performant, elle a le potentiel de sauver
+des vies et de réunir des familles séparées. Le choix d’un modèle économique fondé
+sur les dons garantit que l’initiative reste centrée sur sa mission humanitaire. À terme,
+une telle plateforme pourrait s’intégrer aux dispositifs officiels de gestion des
+disparitions (comme un complément numérique aux alertes existantes) et servir
+d’exemple de l’apport positif que l’intelligence artificielle et la collaboration citoyenne
+peuvent apporter pour résoudre des problèmes sociétaux complexes.
+Sources : Les statistiques et recommandations sont issues de rapports récents et de
+communiqués d’organismes spécialisés, notamment Journal du Cameroun, le Comité
+International de la Croix-Rouge et Africanews, mettant en lumière l’augmentation
+alarmante des disparitions au Cameroun, en Afrique et dans le monde[1][6][10]. Ces
+sources soulignent l’urgence d’agir et l’intérêt d’outils technologiques pour y faire
+face[14][17]. Les fonctionnalités proposées s’inspirent de pratiques éprouvées (alertes
+locales de type Amber Alert, plateformes d’annonces de disparitions) et tirent parti des
+avancées de l’IA pour créer une solution innovante au service de la communauté.
+[1] [2] [3] [4] [5] [14] Cameroun : 441 cas de disparitions de personnes signalés en six
+mois - Journalducameroun.com
+https://fr.journalducameroun.com/cameroun-441-cas-de-disparitions-de-personnes-sign
+alees-en-six-mois/[6] [7] [8] [9] Plus de 25 000 mineurs toujours portés disparus en Afrique | Africanews
+https://fr.africanews.com/2022/08/30/plus-de-25-000-mineurs-toujours-portes-disparus-e
+n-afrique/
+[10] [11] [12] [16] Hausse de 70 % en cinq ans du nombre de disparus dans le monde,
+causée principalement par la multiplication des conflits
+https://www.lemonde.fr/international/article/2025/08/29/hausse-de-70-en-cinq-ans-du-no
+mbre-de-disparus-dans-le-monde-causee-principalement-par-la-multiplication-des-confli
+ts_6637396_3210.html
+[13] [15] [17] Afrique : 44 000 cas de disparition enregistrés sur le continent – près de la
+moitié des disparus sont des enfants | Comité International de la Croix-Rouge
+https://www.icrc.org/fr/document/afrique-44-000-cas-de-disparition-enregistres-sur-le-co
+ntinent-pres-de-la-moitie-des

@@ -1,0 +1,178 @@
+.container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 16px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.date {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.content {
+  color: #1f2937;
+}
+
+.section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.details p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 8px;
+  background-color: #f9fafb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.details span {
+  color: #6b7280;
+}
+
+.details strong {
+  color: #1f2937;
+  font-weight: bold;
+}
+
+.match {
+  padding: 12px;
+  background-color: #dbeafe;
+  border-radius: 4px;
+}
+
+.match p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.match strong {
+  font-weight: bold;
+}
+
+.score {
+  color: #1e40af;
+  font-weight: bold;
+}
+
+.matchesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.matchesList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.matchesList li:last-child {
+  border-bottom: none;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.locationList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.locationList li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background-color: #f9fafb;
+  border-left: 3px solid #3b82f6;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.locationList li:last-child {
+  margin-bottom: 0;
+}
+
+.probability {
+  display: inline-block;
+  min-width: 45px;
+  padding: 4px 8px;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.reason {
+  flex: 1;
+  color: #1f2937;
+}
+
+.noData {
+  padding: 40px 20px;
+  text-align: center;
+  color: #9ca3af;
+  background-color: #f9fafb;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .details p {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .details span {
+    margin-bottom: 4px;
+  }
+}

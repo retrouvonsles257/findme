@@ -1,0 +1,296 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Citizen Layout
+ * Layout principal pour les pages citoyens
+ * Style inspiré de ChatGPT/Claude avec sidebar rétractable
+ * =====================================================
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useI18n } from '../../hooks';
+import { useAppSelector } from '../../store/types';
+import { selectUser } from '../../features/auth/store/authSelectors';
+import { useLogout } from '../../features/auth/hooks';
+import { 
+  Menu, 
+  X, 
+  Home, 
+  Map, 
+  Bell, 
+  FileText, 
+  Plus, 
+  Settings, 
+  LogOut, 
+  Globe,
+  ChevronLeft,
+  ChevronRight,
+  User
+} from 'lucide-react';
+import styles from './CitizenLayout.module.css';
+
+interface CitizenLayoutProps {
+  children: React.ReactNode;
+  activeNav?: string;
+}
+
+export const CitizenLayout: React.FC<CitizenLayoutProps> = ({ 
+  children, 
+  activeNav 
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t, language, changeLanguage } = useI18n();
+  const currentUser = useAppSelector(selectUser);
+  const { logout: performLogout } = useLogout();
+  
+  // États
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('citizenSidebarCollapsed');
+    return saved === 'true';
+  });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Sauvegarder l'état du sidebar
+  useEffect(() => {
+    localStorage.setItem('citizenSidebarCollapsed', String(isCollapsed));
+  }, [isCollapsed]);
+
+  // Fermer le menu utilisateur au clic extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await performLogout();
+    navigate('/auth/login');
+  };
+
+  const toggleLanguage = () => {
+    changeLanguage(language === 'fr' ? 'en' : 'fr');
+    setUserMenuOpen(false);
+  };
+
+  const getInitials = () => {
+    const user = currentUser as any;
+    if (user?.nom_complet) {
+      return user.nom_complet.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getUserPhoto = () => {
+    const user = currentUser as any;
+    return user?.photo_profil || user?.avatar_url || null;
+  };
+
+  // Navigation items
+  const navItems = [
+    {
+      id: 'dashboard',
+      label: t('common.dashboard'),
+      icon: Home,
+      path: '/citizen/dashboard',
+    },
+    {
+      id: 'map',
+      label: t('citizen.map'),
+      icon: Map,
+      path: '/citizen/map',
+    },
+    {
+      id: 'alerts',
+      label: t('citizen.alerts'),
+      icon: Bell,
+      path: '/citizen/alerts',
+    },
+    {
+      id: 'signalements',
+      label: t('common.reports'),
+      icon: FileText,
+      path: '/citizen/my-signalements',
+    },
+    {
+      id: 'new-signalement',
+      label: t('citizen.newReport'),
+      icon: Plus,
+      path: '/citizen/new-signalement',
+    },
+    {
+      id: 'settings',
+      label: t('citizen.settings'),
+      icon: Settings,
+      path: '/citizen/settings',
+    },
+  ];
+
+  const isActive = (itemId: string, itemPath: string) => {
+    if (activeNav) return activeNav === itemId;
+    return location.pathname === itemPath;
+  };
+
+  return (
+    <div className={styles.layout}>
+      {/* Overlay mobile */}
+      {mobileOpen && (
+        <div 
+          className={styles.overlay}
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
+      >
+        {/* Header du sidebar */}
+        <div className={styles.sidebarHeader}>
+          {!isCollapsed && (
+            <div className={styles.logoContainer}>
+              <div className={styles.logoIcon}>RL</div>
+            </div>
+          )}
+          
+          {/* Bouton toggle desktop */}
+          <button 
+            className={styles.toggleBtn}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            title={isCollapsed ? t('citizen.openSidebar') : t('citizen.closeSidebar')}
+          >
+            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
+
+          {/* Bouton fermer mobile */}
+          <button 
+            className={styles.closeMobileBtn}
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className={styles.nav}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.id, item.path);
+            return (
+              <button
+                key={item.id}
+                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <Icon size={20} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* User section en bas */}
+        <div className={styles.userSection} ref={userMenuRef}>
+          <button 
+            className={styles.userBtn}
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            title={isCollapsed ? (currentUser as any)?.nom_complet || (currentUser as any)?.email : undefined}
+          >
+            {getUserPhoto() ? (
+              <img src={getUserPhoto()} alt="" className={styles.userAvatar} />
+            ) : (
+              <div className={styles.userAvatarPlaceholder}>
+                {getInitials()}
+              </div>
+            )}
+            {!isCollapsed && (
+              <span className={styles.userName}>
+                {(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
+              </span>
+            )}
+          </button>
+
+          {/* Menu dropdown */}
+          {userMenuOpen && (
+            <div className={`${styles.userMenu} ${isCollapsed ? styles.userMenuCollapsed : ''}`}>
+              <button 
+                className={styles.userMenuItem}
+                onClick={() => {
+                  navigate('/citizen/profile');
+                  setUserMenuOpen(false);
+                  setMobileOpen(false);
+                }}
+              >
+                <User size={18} />
+                <span>{t('common.profile')}</span>
+              </button>
+              <button 
+                className={styles.userMenuItem}
+                onClick={toggleLanguage}
+              >
+                <Globe size={18} />
+                <span>{language === 'fr' ? 'English' : 'Français'}</span>
+              </button>
+              <div className={styles.userMenuDivider} />
+              <button 
+                className={`${styles.userMenuItem} ${styles.userMenuItemDanger}`}
+                onClick={handleLogout}
+              >
+                <LogOut size={18} />
+                <span>{t('common.logout')}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div className={`${styles.main} ${isCollapsed ? styles.mainExpanded : ''}`}>
+        {/* Header mobile */}
+        <header className={styles.mobileHeader}>
+          <button 
+            className={styles.menuBtn}
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu size={24} />
+          </button>
+          <span className={styles.appName}>RetrouvonsLes</span>
+          <div className={styles.headerSpacer} />
+          {/* Avatar dans le header mobile */}
+          <button 
+            className={styles.mobileAvatarBtn}
+            onClick={() => setMobileOpen(true)}
+          >
+            {getUserPhoto() ? (
+              <img src={getUserPhoto()} alt="" className={styles.mobileAvatar} />
+            ) : (
+              <div className={styles.mobileAvatarPlaceholder}>
+                {getInitials()}
+              </div>
+            )}
+          </button>
+        </header>
+
+        {/* Content */}
+        <main className={styles.content}>
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default CitizenLayout;

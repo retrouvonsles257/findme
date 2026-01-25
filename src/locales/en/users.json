@@ -1,0 +1,110 @@
+{
+  "users": {
+    "title": "Users",
+    "subtitle": "User management and profiles",
+    "my_profile": {
+      "title": "My Profile",
+      "personal_info": "Personal Information",
+      "contact_info": "Contact Information",
+      "account_info": "Account Information",
+      "preferences": "Preferences",
+      "security": "Security Settings"
+    },
+    "user_list": {
+      "title": "User Directory",
+      "filters": {
+        "role": "User Role",
+        "status": "Account Status",
+        "organization": "Organization",
+        "verification": "Verification Status",
+        "joined_date": "Join Date"
+      }
+    },
+    "user_detail": {
+      "title": "User Profile",
+      "personal_info": "Personal Information",
+      "contact_info": "Contact Information",
+      "account_status": "Account Status",
+      "role": "User Role",
+      "organization": "Organization",
+      "verification": "Verification Status",
+      "activity": "Activity Log",
+      "contributions": "Contributions",
+      "joined": "Joined",
+      "last_active": "Last Active"
+    },
+    "settings": {
+      "title": "User Settings",
+      "account": "Account Settings",
+      "notifications": "Notification Preferences",
+      "privacy": "Privacy Settings",
+      "security": "Security Settings",
+      "preferences": "General Preferences"
+    },
+    "fields": {
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "organization": "Organization",
+      "role": "Role",
+      "profile_photo": "Profile Photo",
+      "bio": "Biography",
+      "location": "Location",
+      "language": "Language Preference",
+      "theme": "Theme Preference",
+      "two_factor_auth": "Two-Factor Authentication",
+      "email_verified": "Email Verified",
+      "phone_verified": "Phone Verified",
+      "account_status": "Account Status"
+    },
+    "roles": {
+      "super_admin": "Super Administrator",
+      "admin": "Administrator",
+      "moderator": "Moderator",
+      "officer": "Police Officer",
+      "ngo_delegate": "NGO Delegate",
+      "verified_citizen": "Verified Citizen",
+      "citizen": "Citizen"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "pending": "Pending Verification",
+      "inactive": "Inactive",
+      "blocked": "Blocked"
+    },
+    "preferences": {
+      "notifications": {
+        "email": "Email Notifications",
+        "push": "Push Notifications",
+        "sms": "SMS Notifications",
+        "alerts": "Alert Notifications"
+      },
+      "privacy": {
+        "profile_visibility": "Profile Visibility",
+        "show_email": "Show Email Address",
+        "show_phone": "Show Phone Number",
+        "public_profile": "Public Profile"
+      }
+    },
+    "actions": {
+      "edit_profile": "Edit Profile",
+      "change_password": "Change Password",
+      "enable_2fa": "Enable Two-Factor Authentication",
+      "view_activity": "View Activity Log",
+      "download_data": "Download My Data",
+      "delete_account": "Delete Account"
+    },
+    "contributions": {
+      "cases_created": "Cases Created",
+      "reports_submitted": "Reports Submitted",
+      "cases_verified": "Cases Verified",
+      "helpful_votes": "Helpful Votes Received"
+    },
+    "profile_completion": "Profile Completion",
+    "reputation_score": "Reputation Score",
+    "member_since": "Member Since {{date}}"
+  }
+}

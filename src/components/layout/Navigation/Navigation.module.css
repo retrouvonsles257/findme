@@ -1,0 +1,13 @@
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+@media (max-width: 768px) {
+  .navigation {
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+  }
+}

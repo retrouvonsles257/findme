@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "manageAccount": "Gérez les paramètres et préférences de votre compte",
+    "manageAccountVerified": "Gérez votre compte vérifié et vos préférences",
+    "personalInfo": "Informations Personnelles",
+    "security": "Sécurité",
+    "preferences": "Préférences",
+    "firstName": "Prénom",
+    "lastName": "Nom de Famille",
+    "phone": "Numéro de Téléphone",
+    "dateOfBirth": "Date de Naissance",
+    "nationality": "Nationalité",
+    "city": "Ville",
+    "changeAvatar": "Changer Avatar",
+    "profileUpdated": "Profil mis à jour avec succès",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordChanged": "Mot de passe changé avec succès",
+    "currentPassword": "Mot de Passe Actuel",
+    "newPassword": "Nouveau Mot de Passe",
+    "confirmPassword": "Confirmer Mot de Passe",
+    "changePassword": "Changer le Mot de Passe",
+    "language": "Langue",
+    "emailNotifications": "Notifications par Email",
+    "pushNotifications": "Notifications Push",
+    "darkMode": "Mode Sombre",
+    "dataSharing": "Partager mes données pour la recherche"
+  }
+}

@@ -1,0 +1,511 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Citizen Layout Styles
+ * Sidebar blanc, contenu aligné avec la nav du sidebar
+ * =====================================================
+ */
+
+:root {
+  --citizen-primary: #1d4ed8;
+  --citizen-primary-light: #3b82f6;
+  --citizen-sidebar-bg: #ffffff;
+  --citizen-sidebar-border: #e5e7eb;
+  --citizen-sidebar-hover: #f3f4f6;
+  --citizen-sidebar-active: #eff6ff;
+  --citizen-text: #374151;
+  --citizen-text-muted: #6b7280;
+  --citizen-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 70px;
+  --nav-padding-x: 0.75rem;
+  --nav-item-padding-x: 1rem;
+}
+
+/* ========== LAYOUT PRINCIPAL ========== */
+.layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f9fafb;
+  font-family: var(--citizen-font);
+}
+
+/* Overlay mobile */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--citizen-sidebar-bg);
+  border-right: 1px solid var(--citizen-sidebar-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+.sidebarCollapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* Header du sidebar */
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--citizen-sidebar-border);
+  min-height: 64px;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logoIcon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--citizen-primary) 0%, var(--citizen-primary-light) 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--citizen-sidebar-hover);
+  border: none;
+  border-radius: 6px;
+  color: var(--citizen-text);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: auto;
+}
+
+.toggleBtn:hover {
+  background: #e5e7eb;
+}
+
+.closeMobileBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--citizen-sidebar-hover);
+  border: none;
+  border-radius: 6px;
+  color: var(--citizen-text);
+  cursor: pointer;
+}
+
+.closeMobileBtn:hover {
+  background: #e5e7eb;
+}
+
+/* ========== NAVIGATION ========== */
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 1rem var(--nav-padding-x);
+  overflow-y: auto;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem var(--nav-item-padding-x);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--citizen-text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background: var(--citizen-sidebar-hover);
+  color: var(--citizen-text);
+}
+
+.navItemActive {
+  background: var(--citizen-sidebar-active);
+  color: var(--citizen-primary);
+  font-weight: 600;
+}
+
+.navItemActive:hover {
+  background: var(--citizen-sidebar-active);
+  color: var(--citizen-primary);
+}
+
+/* Sidebar collapsed - hide text */
+.sidebarCollapsed .navItem {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.sidebarCollapsed .navItem span {
+  display: none;
+}
+
+/* ========== USER SECTION ========== */
+.userSection {
+  position: relative;
+  padding: var(--nav-padding-x);
+  border-top: 1px solid var(--citizen-sidebar-border);
+}
+
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--citizen-sidebar-hover);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.userBtn:hover {
+  background: #e5e7eb;
+}
+
+.userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.userAvatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--citizen-primary) 0%, var(--citizen-primary-light) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.userName {
+  flex: 1;
+  text-align: left;
+  color: var(--citizen-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sidebar collapsed - hide username */
+.sidebarCollapsed .userBtn {
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.sidebarCollapsed .userName {
+  display: none;
+}
+
+/* User menu dropdown */
+.userMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: var(--nav-padding-x);
+  right: var(--nav-padding-x);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--citizen-sidebar-border);
+  overflow: hidden;
+  z-index: 1100;
+}
+
+.userMenuCollapsed {
+  left: var(--sidebar-collapsed-width);
+  right: auto;
+  width: 200px;
+}
+
+.userMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--citizen-text);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+}
+
+.userMenuItem:hover {
+  background-color: var(--citizen-sidebar-hover);
+}
+
+.userMenuItemDanger {
+  color: #dc2626;
+}
+
+.userMenuItemDanger:hover {
+  background-color: #fef2f2;
+}
+
+.userMenuDivider {
+  height: 1px;
+  background-color: var(--citizen-sidebar-border);
+  margin: 0.25rem 0;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main {
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  height: 100vh;
+  overflow: hidden;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.mainExpanded {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* Mobile header - hidden on desktop */
+.mobileHeader {
+  display: none;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  background: white;
+  border-bottom: 1px solid var(--citizen-sidebar-border);
+  flex-shrink: 0;
+  height: 64px;
+  min-height: 64px;
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--citizen-text);
+  cursor: pointer;
+}
+
+.menuBtn:hover {
+  background-color: var(--citizen-sidebar-hover);
+}
+
+.appName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--citizen-primary);
+}
+
+.headerSpacer {
+  flex: 1;
+}
+
+/* ========== AVATAR MOBILE (header) ========== */
+.mobileAvatarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mobileAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.mobileAvatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--citizen-primary) 0%, var(--citizen-primary-light) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* ========== CONTENT ========== */
+/* 
+ * Le padding est minimal pour que le contenu prenne toute la place
+ * Les pages individuelles gèrent leur propre padding si nécessaire
+ */
+.content {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ========== RESPONSIVE - TABLET & MOBILE ========== */
+@media (max-width: 1024px) {
+  /* Sidebar caché par défaut, glisse depuis la gauche */
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+
+  /* Sidebar visible quand ouvert */
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  /* Ignorer l'état collapsed sur mobile - toujours afficher le texte */
+  .sidebarCollapsed {
+    width: 280px;
+  }
+
+  .sidebarCollapsed .navItem {
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+  }
+
+  .sidebarCollapsed .navItem span {
+    display: inline;
+  }
+
+  .sidebarCollapsed .userBtn {
+    justify-content: flex-start;
+  }
+
+  .sidebarCollapsed .userName {
+    display: block;
+  }
+
+  .sidebarCollapsed .userAvatar,
+  .sidebarCollapsed .userAvatarPlaceholder {
+    display: flex;
+  }
+
+  /* Toggle desktop caché sur mobile */
+  .toggleBtn {
+    display: none;
+  }
+
+  /* Bouton fermer visible sur mobile */
+  .closeMobileBtn {
+    display: flex;
+  }
+
+  /* Overlay visible sur mobile */
+  .overlay {
+    display: block;
+  }
+
+  /* Main prend toute la largeur */
+  .main {
+    margin-left: 0;
+    width: 100%;
+    height: 100vh;
+  }
+
+  .mainExpanded {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* Header mobile visible */
+  .mobileHeader {
+    display: flex;
+  }
+
+  /* Contenu ajusté pour le header mobile */
+  .content {
+    height: calc(100vh - 64px);
+    padding: 0;
+  }
+
+  /* Menu dropdown position sur mobile */
+  .userMenuCollapsed {
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+  }
+}
+
+/* ========== RESPONSIVE - SMALL MOBILE ========== */
+@media (max-width: 640px) {
+  .sidebar {
+    width: 100%;
+  }
+
+  .sidebarCollapsed {
+    width: 100%;
+  }
+
+  .mobileHeader {
+    height: 56px;
+    min-height: 56px;
+  }
+
+  .content {
+    height: calc(100vh - 56px);
+    padding: 0;
+  }
+}

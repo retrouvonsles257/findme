@@ -1,0 +1,282 @@
+.errorContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fef3e2 0%, #fff5e6 100%);
+  padding: 1rem;
+}
+
+.errorContent {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  padding: 3rem 2rem;
+  max-width: 600px;
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+  border-top: 4px solid #ff9800;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error Code */
+.errorCode {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.code401 {
+  font-size: 6rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.05em;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Error Title */
+.errorTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 1rem 0;
+  letter-spacing: -0.5px;
+}
+
+/* Error Message */
+.errorMessage {
+  font-size: 1.3rem;
+  color: #495057;
+  margin: 1.5rem 0;
+  font-weight: 600;
+}
+
+/* Error Description */
+.errorDescription {
+  font-size: 1rem;
+  color: #6c757d;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* Illustration */
+.illustration {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  font-size: 4rem;
+  height: 120px;
+}
+
+.lockIcon,
+.keyIcon {
+  display: inline-block;
+  animation: swing 2s infinite;
+}
+
+.keyIcon {
+  animation-delay: 0.3s;
+}
+
+@keyframes swing {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+/* Reason Section */
+.reasonSection {
+  background: #fff3e0;
+  border-left: 4px solid #ff9800;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.reasonTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.reasonList {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #495057;
+}
+
+.reasonList li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.buttonPrimary,
+.buttonSecondary {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.buttonPrimary {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.buttonPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.buttonSecondary {
+  background: white;
+  color: #ff9800;
+  border: 2px solid #ff9800;
+}
+
+.buttonSecondary:hover {
+  background: #fff3e0;
+  transform: translateY(-2px);
+}
+
+/* Additional Info */
+.additionalInfo {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.infoText {
+  font-size: 0.95rem;
+  color: #6c757d;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.supportLink {
+  color: #ff9800;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.supportLink:hover {
+  color: #f57c00;
+  text-decoration: underline;
+}
+
+/* Error ID */
+.errorId {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fff3e0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.errorId code {
+  background: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #495057;
+  display: block;
+  word-break: break-all;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .errorContent {
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+  }
+
+  .code401 {
+    font-size: 4rem;
+  }
+
+  .errorTitle {
+    font-size: 1.8rem;
+  }
+
+  .errorMessage {
+    font-size: 1.1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .buttonPrimary,
+  .buttonSecondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .errorContainer {
+    padding: 0.5rem;
+  }
+
+  .errorContent {
+    padding: 1.5rem 1rem;
+    border-radius: 10px;
+  }
+
+  .code401 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .errorTitle {
+    font-size: 1.5rem;
+    margin: 0.75rem 0;
+  }
+
+  .errorMessage {
+    font-size: 1rem;
+  }
+
+  .illustration {
+    font-size: 2.5rem;
+    height: 80px;
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "dashboard": "Tableau de bord modération",
+  "validation": "Validation des signalements",
+  "photoModeration": "Modération des photos",
+  "reports": "Rapports",
+  "welcome": "Bienvenue",
+  "supervisor": "Modérateur",
+
+  "dashboardTitle": "Tableau de bord modération",
+  "dashboardSubtitle": "Bienvenue, Modérateur",
+  "dashboardDescription": "Gérez les signalements et modérez le contenu sur la plateforme",
+
+  "totalSignalements": "Total signalements",
+  "pending": "En attente d'examen",
+  "approved": "Approuvés",
+  "rejected": "Rejetés",
+  "thisMonth": "ce mois",
+  "thisWeek": "cette semaine",
+  "validateReports": "Valider les signalements",
+  "validateDescription": "Examinez et validez les signalements en attente",
+  "photoDescription": "Examinez et approuvez les photos des signalements",
+  "reportsDescription": "Consultez les statistiques et analyses de modération",
+  "recentActivity": "Activité récente",
+
+  "nouveau": "Nouveau",
+  "enCours": "En cours",
+  "valides": "Validés",
+  "rejetes": "Rejetés",
+  "avgScore": "Score moyen",
+
+  "validationTitle": "Validation des signalements",
+  "validationSubtitle": "Examinez et validez les signalements reçus",
+  
+  "filterByStatus": "Filtrer par statut",
+  "allStatuses": "Tous les statuts",
+  "search": "Rechercher...",
+
+  "decision": "Décision",
+  "confidence": "Score de confiance",
+  "reason": "Raison",
+  "notes": "Notes supplémentaires",
+  "approve": "Approuver",
+  "reject": "Rejeter",
+  "needsClarification": "Besoin de clarification",
+
+  "reportList": "Liste des signalements",
+  "reportDetails": "Détails du signalement",
+  "noReports": "Aucun signalement",
+
+  "photosTitle": "Modération des photos",
+  "photosSubtitle": "Examinez et approuvez les photos des signalements",
+
+  "withPhotos": "Avec photos",
+  "withoutPhotos": "Sans photos",
+
+  "approvePhoto": "Approuver la photo",
+  "rejectPhoto": "Rejeter la photo",
+  "photoApproved": "Photo approuvée avec succès",
+  "photoRejected": "Photo rejetée avec succès",
+
+  "viewFullSize": "Voir en taille réelle",
+  "previousPhoto": "Photo précédente",
+  "nextPhoto": "Photo suivante",
+  "noPhotosFound": "Aucune photo trouvée",
+
+  "reportsTitle": "Rapports de modération",
+  "reportsSubtitle": "Statistiques et analyse de l'activité de modération",
+
+  "period": "Période",
+  "7days": "7 derniers jours",
+  "30days": "30 derniers jours",
+  "allTime": "Tout le temps",
+
+  "statistics": "Statistiques",
+  "topLocations": "Principaux lieux",
+  "reportsByDate": "Signalements par date",
+  "reportsByStatus": "Signalements par statut",
+  "averageScore": "Score moyen",
+  "selectPeriod": "Sélectionner la période"
+}

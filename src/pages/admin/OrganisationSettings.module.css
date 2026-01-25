@@ -1,0 +1,29 @@
+/* Admin Organisation Settings - Modern Responsive */
+.settings { font-family: 'Inter', system-ui, sans-serif; padding: 2.5rem; max-width: 1400px; margin: 0 auto; animation: fade-in 0.5s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.settings__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1.5rem; }
+.settings__title { font-size: 2.25rem; font-weight: 800; margin: 0; background: linear-gradient(135deg, #1e3a8a 0%, #1e90ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.02em; }
+.settings__tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid rgba(30, 144, 255, 0.1); }
+.settings__tab { display: flex; align-items: center; gap: 0.625rem; padding: 1rem 1.5rem; background: transparent; border: none; border-bottom: 3px solid transparent; color: #64748b; font-size: 0.975rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.3s ease; }
+.settings__tab:hover { color: #1e90ff; background: rgba(30, 144, 255, 0.05); }
+.settings__tab--active { color: #1e90ff; border-bottom-color: #1e90ff; background: linear-gradient(135deg, rgba(30, 144, 255, 0.03) 0%, rgba(25, 118, 210, 0.05) 100%); }
+.settings__tabIcon { width: 20px; height: 20px; }
+.settings__content { background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%); border-radius: 14px; padding: 2.5rem; border: 2px solid rgba(30, 144, 255, 0.1); box-shadow: 0 4px 20px rgba(30, 144, 255, 0.08); }
+.settings__section { margin-bottom: 2.5rem; }
+.settings__section:last-child { margin-bottom: 0; }
+.settings__sectionTitle { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid rgba(30, 144, 255, 0.1); }
+.settings__formGroup { margin-bottom: 1.5rem; }
+.settings__label { display: block; font-size: 0.925rem; font-weight: 700; color: #1e293b; margin-bottom: 0.625rem; text-transform: uppercase; }
+.settings__input, .settings__textarea, .settings__select { width: 100%; padding: 0.975rem 1.25rem; border: 2px solid rgba(30, 144, 255, 0.15); border-radius: 10px; font-size: 0.975rem; font-family: inherit; transition: all 0.2s ease; background: white; }
+.settings__input:focus, .settings__textarea:focus, .settings__select:focus { outline: none; border-color: #1e90ff; box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.1); }
+.settings__textarea { min-height: 120px; resize: vertical; }
+.settings__hint { font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; }
+.settings__formRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+.settings__actions { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 2rem; border-top: 2px solid rgba(30, 144, 255, 0.1); }
+.settings__btnSave, .settings__btnCancel { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2rem; border-radius: 12px; font-size: 0.975rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; }
+.settings__btnSave { background: linear-gradient(135deg, #1e90ff 0%, #1976d2 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3); }
+.settings__btnSave:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(30, 144, 255, 0.4); }
+.settings__btnCancel { background: white; color: #64748b; border: 2px solid #e2e8f0; }
+.settings__btnCancel:hover { border-color: #cbd5e1; background: #f8fafc; }
+@media (max-width: 768px) { .settings { padding: 1.5rem; } .settings__title { font-size: 1.75rem; } .settings__tabs { overflow-x: auto; } .settings__formRow { grid-template-columns: 1fr; } .settings__actions { flex-direction: column; } .settings__btnSave, .settings__btnCancel { width: 100%; } }
+@media (max-width: 480px) { .settings { padding: 1rem; } .settings__title { font-size: 1.5rem; } .settings__content { padding: 1.5rem; } }

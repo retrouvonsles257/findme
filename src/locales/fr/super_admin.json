@@ -1,0 +1,109 @@
+{
+  "dashboardTitle": "Tableau de bord Super Admin",
+  "dashboardSubtitle": "Bienvenue sur le tableau de bord Super Admin",
+  "dashboardDescription": "Gestion complète du système RETROUVONSLES",
+  "recentActivities": "Activités récentes",
+  "noActivities": "Aucune activité récente",
+  "thisMonth": "ce mois",
+  "quickActions": "Actions rapides",
+
+  "totalOrganisations": "Organisations totales",
+  "totalUsers": "Utilisateurs totaux",
+  "totalDossiers": "Dossiers totaux",
+  "activeDossiers": "Dossiers actifs",
+  "totalAlerts": "Alertes totales",
+  "systemHealth": "Santé du système",
+
+  "organisations": "Organisations",
+  "globalStatsMenu": "Statistiques globales",
+  "systemUsersMenu": "Utilisateurs système",
+  "iaConfigMenu": "Configuration IA",
+  "securityMenu": "Sécurité",
+  "systemLogsMenu": "Journaux système",
+  "systemSettingsMenu": "Paramètres système",
+  "manageOrganisations": "Gérer les organisations du système",
+  "noOrganisations": "Aucune organisation trouvée",
+  "viewAllOrganisations": "Voir toutes les organisations",
+
+  "systemUsersTitle": "Utilisateurs système",
+  "systemUsersSubtitle": "Gestion des utilisateurs et des rôles",
+  "viewSystemUsers": "Voir les utilisateurs système",
+  "manageSystemUsers": "Gérer tous les utilisateurs système",
+
+  "iaConfigurationTitle": "Configuration IA",
+  "iaConfigurationSubtitle": "Gérer les configurations des modèles d'IA",
+  "maxRequests": "Demandes max par jour",
+  "timeout": "Délai d'expiration (secondes)",
+  "temperature": "Température",
+  "topP": "Top P",
+  "noConfigurations": "Aucune configuration IA trouvée",
+
+  "securitySettings": "Paramètres de sécurité",
+  "manageSecuritySettings": "Configurer la sécurité du système",
+  "globalStatistics": "Statistiques globales",
+  "viewGlobalStatistics": "Voir les statistiques à l'échelle du système",
+
+  "globalStats": "Statistiques globales",
+  "systemWideAnalytics": "Analyses à l'échelle du système des cas de disparition",
+
+  "totalDispersions": "Total des disparitions",
+  "totalFound": "Personnes retrouvées",
+  "successRate": "Taux de réussite",
+  "avgResolutionTime": "Temps moyen de résolution",
+  "found": "Retrouvées",
+  "percentage": "Pourcentage",
+
+  "regionalAnalysis": "Analyse par région",
+  "ageDistribution": "Distribution par âge",
+  "genderStatistics": "Statistiques par sexe",
+
+  "securityTitle": "Gestion de la sécurité",
+  "securitySubtitle": "Contrôles de sécurité et événements",
+  "securityEvents": "Événements de sécurité",
+
+  "mfaEnabled": "Authentification multi-facteurs (MFA)",
+  "passwordExpiration": "Expiration du mot de passe (jours)",
+  "sessionTimeout": "Délai d'expiration de la session (minutes)",
+  "maxLoginAttempts": "Tentatives de connexion maximales",
+  "ipWhitelisting": "Liste blanche IP",
+  "dataEncryption": "Chiffrement des données",
+  "auditLogging": "Journal d'audit",
+  "apiRateLimiting": "Limitation du débit API",
+
+  "dangerZone": "Zone de danger",
+  "forceLogoutAll": "Forcer la déconnexion de tous les utilisateurs",
+  "resetSecuritySettings": "Réinitialiser les paramètres de sécurité",
+
+  "systemLogsTitle": "Journaux système",
+  "systemLogsSubtitle": "Journaux d'événements et erreurs du système",
+
+  "systemSettingsTitle": "Paramètres système",
+  "systemSettingsSubtitle": "Configuration générale du système",
+
+  "systemInformation": "Informations système",
+  "systemName": "Nom du système",
+  "systemVersion": "Version du système",
+  "timezone": "Fuseau horaire",
+  "defaultLanguage": "Langue par défaut",
+  "maintenanceMode": "Mode maintenance",
+
+  "performanceSettings": "Paramètres de performance",
+  "maxFileUpload": "Taille maximale de chargement (Mo)",
+  "maxConcurrentUsers": "Utilisateurs simultanés maximaux",
+  "backupFrequency": "Fréquence des sauvegardes",
+
+  "notificationSettings": "Paramètres de notification",
+  "emailNotifications": "Notifications par email",
+  "smsNotifications": "Notifications par SMS",
+
+  "exampleOrganisation1": "Exemple d'organisation 1",
+  "exampleOrganisation2": "Exemple d'organisation 2",
+  "exampleUser1": "Utilisateur 1",
+  "exampleUser2": "Utilisateur 2",
+  "roleSuperAdmin": "Super administrateur",
+  "roleModerator": "Modérateur",
+  "actionUserLogin": "Connexion utilisateur",
+  "actionConfigUpdate": "Mise à jour de configuration",
+
+  "avgResolutionValue": "12 jours"
+}

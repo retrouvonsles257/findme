@@ -1,0 +1,172 @@
+.container {
+  padding: 16px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.listHeader {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 0.8fr 0.8fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.columnName,
+.columnEmail,
+.columnRole,
+.columnStatus,
+.columnActivity {
+  padding: 0 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listItem {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 0.8fr 0.8fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  align-items: center;
+}
+
+.listItem:hover {
+  background-color: #f9f9f9;
+}
+
+.listItem.selected {
+  background-color: #e7f3ff;
+  border-left: 4px solid #0056b3;
+}
+
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.emailCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.unverified {
+  background-color: #ffc107;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.roleCell {
+  font-size: 13px;
+  color: #666;
+}
+
+.role {
+  background-color: #e7f3ff;
+  color: #0056b3;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.statusCell {
+  display: flex;
+  justify-content: center;
+}
+
+.status {
+  color: white;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.activityCell {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+}
+
+@media (max-width: 1024px) {
+  .listHeader {
+    grid-template-columns: 1fr 1fr 0.8fr 0.8fr;
+  }
+
+  .listItem {
+    grid-template-columns: 1fr 1fr 0.8fr 0.8fr;
+  }
+
+  .columnActivity,
+  .activityCell {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .listHeader {
+    display: none;
+  }
+
+  .listItem {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .userCell {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+
+  .columnEmail,
+  .columnRole,
+  .columnStatus,
+  .columnActivity {
+    display: none;
+  }
+
+  .emailCell,
+  .roleCell,
+  .statusCell,
+  .activityCell {
+    font-size: 12px;
+  }
+}

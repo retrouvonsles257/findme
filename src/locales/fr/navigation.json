@@ -1,0 +1,62 @@
+{
+  "navigation": {
+    "main": {
+      "home": "Accueil",
+      "search": "Rechercher",
+      "dossiers": "Personnes disparues",
+      "signalements": "Signalements",
+      "alertes": "Alertes",
+      "organizations": "Organisations",
+      "statistics": "Statistiques",
+      "messages": "Messages",
+      "help": "Aide"
+    },
+    "user_menu": {
+      "profile": "Mon profil",
+      "settings": "Paramètres",
+      "preferences": "Préférences",
+      "notifications": "Notifications",
+      "security": "Sécurité",
+      "activity": "Journal d'activité",
+      "documents": "Mes documents",
+      "support": "Support",
+      "logout": "Déconnexion"
+    },
+    "sidebar": {
+      "dashboard": "Tableau de bord",
+      "missing_persons": "Personnes disparues",
+      "create_case": "Créer un nouveau dossier",
+      "my_cases": "Mes dossiers",
+      "reports": "Signalements",
+      "create_report": "Créer un signalement",
+      "my_reports": "Mes signalements",
+      "alerts": "Alertes",
+      "create_alert": "Créer une alerte",
+      "my_alerts": "Mes alertes",
+      "map": "Vue cartographique",
+      "statistics": "Statistiques",
+      "analytics": "Analytique",
+      "organizations": "Organisations",
+      "users": "Utilisateurs",
+      "moderation": "Modération",
+      "admin": "Administration"
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "back": "Retour"
+    }
+  },
+  "footer": {
+    "about": "À propos de RETROUVONSLES",
+    "contact": "Nous contacter",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "cookies": "Politique relative aux cookies",
+    "accessibility": "Accessibilité",
+    "sitemap": "Plan du site",
+    "language": "Langue",
+    "social": "Suivez-nous",
+    "copyright": "© 2026 RETROUVONSLES. Tous droits réservés.",
+    "organization": "Aider à retrouver les personnes disparues dans le monde"
+  }
+}

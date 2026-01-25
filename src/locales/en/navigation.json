@@ -1,0 +1,62 @@
+{
+  "navigation": {
+    "main": {
+      "home": "Home",
+      "search": "Search",
+      "dossiers": "Missing Persons",
+      "signalements": "Reports",
+      "alertes": "Alerts",
+      "organizations": "Organizations",
+      "statistics": "Statistics",
+      "messages": "Messages",
+      "help": "Help"
+    },
+    "user_menu": {
+      "profile": "My Profile",
+      "settings": "Settings",
+      "preferences": "Preferences",
+      "notifications": "Notifications",
+      "security": "Security",
+      "activity": "Activity Log",
+      "documents": "My Documents",
+      "support": "Support",
+      "logout": "Sign Out"
+    },
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "missing_persons": "Missing Persons",
+      "create_case": "Create New Case",
+      "my_cases": "My Cases",
+      "reports": "Reports",
+      "create_report": "Create Report",
+      "my_reports": "My Reports",
+      "alerts": "Alerts",
+      "create_alert": "Create Alert",
+      "my_alerts": "My Alerts",
+      "map": "Map View",
+      "statistics": "Statistics",
+      "analytics": "Analytics",
+      "organizations": "Organizations",
+      "users": "Users",
+      "moderation": "Moderation",
+      "admin": "Administration"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "back": "Back"
+    }
+  },
+  "footer": {
+    "about": "About RETROUVONSLES",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "accessibility": "Accessibility",
+    "sitemap": "Sitemap",
+    "language": "Language",
+    "social": "Follow Us",
+    "copyright": "© 2026 RETROUVONSLES. All rights reserved.",
+    "organization": "Helping find missing persons worldwide"
+  }
+}

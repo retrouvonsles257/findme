@@ -1,0 +1,166 @@
+.drawerBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+.drawer {
+  position: fixed;
+  background-color: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+
+  &.left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+
+  &.right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateX(100%);
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+
+  &.top {
+    top: 0;
+    left: 0;
+    right: 0;
+    transform: translateY(-100%);
+
+    &.open {
+      transform: translateY(0);
+    }
+  }
+
+  &.bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translateY(100%);
+
+    &.open {
+      transform: translateY(0);
+    }
+  }
+
+  &.sm {
+    width: 250px;
+
+    &.top,
+    &.bottom {
+      width: 100%;
+      height: 250px;
+    }
+  }
+
+  &.md {
+    width: 400px;
+
+    &.top,
+    &.bottom {
+      width: 100%;
+      height: 400px;
+    }
+  }
+
+  &.lg {
+    width: 600px;
+
+    &.top,
+    &.bottom {
+      width: 100%;
+      height: 600px;
+    }
+  }
+
+  &.full {
+    width: 100%;
+    height: 100%;
+
+    &.top,
+    &.bottom {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.drawerTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.drawerClose {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #666;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+
+  &:hover {
+    color: #000;
+  }
+
+  &:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.drawerContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,269 @@
+/* PersonCard.module.css */
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.cardContent {
+  display: flex;
+  padding: 20px;
+  gap: 16px;
+}
+
+/* Image Styles */
+.imageContainer {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fallbackAvatar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.fallbackAvatar.hidden {
+  display: none;
+}
+
+.avatarEmoji {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.avatarInitials {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Info Styles */
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.alias {
+  font-size: 14px;
+  color: #6c757d;
+  font-style: italic;
+  margin: 0;
+}
+
+.basicInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.infoRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  min-width: fit-content;
+}
+
+.value {
+  font-size: 13px;
+  color: #212529;
+}
+
+.physicalDescription {
+  margin-bottom: 12px;
+}
+
+.description {
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.4;
+  margin: 4px 0 0 0;
+}
+
+.statusBadges {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lastUpdated {
+  font-size: 11px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Actions Styles */
+.actions {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.actionButton:hover {
+  transform: translateY(-1px);
+}
+
+.viewButton {
+  background: #007bff;
+  color: white;
+}
+
+.viewButton:hover {
+  background: #0056b3;
+}
+
+.editButton {
+  background: #ffc107;
+  color: #212529;
+}
+
+.editButton:hover {
+  background: #e0a800;
+}
+
+.foundButton {
+  background: #28a745;
+  color: white;
+}
+
+.foundButton:hover {
+  background: #1e7e34;
+}
+
+.deleteButton {
+  background: #dc3545;
+  color: white;
+}
+
+.deleteButton:hover {
+  background: #c82333;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .card {
+    margin: 8px;
+  }
+
+  .cardContent {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .imageContainer {
+    width: 100px;
+    height: 100px;
+  }
+
+  .basicInfo {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .infoRow {
+    justify-content: center;
+  }
+
+  .actions {
+    padding: 12px 16px;
+    justify-content: center;
+  }
+
+  .actionButton {
+    flex: 1;
+    min-width: 80px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .statusBadges {
+    justify-content: center;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actionButton {
+    width: 100%;
+  }
+}

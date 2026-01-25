@@ -1,0 +1,110 @@
+{
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Gestion des utilisateurs et profils",
+    "my_profile": {
+      "title": "Mon profil",
+      "personal_info": "Informations personnelles",
+      "contact_info": "Informations de contact",
+      "account_info": "Informations du compte",
+      "preferences": "Préférences",
+      "security": "Paramètres de sécurité"
+    },
+    "user_list": {
+      "title": "Annuaire des utilisateurs",
+      "filters": {
+        "role": "Rôle d'utilisateur",
+        "status": "Statut du compte",
+        "organization": "Organisation",
+        "verification": "Statut de vérification",
+        "joined_date": "Date d'inscription"
+      }
+    },
+    "user_detail": {
+      "title": "Profil de l'utilisateur",
+      "personal_info": "Informations personnelles",
+      "contact_info": "Informations de contact",
+      "account_status": "Statut du compte",
+      "role": "Rôle d'utilisateur",
+      "organization": "Organisation",
+      "verification": "Statut de vérification",
+      "activity": "Journal d'activité",
+      "contributions": "Contributions",
+      "joined": "Inscrit",
+      "last_active": "Dernier actif"
+    },
+    "settings": {
+      "title": "Paramètres utilisateur",
+      "account": "Paramètres du compte",
+      "notifications": "Préférences de notification",
+      "privacy": "Paramètres de confidentialité",
+      "security": "Paramètres de sécurité",
+      "preferences": "Préférences générales"
+    },
+    "fields": {
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "email": "Adresse e-mail",
+      "phone": "Numéro de téléphone",
+      "date_of_birth": "Date de naissance",
+      "organization": "Organisation",
+      "role": "Rôle",
+      "profile_photo": "Photo de profil",
+      "bio": "Biographie",
+      "location": "Localisation",
+      "language": "Préférence linguistique",
+      "theme": "Préférence de thème",
+      "two_factor_auth": "Authentification à deux facteurs",
+      "email_verified": "E-mail vérifié",
+      "phone_verified": "Téléphone vérifié",
+      "account_status": "Statut du compte"
+    },
+    "roles": {
+      "super_admin": "Super administrateur",
+      "admin": "Administrateur",
+      "moderator": "Modérateur",
+      "officer": "Agent de police",
+      "ngo_delegate": "Délégué d'ONG",
+      "verified_citizen": "Citoyen vérifié",
+      "citizen": "Citoyen"
+    },
+    "status": {
+      "active": "Actif",
+      "suspended": "Suspendu",
+      "pending": "Vérification en attente",
+      "inactive": "Inactif",
+      "blocked": "Bloqué"
+    },
+    "preferences": {
+      "notifications": {
+        "email": "Notifications par e-mail",
+        "push": "Notifications push",
+        "sms": "Notifications SMS",
+        "alerts": "Notifications d'alerte"
+      },
+      "privacy": {
+        "profile_visibility": "Visibilité du profil",
+        "show_email": "Afficher l'adresse e-mail",
+        "show_phone": "Afficher le numéro de téléphone",
+        "public_profile": "Profil public"
+      }
+    },
+    "actions": {
+      "edit_profile": "Modifier le profil",
+      "change_password": "Changer le mot de passe",
+      "enable_2fa": "Activer l'authentification à deux facteurs",
+      "view_activity": "Afficher le journal d'activité",
+      "download_data": "Télécharger mes données",
+      "delete_account": "Supprimer le compte"
+    },
+    "contributions": {
+      "cases_created": "Dossiers créés",
+      "reports_submitted": "Signalements soumis",
+      "cases_verified": "Dossiers vérifiés",
+      "helpful_votes": "Votes utiles reçus"
+    },
+    "profile_completion": "Complétude du profil",
+    "reputation_score": "Score de réputation",
+    "member_since": "Membre depuis le {{date}}"
+  }
+}

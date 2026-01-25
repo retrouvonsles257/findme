@@ -1,0 +1,56 @@
+{
+  "dashboardTitle": "NGO Dashboard",
+  "dashboardSubtitle": "Case management and awareness campaigns",
+  "recentActivities": "Recent Activities",
+  "noActivities": "No recent activities",
+
+  "totalCases": "Total Cases",
+  "activeCases": "Active Cases",
+  "resolvedCases": "Resolved Cases",
+  "totalCampaigns": "Total Campaigns",
+
+  "cases": "Cases",
+  "casesTitle": "Case Management",
+  "casesSubtitle": "Tracking missing persons",
+  "noCases": "No cases found",
+  "missingDate": "Missing Date",
+  "resolved": "Resolved",
+  "closed": "Closed",
+
+  "campaigns": "Campaigns",
+  "campaignsTitle": "Awareness Campaigns",
+  "campaignsSubtitle": "Managing information campaigns",
+  "noCampaigns": "No campaigns found",
+  "completed": "Completed",
+  "paused": "Paused",
+  "objective": "Objective",
+
+  "resources": "Resources",
+  "resourcesTitle": "Resources and Tools",
+  "resourcesSubtitle": "Documents, guides and training materials",
+  "noResources": "No resources found",
+  "allTypes": "All Types",
+  "document": "Document",
+  "tool": "Tool",
+  "guide": "Guide",
+  "training": "Training",
+  "accessResource": "Access",
+
+  "partnerships": "Partnerships",
+  "partnershipsTitle": "Partners",
+  "partnershipsSubtitle": "Managing organizational partnerships",
+  "noPartnerships": "No partnerships found",
+  "organisation": "Organization",
+  "contactPerson": "Contact Person",
+
+  "viewAllCases": "View All Cases",
+  "manageCases": "Manage missing person cases",
+  "viewCampaigns": "View Campaigns",
+  "manageCampaigns": "Manage awareness campaigns",
+  "viewResources": "View Resources",
+  "manageResources": "Manage resources and tools",
+  "viewPartnerships": "View Partners",
+  "managePartnerships": "Manage partnerships",
+
+  "searchCases": "Search a case..."
+}

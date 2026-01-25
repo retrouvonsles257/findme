@@ -1,0 +1,55 @@
+/**
+ * TrendsAnalysis Component Styles
+ */
+
+.container {
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.trendList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.trendItem {
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.date {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0056b3;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .trendItem {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

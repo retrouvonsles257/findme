@@ -1,0 +1,307 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Signalement API Service
+ * API calls for signalement operations
+ * =====================================================
+ */
+
+import { supabase } from '../../../config';
+import type {
+  Signalement,
+  SignalementCreatePayload,
+  SignalementUpdatePayload,
+  SignalementValidationPayload,
+  SignalementContact,
+  SignalementVerification,
+  SignalementStats,
+} from '../types';
+
+// Helper to bypass Supabase typing issues
+const db = () => (supabase as any);
+
+/**
+ * Get all signalements with pagination
+ */
+export async function getSignalements(page: number = 1, pageSize: number = 20): Promise<{
+  data: Signalement[];
+  total: number;
+}> {
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  const { data, count, error } = await supabase
+    .from('signalement')
+    .select('*', { count: 'exact' })
+    .order('date_observation', { ascending: false })
+    .range(start, end - 1);
+
+  if (error) throw error;
+
+  return {
+    data: data || [],
+    total: count || 0,
+  };
+}
+
+/**
+ * Get signalement by ID
+ */
+export async function getSignalementById(id: string): Promise<Signalement> {
+  const { data, error } = await db().from('signalement').select('*').eq('id', id).single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Create new signalement
+ */
+export async function createSignalement(
+  payload: SignalementCreatePayload,
+  userId: string
+): Promise<Signalement> {
+  const { data, error } = await (supabase
+    .from('signalement') as any)
+    // @ts-ignore - Supabase typing issue with dynamic tables
+    .insert({
+      ...payload,
+      id_utilisateur: userId,
+      statut_validation: 'en_attente',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update signalement
+ */
+export async function updateSignalement(
+  id: string,
+  payload: SignalementUpdatePayload
+): Promise<Signalement> {
+  const { data, error } = await supabase
+    .from('signalement')
+    // @ts-ignore - Supabase typing issue with dynamic tables
+    .update({
+      ...payload,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Delete signalement
+ */
+export async function deleteSignalement(id: string): Promise<void> {
+  const { error } = await db().from('signalement').delete().eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Search signalements by description/location
+ */
+export async function searchSignalements(query: string): Promise<Signalement[]> {
+  const { data, error } = await supabase
+    .from('signalement')
+    .select('*')
+    .or(`description.ilike.%${query}%,lieu_observation.ilike.%${query}%`)
+    .order('date_observation', { ascending: false })
+    .limit(50);
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get signalements by location (nearby)
+ */
+export async function getSignalementsByLocation(
+  latitude: number,
+  longitude: number,
+  radiusKm: number = 10
+): Promise<Signalement[]> {
+  const { data, error } = await supabase
+    .from('signalement')
+    .select('*')
+    .eq('statut_validation', 'valide')
+    .order('date_observation', { ascending: false });
+
+  if (error) throw error;
+
+  // Filter by distance (simple distance calculation)
+  const earthRadiusKm = 6371;
+  return (data || []).filter((s: Signalement) => {
+    if (!s.latitude_observation || !s.longitude_observation) return false;
+    const dLat = ((s.latitude_observation - latitude) * Math.PI) / 180;
+    const dLon = ((s.longitude_observation - longitude) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((latitude * Math.PI) / 180) *
+        Math.cos((s.latitude_observation * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = earthRadiusKm * c;
+    return distance <= radiusKm;
+  });
+}
+
+/**
+ * Get signalement contacts
+ */
+export async function getSignalementContacts(signalementId: string): Promise<SignalementContact[]> {
+  const { data, error } = await supabase
+    .from('signalement_contacts')
+    .select('*')
+    .eq('signalement_id', signalementId);
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Add contact to signalement
+ */
+export async function addSignalementContact(
+  signalementId: string,
+  contact: Omit<SignalementContact, 'id' | 'signalement_id'>
+): Promise<SignalementContact> {
+  const { data, error } = await (supabase
+    .from('signalement_contacts') as any)
+    // @ts-ignore - Supabase typing issue with dynamic tables
+    .insert({
+      ...contact,
+      signalement_id: signalementId,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Delete signalement contact
+ */
+export async function deleteSignalementContact(contactId: string): Promise<void> {
+  const { error } = await db().from('signalement_contacts').delete().eq('id', contactId);
+  if (error) throw error;
+}
+
+/**
+ * Get signalement verifications
+ */
+export async function getSignalementVerifications(
+  signalementId: string
+): Promise<SignalementVerification[]> {
+  const { data, error } = await supabase
+    .from('signalement_verifications')
+    .select('*')
+    .eq('signalement_id', signalementId)
+    .order('date_verification', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Add verification to signalement
+ */
+export async function addSignalementVerification(
+  signalementId: string,
+  verificateurId: string,
+  payload: SignalementValidationPayload
+): Promise<SignalementVerification> {
+  const { data, error } = await (supabase
+    .from('signalement_verifications') as any)
+    // @ts-ignore - Supabase typing issue with dynamic tables
+    .insert({
+      ...payload,
+      signalement_id: signalementId,
+      verificateur_id: verificateurId,
+      date_verification: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // Update signalement statut_validation based on decision
+  const newStatut =
+    payload.decision === 'approuve'
+      ? 'valide'
+      : payload.decision === 'rejete'
+        ? 'invalide'
+        : 'en_verification';
+
+  await updateSignalement(signalementId, { statut_validation: newStatut });
+
+  return data;
+}
+
+/**
+ * Get signalement statistics
+ */
+export async function getSignalementStats(): Promise<SignalementStats> {
+  const { data, error } = await db().from('signalement').select('*');
+
+  if (error) throw error;
+
+  const stats: SignalementStats = {
+    total: data?.length || 0,
+    parEtat: {
+      nouveau: data?.filter((s: Signalement) => s.statut_validation === 'en_attente').length || 0,
+      en_cours: data?.filter((s: Signalement) => s.statut_validation === 'en_verification').length || 0,
+      valide: data?.filter((s: Signalement) => s.statut_validation === 'valide').length || 0,
+      rejete: data?.filter((s: Signalement) => s.statut_validation === 'invalide').length || 0,
+      ferme: data?.filter((s: Signalement) => s.statut_validation === 'spam' || s.statut_validation === 'doublonne').length || 0,
+    },
+    parConfiance: {
+      haute: data?.filter((s: Signalement) => s.score_correspondance && s.score_correspondance > 0.7).length || 0,
+      moyenne:
+        data?.filter((s: Signalement) => s.score_correspondance && s.score_correspondance > 0.4 && s.score_correspondance <= 0.7)
+          .length || 0,
+      basse:
+        data?.filter((s: Signalement) => s.score_correspondance && s.score_correspondance <= 0.4).length || 0,
+    },
+    moyenneScore:
+      data && data.length > 0
+        ? data.reduce((sum: number, s: Signalement) => sum + (s.score_correspondance || 0), 0) / data.length
+        : 0,
+    derniers7jours:
+      data?.filter((s: Signalement) => {
+        const date = new Date(s.date_observation);
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return date >= sevenDaysAgo;
+      }).length || 0,
+  };
+
+  return stats;
+}
+/**
+ * Get signalements by dossier ID
+ */
+export async function getSignalementsByDossierId(dossierId: string): Promise<Signalement[]> {
+  const { data, error } = await db()
+    .from('signalement')
+    .select('*')
+    .eq('id_dossier', dossierId)
+    .order('date_observation', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching signalements for dossier:', error);
+    return [];
+  }
+  return data || [];
+}

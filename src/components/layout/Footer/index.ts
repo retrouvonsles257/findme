@@ -1,0 +1,10 @@
+export { Footer } from './Footer';
+export type { FooterProps } from './Footer';
+export { FooterColumn } from './FooterColumn';
+export type { FooterColumnProps } from './FooterColumn';
+export { FooterLinks } from './FooterLinks';
+export type { FooterLinksProps } from './FooterLinks';
+export { FooterSocial } from './FooterSocial';
+export type { FooterSocialProps } from './FooterSocial';
+export { FooterCopyright } from './FooterCopyright';
+export type { FooterCopyrightProps } from './FooterCopyright';

@@ -1,0 +1,565 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Create Dossier Page Styles
+ * Namespace: createDossier
+ * =====================================================
+ */
+
+.createDossier__container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Info Banner */
+.createDossier__infoBanner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 1rem;
+  padding: 1.75rem 2rem;
+  overflow: hidden;
+}
+
+.createDossier__infoBannerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: white;
+  border-radius: 0.75rem;
+  color: #1d4ed8;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.15);
+}
+
+.createDossier__infoBannerIcon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.createDossier__infoBannerContent {
+  flex: 1;
+}
+
+.createDossier__infoBannerTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.375rem 0;
+  line-height: 1.3;
+}
+
+.createDossier__infoBannerText {
+  color: #475569;
+  font-size: 0.9375rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.createDossier__infoBannerDecoration {
+  position: absolute;
+  right: -1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.1;
+  color: #1d4ed8;
+}
+
+.createDossier__infoBannerDecoration svg {
+  width: 8rem;
+  height: 8rem;
+}
+
+/* Messages */
+.createDossier__errorMessage,
+.createDossier__successMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.875rem;
+  border-left: 4px solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: createDossier__slideIn 0.3s ease-out;
+}
+
+@keyframes createDossier__slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.createDossier__errorMessage {
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+  border-color: #dc2626;
+}
+
+.createDossier__successMessage {
+  background: linear-gradient(135deg, #dcfce7 0%, #ffffff 100%);
+  border-color: #16a34a;
+}
+
+.createDossier__messageIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.createDossier__errorMessage .createDossier__messageIcon {
+  color: #dc2626;
+}
+
+.createDossier__successMessage .createDossier__messageIcon {
+  color: #16a34a;
+}
+
+.createDossier__messageContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.createDossier__messageTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.createDossier__errorMessage .createDossier__messageTitle {
+  color: #dc2626;
+}
+
+.createDossier__successMessage .createDossier__messageTitle {
+  color: #16a34a;
+}
+
+.createDossier__messageText {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.createDossier__errorMessage .createDossier__messageText {
+  color: #991b1b;
+}
+
+.createDossier__successMessage .createDossier__messageText {
+  color: #166534;
+}
+
+/* Form Wrapper */
+.createDossier__formWrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Form Header */
+.createDossier__formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.75rem 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.createDossier__formHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.createDossier__formHeaderIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.createDossier__formHeaderContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.createDossier__formMainTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.3;
+}
+
+.createDossier__formSubtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.createDossier__formHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.createDossier__formBadge {
+  background: #10b981;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.375rem 0.75rem;
+  border-radius: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Form Sections */
+.createDossier__formSections {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.createDossier__formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.createDossier__sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.createDossier__sectionHeaderContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.createDossier__sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.createDossier__sectionDescription {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.createDossier__formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.createDossier__fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.createDossier__fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.createDossier__fieldLabelRequired {
+  color: #dc2626;
+  font-size: 1.125em;
+  line-height: 1;
+}
+
+.createDossier__fieldInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.createDossier__fieldInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.createDossier__fieldInput::placeholder {
+  color: #9ca3af;
+}
+
+.createDossier__fieldTextarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.createDossier__fieldTextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.createDossier__fieldHelp {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+/* Row Layout for Age and Physical Description */
+.createDossier__fieldRow {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.createDossier__fieldRow > .createDossier__fieldGroup {
+  flex: 1;
+}
+
+.createDossier__fieldRow > .createDossier__fieldGroup:nth-child(2) {
+  flex: 2;
+}
+
+/* Form Actions */
+.createDossier__formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.createDossier__submitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.createDossier__submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.2);
+}
+
+.createDossier__submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.createDossier__cancelButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #4b5563;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.createDossier__cancelButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Loading State */
+.createDossier__loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.createDossier__loadingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 300px;
+}
+
+.createDossier__spinner {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: #1d4ed8;
+  animation: createDossier__spin 1s linear infinite;
+  filter: drop-shadow(0 2px 8px rgba(29, 78, 216, 0.3));
+  margin-bottom: 1.5rem;
+}
+
+@keyframes createDossier__spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.createDossier__loadingText {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.createDossier__loadingSubtext {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .createDossier__container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .createDossier__container {
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+
+  .createDossier__infoBanner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .createDossier__infoBannerIcon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .createDossier__infoBannerIcon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .createDossier__infoBannerTitle {
+    font-size: 1rem;
+  }
+
+  .createDossier__infoBannerText {
+    font-size: 0.875rem;
+  }
+
+  .createDossier__infoBannerDecoration {
+    display: none;
+  }
+
+  .createDossier__formSections {
+    padding: 1.5rem;
+  }
+
+  .createDossier__formHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .createDossier__formHeaderRight {
+    align-self: flex-end;
+  }
+
+  .createDossier__fieldRow {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .createDossier__formActions {
+    flex-direction: column;
+  }
+
+  .createDossier__submitButton,
+  .createDossier__cancelButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .createDossier__container {
+    padding: 0.75rem;
+  }
+
+  .createDossier__infoBanner {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+  }
+
+  .createDossier__formSections {
+    padding: 1.25rem;
+    gap: 2rem;
+  }
+
+  .createDossier__formSection {
+    gap: 1.25rem;
+  }
+}

@@ -1,0 +1,323 @@
+/* =====================================================
+   RETROUVONSLES - NotificationsPage Styles
+   ===================================================== */
+
+/* Notifications Namespace */
+.notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+/* Filter Bar Namespace */
+.notifications__filter-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.notifications__filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.notifications__filter-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notifications__filter-select:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+/* Notifications List Namespace */
+.notifications__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notifications__card {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.notifications__card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #1d4ed8;
+}
+
+.notifications__card--unread {
+  background: rgba(29, 78, 216, 0.02);
+  border-color: #1d4ed8;
+  border-left-width: 3px;
+}
+
+.notifications__icon-wrapper {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notifications__icon {
+  color: #1d4ed8;
+}
+
+.notifications__icon--approval {
+  color: #10b981;
+}
+
+.notifications__icon--comment {
+  color: #1d4ed8;
+}
+
+.notifications__icon--review {
+  color: #f59e0b;
+}
+
+.notifications__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifications__title {
+  margin: 0 0 0.25rem 0;
+  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.notifications__message {
+  margin: 0 0 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.notifications__time {
+  display: block;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.notifications__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.notifications__action-button {
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notifications__action-button:hover {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+  background: rgba(29, 78, 216, 0.05);
+}
+
+/* Empty State Namespace */
+.notifications__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.notifications__empty-icon {
+  margin-bottom: 1.5rem;
+  color: #9ca3af;
+}
+
+.notifications__empty-text {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notifications {
+    padding: 1.5rem;
+  }
+
+  .notifications__card {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .notifications__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .notifications {
+    padding: 1rem;
+  }
+
+  .notifications__filter-bar {
+    padding: 1rem;
+  }
+
+  .notifications__card {
+    padding: 1rem;
+  }
+
+  .notifications__header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .notifications__actions-global {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* =====================================================
+   NOUVEAUX STYLES - Intégration API
+   ===================================================== */
+
+/* Header */
+.notifications__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.notifications__actions-global {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.notifications__mark-all-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e90ff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notifications__mark-all-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(30, 144, 255, 0.3);
+}
+
+.notifications__clear-all-button {
+  padding: 0.5rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notifications__clear-all-button:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* Loading State */
+.notifications__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  gap: 1rem;
+  color: #6b7280;
+}
+
+.notifications__loading-spin {
+  animation: spin 1s linear infinite;
+  color: #1e90ff;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.notifications__error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* Icon Types */
+.notifications__icon--warning {
+  color: #f59e0b;
+}
+
+.notifications__icon--error {
+  color: #ef4444;
+}
+
+/* Delete Button Variant */
+.notifications__action-button--delete:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}

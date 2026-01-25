@@ -1,0 +1,206 @@
+/**
+ * SignalementDetail Component Styles
+ */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.headerContent h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.headerInfo {
+  font-size: 13px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.etatBadge {
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.section {
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.section h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+.locationInfo {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.locationInfo p {
+  margin: 0 0 8px 0;
+}
+
+.coordinates {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #0056b3;
+  background-color: #f0f8ff;
+  padding: 8px;
+  border-radius: 3px;
+  margin-top: 8px;
+}
+
+.scoreContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scoreValue {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0056b3;
+}
+
+.scoreBar {
+  height: 24px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.scoreFill {
+  height: 100%;
+  background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);
+  transition: width 0.3s ease;
+}
+
+.dateTimeInfo {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.dateTimeInfo p {
+  margin: 0 0 8px 0;
+}
+
+.descriptionSection {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.descriptionSection h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #333;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.descriptionText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.notesSection {
+  margin-top: 16px;
+}
+
+.notesSection h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+  text-transform: none;
+}
+
+.notesText {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #666;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.loading {
+  text-align: center;
+  padding: 32px;
+  color: #666;
+}
+
+.error {
+  padding: 12px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .section {
+    padding: 12px;
+  }
+}

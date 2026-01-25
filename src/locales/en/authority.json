@@ -1,0 +1,134 @@
+{
+  "authority": {
+    "dashboard": "Authority Dashboard",
+    "alertes": "Alerts",
+    "coordination": "Coordination",
+    "dossiers": "Files",
+    "dossierDetail": "File Details",
+    "analysis": "AI Analysis",
+    "investigation": "Investigation",
+    "signalements": "Reports",
+    "statistiques": "Statistics",
+    "welcome": "Welcome",
+    "supervisor": "Authority",
+
+    "dashboardTitle": "Authority Dashboard",
+    "dashboardSubtitle": "Overview of files and reports",
+
+    "statistics": {
+      "activeDossiers": "Active Files",
+      "totalDossiers": "Total Files",
+      "foundCases": "Found Cases",
+      "signals": "Reports",
+      "newToday": "New Today"
+    },
+
+    "menu": {
+      "dashboard": "Dashboard",
+      "alertes": "Alerts",
+      "coordination": "Coordination",
+      "dossiers": "Files",
+      "analysis": "AI Analysis",
+      "investigation": "Investigation",
+      "signalements": "Reports",
+      "statistiques": "Statistics"
+    },
+
+    "alertesTitle": "Alert Management",
+    "alertesSubtitle": "Create and manage missing person alerts",
+    "newAlert": "New Alert",
+    "alerts": "Alerts",
+    "urgentCases": "Urgent Cases",
+    "createNewAlert": "Create New Alert",
+    "noAlerts": "No alerts",
+    "activeAlerts": "Active Alerts",
+    "resolvedAlerts": "Resolved Alerts",
+
+    "coordinationTitle": "Coordination",
+    "coordinationSubtitle": "Coordinate efforts with other authorities",
+    "agencies": "Agencies",
+    "assignedCases": "Assigned Cases",
+    "sharedData": "Shared Data",
+    "inviteAgency": "Invite Agency",
+    "sendMessage": "Send Message",
+    "noCoordination": "No coordination in progress",
+
+    "dossiersTitle": "File Management",
+    "dossiersSubtitle": "View and manage all files",
+    "filters": {
+      "status": "Status",
+      "urgency": "Urgency",
+      "location": "Location",
+      "search": "Search...",
+      "allStatus": "All Status"
+    },
+    "sortBy": "Sort by",
+    "recent": "Recent",
+    "urgent": "Urgent",
+    "noDossiers": "No files",
+
+    "dossierDetailTitle": "File Details",
+    "dossierDetailSubtitle": "Complete file information",
+    "information": "Information",
+    "reports": "Reports",
+    "locations": "Locations",
+    "timeline": "Timeline",
+    "analysis": "Analysis",
+    "editDossier": "Edit",
+    "closeDossier": "Close File",
+    "markAsFound": "Mark as Found",
+
+    "analysisTitle": "AI Analysis",
+    "analysisSubtitle": "Analysis and predictions by artificial intelligence",
+    "predictions": "Predictions",
+    "patterns": "Detected Patterns",
+    "recommendations": "Recommendations",
+    "confidenceScore": "Confidence Score",
+    "analyze": "Analyze",
+    "noAnalysis": "No analysis available",
+
+    "investigationTitle": "Investigation Management",
+    "investigationSubtitle": "Track investigation progress",
+    "caseStatus": "Case Status",
+    "investigationTeam": "Investigation Team",
+    "evidenceCollected": "Evidence Collected",
+    "interviews": "Interviews",
+    "investigationNotes": "Investigation Notes",
+    "addNote": "Add Note",
+    "assignTeam": "Assign Team",
+
+    "signallementsTitle": "Reports",
+    "signallementsSubtitle": "Manage received reports",
+    "validatedReports": "Validated Reports",
+    "pendingReports": "Pending Reports",
+    "rejectedReports": "Rejected Reports",
+    "viewReport": "View Report",
+    "noReports": "No reports",
+
+    "statistiquesTitle": "Statistics",
+    "statistiquesSubtitle": "Data reports and analysis",
+    "period": "Period",
+    "7days": "Last 7 Days",
+    "30days": "Last Month",
+    "allTime": "All Time",
+    "export": "Export",
+    "charts": {
+      "casesPerMonth": "Cases per Month",
+      "caseStatus": "Case Status",
+      "topLocations": "Top Locations",
+      "resolutionRate": "Resolution Rate"
+    },
+
+    "commonActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "download": "Download",
+      "share": "Share",
+      "print": "Print",
+      "cancel": "Cancel",
+      "save": "Save",
+      "close": "Close"
+    }
+  }
+}

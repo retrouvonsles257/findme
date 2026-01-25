@@ -1,0 +1,31 @@
+{
+  "success": {
+    "generic": "Operation completed successfully",
+    "created": "{{item}} created successfully",
+    "updated": "{{item}} updated successfully",
+    "deleted": "{{item}} deleted successfully",
+    "saved": "Changes saved successfully",
+    "submitted": "Form submitted successfully",
+    "sent": "Message sent successfully",
+    "shared": "Shared successfully",
+    "copied": "Copied to clipboard",
+    "imported": "Imported successfully",
+    "exported": "Exported successfully",
+    "downloaded": "Downloaded successfully",
+    "uploaded": "Uploaded successfully",
+    "verified": "{{item}} verified successfully",
+    "published": "{{item}} published successfully",
+    "archived": "{{item}} archived successfully",
+    "restored": "{{item}} restored successfully",
+    "account_created": "Account created successfully",
+    "password_changed": "Password changed successfully",
+    "email_verified": "Email verified successfully",
+    "preferences_saved": "Preferences saved successfully",
+    "notification_sent": "Notification sent successfully",
+    "alert_created": "Alert created successfully",
+    "case_created": "Missing person case created successfully",
+    "report_submitted": "Report submitted successfully",
+    "thank_you": "Thank you for your contribution",
+    "welcome": "Welcome to RETROUVONSLES"
+  }
+}

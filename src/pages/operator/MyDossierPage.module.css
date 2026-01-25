@@ -1,0 +1,358 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - My Dossiers Page Styles
+ * =====================================================
+ */
+
+/* Subtitle */
+.operator-my-dossiers__subtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* Controls */
+.operator-my-dossiers__controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.operator-my-dossiers__filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.operator-my-dossiers__filter-group:hover {
+  border-color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.1);
+}
+
+.operator-my-dossiers__filter-icon {
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.operator-my-dossiers__select {
+  padding: 0.625rem 0.875rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  background: transparent;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-weight: 500;
+}
+
+.operator-my-dossiers__select:focus {
+  outline: none;
+}
+
+.operator-my-dossiers__search-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.operator-my-dossiers__search-group:hover {
+  border-color: #cbd5e1;
+}
+
+.operator-my-dossiers__search-group:focus-within {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.operator-my-dossiers__search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #1d4ed8;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.operator-my-dossiers__search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.875rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.9375rem;
+  background: transparent;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.operator-my-dossiers__search-input::placeholder {
+  color: #94a3b8;
+}
+
+.operator-my-dossiers__search-input:focus {
+  outline: none;
+}
+
+/* Table Wrapper */
+.operator-my-dossiers__table-wrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.operator-my-dossiers__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.operator-my-dossiers__table-head {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.operator-my-dossiers__table-header {
+  padding: 1.125rem 1.5rem;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.operator-my-dossiers__table-body {
+  background: white;
+}
+
+.operator-my-dossiers__table-row {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.operator-my-dossiers__table-row:hover {
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.02) 0%, rgba(29, 78, 216, 0.04) 100%);
+  transform: scale(1.002);
+}
+
+.operator-my-dossiers__table-row:last-child {
+  border-bottom: none;
+}
+
+.operator-my-dossiers__table-cell {
+  padding: 1.25rem 1.5rem;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+.operator-my-dossiers__dossier-number {
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.operator-my-dossiers__dossier-number:hover {
+  color: #1e40af;
+  text-decoration: underline;
+  transform: translateX(2px);
+}
+
+/* Status Badge */
+.operator-my-dossiers__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.operator-my-dossiers__status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.operator-my-dossiers__status-badge--encours {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #d97706;
+}
+
+.operator-my-dossiers__status-badge--retrouve {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #166534;
+}
+
+.operator-my-dossiers__status-badge--suspendu {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #475569;
+}
+
+/* Urgence Badge */
+.operator-my-dossiers__urgence-badge {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Actions */
+.operator-my-dossiers__actions {
+  display: flex;
+  gap: 0.625rem;
+}
+
+.operator-my-dossiers__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.operator-my-dossiers__action-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  border-color: #1d4ed8;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+}
+
+/* Loading State */
+.operator-my-dossiers__loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  color: #64748b;
+}
+
+.operator-my-dossiers__spinner {
+  width: 3rem;
+  height: 3rem;
+  color: #1d4ed8;
+  animation: operator-my-dossiers__spin 1s linear infinite;
+  filter: drop-shadow(0 2px 8px rgba(29, 78, 216, 0.3));
+}
+
+@keyframes operator-my-dossiers__spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.operator-my-dossiers__loading-text {
+  margin-top: 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+/* Empty State */
+.operator-my-dossiers__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 1rem;
+}
+
+.operator-my-dossiers__empty-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  color: #cbd5e1;
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 2px 8px rgba(203, 213, 225, 0.3));
+}
+
+.operator-my-dossiers__empty-text {
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .operator-my-dossiers__table-wrapper {
+    overflow-x: auto;
+  }
+
+  .operator-my-dossiers__table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .operator-my-dossiers__subtitle {
+    font-size: 0.9375rem;
+  }
+  
+  .operator-my-dossiers__controls {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .operator-my-dossiers__filter-group,
+  .operator-my-dossiers__search-group {
+    width: 100%;
+    min-width: unset;
+  }
+  
+  .operator-my-dossiers__table-header {
+    padding: 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .operator-my-dossiers__table-cell {
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .operator-my-dossiers__loading-state,
+  .operator-my-dossiers__empty-state {
+    padding: 4rem 1.5rem;
+  }
+}

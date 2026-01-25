@@ -1,0 +1,109 @@
+{
+  "dashboardTitle": "Super Admin Dashboard",
+  "dashboardSubtitle": "Welcome to the Super Admin Dashboard",
+  "dashboardDescription": "Complete system management for RETROUVONSLES",
+  "recentActivities": "Recent Activities",
+  "noActivities": "No recent activities",
+  "thisMonth": "this month",
+  "quickActions": "Quick Actions",
+
+  "totalOrganisations": "Total Organizations",
+  "totalUsers": "Total Users",
+  "totalDossiers": "Total Cases",
+  "activeDossiers": "Active Cases",
+  "totalAlerts": "Total Alerts",
+  "systemHealth": "System Health",
+
+  "organisations": "Organizations",
+  "globalStatsMenu": "Global Statistics",
+  "systemUsersMenu": "System Users",
+  "iaConfigMenu": "AI Configuration",
+  "securityMenu": "Security",
+  "systemLogsMenu": "System Logs",
+  "systemSettingsMenu": "System Settings",
+  "manageOrganisations": "Manage system organizations",
+  "noOrganisations": "No organizations found",
+  "viewAllOrganisations": "View All Organizations",
+
+  "systemUsersTitle": "System Users",
+  "systemUsersSubtitle": "User and role management",
+  "viewSystemUsers": "View System Users",
+  "manageSystemUsers": "Manage all system users",
+
+  "iaConfigurationTitle": "AI Configuration",
+  "iaConfigurationSubtitle": "Manage AI model configurations",
+  "maxRequests": "Max requests per day",
+  "timeout": "Timeout (seconds)",
+  "temperature": "Temperature",
+  "topP": "Top P",
+  "noConfigurations": "No AI configurations found",
+
+  "securitySettings": "Security Settings",
+  "manageSecuritySettings": "Configure system security",
+  "globalStatistics": "Global Statistics",
+  "viewGlobalStatistics": "View system-wide statistics",
+
+  "globalStats": "Global Statistics",
+  "systemWideAnalytics": "System-wide analytics for missing persons cases",
+
+  "totalDispersions": "Total Missing Cases",
+  "totalFound": "Persons Found",
+  "successRate": "Success Rate",
+  "avgResolutionTime": "Average Resolution Time",
+  "found": "Found",
+  "percentage": "Percentage",
+
+  "regionalAnalysis": "Analysis by Region",
+  "ageDistribution": "Age Distribution",
+  "genderStatistics": "Gender Statistics",
+
+  "securityTitle": "Security Management",
+  "securitySubtitle": "Security controls and events",
+  "securityEvents": "Security Events",
+
+  "mfaEnabled": "Multi-Factor Authentication (MFA)",
+  "passwordExpiration": "Password Expiration (days)",
+  "sessionTimeout": "Session Timeout (minutes)",
+  "maxLoginAttempts": "Maximum Login Attempts",
+  "ipWhitelisting": "IP Whitelisting",
+  "dataEncryption": "Data Encryption",
+  "auditLogging": "Audit Logging",
+  "apiRateLimiting": "API Rate Limiting",
+
+  "dangerZone": "Danger Zone",
+  "forceLogoutAll": "Force Logout All Users",
+  "resetSecuritySettings": "Reset Security Settings",
+
+  "systemLogsTitle": "System Logs",
+  "systemLogsSubtitle": "System events and error logs",
+
+  "systemSettingsTitle": "System Settings",
+  "systemSettingsSubtitle": "General system configuration",
+
+  "systemInformation": "System Information",
+  "systemName": "System Name",
+  "systemVersion": "System Version",
+  "timezone": "Timezone",
+  "defaultLanguage": "Default Language",
+  "maintenanceMode": "Maintenance Mode",
+
+  "performanceSettings": "Performance Settings",
+  "maxFileUpload": "Maximum Upload Size (MB)",
+  "maxConcurrentUsers": "Maximum Concurrent Users",
+  "backupFrequency": "Backup Frequency",
+
+  "notificationSettings": "Notification Settings",
+  "emailNotifications": "Email Notifications",
+  "smsNotifications": "SMS Notifications",
+
+  "exampleOrganisation1": "Example Organization 1",
+  "exampleOrganisation2": "Example Organization 2",
+  "exampleUser1": "User 1",
+  "exampleUser2": "User 2",
+  "roleSuperAdmin": "Super Admin",
+  "roleModerator": "Moderator",
+  "actionUserLogin": "User login",
+  "actionConfigUpdate": "Configuration update",
+
+  "avgResolutionValue": "12 days"
+}

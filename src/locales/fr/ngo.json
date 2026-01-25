@@ -1,0 +1,56 @@
+{
+  "dashboardTitle": "Tableau de bord ONG",
+  "dashboardSubtitle": "Gestion des cas et campagnes de sensibilisation",
+  "recentActivities": "Activités récentes",
+  "noActivities": "Aucune activité récente",
+
+  "totalCases": "Cas totaux",
+  "activeCases": "Cas actifs",
+  "resolvedCases": "Cas résolus",
+  "totalCampaigns": "Campagnes totales",
+
+  "cases": "Cas",
+  "casesTitle": "Gestion des cas",
+  "casesSubtitle": "Suivi des personnes disparues",
+  "noCases": "Aucun cas trouvé",
+  "missingDate": "Date de disparition",
+  "resolved": "Résolu",
+  "closed": "Fermé",
+
+  "campaigns": "Campagnes",
+  "campaignsTitle": "Campagnes de sensibilisation",
+  "campaignsSubtitle": "Gestion des campagnes d'information",
+  "noCampaigns": "Aucune campagne trouvée",
+  "completed": "Complétée",
+  "paused": "Suspendue",
+  "objective": "Objectif",
+
+  "resources": "Ressources",
+  "resourcesTitle": "Ressources et outils",
+  "resourcesSubtitle": "Documents, guides et outils de formation",
+  "noResources": "Aucune ressource trouvée",
+  "allTypes": "Tous les types",
+  "document": "Document",
+  "tool": "Outil",
+  "guide": "Guide",
+  "training": "Formation",
+  "accessResource": "Accéder",
+
+  "partnerships": "Partenariats",
+  "partnershipsTitle": "Partenaires",
+  "partnershipsSubtitle": "Gestion des partenariats organisationnels",
+  "noPartnerships": "Aucun partenariat trouvé",
+  "organisation": "Organisation",
+  "contactPerson": "Personne de contact",
+
+  "viewAllCases": "Voir tous les cas",
+  "manageCases": "Gérer les cas de personnes disparues",
+  "viewCampaigns": "Voir les campagnes",
+  "manageCampaigns": "Gérer les campagnes de sensibilisation",
+  "viewResources": "Voir les ressources",
+  "manageResources": "Gérer les ressources et outils",
+  "viewPartnerships": "Voir les partenaires",
+  "managePartnerships": "Gérer les partenariats",
+
+  "searchCases": "Rechercher un cas..."
+}

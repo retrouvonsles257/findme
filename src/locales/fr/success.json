@@ -1,0 +1,31 @@
+{
+  "success": {
+    "generic": "Opération réussie",
+    "created": "{{item}} créé avec succès",
+    "updated": "{{item}} mis à jour avec succès",
+    "deleted": "{{item}} supprimé avec succès",
+    "saved": "Modifications enregistrées",
+    "submitted": "Formulaire soumis avec succès",
+    "sent": "Message envoyé avec succès",
+    "shared": "Partagé avec succès",
+    "copied": "Copié dans le presse-papiers",
+    "imported": "Importé avec succès",
+    "exported": "Exporté avec succès",
+    "downloaded": "Téléchargé avec succès",
+    "uploaded": "Téléversé avec succès",
+    "verified": "{{item}} vérifié avec succès",
+    "published": "{{item}} publié avec succès",
+    "archived": "{{item}} archivé avec succès",
+    "restored": "{{item}} restauré avec succès",
+    "account_created": "Compte créé avec succès",
+    "password_changed": "Mot de passe modifié avec succès",
+    "email_verified": "E-mail vérifié avec succès",
+    "preferences_saved": "Préférences enregistrées",
+    "notification_sent": "Notification envoyée avec succès",
+    "alert_created": "Alerte créée avec succès",
+    "case_created": "Dossier de personne disparue créé avec succès",
+    "report_submitted": "Signalement soumis avec succès",
+    "thank_you": "Merci pour votre contribution",
+    "welcome": "Bienvenue sur RETROUVONSLES"
+  }
+}

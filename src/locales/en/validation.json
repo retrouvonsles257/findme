@@ -1,0 +1,72 @@
+{
+  "field": {
+    "full_name": "Full name is required",
+    "email": "Please enter a valid email address",
+    "password": "Password must be at least 8 characters with uppercase, lowercase, and numbers",
+    "phone": "Please enter a valid phone number",
+    "date_of_birth": "Please enter a valid date of birth",
+    "age": "Age must be between 0 and 150",
+    "gender": "Please select a gender",
+    "height": "Height must be between 50 and 250 cm",
+    "weight": "Weight must be between 20 and 300 kg",
+    "location": "Please enter a valid location",
+    "date": "Please enter a valid date",
+    "url": "Please enter a valid URL",
+    "organization": "Please select an organization",
+    "description": "Description is required",
+    "confirmation": "Please confirm to proceed"
+  },
+  "password": {
+    "required": "Password is required",
+    "minimum": "Password must be at least 8 characters",
+    "pattern": "Password must contain uppercase, lowercase, and numbers",
+    "match": "Passwords do not match",
+    "weak": "Password is too weak",
+    "requirements": "Password must have at least: 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number"
+  },
+  "email": {
+    "required": "Email address is required",
+    "invalid": "Please enter a valid email address",
+    "taken": "This email address is already registered",
+    "verification": "Please verify your email address"
+  },
+  "phone": {
+    "required": "Phone number is required",
+    "invalid": "Please enter a valid phone number",
+    "format": "Phone number must be in a valid format (e.g., +1234567890)"
+  },
+  "date": {
+    "required": "Date is required",
+    "invalid": "Please enter a valid date",
+    "future": "Date cannot be in the future",
+    "past": "Date cannot be in the past",
+    "range": "Date must be between {{min}} and {{max}}"
+  },
+  "character_limit": {
+    "minimum": "Minimum {{count}} characters required",
+    "maximum": "Maximum {{count}} characters allowed",
+    "exact": "Exactly {{count}} characters required"
+  },
+  "file": {
+    "required": "File is required",
+    "too_large": "File is too large (maximum {{size}}MB)",
+    "invalid_type": "File type not allowed. Accepted types: {{types}}",
+    "no_files": "No files selected"
+  },
+  "selection": {
+    "required": "Please make a selection",
+    "minimum": "Select at least {{count}} option",
+    "maximum": "Select at most {{count}} options"
+  },
+  "match": {
+    "email": "Emails do not match",
+    "password": "Passwords do not match",
+    "field": "Fields do not match"
+  },
+  "patterns": {
+    "alphanumeric": "Only letters and numbers are allowed",
+    "numeric": "Only numbers are allowed",
+    "alphabetic": "Only letters are allowed",
+    "slug": "Only lowercase letters, numbers, and hyphens are allowed"
+  }
+}

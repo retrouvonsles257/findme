@@ -1,0 +1,222 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Themes Configuration
+ * Light and dark theme overrides for CSS variables
+ * =====================================================
+ */
+
+/* ===== LIGHT THEME (Default) ===== */
+:root,
+[data-theme="light"],
+.theme-light {
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-input: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-active: #e5e7eb;
+  
+  /* Text Colors */
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #9ca3af;
+  --text-inverse: #ffffff;
+  
+  /* Border & Outline */
+  --border-color: #e5e7eb;
+  --border-color-hover: #d1d5db;
+  --border-color-focus: var(--color-primary);
+  --outline-color: var(--color-primary-lightest);
+  
+  /* Component Colors */
+  --input-border: #d1d5db;
+  --input-bg: #ffffff;
+  --input-text: #111827;
+  --input-placeholder: #9ca3af;
+  
+  --button-bg-hover: #f3f4f6;
+  --button-bg-active: #e5e7eb;
+  
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --card-shadow: var(--shadow-sm);
+  
+  --header-bg: #ffffff;
+  --header-border: #e5e7eb;
+  --header-text: #111827;
+  
+  --sidebar-bg: #f9fafb;
+  --sidebar-border: #e5e7eb;
+  --sidebar-text: #111827;
+  --sidebar-hover-bg: #f3f4f6;
+  --sidebar-active-bg: #dbeafe;
+  --sidebar-active-text: #1e40af;
+  
+  --table-border: #e5e7eb;
+  --table-row-hover: #f9fafb;
+  --table-row-stripe: #f9fafb;
+  
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+  
+  /* Status Colors */
+  --status-success-bg: #ecfdf5;
+  --status-success-text: #065f46;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-info-bg: #f0f9ff;
+  --status-info-text: #0c2d6b;
+}
+
+/* ===== DARK THEME ===== */
+[data-theme="dark"],
+.theme-dark {
+  /* Background Colors */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-input: #1e293b;
+  --bg-hover: #334155;
+  --bg-active: #475569;
+  
+  /* Text Colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #0f172a;
+  
+  /* Border & Outline */
+  --border-color: #334155;
+  --border-color-hover: #475569;
+  --border-color-focus: #60a5fa;
+  --outline-color: rgba(96, 165, 250, 0.1);
+  
+  /* Component Colors */
+  --input-border: #475569;
+  --input-bg: #1e293b;
+  --input-text: #f1f5f9;
+  --input-placeholder: #94a3b8;
+  
+  --button-bg-hover: #334155;
+  --button-bg-active: #475569;
+  
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  
+  --header-bg: #1e293b;
+  --header-border: #334155;
+  --header-text: #f1f5f9;
+  
+  --sidebar-bg: #0f172a;
+  --sidebar-border: #334155;
+  --sidebar-text: #f1f5f9;
+  --sidebar-hover-bg: #1e293b;
+  --sidebar-active-bg: #1e40af;
+  --sidebar-active-text: #dbeafe;
+  
+  --table-border: #334155;
+  --table-row-hover: #1e293b;
+  --table-row-stripe: #0f172a;
+  
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --modal-backdrop: rgba(0, 0, 0, 0.7);
+  
+  /* Status Colors */
+  --status-success-bg: rgba(16, 185, 129, 0.1);
+  --status-success-text: #6ee7b7;
+  --status-warning-bg: rgba(245, 158, 11, 0.1);
+  --status-warning-text: #fcd34d;
+  --status-danger-bg: rgba(239, 68, 68, 0.1);
+  --status-danger-text: #f87171;
+  --status-info-bg: rgba(14, 165, 233, 0.1);
+  --status-info-text: #38bdf8;
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: more) {
+  :root {
+    --color-gray-400: #808080;
+    --border-color: #404040;
+  }
+  
+  [data-theme="light"],
+  .theme-light {
+    --text-primary: #000000;
+    --text-secondary: #1a1a1a;
+    --bg-secondary: #f5f5f5;
+  }
+  
+  [data-theme="dark"],
+  .theme-dark {
+    --text-primary: #ffffff;
+    --bg-secondary: #2a2a2a;
+  }
+}
+
+/* ===== PREFERS DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not(.theme-light) {
+    /* Apply dark theme if user prefers dark and no theme is explicitly set */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-input: #1e293b;
+    --bg-hover: #334155;
+    --bg-active: #475569;
+    
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-inverse: #0f172a;
+    
+    --border-color: #334155;
+    --border-color-hover: #475569;
+    --border-color-focus: #60a5fa;
+    --outline-color: rgba(96, 165, 250, 0.1);
+    
+    --input-border: #475569;
+    --input-bg: #1e293b;
+    --input-text: #f1f5f9;
+    --input-placeholder: #94a3b8;
+    
+    --button-bg-hover: #334155;
+    --button-bg-active: #475569;
+    
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    
+    --header-bg: #1e293b;
+    --header-border: #334155;
+    --header-text: #f1f5f9;
+    
+    --sidebar-bg: #0f172a;
+    --sidebar-border: #334155;
+    --sidebar-text: #f1f5f9;
+    --sidebar-hover-bg: #1e293b;
+    --sidebar-active-bg: #1e40af;
+    --sidebar-active-text: #dbeafe;
+    
+    --table-border: #334155;
+    --table-row-hover: #1e293b;
+    --table-row-stripe: #0f172a;
+    
+    --overlay-bg: rgba(0, 0, 0, 0.7);
+    --modal-backdrop: rgba(0, 0, 0, 0.7);
+    
+    --status-success-bg: rgba(16, 185, 129, 0.1);
+    --status-success-text: #6ee7b7;
+    --status-warning-bg: rgba(245, 158, 11, 0.1);
+    --status-warning-text: #fcd34d;
+    --status-danger-bg: rgba(239, 68, 68, 0.1);
+    --status-danger-text: #f87171;
+    --status-info-bg: rgba(14, 165, 233, 0.1);
+    --status-info-text: #38bdf8;
+  }
+}

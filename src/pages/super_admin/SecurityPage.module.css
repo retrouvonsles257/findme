@@ -1,0 +1,233 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Super Admin Security Styles
+ * =====================================================
+ */
+
+.sa-security {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Messages */
+.sa-security__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+}
+
+.sa-security__success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 8px;
+}
+
+/* Loading */
+.sa-security__loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.sa-security__spinner {
+  animation: sa-sec-spin 1s linear infinite;
+}
+
+@keyframes sa-sec-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Card */
+.sa-security__card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sa-security__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: #6366f1;
+}
+
+.sa-security__header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+/* Settings */
+.sa-security__settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-security__setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sa-security__setting:last-child {
+  border-bottom: none;
+}
+
+.sa-security__setting-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sa-security__setting-info svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.sa-security__setting-info > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-security__setting-info span {
+  font-weight: 600;
+  color: #374151;
+}
+
+.sa-security__setting-info small {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.sa-security__number-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.sa-security__number-input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+/* Toggle Switch */
+.sa-security__toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.sa-security__toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.sa-security__slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  border-radius: 24px;
+  transition: 0.3s;
+}
+
+.sa-security__slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.sa-security__toggle input:checked + .sa-security__slider {
+  background-color: #6366f1;
+}
+
+.sa-security__toggle input:checked + .sa-security__slider:before {
+  transform: translateX(24px);
+}
+
+/* Activity */
+.sa-security__activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sa-security__activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.sa-security__activity-type {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sa-security__activity-date {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Actions */
+.sa-security__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.sa-security__save-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sa-security__save-btn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.sa-security__save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

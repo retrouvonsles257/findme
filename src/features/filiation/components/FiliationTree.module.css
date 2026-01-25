@@ -1,0 +1,198 @@
+/* FiliationTree Styles */
+
+.container {
+  width: 100%;
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.stats {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.stats span {
+  display: flex;
+  align-items: center;
+}
+
+.stats span::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.loading,
+.error,
+.empty {
+  padding: 20px;
+  text-align: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  color: #666;
+}
+
+.error {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.treeContainer {
+  overflow-x: auto;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.tree {
+  display: inline-block;
+  min-width: 100%;
+}
+
+/* Node Styles */
+
+.nodeWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+}
+
+.node {
+  background-color: white;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 200px;
+  cursor: default;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.node.interactive {
+  cursor: pointer;
+}
+
+.node.interactive:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.node.root {
+  background-color: #dbeafe;
+  border-color: #0284c7;
+  font-weight: bold;
+}
+
+.nodeContent {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.nodePhoto {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.nodeInfo {
+  flex: 1;
+}
+
+.nodeName {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.nodeDate {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.nodeStatus {
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.nodeDisparition {
+  font-size: 12px;
+  color: #f59e0b;
+}
+
+/* Children Container */
+
+.childrenContainer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.childrenContainer::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 10px;
+  background-color: #d1d5db;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stats {
+    margin-top: 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .nodeWrapper {
+    margin: 10px;
+  }
+
+  .node {
+    min-width: 150px;
+    padding: 10px;
+  }
+
+  .nodePhoto {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nodeName {
+    font-size: 12px;
+  }
+}

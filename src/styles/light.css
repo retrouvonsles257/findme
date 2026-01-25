@@ -1,0 +1,167 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Light Theme
+ * Light theme specific color overrides and styles
+ * =====================================================
+ */
+
+[data-theme="light"],
+.theme-light,
+:root:not([data-theme="dark"]):not(.theme-dark) {
+  /* Primary gradient backgrounds */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  --gradient-success: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
+  --gradient-warning: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark) 100%);
+  --gradient-danger: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
+  
+  /* Elevation shadows - Light theme */
+  --shadow-elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+  --shadow-elevation-2: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
+  --shadow-elevation-3: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Light theme specific component styles */
+[data-theme="light"] body,
+.theme-light body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] a,
+.theme-light a {
+  color: var(--color-primary);
+}
+
+[data-theme="light"] a:hover,
+.theme-light a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Light theme cards */
+[data-theme="light"] .card,
+.theme-light .card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* Light theme inputs */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select,
+.theme-light input,
+.theme-light textarea,
+.theme-light select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
+}
+
+/* Light theme buttons */
+[data-theme="light"] .btn-secondary,
+.theme-light .btn-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .btn-secondary:hover,
+.theme-light .btn-secondary:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color-hover);
+}
+
+/* Light theme sidebar */
+[data-theme="light"] .sidebar,
+.theme-light .sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+
+[data-theme="light"] .sidebar-item:hover,
+.theme-light .sidebar-item:hover {
+  background-color: var(--sidebar-hover-bg);
+}
+
+[data-theme="light"] .sidebar-item.active,
+.theme-light .sidebar-item.active {
+  background-color: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+/* Light theme header */
+[data-theme="light"] .header,
+.theme-light .header {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  color: var(--header-text);
+}
+
+/* Light theme tables */
+[data-theme="light"] table,
+.theme-light table {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] thead,
+.theme-light thead {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="light"] tbody tr:hover,
+.theme-light tbody tr:hover {
+  background-color: var(--table-row-hover);
+}
+
+/* Light theme status badges */
+[data-theme="light"] .badge-success,
+.theme-light .badge-success {
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+[data-theme="light"] .badge-warning,
+.theme-light .badge-warning {
+  background-color: var(--status-warning-bg);
+  color: var(--status-warning-text);
+}
+
+[data-theme="light"] .badge-danger,
+.theme-light .badge-danger {
+  background-color: var(--status-danger-bg);
+  color: var(--status-danger-text);
+}
+
+[data-theme="light"] .badge-info,
+.theme-light .badge-info {
+  background-color: var(--status-info-bg);
+  color: var(--status-info-text);
+}
+
+/* Light theme modals */
+[data-theme="light"] .modal,
+.theme-light .modal {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="light"] .modal-backdrop,
+.theme-light .modal-backdrop {
+  background-color: var(--modal-backdrop);
+}
+
+/* Light theme code blocks */
+[data-theme="light"] code,
+.theme-light code {
+  background-color: var(--bg-secondary);
+  color: var(--color-danger);
+}
+
+[data-theme="light"] pre,
+.theme-light pre {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}

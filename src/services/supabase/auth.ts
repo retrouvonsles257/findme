@@ -1,0 +1,1072 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Supabase Authentication Service
+ * Reproduit la logique exacte de supabase.js en TypeScript
+ * =====================================================
+ */
+
+import { supabase } from '../../config';
+
+// ============================================
+// TYPES
+// ============================================
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+}
+
+export interface CompleteProfileData {
+  userId: string;
+  nom: string;
+  prenom: string;
+  telephone?: string;
+  location?: string;
+}
+
+export interface AuthError {
+  code: string;
+  message: string;
+  status?: number;
+}
+
+export interface AuthResult<T> {
+  data?: T;
+  error?: AuthError;
+}
+
+export interface AuthUserData {
+  id: string;
+  email: string;
+  nom: string;
+  prenom: string;
+  nom_complet?: string;
+  role: string;
+  roles: string[];
+  type_compte: string;
+  statut_compte: string;
+  organisation_id?: string | null;
+  telephone?: string | null;
+}
+
+export interface AuthSessionData {
+  user: AuthUserData;
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+}
+
+export interface OAuthResult {
+  success: boolean;
+  user?: any;
+  profile?: any;
+  role?: string;
+  isNewUser?: boolean;
+  needsProfileCompletion?: boolean;
+  redirect?: string;
+  emailSent?: boolean;
+  error?: string;
+}
+
+// ============================================
+// HELPER FUNCTIONS (Using RPC functions to bypass RLS)
+// ============================================
+
+async function getUserMainRole(userId: string): Promise<string | null> {
+  try {
+    // Use RPC function with SECURITY DEFINER to bypass RLS
+    const { data, error } = await (supabase as any)
+      .rpc('get_user_main_role', { user_id: userId });
+
+    if (error) {
+      console.error('Error getting user role via RPC:', error);
+      // Fallback: try to get from auth.users metadata
+      const { data: userData } = await supabase.auth.getUser();
+      return userData?.user?.user_metadata?.role || null;
+    }
+
+    return data || null;
+  } catch (error) {
+    console.error('Exception in getUserMainRole:', error);
+    return null;
+  }
+}
+
+async function getUserAllRoles(userId: string): Promise<string[]> {
+  try {
+    // Use RPC function with SECURITY DEFINER to bypass RLS
+    const { data, error } = await (supabase as any)
+      .rpc('get_user_all_roles', { user_id: userId });
+
+    if (error) {
+      console.error('Error getting user roles via RPC:', error);
+      // Fallback: try to get from auth.users metadata
+      const { data: userData } = await supabase.auth.getUser();
+      const role = userData?.user?.user_metadata?.role;
+      return role ? [role] : ['citoyen_standard'];
+    }
+
+    return data || ['citoyen_standard'];
+  } catch (error) {
+    console.error('Exception in getUserAllRoles:', error);
+    return ['citoyen_standard'];
+  }
+}
+
+async function logActivity(activityData: {
+  type_action: string;
+  id_utilisateur: string;
+  description: string;
+}): Promise<void> {
+  try {
+    await (supabase as any)
+      .from('journal_activite')
+      .insert({
+        ...activityData,
+        date_action: new Date().toISOString(),
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server'
+      });
+  } catch (error) {
+    console.error('Error logging activity:', error);
+  }
+}
+
+async function isProfileComplete(userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await (supabase as any)
+      .from('utilisateur')
+      .select('nom, prenom, telephone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return false;
+    }
+
+    return !!(
+      data.nom &&
+      data.prenom &&
+      data.telephone &&
+      data.nom !== 'À compléter' &&
+      data.prenom !== 'À compléter' &&
+      data.telephone !== '+237000000000'
+    );
+  } catch (error) {
+    console.error('Error checking profile completeness:', error);
+    return false;
+  }
+}
+
+// ============================================
+// MAIN AUTH SERVICE CLASS
+// ============================================
+
+class SupabaseAuthService {
+  
+  /**
+   * INSCRIPTION - Exactement comme signUpCitizen dans supabase.js
+   */
+  async register(data: RegisterData): Promise<AuthResult<AuthSessionData>> {
+    try {
+      console.log('=== INSCRIPTION CITOYEN ===');
+      console.log('Email:', data.email);
+
+      const { data: authData, error: authError } = await (supabase as any).auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            type_compte: 'grand_public'
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Erreur inscription citoyen:', authError);
+        
+        let message = authError.message;
+        if (authError.message?.includes('User already registered')) {
+          message = 'Cette adresse email est déjà utilisée. Veuillez vous connecter.';
+        } else if (authError.message?.includes('Invalid email')) {
+          message = 'Veuillez entrer une adresse email valide';
+        }
+        
+        return {
+          error: {
+            code: authError.code || 'SIGNUP_ERROR',
+            message,
+            status: authError.status,
+          },
+        };
+      }
+
+      if (!authData.user) {
+        return {
+          error: {
+            code: 'NO_USER',
+            message: 'Erreur lors de la création du compte',
+          },
+        };
+      }
+
+      // Créer le profil utilisateur (exactement comme supabase.js)
+      const { error: userError } = await (supabase as any)
+        .from('utilisateur')
+        .insert({
+          id: authData.user.id,
+          email: data.email,
+          nom: 'À compléter',
+          prenom: 'À compléter',
+          telephone: '+237000000000',
+          statut_compte: 'actif',
+          type_compte: 'grand_public',
+          pays: 'Cameroun',
+          score_fiabilite: 100.00
+        });
+
+      if (userError) {
+        console.error('Error creating user profile:', userError);
+        // On continue quand même - le compte auth est créé
+      } else {
+        // Assigner le rôle citoyen_standard par défaut
+        const { data: defaultRole } = await (supabase as any)
+          .from('role')
+          .select('id')
+          .eq('nom_role', 'citoyen_standard')
+          .single();
+
+        if (defaultRole) {
+          await (supabase as any)
+            .from('utilisateur_role')
+            .insert({
+              id_utilisateur: authData.user.id,
+              id_role: defaultRole.id,
+              date_attribution: new Date().toISOString(),
+              attribue_par: authData.user.id
+            });
+        }
+
+        // Log de l'activité
+        await logActivity({
+          type_action: 'creation_compte',
+          id_utilisateur: authData.user.id,
+          description: 'Nouvel utilisateur citoyen créé via inscription manuelle'
+        });
+      }
+
+      console.log('✓ Inscription citoyen réussie');
+
+      return {
+        data: {
+          user: {
+            id: authData.user.id,
+            email: data.email,
+            nom: 'À compléter',
+            prenom: 'À compléter',
+            role: 'citoyen_standard',
+            roles: ['citoyen_standard'],
+            type_compte: 'grand_public',
+            statut_compte: 'actif',
+          },
+          access_token: authData.session?.access_token || '',
+          refresh_token: authData.session?.refresh_token || '',
+          expires_at: authData.session?.expires_at || 0,
+        },
+      };
+    } catch (error: any) {
+      console.error('Exception in register:', error);
+      return {
+        error: {
+          code: 'REGISTER_EXCEPTION',
+          message: error.message || 'Une erreur est survenue lors de l\'inscription',
+        },
+      };
+    }
+  }
+
+  /**
+   * CONNEXION - Exactement comme la logique de connexion.js
+   */
+  async login(credentials: LoginCredentials): Promise<AuthResult<AuthSessionData>> {
+    try {
+      console.log('=== DÉBUT CONNEXION ===');
+      console.log('Email:', credentials.email);
+
+      const { data: authData, error: authError } = await (supabase as any).auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      if (authError) {
+        console.error('Erreur d\'authentification:', authError);
+        
+        let message = authError.message;
+        if (authError.message?.includes('Invalid login credentials')) {
+          message = 'Email ou mot de passe incorrect';
+        } else if (authError.message?.includes('Email not confirmed')) {
+          message = 'Veuillez confirmer votre email avant de vous connecter';
+        }
+        
+        return {
+          error: {
+            code: authError.code || 'LOGIN_ERROR',
+            message,
+            status: authError.status,
+          },
+        };
+      }
+
+      if (!authData.user) {
+        return {
+          error: {
+            code: 'NO_USER',
+            message: 'Aucun utilisateur trouvé',
+          },
+        };
+      }
+
+      console.log('✓ Authentification réussie, ID:', authData.user.id);
+
+      // Récupérer le profil utilisateur via RPC (bypass RLS)
+      const { data: userWithRole, error: rpcError } = await (supabase as any)
+        .rpc('get_user_with_role', { user_id: authData.user.id });
+
+      let userProfile = userWithRole;
+      let mainRole = userWithRole?.role || null;
+      let allRoles = userWithRole?.roles || ['citoyen_standard'];
+
+      // Si RPC échoue ou profil manquant, utiliser les metadata
+      if (rpcError || !userWithRole) {
+        console.log('⚠ RPC failed or profile missing, using metadata...');
+        const metadata = authData.user.user_metadata || {};
+        mainRole = metadata.role || 'citoyen_standard';
+        allRoles = [mainRole];
+        userProfile = {
+          id: authData.user.id,
+          email: authData.user.email,
+          nom: metadata.nom || metadata.last_name || 'Non renseigné',
+          prenom: metadata.prenom || metadata.first_name || 'Non renseigné',
+          type_compte: metadata.type_compte || 'grand_public',
+          statut_compte: 'actif'
+        };
+      }
+
+      // Vérifier le statut du compte
+      if (userProfile?.statut_compte === 'suspendu' || userProfile?.statut_compte === 'bloque') {
+        return {
+          error: {
+            code: 'ACCOUNT_SUSPENDED',
+            message: 'Votre compte est suspendu. Contactez l\'administrateur.',
+          },
+        };
+      }
+
+      console.log('✓ Connexion complète. Rôle:', mainRole);
+
+      // Log de l'activité (ignore errors - may fail due to RLS)
+      logActivity({
+        type_action: 'connexion',
+        id_utilisateur: authData.user.id,
+        description: 'Connexion réussie'
+      }).catch(() => {}); // Silently ignore RLS errors
+
+      return {
+        data: {
+          user: {
+            id: authData.user.id,
+            email: authData.user.email || '',
+            nom: userProfile?.nom || 'Non renseigné',
+            prenom: userProfile?.prenom || 'Non renseigné',
+            nom_complet: userProfile?.nom_complet || `${userProfile?.prenom || ''} ${userProfile?.nom || ''}`.trim() || 'Utilisateur',
+            role: mainRole || 'citoyen_standard',
+            roles: allRoles,
+            type_compte: userProfile?.type_compte || 'grand_public',
+            statut_compte: userProfile?.statut_compte || 'actif',
+            organisation_id: userProfile?.id_organisation || null,
+            telephone: userProfile?.telephone || null,
+          },
+          access_token: authData.session?.access_token || '',
+          refresh_token: authData.session?.refresh_token || '',
+          expires_at: authData.session?.expires_at || 0,
+        },
+      };
+    } catch (error: any) {
+      console.error('Exception in login:', error);
+      return {
+        error: {
+          code: 'LOGIN_EXCEPTION',
+          message: 'Une erreur est survenue lors de la connexion',
+        },
+      };
+    }
+  }
+
+  /**
+   * DÉCONNEXION
+   */
+  async logout(): Promise<AuthResult<void>> {
+    try {
+      const { data: { user } } = await (supabase as any).auth.getUser();
+      
+      if (user) {
+        await logActivity({
+          type_action: 'deconnexion',
+          id_utilisateur: user.id,
+          description: 'Déconnexion de l\'utilisateur'
+        });
+      }
+
+      const { error } = await (supabase as any).auth.signOut();
+
+      if (error) {
+        return {
+          error: {
+            code: 'LOGOUT_ERROR',
+            message: error.message,
+          },
+        };
+      }
+
+      return { data: undefined };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'LOGOUT_EXCEPTION',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * OAuth SIGNUP - Google/Facebook
+   */
+  async handleOAuthSignup(provider: 'google' | 'facebook'): Promise<AuthResult<any>> {
+    try {
+      const { data: { session } } = await (supabase as any).auth.getSession();
+      if (session) {
+        await (supabase as any).auth.signOut();
+      }
+
+      const options: any = {
+        redirectTo: `${window.location.origin}/auth/callback?source=${provider}`,
+      };
+
+      if (provider === 'google') {
+        options.queryParams = {
+          access_type: 'offline',
+          prompt: 'consent'
+        };
+      } else if (provider === 'facebook') {
+        options.scopes = 'email,public_profile';
+      }
+
+      const { data, error } = await (supabase as any).auth.signInWithOAuth({
+        provider,
+        options
+      });
+
+      if (error) {
+        console.error(`${provider} OAuth error:`, error);
+        return {
+          error: {
+            code: 'OAUTH_ERROR',
+            message: error.message,
+          },
+        };
+      }
+
+      return { data };
+    } catch (error: any) {
+      console.error(`Exception in handleOAuthSignup(${provider}):`, error);
+      return {
+        error: {
+          code: 'OAUTH_EXCEPTION',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * OAuth CALLBACK - Exactement comme handleOAuthCallback dans supabase.js
+   */
+  async handleOAuthCallback(): Promise<OAuthResult> {
+    try {
+      console.log('=== HANDLE OAUTH CALLBACK ===');
+
+      const { data: { session }, error: sessionError } = await (supabase as any).auth.getSession();
+
+      if (sessionError || !session) {
+        return {
+          success: false,
+          error: 'Aucune session trouvée après OAuth'
+        };
+      }
+
+      const user = session.user;
+      console.log('OAuth user:', user.email, user.id);
+
+      // Vérifier si le profil existe
+      const { data: userProfile, error: profileError } = await (supabase as any)
+        .from('utilisateur')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      console.log('User profile check:', { exists: !!userProfile });
+
+      const userMetadata = user.user_metadata || {};
+
+      // Si le profil n'existe pas, le créer
+      if (!userProfile || profileError?.code === 'PGRST116') {
+        console.log('User not found in utilisateur table, creating profile...');
+
+        const { data: newProfile, error: createError } = await (supabase as any)
+          .from('utilisateur')
+          .insert({
+            id: user.id,
+            email: user.email,
+            nom: userMetadata.family_name || userMetadata.last_name || userMetadata.name?.split(' ')[1] || 'À compléter',
+            prenom: userMetadata.given_name || userMetadata.first_name || userMetadata.name?.split(' ')[0] || 'À compléter',
+            telephone: '+237000000000',
+            photo_profil: userMetadata.avatar_url || userMetadata.picture,
+            statut_compte: 'actif',
+            type_compte: 'grand_public',
+            pays: 'Cameroun',
+            score_fiabilite: 100.00
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating user profile:', createError);
+        } else {
+          console.log('Profile created with OAuth data');
+        }
+
+        // Assigner le rôle citoyen_standard
+        const { data: defaultRole } = await (supabase as any)
+          .from('role')
+          .select('id')
+          .eq('nom_role', 'citoyen_standard')
+          .single();
+
+        if (defaultRole) {
+          await (supabase as any)
+            .from('utilisateur_role')
+            .insert({
+              id_utilisateur: user.id,
+              id_role: defaultRole.id,
+              date_attribution: new Date().toISOString(),
+              attribue_par: user.id
+            });
+        }
+
+        await logActivity({
+          type_action: 'creation_compte',
+          id_utilisateur: user.id,
+          description: 'Nouvel utilisateur créé via OAuth'
+        });
+
+        // Vérifier si le profil est complet
+        const profileComplete = await isProfileComplete(user.id);
+
+        if (!profileComplete) {
+          console.log('Profile is incomplete, redirecting to complete-profile');
+          return {
+            success: true,
+            user,
+            profile: newProfile || null,
+            isNewUser: true,
+            needsProfileCompletion: true,
+            redirect: '/auth/complete-profile'
+          };
+        }
+
+        return {
+          success: true,
+          user,
+          profile: newProfile || null,
+          role: 'citoyen_standard',
+          isNewUser: true,
+          emailSent: false
+        };
+      }
+
+      // Profil existe, vérifier s'il est complet
+      const profileComplete = await isProfileComplete(user.id);
+
+      if (!profileComplete) {
+        console.log('Existing user profile is incomplete');
+        return {
+          success: true,
+          user,
+          profile: userProfile,
+          needsProfileCompletion: true,
+          redirect: '/auth/complete-profile'
+        };
+      }
+
+      const mainRole = await getUserMainRole(user.id);
+
+      return {
+        success: true,
+        user,
+        profile: userProfile,
+        role: mainRole || 'citoyen_standard',
+        isNewUser: false
+      };
+    } catch (error: any) {
+      console.error('Error in handleOAuthCallback:', error);
+      return {
+        success: false,
+        error: 'Erreur lors du traitement OAuth'
+      };
+    }
+  }
+
+  /**
+   * COMPLETE PROFILE - Exactement comme completeOAuthSignup dans supabase.js
+   */
+  async completeProfile(data: CompleteProfileData): Promise<AuthResult<any>> {
+    try {
+      console.log('Completing profile for user:', data.userId);
+
+      const { data: existingUser, error: checkError } = await (supabase as any)
+        .from('utilisateur')
+        .select('id, email')
+        .eq('id', data.userId)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        return {
+          error: {
+            code: 'CHECK_ERROR',
+            message: checkError.message,
+          },
+        };
+      }
+
+      let profileData;
+
+      if (existingUser) {
+        // Mettre à jour le profil existant
+        const { data: updated, error: updateError } = await (supabase as any)
+          .from('utilisateur')
+          .update({
+            nom: data.nom,
+            prenom: data.prenom,
+            telephone: data.telephone || null,
+            ville: data.location || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', data.userId)
+          .select()
+          .single();
+
+        if (updateError) {
+          return {
+            error: {
+              code: 'UPDATE_ERROR',
+              message: updateError.message,
+            },
+          };
+        }
+
+        profileData = updated;
+      } else {
+        // Créer un nouveau profil
+        const { data: { user }, error: authError } = await (supabase as any).auth.getUser();
+
+        if (authError || !user) {
+          return {
+            error: {
+              code: 'NO_SESSION',
+              message: 'Session expirée. Veuillez vous reconnecter.',
+            },
+          };
+        }
+
+        const { data: created, error: insertError } = await (supabase as any)
+          .from('utilisateur')
+          .insert({
+            id: data.userId,
+            email: user.email,
+            nom: data.nom,
+            prenom: data.prenom,
+            telephone: data.telephone || null,
+            ville: data.location || null,
+            statut_compte: 'actif',
+            type_compte: 'grand_public',
+            pays: 'Cameroun',
+            score_fiabilite: 100.00
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          return {
+            error: {
+              code: 'INSERT_ERROR',
+              message: insertError.message,
+            },
+          };
+        }
+
+        profileData = created;
+
+        // Assigner le rôle
+        const { data: defaultRole } = await (supabase as any)
+          .from('role')
+          .select('id')
+          .eq('nom_role', 'citoyen_standard')
+          .single();
+
+        if (defaultRole) {
+          await (supabase as any)
+            .from('utilisateur_role')
+            .insert({
+              id_utilisateur: data.userId,
+              id_role: defaultRole.id,
+              date_attribution: new Date().toISOString(),
+              attribue_par: data.userId
+            });
+        }
+      }
+
+      // Mettre à jour les métadonnées auth
+      await (supabase as any).auth.updateUser({
+        data: {
+          first_name: data.prenom,
+          last_name: data.nom,
+          phone: data.telephone,
+          profile_completed: true
+        }
+      });
+
+      await logActivity({
+        type_action: 'modification_profil',
+        id_utilisateur: data.userId,
+        description: 'Profil complété'
+      });
+
+      return { data: profileData };
+    } catch (error: any) {
+      console.error('Error in completeProfile:', error);
+      return {
+        error: {
+          code: 'COMPLETE_PROFILE_ERROR',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * REQUEST PASSWORD RESET
+   */
+  async requestPasswordReset(request: { email: string }): Promise<AuthResult<void>> {
+    try {
+      const { error } = await (supabase as any).auth.resetPasswordForEmail(request.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) {
+        return {
+          error: {
+            code: 'RESET_REQUEST_ERROR',
+            message: error.message,
+          },
+        };
+      }
+
+      return { data: undefined };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'RESET_REQUEST_EXCEPTION',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * RESET PASSWORD
+   */
+  async resetPassword(data: { password: string }): Promise<AuthResult<AuthSessionData>> {
+    try {
+      const { data: authData, error } = await (supabase as any).auth.updateUser({
+        password: data.password
+      });
+
+      if (error) {
+        return {
+          error: {
+            code: 'RESET_PASSWORD_ERROR',
+            message: error.message,
+          },
+        };
+      }
+
+      const { data: { session } } = await (supabase as any).auth.getSession();
+
+      return {
+        data: {
+          user: {
+            id: authData.user?.id || '',
+            email: authData.user?.email || '',
+            nom: '',
+            prenom: '',
+            role: 'citoyen_standard',
+            roles: ['citoyen_standard'],
+            type_compte: 'grand_public',
+            statut_compte: 'actif',
+          },
+          access_token: session?.access_token || '',
+          refresh_token: session?.refresh_token || '',
+          expires_at: session?.expires_at || 0,
+        },
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'RESET_PASSWORD_EXCEPTION',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * VERIFY EMAIL
+   */
+  async verifyEmail(_code: string): Promise<AuthResult<void>> {
+    try {
+      // Supabase gère la vérification via le lien envoyé par email
+      return { data: undefined };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'VERIFY_EMAIL_ERROR',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * RESEND VERIFICATION EMAIL
+   */
+  async resendVerificationEmail(email: string): Promise<AuthResult<void>> {
+    try {
+      const { error } = await (supabase as any).auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        return {
+          error: {
+            code: 'RESEND_EMAIL_ERROR',
+            message: error.message,
+          },
+        };
+      }
+
+      return { data: undefined };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'RESEND_EMAIL_EXCEPTION',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * GET CURRENT SESSION
+   */
+  async getCurrentSession(): Promise<AuthResult<AuthSessionData>> {
+    try {
+      const { data: { session }, error } = await (supabase as any).auth.getSession();
+
+      if (error || !session) {
+        return {
+          error: {
+            code: 'NO_SESSION',
+            message: 'Aucune session active',
+          },
+        };
+      }
+
+      const user = session.user;
+
+      // Récupérer le profil
+      const { data: profile } = await (supabase as any)
+        .from('utilisateur')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const mainRole = await getUserMainRole(user.id);
+      const allRoles = await getUserAllRoles(user.id);
+
+      return {
+        data: {
+          user: {
+            id: user.id,
+            email: user.email || '',
+            nom: profile?.nom || '',
+            prenom: profile?.prenom || '',
+            role: mainRole || 'citoyen_standard',
+            roles: allRoles,
+            type_compte: profile?.type_compte || 'grand_public',
+            statut_compte: profile?.statut_compte || 'actif',
+          },
+          access_token: session.access_token,
+          refresh_token: session.refresh_token || '',
+          expires_at: session.expires_at || 0,
+        },
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'SESSION_ERROR',
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  /**
+   * REFRESH TOKEN
+   */
+  async refreshToken(_refreshToken: string): Promise<AuthResult<AuthSessionData>> {
+    try {
+      const { data, error } = await (supabase as any).auth.refreshSession();
+
+      if (error || !data.session) {
+        return {
+          error: {
+            code: 'REFRESH_ERROR',
+            message: error?.message || 'Impossible de rafraîchir la session',
+          },
+        };
+      }
+
+      const user = data.session.user;
+
+      // Récupérer le profil
+      const { data: profile } = await (supabase as any)
+        .from('utilisateur')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const mainRole = await getUserMainRole(user.id);
+      const allRoles = await getUserAllRoles(user.id);
+
+      return {
+        data: {
+          user: {
+            id: user.id,
+            email: user.email || '',
+            nom: profile?.nom || '',
+            prenom: profile?.prenom || '',
+            role: mainRole || 'citoyen_standard',
+            roles: allRoles,
+            type_compte: profile?.type_compte || 'grand_public',
+            statut_compte: profile?.statut_compte || 'actif',
+          },
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token || '',
+          expires_at: data.session.expires_at || 0,
+        },
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          code: 'REFRESH_EXCEPTION',
+          message: error.message,
+        },
+      };
+    }
+  }
+}
+
+// ============================================
+// EXPORT SINGLETON
+// ============================================
+
+export const supabaseAuthService = new SupabaseAuthService();
+
+// ============================================
+// UTILITY EXPORTS
+// ============================================
+
+export async function getCurrentUser(): Promise<{ user: any; error: any }> {
+  const { data: { user }, error } = await (supabase as any).auth.getUser();
+  return { user, error };
+}
+
+export async function signOut(): Promise<{ error: any }> {
+  const { user } = await getCurrentUser();
+  if (user) {
+    await logActivity({
+      type_action: 'deconnexion',
+      id_utilisateur: user.id,
+      description: 'Déconnexion de l\'utilisateur'
+    });
+  }
+  const { error } = await (supabase as any).auth.signOut();
+  return { error };
+}
+
+export async function getUserAccountStatus(userId: string): Promise<string> {
+  try {
+    const { data, error } = await (supabase as any)
+      .from('utilisateur')
+      .select('statut_compte')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data?.statut_compte || 'en_attente_verification';
+  } catch (error) {
+    console.error('Erreur récupération statut compte:', error);
+    return 'en_attente_verification';
+  }
+}
+
+export const getRedirectPathByRole = (role: string): string => {
+  const routes: { [key: string]: string } = {
+    'super_admin': '/super-admin',
+    'admin_organisation': '/admin',
+    'responsable_ong': '/ngo',
+    'officier_police': '/authority',
+    'agent_gendarmerie': '/authority',
+    'moderateur': '/moderator',
+    'operateur_saisie': '/operator',
+    'citoyen_verifie': '/citizen',
+    'citoyen_standard': '/citizen'
+  };
+  return routes[role] || '/citizen';
+};
+
+// Export helper functions
+export { getUserMainRole, isProfileComplete };
+
+// Export handleOAuthCallback as standalone function
+export const handleOAuthCallback = () => supabaseAuthService.handleOAuthCallback();

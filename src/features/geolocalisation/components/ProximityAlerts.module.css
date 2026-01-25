@@ -1,0 +1,201 @@
+.container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.btnAdd {
+  padding: 8px 16px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btnAdd:hover {
+  background-color: #059669;
+}
+
+.error {
+  padding: 12px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.formContainer {
+  background-color: #f9fafb;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.formGroup {
+  margin-bottom: 12px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btnSubmit {
+  width: 100%;
+  padding: 10px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btnSubmit:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btnSubmit:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.alertsList {
+  margin-top: 20px;
+}
+
+.alertsList h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.noData {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+  background-color: #f9fafb;
+  border-radius: 4px;
+}
+
+.alertCard {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.alertCard.active {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.alertHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.alertHeader h5 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.triggeredBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.alertDetails {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.alertDetails p {
+  margin: 4px 0;
+}
+
+.btnDismiss {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btnDismiss:hover {
+  background-color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btnAdd {
+    margin-top: 8px;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}

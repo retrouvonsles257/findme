@@ -1,0 +1,79 @@
+{
+  "dossiers": {
+    "title": "Missing Persons",
+    "subtitle": "Database of missing persons cases",
+    "create": {
+      "title": "Create Missing Person Case",
+      "subtitle": "Report a missing person",
+      "sections": {
+        "personal_info": "Personal Information",
+        "physical_description": "Physical Description",
+        "circumstances": "Circumstances of Disappearance",
+        "media": "Photos & Videos",
+        "contact": "Contact Information"
+      }
+    },
+    "list": {
+      "title": "Missing Persons Cases",
+      "filters": {
+        "status": "Status",
+        "region": "Region",
+        "age_range": "Age Range",
+        "date_range": "Disappearance Date",
+        "gender": "Gender",
+        "case_type": "Case Type"
+      }
+    },
+    "detail": {
+      "title": "Case Details",
+      "personal_info": "Personal Information",
+      "description": "Description",
+      "circumstances": "Disappearance Circumstances",
+      "location": "Last Known Location",
+      "photos": "Photos",
+      "contact_info": "Contact Information",
+      "case_status": "Case Status",
+      "created_by": "Created By",
+      "last_updated": "Last Updated",
+      "case_number": "Case Number",
+      "related_cases": "Related Cases"
+    },
+    "fields": {
+      "full_name": "Full Name",
+      "date_of_birth": "Date of Birth",
+      "age": "Age",
+      "gender": "Gender",
+      "height": "Height",
+      "weight": "Weight",
+      "hair_color": "Hair Color",
+      "eye_color": "Eye Color",
+      "distinguishing_marks": "Distinguishing Marks",
+      "last_seen_date": "Last Seen Date",
+      "last_seen_location": "Last Seen Location",
+      "last_seen_clothing": "Last Seen Wearing",
+      "circumstances": "Circumstances of Disappearance",
+      "medical_conditions": "Medical Conditions",
+      "medications": "Medications",
+      "contact_person": "Contact Person",
+      "relationship": "Relationship",
+      "organization": "Organization",
+      "case_status": "Case Status",
+      "case_type": "Case Type"
+    },
+    "status": {
+      "active": "Active",
+      "found": "Found",
+      "deceased": "Deceased",
+      "closed": "Closed",
+      "on_hold": "On Hold"
+    },
+    "no_cases": "No missing person cases found",
+    "view_details": "View Case Details",
+    "edit_case": "Edit Case",
+    "close_case": "Close Case",
+    "reopen_case": "Reopen Case",
+    "mark_found": "Mark as Found",
+    "add_update": "Add Update",
+    "send_alert": "Send Alert"
+  }
+}

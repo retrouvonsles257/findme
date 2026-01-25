@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "manageAccount": "Manage your account settings and preferences",
+    "manageAccountVerified": "Manage your verified account and preferences",
+    "personalInfo": "Personal Information",
+    "security": "Security",
+    "preferences": "Preferences",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "city": "City",
+    "changeAvatar": "Change Avatar",
+    "profileUpdated": "Profile updated successfully",
+    "passwordMismatch": "Passwords do not match",
+    "passwordChanged": "Password changed successfully",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "changePassword": "Change Password",
+    "language": "Language",
+    "emailNotifications": "Email Notifications",
+    "pushNotifications": "Push Notifications",
+    "darkMode": "Dark Mode",
+    "dataSharing": "Share my data for research"
+  }
+}
