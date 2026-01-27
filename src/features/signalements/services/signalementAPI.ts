@@ -290,12 +290,12 @@ export async function getSignalementStats(): Promise<SignalementStats> {
   return stats;
 }
 /**
- * Get signalements by dossier ID
+ * Get signalements by dossier ID with user and temoin info
  */
 export async function getSignalementsByDossierId(dossierId: string): Promise<Signalement[]> {
   const { data, error } = await db()
     .from('signalement')
-    .select('*')
+    .select('*, utilisateur:id_utilisateur(nom, prenom)')
     .eq('id_dossier', dossierId)
     .order('date_observation', { ascending: false });
 
@@ -303,5 +303,10 @@ export async function getSignalementsByDossierId(dossierId: string): Promise<Sig
     console.error('Error fetching signalements for dossier:', error);
     return [];
   }
-  return data || [];
+  
+  // Enrichir avec nom_temoin ou nom utilisateur
+  return (data || []).map((sig: any) => ({
+    ...sig,
+    auteur: sig.nom_temoin || (sig.utilisateur ? `${sig.utilisateur.prenom || ''} ${sig.utilisateur.nom || ''}`.trim() : 'Anonyme'),
+  }));
 }

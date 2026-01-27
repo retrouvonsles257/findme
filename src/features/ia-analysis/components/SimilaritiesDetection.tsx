@@ -89,8 +89,12 @@ export const SimilaritiesDetection: React.FC<SimilaritiesDetectionProps> = ({
           <ul className={styles.list}>
             {similaritiesResults.slice(0, 5).map((result) => (
               <li key={result.id}>
-                <span className={styles.count}>{result.matches.length} matches</span>
-                <span className={styles.date}>{new Date(result.analysis_date).toLocaleDateString()}</span>
+                <span className={styles.count}>
+                  {(result.correspondances_trouvees as any)?.similar_cases?.length || 0} matches
+                </span>
+                <span className={styles.date}>
+                  {new Date(result.date_analyse).toLocaleDateString()}
+                </span>
               </li>
             ))}
           </ul>

@@ -48,6 +48,9 @@ import { uploadFileToCloudinary, transformImage } from './cloudinary';
 import { UPLOAD_CONFIGS, TRANSFORMATION_PRESETS } from './cloudinary/cloudinaryConfig';
 import { maptilerConfig, mapService, geocodingService, routingService, MAPTILER_STYLES, ROUTING_PROFILES } from './maptiler';
 
+// Hugging Face AI Service
+import { huggingFaceService, isHuggingFaceConfigured } from './huggingFaceService';
+
 // ============================================
 // =========== SUPABASE SERVICES ===========
 // ============================================
@@ -446,6 +449,31 @@ export {
 } from './maptiler';
 
 // ============================================
+// =========== HUGGING FACE AI SERVICES ===========
+// ============================================
+
+export {
+  huggingFaceService,
+  isHuggingFaceConfigured,
+  HF_MODELS,
+  fileToBase64,
+  urlToBlob,
+  detectObjects,
+  classifyImage,
+  estimateAge,
+  classifyGender,
+  detectEmotions,
+  generateCaption,
+  analyzeFace,
+  calculateImageSimilarity,
+  type HuggingFaceResponse,
+  type ObjectDetectionResult,
+  type ClassificationResult,
+  type FaceAnalysisResult,
+  type SimilarityResult,
+} from './huggingFaceService';
+
+// ============================================
 // =========== CONVENIENCE ACCESSORS ===========
 // ============================================
 
@@ -542,6 +570,11 @@ export const services: any = {
     map: mapService,
     geocoding: geocodingService,
     routing: routingService,
+  },
+
+  huggingFace: {
+    service: huggingFaceService,
+    isConfigured: isHuggingFaceConfigured,
   },
 };
 

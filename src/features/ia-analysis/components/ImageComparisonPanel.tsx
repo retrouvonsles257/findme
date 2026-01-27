@@ -81,12 +81,12 @@ export const ImageComparisonPanel: React.FC<ImageComparisonPanelProps> = ({
           <h4>Comparison Results ({comparisonResults.length})</h4>
           <ul className={styles.resultsList}>
             {comparisonResults.slice(0, 5).map((result) => (
-              <li key={result.id} className={result.is_same_person ? styles.match : ''}>
-                <span className={styles.score}>{result.similarity_score.toFixed(0)}%</span>
+              <li key={result.id} className={(result.donnees_interpretees as any)?.is_match ? styles.match : ''}>
+                <span className={styles.score}>{result.score_confiance.toFixed(0)}%</span>
                 <span className={styles.status}>
-                  {result.is_same_person ? '✓ Same Person' : '✗ Different Person'}
+                  {(result.donnees_interpretees as any)?.is_match ? '✓ Same Person' : '✗ Different Person'}
                 </span>
-                <span className={styles.date}>{new Date(result.analysis_date).toLocaleDateString()}</span>
+                <span className={styles.date}>{new Date(result.date_analyse).toLocaleDateString()}</span>
               </li>
             ))}
           </ul>

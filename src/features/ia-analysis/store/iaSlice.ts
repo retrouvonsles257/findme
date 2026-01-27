@@ -2,85 +2,93 @@
  * =====================================================
  * RETROUVONSLES - IA Redux Slice
  * Redux state management for IA analysis
+ * Utilise la table resultat_ia selon le modèle de données
+ * Note: Les opérations avec fichiers sont gérées directement
+ * dans les hooks car File ne peut pas être sérialisé dans Redux
  * =====================================================
  */
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { IAAnalysisState, FacialRecognitionResult, LocationPredictionResult } from '../types';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
-  analyzeFacialImage,
   getFacialRecognitionResults,
-  compareImages,
   getImageComparisonResults,
   predictLocation,
   getLocationPredictions,
-  detectSimilarities,
   getSimilaritiesResults,
+  ResultatIA,
 } from '../services/iaAPI';
-import type {
-  FacialRecognitionFormData,
-  ImageComparisonFormData,
-  LocationPredictionFormData,
-  SimilaritiesDetectionFormData,
-} from '../types';
+
+// ============================================
+// TYPES
+// ============================================
+
+export interface IAAnalysisState {
+  // Résultats stockés
+  facialRecognitionResults: ResultatIA[];
+  imageComparisonResults: ResultatIA[];
+  locationPredictions: ResultatIA[];
+  similaritiesResults: ResultatIA[];
+  
+  // Résultat courant
+  currentFacialAnalysis: ResultatIA | null;
+  currentComparison: ResultatIA | null;
+  currentLocationPrediction: ResultatIA | null;
+  currentSimilarities: ResultatIA | null;
+  
+  // UI state
+  loading: boolean;
+  error: string | null;
+  selectedPersonId: string | null;
+  analysisMode: 'facial' | 'comparison' | 'prediction' | 'similarities' | null;
+  confidenceThreshold: number;
+}
+
+// ============================================
+// INPUT TYPES for thunks
+// ============================================
+
+interface LocationPredictionInput {
+  dossierId: string;
+}
 
 // ============================================
 // ASYNC THUNKS
+// Note: Les analyses avec fichiers sont gérées dans les hooks
+// car File ne peut pas être sérialisé dans Redux
 // ============================================
 
-export const fetchFacialRecognitionResults = createAsyncThunk<FacialRecognitionResult[], string | undefined>(
+export const fetchFacialRecognitionResults = createAsyncThunk<ResultatIA[], string | undefined>(
   'ia/fetchFacialRecognitionResults',
-  async (personId?: string) => {
-    return getFacialRecognitionResults(personId);
+  async (dossierId?: string) => {
+    return getFacialRecognitionResults(dossierId);
   },
 );
 
-export const performFacialAnalysis = createAsyncThunk<FacialRecognitionResult, FacialRecognitionFormData>(
-  'ia/performFacialAnalysis',
-  async (data: FacialRecognitionFormData) => {
-    return analyzeFacialImage(data);
-  },
-);
-
-export const fetchImageComparisonResults = createAsyncThunk(
+export const fetchImageComparisonResults = createAsyncThunk<ResultatIA[], string | undefined>(
   'ia/fetchImageComparisonResults',
-  async () => {
-    return getImageComparisonResults();
+  async (dossierId?: string) => {
+    return getImageComparisonResults(dossierId);
   },
 );
 
-export const performImageComparison = createAsyncThunk(
-  'ia/performImageComparison',
-  async (data: ImageComparisonFormData) => {
-    return compareImages(data);
-  },
-);
-
-export const fetchLocationPredictions = createAsyncThunk<LocationPredictionResult[], string | undefined>(
+export const fetchLocationPredictions = createAsyncThunk<ResultatIA[], string | undefined>(
   'ia/fetchLocationPredictions',
-  async (personId?: string) => {
-    return getLocationPredictions(personId);
+  async (dossierId?: string) => {
+    return getLocationPredictions(dossierId);
   },
 );
 
-export const performLocationPrediction = createAsyncThunk<LocationPredictionResult, LocationPredictionFormData>(
+export const performLocationPrediction = createAsyncThunk<ResultatIA, LocationPredictionInput>(
   'ia/performLocationPrediction',
-  async (data: LocationPredictionFormData) => {
-    return predictLocation(data);
+  async ({ dossierId }) => {
+    return predictLocation(dossierId);
   },
 );
 
-export const fetchSimilaritiesResults = createAsyncThunk(
+export const fetchSimilaritiesResults = createAsyncThunk<ResultatIA[], string | undefined>(
   'ia/fetchSimilaritiesResults',
-  async () => {
-    return getSimilaritiesResults();
-  },
-);
-
-export const performSimilaritiesDetection = createAsyncThunk(
-  'ia/performSimilaritiesDetection',
-  async (data: SimilaritiesDetectionFormData) => {
-    return detectSimilarities(data);
+  async (dossierId?: string) => {
+    return getSimilaritiesResults(dossierId);
   },
 );
 
@@ -112,26 +120,49 @@ const iaSlice = createSlice({
   name: 'ia',
   initialState,
   reducers: {
-    setCurrentFacialAnalysis: (state, action) => {
+    // Actions pour mettre à jour les résultats après une analyse via hook
+    addFacialRecognitionResult: (state, action: PayloadAction<ResultatIA>) => {
+      state.facialRecognitionResults.unshift(action.payload);
       state.currentFacialAnalysis = action.payload;
     },
-    setCurrentComparison: (state, action) => {
+    addImageComparisonResult: (state, action: PayloadAction<ResultatIA>) => {
+      state.imageComparisonResults.unshift(action.payload);
       state.currentComparison = action.payload;
     },
-    setCurrentLocationPrediction: (state, action) => {
-      state.currentLocationPrediction = action.payload;
-    },
-    setCurrentSimilarities: (state, action) => {
+    addSimilaritiesResult: (state, action: PayloadAction<ResultatIA>) => {
+      state.similaritiesResults.unshift(action.payload);
       state.currentSimilarities = action.payload;
     },
-    setSelectedPersonId: (state, action) => {
+    
+    // Setters pour les résultats courants
+    setCurrentFacialAnalysis: (state, action: PayloadAction<ResultatIA | null>) => {
+      state.currentFacialAnalysis = action.payload;
+    },
+    setCurrentComparison: (state, action: PayloadAction<ResultatIA | null>) => {
+      state.currentComparison = action.payload;
+    },
+    setCurrentLocationPrediction: (state, action: PayloadAction<ResultatIA | null>) => {
+      state.currentLocationPrediction = action.payload;
+    },
+    setCurrentSimilarities: (state, action: PayloadAction<ResultatIA | null>) => {
+      state.currentSimilarities = action.payload;
+    },
+    
+    // UI state
+    setSelectedPersonId: (state, action: PayloadAction<string | null>) => {
       state.selectedPersonId = action.payload;
     },
-    setAnalysisMode: (state, action) => {
+    setAnalysisMode: (state, action: PayloadAction<IAAnalysisState['analysisMode']>) => {
       state.analysisMode = action.payload;
     },
-    setConfidenceThreshold: (state, action) => {
+    setConfidenceThreshold: (state, action: PayloadAction<number>) => {
       state.confidenceThreshold = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -139,7 +170,7 @@ const iaSlice = createSlice({
     resetState: () => initialState,
   },
   extraReducers: (builder) => {
-    // Facial Recognition
+    // Facial Recognition Results Fetch
     builder
       .addCase(fetchFacialRecognitionResults.pending, (state) => {
         state.loading = true;
@@ -154,22 +185,7 @@ const iaSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch facial recognition results';
       });
 
-    builder
-      .addCase(performFacialAnalysis.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(performFacialAnalysis.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentFacialAnalysis = action.payload;
-        state.facialRecognitionResults.unshift(action.payload);
-      })
-      .addCase(performFacialAnalysis.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to perform facial analysis';
-      });
-
-    // Image Comparison
+    // Image Comparison Results Fetch
     builder
       .addCase(fetchImageComparisonResults.pending, (state) => {
         state.loading = true;
@@ -184,22 +200,7 @@ const iaSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch image comparison results';
       });
 
-    builder
-      .addCase(performImageComparison.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(performImageComparison.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentComparison = action.payload;
-        state.imageComparisonResults.unshift(action.payload);
-      })
-      .addCase(performImageComparison.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to perform image comparison';
-      });
-
-    // Location Prediction
+    // Location Predictions
     builder
       .addCase(fetchLocationPredictions.pending, (state) => {
         state.loading = true;
@@ -212,9 +213,7 @@ const iaSlice = createSlice({
       .addCase(fetchLocationPredictions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch location predictions';
-      });
-
-    builder
+      })
       .addCase(performLocationPrediction.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -229,7 +228,7 @@ const iaSlice = createSlice({
         state.error = action.error.message || 'Failed to perform location prediction';
       });
 
-    // Similarities Detection
+    // Similarities Results Fetch
     builder
       .addCase(fetchSimilaritiesResults.pending, (state) => {
         state.loading = true;
@@ -243,25 +242,17 @@ const iaSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch similarities results';
       });
-
-    builder
-      .addCase(performSimilaritiesDetection.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(performSimilaritiesDetection.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentSimilarities = action.payload;
-        state.similaritiesResults.unshift(action.payload);
-      })
-      .addCase(performSimilaritiesDetection.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to perform similarities detection';
-      });
   },
 });
 
+// ============================================
+// EXPORTS
+// ============================================
+
 export const {
+  addFacialRecognitionResult,
+  addImageComparisonResult,
+  addSimilaritiesResult,
   setCurrentFacialAnalysis,
   setCurrentComparison,
   setCurrentLocationPrediction,
@@ -269,9 +260,10 @@ export const {
   setSelectedPersonId,
   setAnalysisMode,
   setConfidenceThreshold,
+  setLoading,
+  setError,
   clearError,
   resetState,
 } = iaSlice.actions;
 
 export default iaSlice.reducer;
-export { iaSlice };

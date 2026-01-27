@@ -1,14 +1,18 @@
 /**
- * =====================================================
- * RETROUVONSLES - Coordination Feature Index
- * Exports centralisés pour la feature coordination
- * =====================================================
+ * Coordination Feature - Main Barrel Export
  */
 
-export { useCoordinationMessages } from './hooks';
+export {
+  useCoordinationMessages,
+  useCoordinationResources,
+  useCoordinationHistory,
+  useSharedDossiers,
+} from './hooks';
+
 export type {
   CoordinationMessage,
-  UseCoordinationMessagesState,
-  UseCoordinationMessagesActions,
-  UseCoordinationMessagesReturn,
+  CoordinationResource,
+  ResourceRequest,
+  HistoryEntry,
+  SharedDossier,
 } from './hooks';

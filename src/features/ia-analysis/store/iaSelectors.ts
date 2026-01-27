@@ -2,15 +2,12 @@
  * =====================================================
  * RETROUVONSLES - IA Redux Selectors
  * Redux state selectors for IA analysis
+ * Utilise le type ResultatIA selon le modèle de données
  * =====================================================
  */
 
 import type { RootState } from '@/store/types';
-import type {
-  FacialRecognitionResult,
-  ImageComparisonResult,
-  LocationPredictionResult,
-} from '../types';
+import type { ResultatIA } from '../services/iaAPI';
 
 // ============================================
 // FACIAL RECOGNITION SELECTORS
@@ -22,9 +19,9 @@ export const selectFacialRecognitionResults = (state: RootState) =>
 export const selectCurrentFacialAnalysis = (state: RootState) =>
   state.ia?.currentFacialAnalysis || null;
 
-export const selectFacialResultsByPerson = (state: RootState, personId: string) => {
+export const selectFacialResultsByPerson = (state: RootState, dossierId: string) => {
   return (state.ia?.facialRecognitionResults || []).filter(
-    (result: FacialRecognitionResult) => result.person_id === personId,
+    (result: ResultatIA) => result.id_dossier === dossierId,
   );
 };
 
@@ -32,10 +29,8 @@ export const selectBestFacialMatch = (state: RootState) => {
   const results = state.ia?.facialRecognitionResults || [];
   if (results.length === 0) return null;
 
-  return results.reduce((best: FacialRecognitionResult, current: FacialRecognitionResult) => {
-    const currentConfidence = current.facial_features.confidence_facial;
-    const bestConfidence = best.facial_features.confidence_facial;
-    return currentConfidence > bestConfidence ? current : best;
+  return results.reduce((best: ResultatIA, current: ResultatIA) => {
+    return current.score_confiance > best.score_confiance ? current : best;
   });
 };
 
@@ -50,13 +45,13 @@ export const selectCurrentComparison = (state: RootState) => state.ia?.currentCo
 
 export const selectHighConfidenceComparisons = (state: RootState, threshold: number = 70) => {
   return (state.ia?.imageComparisonResults || []).filter(
-    (result: ImageComparisonResult) => result.similarity_score >= threshold,
+    (result: ResultatIA) => result.score_confiance >= threshold,
   );
 };
 
 export const selectSamePeople = (state: RootState) => {
   return (state.ia?.imageComparisonResults || []).filter(
-    (result: ImageComparisonResult) => result.is_same_person,
+    (result: ResultatIA) => result.donnees_interpretees?.is_match === true,
   );
 };
 
@@ -70,19 +65,23 @@ export const selectLocationPredictions = (state: RootState) =>
 export const selectCurrentLocationPrediction = (state: RootState) =>
   state.ia?.currentLocationPrediction || null;
 
-export const selectPredictionsByPerson = (state: RootState, personId: string) => {
+export const selectPredictionsByPerson = (state: RootState, dossierId: string) => {
   return (state.ia?.locationPredictions || []).filter(
-    (prediction: LocationPredictionResult) => prediction.person_id === personId,
+    (prediction: ResultatIA) => prediction.id_dossier === dossierId,
   );
 };
 
 export const selectLatestPrediction = (state: RootState) => {
   const predictions = state.ia?.locationPredictions || [];
-  return predictions.length > 0 ? predictions[0] : null;
+  if (predictions.length === 0) return null;
+
+  return predictions.reduce((latest: ResultatIA, current: ResultatIA) => {
+    return new Date(current.date_analyse) > new Date(latest.date_analyse) ? current : latest;
+  });
 };
 
 // ============================================
-// SIMILARITIES DETECTION SELECTORS
+// SIMILARITIES SELECTORS
 // ============================================
 
 export const selectSimilaritiesResults = (state: RootState) =>
@@ -92,14 +91,14 @@ export const selectCurrentSimilarities = (state: RootState) =>
   state.ia?.currentSimilarities || null;
 
 export const selectTopSimilarMatches = (state: RootState, limit: number = 5) => {
-  const current = state.ia?.currentSimilarities;
-  if (!current) return [];
-
-  return current.matches.slice(0, limit);
+  const results = state.ia?.similaritiesResults || [];
+  return [...results]
+    .sort((a: ResultatIA, b: ResultatIA) => b.score_confiance - a.score_confiance)
+    .slice(0, limit);
 };
 
 // ============================================
-// GLOBAL IA STATE SELECTORS
+// UI STATE SELECTORS
 // ============================================
 
 export const selectIALoading = (state: RootState) => state.ia?.loading || false;
@@ -110,69 +109,45 @@ export const selectSelectedPersonId = (state: RootState) => state.ia?.selectedPe
 
 export const selectAnalysisMode = (state: RootState) => state.ia?.analysisMode || null;
 
-export const selectConfidenceThreshold = (state: RootState) => state.ia?.confidenceThreshold || 70;
+export const selectConfidenceThreshold = (state: RootState) =>
+  state.ia?.confidenceThreshold || 70;
 
 // ============================================
-// COMPUTED SELECTORS
+// COMBINED SELECTORS
 // ============================================
 
 export const selectIAAnalysisSummary = (state: RootState) => {
-  const facialResults = state.ia?.facialRecognitionResults || [];
-  const comparisonResults = state.ia?.imageComparisonResults || [];
-  const predictions = state.ia?.locationPredictions || [];
-  const similarities = state.ia?.similaritiesResults || [];
-
-  const avgFacialConfidence =
-    facialResults.length > 0
-      ? facialResults.reduce((sum: number, r: FacialRecognitionResult) => sum + r.facial_features.confidence_facial, 0) /
-        facialResults.length
-      : 0;
-
-  const avgSimilarityScore =
-    comparisonResults.length > 0
-      ? comparisonResults.reduce((sum: number, r: ImageComparisonResult) => sum + r.similarity_score, 0) / comparisonResults.length
-      : 0;
-
   return {
-    totalFacialAnalyses: facialResults.length,
-    totalComparisons: comparisonResults.length,
-    totalPredictions: predictions.length,
-    totalSimilaritiesDetections: similarities.length,
-    avgFacialConfidence: Math.round(avgFacialConfidence),
-    avgSimilarityScore: Math.round(avgSimilarityScore),
-    accuracyRate: Math.round(
-      ((avgFacialConfidence + avgSimilarityScore) / 2 || 0),
-    ),
+    facialResultsCount: (state.ia?.facialRecognitionResults || []).length,
+    comparisonResultsCount: (state.ia?.imageComparisonResults || []).length,
+    predictionsCount: (state.ia?.locationPredictions || []).length,
+    similaritiesCount: (state.ia?.similaritiesResults || []).length,
+    isLoading: state.ia?.loading || false,
+    hasError: !!state.ia?.error,
   };
 };
 
-export const selectPersonAnalyticsSummary = (state: RootState, personId: string) => {
+export const selectPersonAnalyticsSummary = (state: RootState, dossierId: string) => {
   const facialResults = (state.ia?.facialRecognitionResults || []).filter(
-    (r: FacialRecognitionResult) => r.person_id === personId,
+    (r: ResultatIA) => r.id_dossier === dossierId,
   );
   const predictions = (state.ia?.locationPredictions || []).filter(
-    (p: LocationPredictionResult) => p.person_id === personId,
+    (r: ResultatIA) => r.id_dossier === dossierId,
   );
 
   return {
-    totalAnalyses: facialResults.length,
-    totalPredictions: predictions.length,
-    lastAnalysisDate: facialResults.length > 0 ? facialResults[0].analysis_date : null,
-    lastPredictionDate: predictions.length > 0 ? predictions[0].prediction_date : null,
+    facialAnalysisCount: facialResults.length,
+    predictionsCount: predictions.length,
+    latestFacialAnalysis: facialResults[0] || null,
+    latestPrediction: predictions[0] || null,
   };
 };
 
-export const selectAnalysisResults = (state: RootState, type: string) => {
-  switch (type) {
-    case 'facial':
-      return state.ia?.facialRecognitionResults || [];
-    case 'comparison':
-      return state.ia?.imageComparisonResults || [];
-    case 'location':
-      return state.ia?.locationPredictions || [];
-    case 'similarities':
-      return state.ia?.similaritiesResults || [];
-    default:
-      return [];
-  }
+export const selectAnalysisResults = (state: RootState) => {
+  return {
+    facialResults: state.ia?.facialRecognitionResults || [],
+    comparisonResults: state.ia?.imageComparisonResults || [],
+    locationPredictions: state.ia?.locationPredictions || [],
+    similaritiesResults: state.ia?.similaritiesResults || [],
+  };
 };

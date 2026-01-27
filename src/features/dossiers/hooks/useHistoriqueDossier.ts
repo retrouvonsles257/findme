@@ -33,22 +33,50 @@ export const useHistoriqueDossier = (): UseHistoriqueDossierReturn => {
     setError(null);
 
     try {
-      // Récupérer l'historique du dossier si la table existe
-      const { data, error: err } = await (supabase as any)
+      // Essayer d'abord journal_activite (table standard)
+      const { data: journalData, error: journalErr } = await (supabase as any)
+        .from('journal_activite')
+        .select('*, utilisateur:id_utilisateur(nom, prenom)')
+        .eq('id_dossier', dossierId)
+        .order('date_action', { ascending: false })
+        .limit(50);
+
+      if (!journalErr && journalData && journalData.length > 0) {
+        // Mapper journal_activite vers HistoriqueEntry
+        const mapped = journalData.map((entry: any) => ({
+          id: entry.id,
+          action: entry.type_action || entry.action || 'Action',
+          description: entry.description || entry.contenu || '',
+          date_modification: entry.date_action || entry.created_at,
+          modified_by: entry.utilisateur 
+            ? `${entry.utilisateur.prenom || ''} ${entry.utilisateur.nom || ''}`.trim()
+            : entry.nom_utilisateur || 'Système',
+        }));
+        setHistorique(mapped);
+        return;
+      }
+
+      // Fallback: essayer dossier_historique si elle existe
+      const { data: histData, error: histErr } = await (supabase as any)
         .from('dossier_historique')
-        .select('*')
+        .select('*, utilisateur:id_utilisateur(nom, prenom)')
         .eq('id_dossier', dossierId)
         .order('date_modification', { ascending: false });
 
-      if (err) {
-        // Si la table n'existe pas, retourner une liste vide avec le créé du dossier
-        console.warn('dossier_historique table not found, using creation date only');
-        setHistorique([]);
+      if (!histErr && histData) {
+        const mapped = histData.map((entry: any) => ({
+          ...entry,
+          modified_by: entry.utilisateur 
+            ? `${entry.utilisateur.prenom || ''} ${entry.utilisateur.nom || ''}`.trim()
+            : entry.modified_by || 'Système',
+        }));
+        setHistorique(mapped);
       } else {
-        setHistorique(data || []);
+        // Si aucune table n'existe, retourner vide
+        console.warn('Aucune table d\'historique trouvée');
+        setHistorique([]);
       }
     } catch (err: any) {
-      // Silentieusement continuer si la table n'existe pas
       console.warn('Could not fetch historique:', err.message);
       setHistorique([]);
     } finally {

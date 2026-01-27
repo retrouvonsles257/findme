@@ -11,6 +11,10 @@ export type { MainLayoutProps } from './MainLayout';
 export { DashboardLayout } from './DashbordLayout';
 export type { DashboardLayoutProps } from './DashbordLayout';
 
+// Authority Layout (New)
+export { AuthorityLayout, useAuthorityLayout, AuthoritySidebar, AuthorityHeader } from './AuthorityLayout/index';
+export type { AuthorityLayoutProps, AuthoritySidebarProps, AuthorityHeaderProps } from './AuthorityLayout/index';
+
 // Header Components
 export { Header } from './Header';
 export type { HeaderProps, HeaderType } from './Header';

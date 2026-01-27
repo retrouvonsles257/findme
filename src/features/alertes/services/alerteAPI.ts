@@ -77,33 +77,39 @@ export const createAlerte = async (input: AlerteCreateInput): Promise<Alerte> =>
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Non authentifié');
 
+  // Préparer les données pour l'insertion
+  // Supabase convertit automatiquement les tableaux en JSONB
+  const insertData = {
+    titre: input.titre,
+    message: input.message,
+    message_court: input.message_court || input.message.substring(0, 500),
+    type_alerte: input.type_alerte,
+    id_dossier: input.id_dossier,
+    latitude_centre: input.latitude_centre || null,
+    longitude_centre: input.longitude_centre || null,
+    rayon_km: input.rayon_km || 50,
+    zones_specifiques: input.zones_specifiques || null,
+    date_diffusion: new Date().toISOString(),
+    date_expiration: input.date_expiration || null,
+    canaux_diffusion: input.canaux_diffusion || ['push', 'in_app'],
+    statut_alerte: StatutAlerteEnum.BROUILLON,
+    niveau_urgence_min: input.niveau_urgence_min || 1,
+    types_utilisateurs: input.types_utilisateurs || null,
+    id_utilisateur_createur: user.id,
+    numero_alerte: `ALE-${Date.now()}`,
+  };
+
   const { data, error } = await supabase
     .from('alerte')
-    .insert([
-      {
-        titre: input.titre,
-        message: input.message,
-        message_court: input.message_court || input.message.substring(0, 500),
-        type_alerte: input.type_alerte,
-        id_dossier: input.id_dossier,
-        latitude_centre: input.latitude_centre,
-        longitude_centre: input.longitude_centre,
-        rayon_km: input.rayon_km || 50,
-        zones_specifiques: input.zones_specifiques,
-        date_diffusion: new Date().toISOString(),
-        date_expiration: input.date_expiration,
-        canaux_diffusion: input.canaux_diffusion || ['push', 'in_app'],
-        statut_alerte: StatutAlerteEnum.BROUILLON,
-        niveau_urgence_min: input.niveau_urgence_min || 1,
-        types_utilisateurs: input.types_utilisateurs,
-        id_utilisateur_createur: user.id,
-        numero_alerte: `ALE-${Date.now()}`,
-      } as any,
-    ] as any)
+    .insert([insertData] as any)
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[alerteAPI] Erreur création alerte:', error);
+    console.error('[alerteAPI] Données envoyées:', insertData);
+    throw new Error(error.message || 'Erreur lors de la création de l\'alerte');
+  }
   return data;
 };
 

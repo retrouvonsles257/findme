@@ -27,8 +27,18 @@ export {
   detectSimilarities,
   getSimilaritiesResults,
   getSimilaritiesById,
-  getAnalysisByPerson,
+  getAnalysisByDossier,
   getAllAnalysisResults,
+  checkIAServiceStatus,
+  detectObjectsInImage,
+} from './services/iaAPI';
+
+export type {
+  ResultatIA,
+  CreateResultatIAInput,
+  TypeAnalyse,
+  StatutValidationIA,
+  ActionGeneree,
 } from './services/iaAPI';
 
 export {
@@ -72,13 +82,13 @@ export {
 // Store
 export {
   fetchFacialRecognitionResults,
-  performFacialAnalysis,
   fetchImageComparisonResults,
-  performImageComparison,
   fetchLocationPredictions,
   performLocationPrediction,
   fetchSimilaritiesResults,
-  performSimilaritiesDetection,
+  addFacialRecognitionResult,
+  addImageComparisonResult,
+  addSimilaritiesResult,
   setCurrentFacialAnalysis,
   setCurrentComparison,
   setCurrentLocationPrediction,
@@ -86,6 +96,8 @@ export {
   setSelectedPersonId,
   setAnalysisMode,
   setConfidenceThreshold,
+  setLoading,
+  setError,
   clearError,
   resetState,
 } from './store/iaSlice';

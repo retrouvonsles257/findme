@@ -52,14 +52,14 @@ export const getLanguageName = (lng: LanguageCode): string => {
 };
 
 /**
- * Get language flag emoji
+ * Get language flag emoji (deprecated - use icons instead)
  */
 export const getLanguageFlag = (lng: LanguageCode): string => {
   const flags: Record<LanguageCode, string> = {
-    en: '🇬🇧',
-    fr: '🇫🇷',
+    en: 'GB',
+    fr: 'FR',
   };
-  return flags[lng] || '🌐';
+  return flags[lng] || 'GL';
 };
 
 /**
@@ -77,6 +77,7 @@ export const NAMESPACES = {
   SUCCESS: 'success',
   ERRORS: 'errors',
   VALIDATION: 'validation',
+  AUTHORITY: 'authority',
 } as const;
 
 export type Namespace = typeof NAMESPACES[keyof typeof NAMESPACES];

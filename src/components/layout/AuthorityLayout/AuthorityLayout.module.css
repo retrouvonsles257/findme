@@ -1,0 +1,94 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Authority Layout Styles
+ * Namespace: .authority-* pour éviter conflits
+ * Layout sans espace vide - 100% de l'écran
+ * =====================================================
+ */
+
+/* CSS Variables for Authority Theme */
+:root {
+  --authority-primary: #1d4ed8;
+  --authority-primary-light: rgba(30, 144, 255, 0.92);
+  --authority-primary-hover: #1e40af;
+  --authority-bg-dark: #0f172a;
+  --authority-bg-sidebar: #1e293b;
+  --authority-bg-main: #f1f5f9;
+  --authority-text-primary: #f8fafc;
+  --authority-text-secondary: #94a3b8;
+  --authority-text-dark: #1e293b;
+  --authority-border: #334155;
+  --authority-sidebar-width: 260px;
+  --authority-sidebar-collapsed: 0px;
+  --authority-header-height: 56px;
+  --authority-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --authority-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Main Layout Container - Full Width */
+.authorityLayout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  max-width: 100%;
+  background: var(--authority-bg-main);
+  font-family: var(--authority-font);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+/* Main Wrapper (Header + Content) - No gap */
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  background: var(--authority-bg-main);
+  transition: margin-left var(--authority-transition), width var(--authority-transition);
+  position: relative;
+}
+
+.mainWrapper.sidebarOpen {
+  margin-left: var(--authority-sidebar-width);
+  width: calc(100vw - var(--authority-sidebar-width));
+}
+
+.mainWrapper.sidebarClosed {
+  margin-left: 0;
+  width: 100vw;
+}
+
+/* Main Content Area - Full space */
+.mainContent {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--authority-bg-main);
+  min-height: calc(100vh - var(--authority-header-height));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .mainWrapper.sidebarOpen {
+    margin-left: 0;
+    width: 100vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainContent {
+    padding: 0.75rem;
+  }
+}

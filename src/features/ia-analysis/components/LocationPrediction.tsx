@@ -27,13 +27,11 @@ export const LocationPrediction: React.FC<LocationPredictionProps> = ({
 
     try {
       const result = await predictLocation({
-        person_id: inputPersonId,
-        include_historical: true,
-        prediction_range_days: predictionDays,
+        dossierId: inputPersonId, // Using person ID as dossier ID for prediction
       });
 
       if (onPredictionComplete) {
-        onPredictionComplete(result);
+        onPredictionComplete(result as any);
       }
 
       setInputPersonId('');
@@ -85,31 +83,31 @@ export const LocationPrediction: React.FC<LocationPredictionProps> = ({
           <div className={styles.content}>
             <div className={styles.lastKnown}>
               <p>
-                <strong>Last Known Location:</strong> {currentPrediction.last_known_location.address}
+                <strong>Dossier:</strong> {currentPrediction.id_dossier || 'Non spécifié'}
               </p>
               <p className={styles.date}>
-                {new Date(currentPrediction.last_known_location.date).toLocaleString()}
+                {new Date(currentPrediction.date_analyse).toLocaleString()}
               </p>
             </div>
 
             <div className={styles.pattern}>
               <p>
-                <strong>Movement Pattern:</strong> {currentPrediction.movement_pattern.type}
+                <strong>Score de Confiance:</strong> {currentPrediction.score_confiance.toFixed(0)}%
               </p>
               <p className={styles.confidence}>
-                Confidence: {currentPrediction.movement_pattern.confidence.toFixed(0)}%
+                Modèle: {currentPrediction.modele_ia_utilise || 'N/A'}
               </p>
             </div>
 
-            {currentPrediction.predicted_locations.length > 0 && (
+            {((currentPrediction.zones_predites as any)?.zones?.length || 0) > 0 && (
               <div className={styles.predictions}>
                 <p>
-                  <strong>Predicted Locations ({currentPrediction.predicted_locations.length})</strong>
+                  <strong>Zones Prédites ({(currentPrediction.zones_predites as any)?.zones?.length || 0})</strong>
                 </p>
                 <ul>
-                  {currentPrediction.predicted_locations.slice(0, 3).map((loc, idx) => (
+                  {((currentPrediction.zones_predites as any)?.zones || []).slice(0, 3).map((zone: any, idx: number) => (
                     <li key={idx}>
-                      <span>{loc.probability.toFixed(0)}%</span> - {loc.reason}
+                      <span>{zone.probabilite?.toFixed(0) || 0}%</span> - {zone.ville}, {zone.region}
                     </li>
                   ))}
                 </ul>
@@ -125,8 +123,8 @@ export const LocationPrediction: React.FC<LocationPredictionProps> = ({
           <ul className={styles.list}>
             {predictions.slice(0, 5).map((pred) => (
               <li key={pred.id}>
-                <span>{new Date(pred.prediction_date).toLocaleDateString()}</span>
-                <span className={styles.pattern}>{pred.movement_pattern.type}</span>
+                <span>{new Date(pred.date_analyse).toLocaleDateString()}</span>
+                <span className={styles.pattern}>{pred.score_confiance.toFixed(0)}%</span>
               </li>
             ))}
           </ul>

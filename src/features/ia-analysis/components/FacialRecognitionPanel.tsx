@@ -2,10 +2,11 @@
  * =====================================================
  * RETROUVONSLES - FacialRecognitionPanel Component
  * Component for facial recognition analysis
+ * Utilise VRAIE IA Hugging Face
  * =====================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useFacialRecognition } from '../hooks/useFacialRecognition';
 import type { FacialRecognitionPanelProps } from '../types';
 import styles from './FacialRecognitionPanel.module.css';
@@ -14,30 +15,50 @@ export const FacialRecognitionPanel: React.FC<FacialRecognitionPanelProps> = ({
   className = '',
   onAnalysisComplete,
 }) => {
-  const { results, currentAnalysis, analyzeFacial, isLoading, error } = useFacialRecognition();
-  const [imageId, setImageId] = useState('');
-  const [personId, setPersonId] = useState('');
+  const { 
+    results, 
+    currentAnalysis, 
+    analyzeFacial, 
+    isLoading, 
+    error,
+    isHuggingFaceConfigured,
+  } = useFacialRecognition();
+  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [dossierId, setDossierId] = useState('');
   const [confidenceThreshold, setConfidenceThreshold] = useState(70);
 
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
   const handleAnalyze = async () => {
-    if (!imageId.trim()) {
-      alert('Please provide an image ID');
+    if (!selectedFile) {
+      alert('Veuillez sélectionner une image');
       return;
     }
 
     try {
-      const result = await analyzeFacial({
-        image_id: imageId,
-        person_id: personId || undefined,
-        confidence_threshold: confidenceThreshold,
-      });
+      const result = await analyzeFacial(selectedFile, dossierId || undefined);
 
       if (onAnalysisComplete) {
-        onAnalysisComplete(result);
+        onAnalysisComplete(result as any);
       }
 
-      setImageId('');
-      setPersonId('');
+      // Reset form
+      setSelectedFile(null);
+      setImagePreview(null);
+      setDossierId('');
     } catch (err) {
       console.error('Analysis failed:', err);
     }
@@ -46,36 +67,45 @@ export const FacialRecognitionPanel: React.FC<FacialRecognitionPanelProps> = ({
   return (
     <div className={`${styles.container} ${className}`}>
       <div className={styles.header}>
-        <h3>Facial Recognition Analysis</h3>
+        <h3>Reconnaissance Faciale IA</h3>
+        {isHuggingFaceConfigured && (
+          <span className={styles.aiBadge}>🤖 Hugging Face Actif</span>
+        )}
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.form}>
         <div className={styles.formGroup}>
-          <label>Image ID *</label>
+          <label>Image à analyser *</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={isLoading}
+            className={styles.fileInput}
+          />
+          {imagePreview && (
+            <div className={styles.preview}>
+              <img src={imagePreview} alt="Aperçu" className={styles.previewImage} />
+              <span className={styles.fileName}>{selectedFile?.name}</span>
+            </div>
+          )}
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>ID Dossier (Optionnel)</label>
           <input
             type="text"
-            placeholder="Enter image ID"
-            value={imageId}
-            onChange={(e) => setImageId(e.target.value)}
+            placeholder="Entrez l'ID du dossier"
+            value={dossierId}
+            onChange={(e) => setDossierId(e.target.value)}
             disabled={isLoading}
           />
         </div>
 
         <div className={styles.formGroup}>
-          <label>Person ID (Optional)</label>
-          <input
-            type="text"
-            placeholder="Enter person ID"
-            value={personId}
-            onChange={(e) => setPersonId(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Confidence Threshold: {confidenceThreshold}%</label>
+          <label>Seuil de confiance: {confidenceThreshold}%</label>
           <input
             type="range"
             min="0"
@@ -86,25 +116,48 @@ export const FacialRecognitionPanel: React.FC<FacialRecognitionPanelProps> = ({
           />
         </div>
 
-        <button onClick={handleAnalyze} disabled={isLoading} className={styles.btnAnalyze}>
-          {isLoading ? 'Analyzing...' : 'Analyze Facial'}
+        <button 
+          onClick={handleAnalyze} 
+          disabled={isLoading || !selectedFile} 
+          className={styles.btnAnalyze}
+        >
+          {isLoading ? 'Analyse en cours...' : `Analyser ${isHuggingFaceConfigured ? '(IA)' : '(Simulation)'}`}
         </button>
       </div>
 
       {currentAnalysis && (
         <div className={styles.result}>
-          <h4>Current Analysis</h4>
+          <h4>Résultat de l'analyse</h4>
           <div className={styles.resultContent}>
             <p>
-              <strong>Confidence:</strong> {currentAnalysis.facial_features.confidence_facial.toFixed(2)}%
+              <strong>Confiance:</strong> {currentAnalysis.score_confiance.toFixed(2)}%
             </p>
             <p>
-              <strong>Face Quality:</strong> {currentAnalysis.facial_features.face_quality.toFixed(2)}%
+              <strong>Modèle:</strong> {currentAnalysis.modele_ia_utilise || 'N/A'}
             </p>
-            {currentAnalysis.best_match && (
+            <p>
+              <strong>Temps:</strong> {currentAnalysis.temps_traitement_ms || 0}ms
+            </p>
+            {currentAnalysis.donnees_interpretees?.face_detected && (
+              <>
+                <p>
+                  <strong>Visage détecté:</strong> Oui
+            </p>
+                {currentAnalysis.donnees_interpretees?.faces?.[0]?.age_estimate && (
               <p>
-                <strong>Best Match:</strong> {currentAnalysis.best_match.person_id} (
-                {currentAnalysis.best_match.similarity.toFixed(2)}%)
+                    <strong>Âge estimé:</strong> {currentAnalysis.donnees_interpretees.faces[0].age_estimate}
+                  </p>
+                )}
+                {currentAnalysis.donnees_interpretees?.faces?.[0]?.gender && (
+                  <p>
+                    <strong>Genre:</strong> {currentAnalysis.donnees_interpretees.faces[0].gender}
+                  </p>
+                )}
+              </>
+            )}
+            {(currentAnalysis.correspondances_trouvees as any)?.potential_matches > 0 && (
+              <p>
+                <strong>Correspondances potentielles:</strong> {(currentAnalysis.correspondances_trouvees as any)?.potential_matches}
               </p>
             )}
           </div>
@@ -113,12 +166,17 @@ export const FacialRecognitionPanel: React.FC<FacialRecognitionPanelProps> = ({
 
       {results.length > 0 && (
         <div className={styles.history}>
-          <h4>Recent Analyses ({results.length})</h4>
+          <h4>Analyses récentes ({results.length})</h4>
           <ul className={styles.resultsList}>
             {results.slice(0, 5).map((result) => (
               <li key={result.id}>
-                <span>{new Date(result.analysis_date).toLocaleDateString()}</span>
-                <span className={styles.badge}>{result.facial_features.confidence_facial.toFixed(0)}%</span>
+                <span>{new Date(result.date_analyse).toLocaleDateString()}</span>
+                <span className={styles.badge}>
+                  {result.score_confiance.toFixed(0)}%
+                </span>
+                {result.modele_ia_utilise?.includes('Hugging Face') && (
+                  <span className={styles.aiTag}>IA</span>
+                )}
               </li>
             ))}
           </ul>

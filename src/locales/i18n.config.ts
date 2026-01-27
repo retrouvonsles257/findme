@@ -104,7 +104,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    fallbackLng: 'fr',
     defaultNS: 'common',
     ns: ['common', 'auth', 'navigation', 'forms', 'dossiers', 'signalements', 'alertes', 'users', 'success', 'errors', 'validation', 'citizen', 'profile', 'admin', 'operator', 'moderator', 'authority', 'super_admin', 'ngo', 'public'],
     

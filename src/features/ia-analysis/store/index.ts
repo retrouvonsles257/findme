@@ -1,3 +1,5 @@
-export { default, iaSlice } from './iaSlice';
+import iaReducer from './iaSlice';
+export default iaReducer;
+export { iaReducer };
 export * from './iaSlice';
 export * from './iaSelectors';

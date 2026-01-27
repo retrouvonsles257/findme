@@ -106,9 +106,26 @@ export const createDossier = async (
  * Get dossier by ID
  */
 export const getDossierById = async (id: string): Promise<DossierDisparition> => {
-  const { data, error } = await db.from('dossier_disparition').select('*').eq('id', id).single();
+  console.log('[dossierAPI] getDossierById appelé avec ID:', id);
+  
+  // Récupérer le dossier avec les données de la personne
+  const { data, error } = await db
+    .from('dossier_disparition')
+    .select('*, personne:id_personne(*)')
+    .eq('id', id)
+    .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[dossierAPI] Erreur getDossierById:', error);
+    throw error;
+  }
+  
+  if (!data) {
+    console.warn('[dossierAPI] Aucune donnée retournée pour ID:', id);
+    throw new Error('Dossier non trouvé');
+  }
+  
+  console.log('[dossierAPI] getDossierById retourne:', data.numero_dossier || 'sans numéro');
   return data;
 };
 
@@ -116,7 +133,8 @@ export const getDossierById = async (id: string): Promise<DossierDisparition> =>
  * Get multiple dossiers with filters
  */
 export const getDossiers = async (filters?: DossierFilterCriteria) => {
-  let query: any = db.from('dossier_disparition').select('*');
+  // Récupérer les dossiers avec les données de la personne
+  let query: any = db.from('dossier_disparition').select('*, personne:id_personne(nom, prenom, nom_complet)');
 
   if (filters) {
     if (filters.statut && filters.statut.length > 0) {

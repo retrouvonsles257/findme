@@ -11,46 +11,100 @@ import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail
 import { useSignalementsForDossier } from '../../features/signalements/hooks/useSignalementsForDossier';
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
 import { useHistoriqueDossier } from '../../features/dossiers/hooks/useHistoriqueDossier';
-import { DashboardLayout, HeaderAuthority, SidebarAuthority } from '../../components/layout';
+import { AuthorityLayout } from '../../components/layout';
+import { supabase } from '../../config';
+import { useI18n } from '../../hooks';
+import { 
+  Brain, 
+  Camera, 
+  Image as ImageIcon, 
+  ArrowLeft, 
+  Edit, 
+  Bell, 
+  Info, 
+  MapPin, 
+  Clock, 
+  FileText,
+  AlertCircle,
+  Phone,
+  Mail,
+  User,
+  BarChart3,
+  History
+} from 'lucide-react';
 import styles from './DossierDetailPage.module.css';
 
 export const DossierDetailPage: React.FC = () => {
-  const { dossierId } = useParams<{ dossierId: string }>();
+  const { id } = useParams<{ id: string }>(); // Corrigé : utiliser 'id' au lieu de 'dossierId'
   const navigate = useNavigate();
-  const { dossier, isLoading, fetchDossier } = useDossierDetail();
+  const { dossier, isLoading, error, fetchDossier } = useDossierDetail();
+  const { t } = useI18n();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
   const { historique, fetchHistorique } = useHistoriqueDossier();
-  const [activeTab, setActiveTab] = useState<'info' | 'signalements' | 'localisations' | 'historique'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'signalements' | 'localisations' | 'historique' | 'photos'>('info');
+  const [photos, setPhotos] = useState<any[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+
+  // Charger les photos de la personne
+  useEffect(() => {
+    const loadPhotos = async () => {
+      if (!dossier?.id_personne) return;
+      
+      setLoadingPhotos(true);
+      try {
+        const { data, error } = await (supabase as any)
+          .from('photo')
+          .select('*')
+          .eq('id_personne', dossier.id_personne)
+          .order('est_principale', { ascending: false })
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setPhotos(data || []);
+      } catch (err) {
+        // Erreur silencieuse - les photos sont optionnelles
+      } finally {
+        setLoadingPhotos(false);
+      }
+    };
+
+    if (dossier?.id_personne) {
+      loadPhotos();
+    }
+  }, [dossier?.id_personne]);
 
   useEffect(() => {
-    if (dossierId) {
-      fetchDossier(dossierId);
-      fetchSignalements(dossierId);
-      fetchLocalisations(dossierId);
-      fetchHistorique(dossierId);
+    if (id) {
+      fetchDossier(id).catch(() => {});
+      fetchSignalements(id).catch(() => {});
+      fetchLocalisations(id).catch(() => {});
+      fetchHistorique(id).catch(() => {});
     }
-  }, [dossierId, fetchDossier, fetchSignalements, fetchLocalisations, fetchHistorique]);
+  }, [id, fetchDossier, fetchSignalements, fetchLocalisations, fetchHistorique]);
 
   return (
-    <DashboardLayout
-      header={<HeaderAuthority logo={<span>RetrouvonsLes</span>} />}
-      sidebar={<SidebarAuthority />}
-    >
+    <AuthorityLayout>
       <div className={styles.container}>
         {isLoading ? (
-          <div className={styles.loading}>Chargement du dossier...</div>
+          <div className={styles.loading}>{t('authority.dossierDetail.loading')}</div>
+        ) : error ? (
+          <div className={styles.error}>
+            <h3>{t('authority.dossierDetail.error')}</h3>
+            <p>{error}</p>
+            <button onClick={() => id && fetchDossier(id)}>{t('authority.commonActions.view')}</button>
+          </div>
         ) : dossier ? (
           <>
             {/* Header */}
             <div className={styles.header}>
               <div className={styles.headerLeft}>
                 <button className={styles.backButton} onClick={() => navigate(-1)}>
-                  ← Retour
+                  <ArrowLeft size={18} /> {t('authority.commonActions.back')}
                 </button>
                 <div className={styles.titleSection}>
                   <h1>{dossier.numero_dossier}</h1>
-                  <p className={styles.subtitle}>Dossier de disparition</p>
+                  <p className={styles.subtitle}>{t('authority.dossierDetail.title')}</p>
                 </div>
               </div>
               <div className={styles.headerRight}>
@@ -85,16 +139,17 @@ export const DossierDetailPage: React.FC = () => {
 
             {/* Tabs */}
             <div className={styles.tabs}>
-              {(['info', 'signalements', 'localisations', 'historique'] as const).map((tab) => (
+              {(['info', 'photos', 'signalements', 'localisations', 'historique'] as const).map((tab) => (
                 <button
                   key={tab}
                   className={`${styles.tab} ${activeTab === tab ? styles.active : ''}`}
                   onClick={() => setActiveTab(tab)}
                 >
-                  {tab === 'info' && 'Informations'}
-                  {tab === 'signalements' && 'Signalements'}
-                  {tab === 'localisations' && 'Localisations'}
-                  {tab === 'historique' && 'Historique'}
+                  {tab === 'info' && <><Info size={16} /> {t('authority.dossierDetail.tabs.info')}</>}
+                  {tab === 'photos' && <><Camera size={16} /> {t('authority.dossierDetail.tabs.photos')}</>}
+                  {tab === 'signalements' && <><AlertCircle size={16} /> {t('authority.dossierDetail.tabs.reports')}</>}
+                  {tab === 'localisations' && <><MapPin size={16} /> {t('authority.dossierDetail.tabs.locations')}</>}
+                  {tab === 'historique' && <><History size={16} /> {t('authority.dossierDetail.tabs.history')}</>}
                 </button>
               ))}
             </div>
@@ -105,62 +160,90 @@ export const DossierDetailPage: React.FC = () => {
                 <div className={styles.infoSection}>
                   <div className={styles.infoGrid}>
                     <div className={styles.infoBlock}>
-                      <h3>Informations de Disparition</h3>
+                      <h3><FileText size={18} /> {t('authority.dossierDetail.sections.disappearance')}</h3>
                       <div className={styles.infoItem}>
-                        <label>Date Disparition:</label>
+                        <label><Clock size={14} /> {t('authority.dossierDetail.fields.date')}:</label>
                         <p>{new Date(dossier.date_disparition).toLocaleDateString()}</p>
                       </div>
                       <div className={styles.infoItem}>
-                        <label>Lieu Disparition:</label>
-                        <p>{dossier.lieu_disparition || 'Non renseigné'}</p>
+                        <label><MapPin size={14} /> {t('authority.dossierDetail.fields.location')}:</label>
+                        <p>{dossier.lieu_disparition || t('authority.dossierDetail.fields.notProvided')}</p>
                       </div>
                       <div className={styles.infoItem}>
-                        <label>Circonstances:</label>
-                        <p>{dossier.circonstances || 'Non renseigné'}</p>
+                        <label><FileText size={14} /> {t('authority.dossierDetail.fields.circumstances')}:</label>
+                        <p>{dossier.circonstances || t('authority.dossierDetail.fields.notProvided')}</p>
                       </div>
                       <div className={styles.infoItem}>
-                        <label>Type Disparition:</label>
-                        <p>{dossier.type_disparition || 'Non renseigné'}</p>
+                        <label><Info size={14} /> {t('authority.dossierDetail.fields.type')}:</label>
+                        <p>{dossier.type_disparition || t('authority.dossierDetail.fields.notProvided')}</p>
+                      </div>
+                    </div>
+
+                    {(dossier as any)?.personne && (
+                      <div className={styles.infoBlock}>
+                        <h3><User size={18} /> {t('authority.dossierDetail.sections.person')}</h3>
+                        <div className={styles.infoItem}>
+                          <label><User size={14} /> {t('authority.dossierDetail.fields.fullName')}:</label>
+                          <p>{(dossier as any).personne.nom_complet || `${(dossier as any).personne.prenom || ''} ${(dossier as any).personne.nom || ''}`.trim() || t('authority.dossierDetail.fields.notProvided')}</p>
+                        </div>
+                        {(dossier as any).personne.date_naissance && (
+                          <div className={styles.infoItem}>
+                            <label><Clock size={14} /> {t('authority.dossierDetail.fields.birthDate')}:</label>
+                            <p>{new Date((dossier as any).personne.date_naissance).toLocaleDateString()}</p>
+                          </div>
+                        )}
+                        {(dossier as any).personne.sexe && (
+                          <div className={styles.infoItem}>
+                            <label><User size={14} /> {t('authority.dossierDetail.fields.gender')}:</label>
+                            <p>{(dossier as any).personne.sexe}</p>
+                          </div>
+                        )}
+                        {(dossier as any).personne.description_physique && (
+                          <div className={styles.infoItem}>
+                            <label><FileText size={14} /> {t('authority.dossierDetail.fields.physicalDescription')}:</label>
+                            <p>{(dossier as any).personne.description_physique}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className={styles.infoBlock}>
+                      <h3><User size={18} /> {t('authority.dossierDetail.sections.contact')}</h3>
+                      <div className={styles.infoItem}>
+                        <label><User size={14} /> {t('authority.dossierDetail.fields.investigator')}:</label>
+                        <p>{dossier.enqueteur_responsable || t('authority.dossierDetail.fields.notAssigned')}</p>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <label><User size={14} /> {t('authority.dossierDetail.fields.familyContact')}:</label>
+                        <p>{dossier.contact_famille_principale || t('authority.dossierDetail.fields.notProvided')}</p>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <label><Phone size={14} /> {t('authority.dossierDetail.fields.phone')}:</label>
+                        <p>{dossier.telephone_contact || t('authority.dossierDetail.fields.notProvided')}</p>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <label><Mail size={14} /> {t('authority.dossierDetail.fields.email')}:</label>
+                        <p>{dossier.email_contact || t('authority.dossierDetail.fields.notProvided')}</p>
                       </div>
                     </div>
 
                     <div className={styles.infoBlock}>
-                      <h3>Contact & Responsables</h3>
-                      <div className={styles.infoItem}>
-                        <label>Enquêteur:</label>
-                        <p>{dossier.enqueteur_responsable || 'Non assigné'}</p>
-                      </div>
-                      <div className={styles.infoItem}>
-                        <label>Contact Famille:</label>
-                        <p>{dossier.contact_famille_principale || 'Non renseigné'}</p>
-                      </div>
-                      <div className={styles.infoItem}>
-                        <label>Téléphone:</label>
-                        <p>{dossier.telephone_contact || 'Non renseigné'}</p>
-                      </div>
-                      <div className={styles.infoItem}>
-                        <label>Email:</label>
-                        <p>{dossier.email_contact || 'Non renseigné'}</p>
-                      </div>
-                    </div>
-
-                    <div className={styles.infoBlock}>
-                      <h3>Statistiques</h3>
+                      <h3><BarChart3 size={18} /> {t('authority.dossierDetail.sections.stats')}</h3>
                       <div className={styles.statGrid}>
                         <div className={styles.stat}>
-                          <span className={styles.statLabel}>Signalements</span>
+                          <span className={styles.statLabel}>{t('authority.dossierDetail.stats.reports')}</span>
                           <span className={styles.statValue}>
                             {dossier.nombre_signalements || 0}
                           </span>
                         </div>
                         <div className={styles.stat}>
-                          <span className={styles.statLabel}>Alertes</span>
+                          <span className={styles.statLabel}>{t('authority.dossierDetail.stats.alerts')}</span>
                           <span className={styles.statValue}>
                             {dossier.nombre_alertes_diffusees || 0}
                           </span>
                         </div>
                         <div className={styles.stat}>
-                          <span className={styles.statLabel}>Vues Fiche</span>
+                          <span className={styles.statLabel}>{t('authority.dossierDetail.stats.views')}</span>
                           <span className={styles.statValue}>
                             {dossier.nombre_vues_fiche || 0}
                           </span>
@@ -170,45 +253,94 @@ export const DossierDetailPage: React.FC = () => {
                   </div>
 
                   <div className={styles.actions}>
-                    <button className={styles.btn} onClick={() => navigate(`/authority/dossiers/${dossierId}/edit`)}>
-                      ✏️ Éditer
+                    <button className={styles.btn} onClick={() => navigate(`/authority/dossiers/${id}/edit`)}>
+                      <Edit size={16} /> {t('authority.commonActions.edit')}
                     </button>
-                    <button className={styles.btn}>🚨 Créer Alerte</button>
-                    <button className={styles.btn}>📊 Analyse IA</button>
+                    <button 
+                      className={styles.btn}
+                      onClick={() => navigate(`/authority/alertes/new?dossierId=${id}`)}
+                    >
+                      <Bell size={16} /> {t('authority.dossierDetail.createAlert')}
+                    </button>
+                    <button 
+                      className={styles.btn}
+                      onClick={() => navigate(`/authority/ia-analysis?dossierId=${id}`)}
+                    >
+                      <Brain size={16} /> {t('authority.dossierDetail.iaAnalysis')}
+                    </button>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'photos' && (
+                <div className={styles.tabContent}>
+                  <h3><Camera size={20} /> {t('authority.dossierDetail.tabs.photos')}</h3>
+                  {loadingPhotos ? (
+                    <div className={styles.loading}>{t('authority.header.loading')}</div>
+                  ) : photos.length > 0 ? (
+                    <div className={styles.photosGrid}>
+                      {photos.map((photo) => (
+                        <div key={photo.id} className={styles.photoCard}>
+                          <img 
+                            src={photo.url_thumbnail || photo.url_cloudinary} 
+                            alt={photo.titre || 'Photo'} 
+                            onClick={() => window.open(photo.url_cloudinary, '_blank')}
+                          />
+                          {photo.est_principale && (
+                            <span className={styles.mainPhotoBadge}>{t('authority.dossierDetail.tabs.photos')}</span>
+                          )}
+                          {photo.titre && (
+                            <p className={styles.photoTitle}>{photo.titre}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.empty}>
+                      <ImageIcon size={48} />
+                      <p>{t('authority.dossierDetail.noPhotos')}</p>
+                    </div>
+                  )}
                 </div>
               )}
 
               {activeTab === 'signalements' && (
                 <div className={styles.tabContent}>
-                  <h3>Signalements Liés</h3>
+                  <h3><AlertCircle size={20} /> {t('authority.dossierDetail.tabs.reports')}</h3>
                   {signalements.length > 0 ? (
                     <div className={styles.itemsList}>
                       {signalements.map((sig: any) => (
                         <div key={sig.id} className={styles.itemCard}>
                           <div className={styles.itemHeader}>
-                            <h4>{sig.description || 'Signalement sans titre'}</h4>
+                            <h4>{sig.description || t('authority.dossierDetail.tabs.reports')}</h4>
                             <span className={styles.badge} style={{
                               backgroundColor: sig.etat === 'valide' ? '#28a745' : sig.etat === 'invalide' ? '#dc3545' : '#ffc107'
                             }}>
                               {sig.etat}
                             </span>
                           </div>
-                          <p><strong>Lieu:</strong> {sig.lieu_observation || 'Non renseigné'}</p>
-                          <p><strong>Date:</strong> {new Date(sig.date_observation).toLocaleDateString()}</p>
-                          {sig.auteur && <p><strong>Auteur:</strong> {sig.auteur}</p>}
+                          <p><strong>{t('authority.dossierDetail.fields.location')}:</strong> {sig.lieu_observation || t('authority.dossierDetail.fields.notProvided')}</p>
+                          <p><strong>{t('authority.dossierDetail.fields.date')}:</strong> {new Date(sig.date_observation).toLocaleDateString()}</p>
+                          {(sig.nom_temoin || (sig.utilisateur && (sig.utilisateur.nom || sig.utilisateur.prenom))) && (
+                            <p><strong>{t('authority.dossierDetail.fields.author')}:</strong> {
+                              sig.nom_temoin || 
+                              (sig.utilisateur ? `${sig.utilisateur.prenom || ''} ${sig.utilisateur.nom || ''}`.trim() : '') ||
+                              t('authority.dossierDetail.anonymousReport')
+                            }</p>
+                          )}
+                          {sig.temoin_anonyme && <p><em style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('authority.dossierDetail.anonymousReport')}</em></p>}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className={styles.empty}>Aucun signalement associé</div>
+                    <div className={styles.empty}>{t('authority.dossierDetail.noReports')}</div>
                   )}
                 </div>
               )}
 
               {activeTab === 'localisations' && (
                 <div className={styles.tabContent}>
-                  <h3>Localisations Enregistrées</h3>
+                  <h3><MapPin size={20} /> Localisations Enregistrées</h3>
                   {localisations.length > 0 ? (
                     <div className={styles.itemsList}>
                       {localisations.map((loc: any) => (
@@ -236,7 +368,7 @@ export const DossierDetailPage: React.FC = () => {
 
               {activeTab === 'historique' && (
                 <div className={styles.tabContent}>
-                  <h3>Historique des Modifications</h3>
+                  <h3><History size={20} /> {t('authority.dossierDetail.tabs.history')}</h3>
                   {historique.length > 0 ? (
                     <div className={styles.timeline}>
                       {historique.map((entry: any) => (
@@ -247,7 +379,7 @@ export const DossierDetailPage: React.FC = () => {
                           <div className={styles.timelineContent}>
                             <p><strong>{entry.action}</strong></p>
                             <p>{entry.description}</p>
-                            {entry.modified_by && <small>Par: {entry.modified_by}</small>}
+                            {entry.modified_by && <small>{t('authority.dossierDetail.fields.author')}: {entry.modified_by}</small>}
                           </div>
                         </div>
                       ))}
@@ -259,7 +391,7 @@ export const DossierDetailPage: React.FC = () => {
                           {new Date(dossier?.created_at || new Date()).toLocaleDateString()}
                         </div>
                         <div className={styles.timelineContent}>
-                          <p>Dossier créé</p>
+                          <p>{t('authority.dossiers.title')}</p>
                         </div>
                       </div>
                     </div>
@@ -269,10 +401,10 @@ export const DossierDetailPage: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className={styles.notFound}>Dossier non trouvé</div>
+          <div className={styles.notFound}>{t('authority.dossierDetail.notFound')}</div>
         )}
       </div>
-    </DashboardLayout>
+    </AuthorityLayout>
   );
 };
 

@@ -2,6 +2,7 @@
  * =====================================================
  * RETROUVONSLES - useIAAnalysis Hook
  * Main hook for IA analysis operations
+ * Utilise le type ResultatIA selon le modèle de données
  * =====================================================
  */
 
@@ -22,9 +23,24 @@ import {
   selectAnalysisMode,
   selectConfidenceThreshold,
 } from '../store/iaSelectors';
-import type {
-  UseIAAnalysisReturn,
-} from '../types';
+import type { ResultatIA } from '../services/iaAPI';
+
+// Type pour le mode d'analyse
+type AnalysisMode = 'facial' | 'comparison' | 'prediction' | 'similarities' | null;
+
+// Interface de retour du hook
+export interface UseIAAnalysisReturn {
+  facialResults: ResultatIA[];
+  comparisonResults: ResultatIA[];
+  locationPredictions: ResultatIA[];
+  similaritiesResults: ResultatIA[];
+  isLoading: boolean;
+  error: string | null;
+  analysisMode: AnalysisMode;
+  setAnalysisMode: (mode: AnalysisMode) => void;
+  confidenceThreshold: number;
+  setConfidenceThreshold: (threshold: number) => void;
+}
 
 export const useIAAnalysis = (): UseIAAnalysisReturn => {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,7 +54,7 @@ export const useIAAnalysis = (): UseIAAnalysisReturn => {
   const confidenceThreshold = useSelector(selectConfidenceThreshold);
 
   const handleSetAnalysisMode = useCallback(
-    (mode: 'facial' | 'comparison' | 'location' | 'similarities' | null) => {
+    (mode: AnalysisMode) => {
       dispatch(setAnalysisMode(mode));
     },
     [dispatch],

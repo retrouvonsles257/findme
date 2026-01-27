@@ -2,6 +2,7 @@
  * =====================================================
  * RETROUVONSLES - useLocationPrediction Hook
  * Hook for location prediction operations
+ * Utilise le type ResultatIA selon le modèle de données
  * =====================================================
  */
 
@@ -19,7 +20,23 @@ import {
   selectIALoading,
   selectIAError,
 } from '../store/iaSelectors';
-import type { LocationPredictionFormData, LocationPredictionResult, UseLocationPredictionReturn } from '../types';
+import type { ResultatIA } from '../services/iaAPI';
+
+// Interface pour les inputs de prédiction
+interface LocationPredictionInput {
+  dossierId: string;
+}
+
+// Interface de retour du hook
+export interface UseLocationPredictionReturn {
+  predictions: ResultatIA[];
+  currentPrediction: ResultatIA | null;
+  predictLocation: (data: LocationPredictionInput) => Promise<ResultatIA>;
+  getPredictionHistory: (dossierId?: string) => Promise<ResultatIA[]>;
+  setCurrentPrediction: (prediction: ResultatIA | null) => void;
+  isLoading: boolean;
+  error: string | null;
+}
 
 export const useLocationPrediction = (): UseLocationPredictionReturn => {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,16 +46,16 @@ export const useLocationPrediction = (): UseLocationPredictionReturn => {
   const error = useSelector(selectIAError);
 
   const predictLocation = useCallback(
-    async (data: LocationPredictionFormData): Promise<LocationPredictionResult> => {
+    async (data: LocationPredictionInput): Promise<ResultatIA> => {
       return (dispatch(performLocationPrediction(data)) as any).unwrap();
     },
     [dispatch],
   );
 
   const getPredictionHistory = useCallback(
-    async (personId: string): Promise<LocationPredictionResult[]> => {
+    async (dossierId?: string): Promise<ResultatIA[]> => {
       try {
-        return await (dispatch(fetchLocationPredictions(personId)) as any).unwrap();
+        return await (dispatch(fetchLocationPredictions(dossierId)) as any).unwrap();
       } catch {
         return [];
       }
@@ -47,7 +64,7 @@ export const useLocationPrediction = (): UseLocationPredictionReturn => {
   );
 
   const handleSetCurrentPrediction = useCallback(
-    (prediction: LocationPredictionResult | null) => {
+    (prediction: ResultatIA | null) => {
       dispatch(setCurrentLocationPrediction(prediction));
     },
     [dispatch],
