@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
@@ -18,6 +18,7 @@ import styles from './MySignalementsPage.module.css';
 
 export const CitizenMySignalementsPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, language } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
@@ -34,6 +35,13 @@ export const CitizenMySignalementsPage: React.FC = () => {
     fetchSignalements,
     deleteSignalement
   } = useSignalements();
+
+  // Initialiser la recherche depuis le paramètre d'URL ?q=
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q') || '';
+    setSearchTerm(q);
+  }, [location.search]);
 
   // Charger les signalements de l'utilisateur au montage
   useEffect(() => {

@@ -60,6 +60,8 @@ export const CitizenMapPage: React.FC = () => {
   const [showDossiers, setShowDossiers] = useState(true);
   const [showSignalements, setShowSignalements] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'actif' | 'resolu' | 'archive'>('all');
+  const [regionFilter, setRegionFilter] = useState('');
   const [mapError, setMapError] = useState<string | null>(null);
 
   // Initialiser la carte
@@ -158,7 +160,18 @@ export const CitizenMapPage: React.FC = () => {
     // Ajouter les dossiers
     if (showDossiers && dossiers) {
       dossiers.forEach((dossier: any) => {
-        if (dossier.latitude_disparition && dossier.longitude_disparition) {
+        if (
+          dossier.latitude_disparition &&
+          dossier.longitude_disparition &&
+          (statusFilter === 'all' ||
+            (statusFilter === 'actif' && (dossier.statut === 'actif' || dossier.statut === 'en_cours')) ||
+            (statusFilter === 'resolu' && (dossier.statut === 'resolu' || dossier.statut === 'retrouve')) ||
+            (statusFilter === 'archive' && dossier.statut === 'archive')) &&
+          (regionFilter.trim() === '' ||
+            (dossier.region_disparition || '')
+              .toLowerCase()
+              .includes(regionFilter.trim().toLowerCase()))
+        ) {
           newMarkers.push({
             id: dossier.id,
             type: 'dossier',
@@ -203,7 +216,7 @@ export const CitizenMapPage: React.FC = () => {
     }
 
     setMarkers(newMarkers);
-  }, [dossiers, signalements, currentLocation, showDossiers, showSignalements, t]);
+  }, [dossiers, signalements, currentLocation, showDossiers, showSignalements, statusFilter, regionFilter, t]);
 
   // Filtrer les marqueurs par recherche
   const filteredMarkers = markers.filter((marker) => {
@@ -253,7 +266,7 @@ export const CitizenMapPage: React.FC = () => {
           <div style="padding: 8px;">
             <strong>${marker.title}</strong>
             ${marker.description ? `<p style="margin: 4px 0 0; font-size: 12px; color: #666;">${marker.description}</p>` : ''}
-            ${marker.type !== 'user' ? `<button onclick="window.location.href='/citizen/${marker.type === 'dossier' ? 'dossier' : 'signalements'}/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #15803d; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
+            ${marker.type !== 'user' ? `<button onclick="window.location.href='/citizen/${marker.type === 'dossier' ? 'dossier' : 'signalements'}/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
           </div>
         `);
 
@@ -301,7 +314,7 @@ export const CitizenMapPage: React.FC = () => {
     if (marker.type === 'dossier') {
       if (marker.urgence && marker.urgence >= 8) return '#dc2626';
       if (marker.urgence && marker.urgence >= 5) return '#f59e0b';
-      return '#15803d';
+      return '#1d4ed8';
     }
     return '#8b5cf6';
   };
@@ -351,6 +364,28 @@ export const CitizenMapPage: React.FC = () => {
             </button>
           </div>
 
+          {/* Advanced filters */}
+          <div className={styles['mapPage__filters']}>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className={styles['mapPage__filter-btn']}
+            >
+              <option value="all">{t('common.allStatuses')}</option>
+              <option value="actif">{t('citizen.inProgress')}</option>
+              <option value="resolu">{t('citizen.resolved')}</option>
+              <option value="archive">{t('citizen.archived')}</option>
+            </select>
+            <input
+              type="text"
+              value={regionFilter}
+              onChange={(e) => setRegionFilter(e.target.value)}
+              placeholder={t('citizen.regionPlaceholder')}
+              className={styles['mapPage__search-input']}
+              style={{ maxWidth: 220 }}
+            />
+          </div>
+
           {/* Actions */}
           <div className={styles['mapPage__actions']}>
             <button 
@@ -393,7 +428,6 @@ export const CitizenMapPage: React.FC = () => {
           <div 
             ref={mapContainerRef} 
             className={styles['mapPage__map']}
-            style={{ width: '100%', height: '100%', minHeight: '500px' }}
           />
           
           {/* Sidebar avec liste des marqueurs */}

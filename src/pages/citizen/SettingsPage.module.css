@@ -6,8 +6,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 900px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -74,7 +72,7 @@
 }
 
 .settings__section-header svg {
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
 }
 
 .settings__section-header h2 {
@@ -170,7 +168,7 @@
 }
 
 .settings__toggle input:checked + .settings__toggle-slider {
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
 }
 
 .settings__toggle input:checked + .settings__toggle-slider::before {
@@ -178,7 +176,7 @@
 }
 
 .settings__toggle input:focus + .settings__toggle-slider {
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.20);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.20);
 }
 
 /* Select */
@@ -196,8 +194,8 @@
 
 .settings__select:focus {
   outline: none;
-  border-color: var(--citizen-primary, #15803d);
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 /* Slider */
@@ -224,7 +222,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.20);
   transition: transform 0.2s ease;
@@ -239,7 +237,7 @@
   height: 18px;
   border: none;
   border-radius: 50%;
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.20);
 }
@@ -249,7 +247,7 @@
   text-align: right;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
 }
 
 /* Actions */
@@ -286,14 +284,14 @@
 }
 
 .settings__save-btn {
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   color: #ffffff;
 }
 
 .settings__save-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: var(--citizen-primary-hover, #166534);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  background: #1e40af;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
 }
 
 .settings__save-btn:disabled {

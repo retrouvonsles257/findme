@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
@@ -124,17 +124,41 @@ export const CitizenAlertesPage: React.FC = () => {
     return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US');
   };
 
-  // Filtrer les alertes
-  const filteredAlertes = alertes.filter((alerte: any) => {
-    if (filter === 'all') return true;
-    if (filter === 'active') return alerte.statut === 'active' || alerte.statut === 'diffusee';
-    if (filter === 'closed') return alerte.statut === 'cloturee' || alerte.statut === 'expiree';
-    if (filter === 'proximity') {
-      // Alertes dans le rayon de l'utilisateur
-      return activeAlerts.includes(alerte.id);
+  // Normaliser le statut d'alerte vers une clé traduisible
+  const getStatusKey = (statut?: string) => {
+    switch (statut) {
+      case 'active':
+      case 'diffusee':
+      case 'en_cours':
+        return 'active';
+      case 'cloturee':
+      case 'terminee':
+        return 'cloturee';
+      case 'expiree':
+        return 'expiree';
+      case 'annulee':
+        return 'cancelled';
+      default:
+        return 'pending';
     }
-    return true;
-  });
+  };
+
+  // Filtrer les alertes avec un statut normalisé
+  const filteredAlertes = useMemo(
+    () =>
+      alertes.filter((alerte: any) => {
+        const key = getStatusKey(alerte.statut);
+        if (filter === 'all') return true;
+        if (filter === 'active') return key === 'active';
+        if (filter === 'closed') return key === 'cloturee' || key === 'expiree' || key === 'cancelled';
+        if (filter === 'proximity') {
+          // Alertes dans le rayon de l'utilisateur
+          return activeAlerts.includes(alerte.id);
+        }
+        return true;
+      }),
+    [alertes, filter, activeAlerts]
+  );
 
   // Cacher une alerte de proximité
   const handleDismiss = (alertId: string) => {
@@ -287,8 +311,8 @@ export const CitizenAlertesPage: React.FC = () => {
                   <div className={styles['alertes__card-content']}>
                     <div className={styles['alertes__card-header']}>
                       <h4 className={styles['alertes__card-title']}>{alerte.titre}</h4>
-                      <span className={`${styles['alertes__status']} ${getStatusClass(alerte.statut)}`}>
-                        {t(`citizen.alertStatus.${alerte.statut}`) || t('citizen.pending') || alerte.statut}
+                      <span className={`${styles['alertes__status']} ${getStatusKey(alerte.statut) === 'active' ? styles['alertes__status--active'] : getStatusKey(alerte.statut) === 'cloturee' || getStatusKey(alerte.statut) === 'expiree' || getStatusKey(alerte.statut) === 'cancelled' ? styles['alertes__status--closed'] : styles['alertes__status--pending']}`}>
+                        {t(`citizen.alertStatus.${getStatusKey(alerte.statut)}`)}
                       </span>
                     </div>
                     

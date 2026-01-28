@@ -56,7 +56,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
   useEffect(() => {
     const fetchSignalement = async () => {
       if (!signalementId) {
-        setError('ID du signalement manquant');
+        setError(t('citizen.signalementDetail.missingId'));
         setIsLoading(false);
         return;
       }
@@ -73,7 +73,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
           .single();
 
         if (sigError) throw sigError;
-        if (!sigData) throw new Error('Signalement non trouvé');
+        if (!sigData) throw new Error(t('citizen.signalementDetail.notFound'));
 
         setSignalement(sigData);
 
@@ -89,14 +89,14 @@ export const CitizenSignalementDetailPage: React.FC = () => {
 
       } catch (err: any) {
         console.error('Erreur chargement signalement:', err);
-        setError(err.message || 'Erreur lors du chargement');
+        setError(err.message || t('citizen.signalementDetail.loadError'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchSignalement();
-  }, [signalementId]);
+  }, [signalementId, t]);
 
   // Formater la date
   const formatDate = (dateString: string) => {
@@ -129,13 +129,20 @@ export const CitizenSignalementDetailPage: React.FC = () => {
 
   // Niveau de certitude
   const getCertitudeLabel = (certitude?: string) => {
+    if (!certitude) return t('citizen.certitude.notSpecified');
     switch (certitude) {
-      case 'certain': return 'Certain';
-      case 'tres_probable': return 'Très probable';
-      case 'probable': return 'Probable';
-      case 'incertain': return 'Incertain';
-      case 'doute': return 'Doute';
-      default: return certitude || 'Non spécifié';
+      case 'certain':
+        return t('citizen.certitude.certain');
+      case 'tres_probable':
+        return t('citizen.certitude.veryProbable');
+      case 'probable':
+        return t('citizen.certitude.probable');
+      case 'incertain':
+        return t('citizen.certitude.uncertain');
+      case 'doute':
+        return t('citizen.certitude.doubt');
+      default:
+        return t('citizen.certitude.notSpecified');
     }
   };
 
@@ -155,7 +162,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
       <CitizenLayout activeNav="signalements">
         <div className={styles.error}>
           <AlertCircle size={40} />
-          <p>{error || 'Signalement non trouvé'}</p>
+          <p>{error || t('citizen.signalementDetail.notFound')}</p>
           <button onClick={() => navigate('/citizen/my-signalements')} className={styles.backButton}>
             <ArrowLeft size={18} />
             {t('common.back')}
@@ -184,7 +191,10 @@ export const CitizenSignalementDetailPage: React.FC = () => {
 
         {/* Numéro du signalement */}
         <div className={styles.titleSection}>
-          <h1>{signalement.numero_signalement || `Signalement #${signalement.id.substring(0, 8)}`}</h1>
+          <h1>
+            {signalement.numero_signalement ||
+              t('citizen.signalementDetail.number').replace('{{id}}', signalement.id.substring(0, 8))}
+          </h1>
           <p className={styles.createdAt}>
             <Clock size={14} />
             {t('common.createdAt')}: {formatDate(signalement.created_at)}
@@ -280,7 +290,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
 
         {/* Informations supplémentaires */}
         <div className={styles.metaSection}>
-          <p><strong>{t('citizen.source')}:</strong> {signalement.source_signalement || 'Application web'}</p>
+          <p><strong>{t('citizen.source')}:</strong> {signalement.source_signalement || t('citizen.webApp')}</p>
           {signalement.updated_at !== signalement.created_at && (
             <p><strong>{t('common.updatedAt')}:</strong> {formatDate(signalement.updated_at)}</p>
           )}

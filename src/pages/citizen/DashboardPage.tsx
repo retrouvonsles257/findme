@@ -65,6 +65,12 @@ export const CitizenDashboardPage: React.FC = () => {
     return { total, approved, pending, alerts: unreadCount };
   }, [signalements, unreadCount, userId]);
 
+  const reliability = useMemo(() => {
+    if (!isVerified || computedStats.total === 0) return null;
+    const score = Math.round((computedStats.approved / computedStats.total) * 100);
+    return Math.max(0, Math.min(100, score));
+  }, [computedStats.approved, computedStats.total, isVerified]);
+
   const stats = [
     {
       label: t('common.totalReports'),
@@ -94,6 +100,15 @@ export const CitizenDashboardPage: React.FC = () => {
       subtext: '',
       icon: AlertTriangle,
     },
+    ...(reliability !== null
+      ? [{
+          label: t('citizen.reliabilityScore'),
+          value: `${reliability}%`,
+          change: '',
+          subtext: t('citizen.reliabilityScoreSubtitle'),
+          icon: CheckCircle,
+        }]
+      : []),
   ];
 
   const quickActions = [
@@ -250,6 +265,34 @@ export const CitizenDashboardPage: React.FC = () => {
               <p>{t('citizen.noRecentActivity')}</p>
             </div>
           )}
+        </section>
+
+        {/* Prevention / Sensibilisation */}
+        <section className={styles['dashboard__activity-section']}>
+          <h2 className={styles['dashboard__activity-title']}>{t('citizen.preventionTitle')}</h2>
+          <ul className={styles['dashboard__activity-list']}>
+            <li className={styles['dashboard__activity-item']}>
+              <AlertTriangle className={styles['dashboard__activity-icon']} size={20} />
+              <div className={styles['dashboard__activity-content']}>
+                <h4 className={styles['dashboard__activity-item-title']}>{t('citizen.preventionTip1Title')}</h4>
+                <p className={styles['dashboard__activity-description']}>{t('citizen.preventionTip1')}</p>
+              </div>
+            </li>
+            <li className={styles['dashboard__activity-item']}>
+              <AlertTriangle className={styles['dashboard__activity-icon']} size={20} />
+              <div className={styles['dashboard__activity-content']}>
+                <h4 className={styles['dashboard__activity-item-title']}>{t('citizen.preventionTip2Title')}</h4>
+                <p className={styles['dashboard__activity-description']}>{t('citizen.preventionTip2')}</p>
+              </div>
+            </li>
+            <li className={styles['dashboard__activity-item']}>
+              <AlertTriangle className={styles['dashboard__activity-icon']} size={20} />
+              <div className={styles['dashboard__activity-content']}>
+                <h4 className={styles['dashboard__activity-item-title']}>{t('citizen.preventionTip3Title')}</h4>
+                <p className={styles['dashboard__activity-description']}>{t('citizen.preventionTip3')}</p>
+              </div>
+            </li>
+          </ul>
         </section>
       </div>
     </CitizenLayout>

@@ -335,7 +335,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
                   name="ville_observation"
                   value={formData.ville_observation}
                   onChange={handleInputChange}
-                  placeholder="Yaoundé, Douala..."
+                  placeholder={t('citizen.cityPlaceholder')}
                   className={styles['new-signalement__input']}
                 />
               </div>
@@ -349,7 +349,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
                   name="region_observation"
                   value={formData.region_observation}
                   onChange={handleInputChange}
-                  placeholder="Centre, Littoral..."
+                  placeholder={t('citizen.regionPlaceholder')}
                   className={styles['new-signalement__input']}
                 />
               </div>

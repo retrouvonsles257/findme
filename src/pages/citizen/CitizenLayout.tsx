@@ -6,18 +6,20 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useLogout } from '../../features/auth/hooks';
+import { useNotifications } from '../../features/notifications/hooks';
 import { 
   Menu, 
   X, 
   Home, 
   Map, 
   Bell, 
+  Search,
   FileText, 
   Plus, 
   Settings, 
@@ -43,6 +45,8 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const { logout: performLogout } = useLogout();
+  const userId = (currentUser as any)?.id;
+  const { unreadCount, fetchNotifications } = useNotifications();
   
   // États
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -52,11 +56,19 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [headerSearch, setHeaderSearch] = useState('');
 
   // Sauvegarder l'état du sidebar
   useEffect(() => {
     localStorage.setItem('citizenSidebarCollapsed', String(isCollapsed));
   }, [isCollapsed]);
+
+  // Charger les notifications pour le header
+  useEffect(() => {
+    if (userId) {
+      fetchNotifications(userId);
+    }
+  }, [userId, fetchNotifications]);
 
   // Fermer le menu utilisateur au clic extérieur
   useEffect(() => {
@@ -93,6 +105,16 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const getUserPhoto = () => {
     const user = currentUser as any;
     return user?.photo_profil || user?.avatar_url || null;
+  };
+
+  const handleHeaderSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const query = headerSearch.trim();
+    if (query) {
+      navigate(`/citizen/my-signalements?q=${encodeURIComponent(query)}`);
+    } else {
+      navigate('/citizen/my-signalements');
+    }
   };
 
   // Navigation items
@@ -153,12 +175,21 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
       {/* Sidebar */}
       <aside 
         className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(15,23,42,0.78), rgba(15,23,42,0.85)), url('/assets/images/niveau_0_citoyen_standard.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+        }}
       >
         {/* Header du sidebar */}
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <div className={styles.logoIcon}>RL</div>
+              <div className={styles.logoIcon}>
+                <span>RetrouvonsLes</span>
+              </div>
             </div>
           )}
           
@@ -259,6 +290,64 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
 
       {/* Main content */}
       <div className={`${styles.main} ${isCollapsed ? styles.mainExpanded : ''}`}>
+        {/* Header desktop (search + langue + notifications + user) */}
+        <header className={styles.topHeader}>
+          <form className={styles.topHeaderSearchForm} onSubmit={handleHeaderSearch}>
+            <Search size={18} className={styles.topHeaderSearchIcon} />
+            <input
+              type="text"
+              placeholder={t('citizen.searchReports')}
+              value={headerSearch}
+              onChange={(e) => setHeaderSearch(e.target.value)}
+              className={styles.topHeaderSearchInput}
+            />
+          </form>
+
+          <div className={styles.topHeaderRight}>
+            <button
+              type="button"
+              className={styles.topHeaderIconBtn}
+              onClick={toggleLanguage}
+              title={language === 'fr' ? 'English' : 'Français'}
+            >
+              <Globe size={18} />
+              <span className={styles.topHeaderLangCode}>{language.toUpperCase()}</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.topHeaderIconBtn}
+              onClick={() => navigate('/citizen/notifications')}
+              title={t('common.notifications')}
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className={styles.topHeaderNotificationBadge}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className={styles.topHeaderUser}
+              onClick={() => navigate('/citizen/profile')}
+              title={(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
+            >
+              {getUserPhoto() ? (
+                <img src={getUserPhoto()} alt="" className={styles.topHeaderUserAvatar} />
+              ) : (
+                <div className={styles.topHeaderUserAvatarPlaceholder}>
+                  {getInitials()}
+                </div>
+              )}
+              <span className={styles.topHeaderUserName}>
+                {(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
+              </span>
+            </button>
+          </div>
+        </header>
+
         {/* Header mobile */}
         <header className={styles.mobileHeader}>
           <button 
@@ -268,20 +357,42 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
             <Menu size={24} />
           </button>
           <span className={styles.appName}>RetrouvonsLes</span>
-          <div className={styles.headerSpacer} />
-          {/* Avatar dans le header mobile */}
-          <button 
-            className={styles.mobileAvatarBtn}
-            onClick={() => setMobileOpen(true)}
-          >
-            {getUserPhoto() ? (
-              <img src={getUserPhoto()} alt="" className={styles.mobileAvatar} />
-            ) : (
-              <div className={styles.mobileAvatarPlaceholder}>
-                {getInitials()}
-              </div>
-            )}
-          </button>
+          <div className={styles.mobileHeaderRight}>
+            <button
+              type="button"
+              className={styles.mobileHeaderIconBtn}
+              onClick={toggleLanguage}
+              title={language === 'fr' ? 'English' : 'Français'}
+            >
+              <Globe size={18} />
+            </button>
+            <button
+              type="button"
+              className={styles.mobileHeaderIconBtn}
+              onClick={() => navigate('/citizen/notifications')}
+              title={t('common.notifications')}
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className={styles.topHeaderNotificationBadge}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            {/* Avatar dans le header mobile */}
+            <button 
+              className={styles.mobileAvatarBtn}
+              onClick={() => setMobileOpen(true)}
+            >
+              {getUserPhoto() ? (
+                <img src={getUserPhoto()} alt="" className={styles.mobileAvatar} />
+              ) : (
+                <div className={styles.mobileAvatarPlaceholder}>
+                  {getInitials()}
+                </div>
+              )}
+            </button>
+          </div>
         </header>
 
         {/* Content */}

@@ -30,6 +30,14 @@ import {
 } from 'lucide-react';
 import styles from './SettingsPage.module.css';
 
+interface InterestZone {
+  id: string;
+  label: string;
+  ville: string;
+  region: string;
+  rayon_km: number;
+}
+
 interface Settings {
   // Notifications
   notifications_push: boolean;
@@ -49,6 +57,7 @@ interface Settings {
   // Confidentialité
   profil_public: boolean;
   afficher_activite: boolean;
+  zones_interet: InterestZone[];
 }
 
 export const CitizenSettingsPage: React.FC = () => {
@@ -68,6 +77,7 @@ export const CitizenSettingsPage: React.FC = () => {
     theme: 'light',
     profil_public: false,
     afficher_activite: true,
+    zones_interet: [],
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +121,7 @@ export const CitizenSettingsPage: React.FC = () => {
             theme: prefs.theme ?? 'light',
             profil_public: prefs.profil_public ?? false,
             afficher_activite: prefs.afficher_activite ?? true,
+            zones_interet: Array.isArray(prefs.zones_interet) ? prefs.zones_interet : [],
           });
         }
       } catch (err: any) {
@@ -137,6 +148,40 @@ export const CitizenSettingsPage: React.FC = () => {
     }
   };
 
+  // Gestion des zones d'intérêt
+  const handleAddZone = () => {
+    const newZone: InterestZone = {
+      id: crypto.randomUUID(),
+      label: '',
+      ville: '',
+      region: '',
+      rayon_km: 20,
+    };
+    setSettings((prev) => ({
+      ...prev,
+      zones_interet: [...prev.zones_interet, newZone],
+    }));
+    setHasChanges(true);
+  };
+
+  const handleUpdateZone = (id: string, field: keyof InterestZone, value: string | number) => {
+    setSettings((prev) => ({
+      ...prev,
+      zones_interet: prev.zones_interet.map((zone) =>
+        zone.id === id ? { ...zone, [field]: value } : zone
+      ),
+    }));
+    setHasChanges(true);
+  };
+
+  const handleRemoveZone = (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      zones_interet: prev.zones_interet.filter((z) => z.id !== id),
+    }));
+    setHasChanges(true);
+  };
+
   // Sauvegarder les paramètres
   const handleSave = async () => {
     if (!userId) return;
@@ -161,6 +206,7 @@ export const CitizenSettingsPage: React.FC = () => {
             theme: settings.theme,
             profil_public: settings.profil_public,
             afficher_activite: settings.afficher_activite,
+            zones_interet: settings.zones_interet,
           },
           updated_at: new Date().toISOString(),
         })
@@ -195,6 +241,7 @@ export const CitizenSettingsPage: React.FC = () => {
       theme: 'light',
       profil_public: false,
       afficher_activite: true,
+      zones_interet: [],
     });
     setHasChanges(true);
   };
@@ -450,6 +497,89 @@ export const CitizenSettingsPage: React.FC = () => {
                 />
                 <span className={styles['settings__toggle-slider']} />
               </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Zones d'intérêt géographiques */}
+        <div className={styles['settings__section']}>
+          <div className={styles['settings__section-header']}>
+            <MapPin size={22} />
+            <h2>{t('citizen.interestZones')}</h2>
+          </div>
+          
+          <div className={styles['settings__options']}>
+            {settings.zones_interet.map((zone) => (
+              <div key={zone.id} className={styles['settings__option']}>
+                <div className={styles['settings__option-info']}>
+                  <MapPin size={18} />
+                  <div style={{ width: '100%' }}>
+                    <h4>{zone.label || t('citizen.zoneLabelPlaceholder')}</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder={t('citizen.zoneLabel')}
+                        value={zone.label}
+                        onChange={(e) => handleUpdateZone(zone.id, 'label', e.target.value)}
+                        className={styles['settings__select']}
+                      />
+                      <input
+                        type="text"
+                        placeholder={t('citizen.city')}
+                        value={zone.ville}
+                        onChange={(e) => handleUpdateZone(zone.id, 'ville', e.target.value)}
+                        className={styles['settings__select']}
+                      />
+                      <input
+                        type="text"
+                        placeholder={t('citizen.region')}
+                        value={zone.region}
+                        onChange={(e) => handleUpdateZone(zone.id, 'region', e.target.value)}
+                        className={styles['settings__select']}
+                      />
+                    </div>
+                    <div className={styles['settings__slider-container']} style={{ marginTop: '0.75rem' }}>
+                      <input
+                        type="range"
+                        min="1"
+                        max="200"
+                        step="1"
+                        value={zone.rayon_km}
+                        onChange={(e) => handleUpdateZone(zone.id, 'rayon_km', parseInt(e.target.value, 10))}
+                        className={styles['settings__slider']}
+                      />
+                      <span className={styles['settings__slider-value']}>
+                        {zone.rayon_km} km
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className={styles['settings__reset-btn']}
+                  onClick={() => handleRemoveZone(zone.id)}
+                >
+                  <RefreshCw size={16} />
+                  {t('citizen.removeZone')}
+                </button>
+              </div>
+            ))}
+            <div className={styles['settings__option']}>
+              <div className={styles['settings__option-info']}>
+                <MapPin size={18} />
+                <div>
+                  <h4>{t('citizen.addInterestZone')}</h4>
+                  <p>{t('citizen.addInterestZoneDesc')}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={styles['settings__save-btn']}
+                onClick={handleAddZone}
+              >
+                <Save size={18} />
+                {t('citizen.addZone')}
+              </button>
             </div>
           </div>
         </div>

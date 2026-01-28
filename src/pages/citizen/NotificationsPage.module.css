@@ -7,8 +7,6 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -47,8 +45,8 @@
 
 .notifications__filter-select:focus {
   outline: none;
-  border-color: var(--citizen-primary, #15803d);
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 /* Notifications List Namespace */
@@ -71,12 +69,12 @@
 
 .notifications__card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
-  border-color: var(--citizen-primary, #15803d);
+  border-color: #1d4ed8;
 }
 
 .notifications__card--unread {
-  background: rgba(21, 128, 61, 0.04);
-  border-color: var(--citizen-primary, #15803d);
+  background: rgba(37, 99, 235, 0.04);
+  border-color: #1d4ed8;
   border-left-width: 3px;
 }
 
@@ -88,7 +86,7 @@
 }
 
 .notifications__icon {
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
 }
 
 .notifications__icon--approval {
@@ -96,7 +94,7 @@
 }
 
 .notifications__icon--comment {
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
 }
 
 .notifications__icon--review {
@@ -149,9 +147,9 @@
 }
 
 .notifications__action-button:hover {
-  border-color: var(--citizen-primary, #15803d);
-  color: var(--citizen-primary, #15803d);
-  background: rgba(21, 128, 61, 0.08);
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+  background: rgba(37, 99, 235, 0.08);
 }
 
 /* Empty State Namespace */
@@ -244,7 +242,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   color: #fff;
   border: none;
   border-radius: 0.375rem;
@@ -256,8 +254,8 @@
 
 .notifications__mark-all-button:hover {
   transform: translateY(-1px);
-  background: var(--citizen-primary-hover, #166534);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  background: #1e40af;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
 }
 
 .notifications__clear-all-button {
@@ -291,7 +289,7 @@
 
 .notifications__loading-spin {
   animation: spin 1s linear infinite;
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
 }
 
 @keyframes spin {

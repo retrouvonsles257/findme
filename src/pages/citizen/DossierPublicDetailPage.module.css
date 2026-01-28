@@ -6,8 +6,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 900px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -58,7 +56,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   color: #ffffff;
   border: none;
   border-radius: 0.375rem;
@@ -68,7 +66,7 @@
 }
 
 .dossierDetail__error button:hover {
-  background: var(--citizen-primary-hover, #166534);
+  background: #1e40af;
 }
 
 /* Back Button */
@@ -108,7 +106,7 @@
   width: 200px;
   height: 200px;
   flex-shrink: 0;
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -175,7 +173,7 @@
 .dossierDetail__status-badge[data-status="resolu"],
 .dossierDetail__status-badge[data-status="retrouve"] {
   background: rgba(21, 128, 61, 0.12);
-  color: var(--citizen-primary, #15803d);
+  color: #16a34a;
 }
 
 .dossierDetail__status-badge[data-status="archive"] {
@@ -229,14 +227,14 @@
 }
 
 .dossierDetail__action-primary {
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   color: #ffffff;
 }
 
 .dossierDetail__action-primary:hover {
   transform: translateY(-2px);
-  background: var(--citizen-primary-hover, #166534);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  background: #1e40af;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
 }
 
 .dossierDetail__action-secondary {
@@ -247,8 +245,8 @@
 
 .dossierDetail__action-secondary:hover {
   background: #f9fafb;
-  border-color: var(--citizen-primary, #15803d);
-  color: var(--citizen-primary, #15803d);
+  border-color: #1d4ed8;
+  color: #1d4ed8;
 }
 
 /* Tabs */
@@ -282,7 +280,7 @@
 
 .dossierDetail__tab--active {
   background: #ffffff;
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -353,7 +351,7 @@
 }
 
 .dossierDetail__location svg {
-  color: var(--citizen-primary, #15803d);
+  color: #1d4ed8;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -438,7 +436,7 @@
 .dossierDetail__timeline-dot {
   width: 12px;
   height: 12px;
-  background: var(--citizen-primary, #15803d);
+  background: #1d4ed8;
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 4px;

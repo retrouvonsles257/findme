@@ -6,8 +6,8 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useAppSelector, useAppDispatch } from '../../store/types';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
@@ -15,7 +15,7 @@ import { uploadFileToCloudinary } from '../../services/cloudinary';
 import { CitizenLayout } from './CitizenLayout';
 import { 
   User, Mail, Phone, MapPin, CheckCircle, Camera, 
-  Loader2, AlertCircle, Save, Key, Shield, Settings
+  Loader2, AlertCircle, Save, Shield, Settings
 } from 'lucide-react';
 import styles from './ProfilePage.module.css';
 
@@ -362,7 +362,7 @@ export const CitizenProfilePage: React.FC = () => {
                     name="ville"
                     value={formData.ville}
                     onChange={handleChange}
-                    placeholder="Yaoundé, Douala..."
+                    placeholder={t('citizen.cityPlaceholder')}
                     className={styles['profile__input']}
                   />
                 </div>
@@ -373,7 +373,7 @@ export const CitizenProfilePage: React.FC = () => {
                     name="region"
                     value={formData.region}
                     onChange={handleChange}
-                    placeholder="Centre, Littoral..."
+                    placeholder={t('citizen.regionPlaceholder')}
                     className={styles['profile__input']}
                   />
                 </div>
