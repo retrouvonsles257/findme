@@ -46,7 +46,7 @@ export const AlertesPage: React.FC = () => {
   const { user: _ } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const { addNotification } = useNotification();
   const { alertes, loading, fetchAlertes } = useAlertes();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -160,7 +160,9 @@ export const AlertesPage: React.FC = () => {
                 {t('authority.alertes.title')}
               </h1>
               <p className={styles.pageSubtitle}>
-                {filteredAlertes.length} {filteredAlertes.length > 1 ? t('authority.alertes.subtitlePlural') : t('authority.alertes.subtitle')}
+                {filteredAlertes.length > 1 
+                  ? t('authority.alertes.subtitlePlural').replace('{{count}}', String(filteredAlertes.length))
+                  : t('authority.alertes.subtitle').replace('{{count}}', String(filteredAlertes.length))}
               </p>
             </div>
             <div className={styles.headerActions}>
@@ -277,15 +279,15 @@ export const AlertesPage: React.FC = () => {
                   <div className={styles.cardMeta}>
                     <span className={styles.metaItem}>
                       <Calendar size={14} />
-                      {new Date(alerte.date_diffusion || alerte.created_at).toLocaleDateString('fr-FR')}
+                      {new Date(alerte.date_diffusion || alerte.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                     </span>
                     <span className={styles.metaItem}>
                       <Tag size={14} />
-                      {alerte.type_alerte || 'standard'}
+                      {alerte.type_alerte || t('authority.alertes.typeStandard')}
                     </span>
                     <span className={styles.metaItem}>
                       <MapPin size={14} />
-                      {alerte.rayon_km || 50} km
+                      {alerte.rayon_km || 50} {t('authority.alertes.unitKm')}
                     </span>
                     {alerte.nombre_vues > 0 && (
                       <span className={styles.metaItem}>
@@ -371,7 +373,15 @@ export const AlertesPage: React.FC = () => {
                 {searchQuery
                   ? t('authority.alertes.empty.noSearchResults')
                   : filter !== 'all'
-                    ? t(`authority.alertes.empty.no${filter.charAt(0).toUpperCase() + filter.slice(1)}`)
+                    ? (() => {
+                        const emptyKeys: Record<string, string> = {
+                          'brouillon': 'authority.alertes.empty.nobrouillon',
+                          'en_cours': 'authority.alertes.empty.noen_cours',
+                          'terminee': 'authority.alertes.empty.noterminee',
+                          'annulee': 'authority.alertes.empty.noannulee',
+                        };
+                        return t(emptyKeys[filter] || 'authority.alertes.empty.noAlerts');
+                      })()
                     : t('authority.alertes.empty.noAlerts')}
               </p>
               <button 

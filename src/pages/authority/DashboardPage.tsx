@@ -297,7 +297,7 @@ export const DashboardPage: React.FC = () => {
                 className={styles.viewAllLink}
                 onClick={() => navigate('/authority/dossiers')}
               >
-                {t('authority.commonActions.view')} {t('authority.commonActions.view')} <ArrowRight size={16} />
+                {t('authority.commonActions.view')} <ArrowRight size={16} />
               </button>
             </div>
             <div className={styles.itemsList}>
@@ -355,7 +355,7 @@ export const DashboardPage: React.FC = () => {
                 className={styles.viewAllLink}
                 onClick={() => navigate('/authority/signalements')}
               >
-                {t('authority.commonActions.view')} {t('authority.commonActions.view')} <ArrowRight size={16} />
+                {t('authority.commonActions.view')} <ArrowRight size={16} />
               </button>
             </div>
             <div className={styles.itemsList}>
@@ -420,7 +420,7 @@ export const DashboardPage: React.FC = () => {
                 className={styles.viewAllLink}
                 onClick={() => navigate('/authority/alertes')}
               >
-                {t('authority.commonActions.view')} {t('authority.commonActions.view')} <ArrowRight size={16} />
+                {t('authority.commonActions.view')} <ArrowRight size={16} />
               </button>
             </div>
             <div className={styles.alertsList}>

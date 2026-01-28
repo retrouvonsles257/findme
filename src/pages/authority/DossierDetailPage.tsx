@@ -38,8 +38,37 @@ export const DossierDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>(); // Corrigé : utiliser 'id' au lieu de 'dossierId'
   const navigate = useNavigate();
   const { dossier, isLoading, error, fetchDossier } = useDossierDetail();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
+
+  // Fonction pour traduire le statut
+  const getStatusLabel = (statut: string) => {
+    if (statut === 'en_cours') return t('authority.dossiers.status.en_cours');
+    if (statut === 'suspendu') return t('authority.dossiers.status.suspendu');
+    if (statut === 'retrouve_vivant') return t('authority.dossiers.status.retrouve_vivant');
+    if (statut === 'retrouve_decede') return t('authority.dossiers.status.retrouve_decede');
+    if (statut === 'cloture') return t('authority.editDossier.form.statusClosed');
+    return statut;
+  };
+
+  // Fonction pour traduire le niveau d'urgence
+  const getUrgencyLabel = (urgence: string) => {
+    if (urgence === 'critique') return t('authority.dossiers.urgency.critique');
+    if (urgence === 'urgent') return t('authority.dossiers.urgency.urgent');
+    if (urgence === 'normal') return t('authority.dossiers.urgency.normal');
+    if (urgence === 'faible') return t('authority.dossiers.urgency.faible');
+    return urgence;
+  };
+
+  // Fonction pour traduire le type de disparition
+  const getDisappearanceTypeLabel = (type: string) => {
+    if (!type) return t('authority.dossierDetail.fields.notProvided');
+    // Les types de disparition peuvent être : 'inconnue', 'volontaire', 'involontaire', etc.
+    const typeKey = `authority.dossiers.disappearanceType.${type}`;
+    const translated = t(typeKey);
+    // Si la traduction retourne la clé elle-même, retourner le type original
+    return translated !== typeKey ? translated : type;
+  };
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
   const { historique, fetchHistorique } = useHistoriqueDossier();
   const [activeTab, setActiveTab] = useState<'info' | 'signalements' | 'localisations' | 'historique' | 'photos'>('info');
@@ -119,7 +148,7 @@ export const DossierDetailPage: React.FC = () => {
                           : '#999',
                   }}
                 >
-                  {dossier.statut_dossier}
+                  {getStatusLabel(dossier.statut_dossier)}
                 </span>
                 <span
                   className={styles.urgenceBadge}
@@ -132,7 +161,7 @@ export const DossierDetailPage: React.FC = () => {
                           : '#4caf50',
                   }}
                 >
-                  {dossier.niveau_urgence}
+                  {getUrgencyLabel(dossier.niveau_urgence)}
                 </span>
               </div>
             </div>
@@ -163,7 +192,7 @@ export const DossierDetailPage: React.FC = () => {
                       <h3><FileText size={18} /> {t('authority.dossierDetail.sections.disappearance')}</h3>
                       <div className={styles.infoItem}>
                         <label><Clock size={14} /> {t('authority.dossierDetail.fields.date')}:</label>
-                        <p>{new Date(dossier.date_disparition).toLocaleDateString()}</p>
+                        <p>{new Date(dossier.date_disparition).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
                       </div>
                       <div className={styles.infoItem}>
                         <label><MapPin size={14} /> {t('authority.dossierDetail.fields.location')}:</label>
@@ -175,7 +204,7 @@ export const DossierDetailPage: React.FC = () => {
                       </div>
                       <div className={styles.infoItem}>
                         <label><Info size={14} /> {t('authority.dossierDetail.fields.type')}:</label>
-                        <p>{dossier.type_disparition || t('authority.dossierDetail.fields.notProvided')}</p>
+                        <p>{getDisappearanceTypeLabel(dossier.type_disparition)}</p>
                       </div>
                     </div>
 
@@ -189,7 +218,7 @@ export const DossierDetailPage: React.FC = () => {
                         {(dossier as any).personne.date_naissance && (
                           <div className={styles.infoItem}>
                             <label><Clock size={14} /> {t('authority.dossierDetail.fields.birthDate')}:</label>
-                            <p>{new Date((dossier as any).personne.date_naissance).toLocaleDateString()}</p>
+                            <p>{new Date((dossier as any).personne.date_naissance).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
                           </div>
                         )}
                         {(dossier as any).personne.sexe && (

@@ -14,6 +14,7 @@ import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { createAlerte } from '../../features/alertes/services/alerteAPI';
 import { TypeAlerte as TypeAlerteEnum } from '../../@types/enums.types';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import {
   MapPin,
   Save,
@@ -38,6 +39,7 @@ export const CreateAlertePage: React.FC = () => {
   useAuth(); // Hook call for auth context
   const { addNotification } = useNotification();
   const { dossiers } = useDossiers();
+  const { t, language } = useI18n();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,24 +67,24 @@ export const CreateAlertePage: React.FC = () => {
   const validateForm = (): boolean => {
     if (!formData.titre.trim()) {
       addNotification({
-        title: 'Champ requis',
-        message: 'Le titre est obligatoire',
+        title: t('authority.alertes.createAlerte.messages.requiredField'),
+        message: t('authority.alertes.createAlerte.messages.titleRequired'),
         type: 'error',
       });
       return false;
     }
     if (!formData.message.trim()) {
       addNotification({
-        title: 'Champ requis',
-        message: 'Le message est obligatoire',
+        title: t('authority.alertes.createAlerte.messages.requiredField'),
+        message: t('authority.alertes.createAlerte.messages.messageRequired'),
         type: 'error',
       });
       return false;
     }
     if (!formData.id_dossier) {
       addNotification({
-        title: 'Champ requis',
-        message: 'Veuillez sélectionner un dossier',
+        title: t('authority.alertes.createAlerte.messages.requiredField'),
+        message: t('authority.alertes.createAlerte.messages.dossierRequired'),
         type: 'error',
       });
       return false;
@@ -108,18 +110,18 @@ export const CreateAlertePage: React.FC = () => {
       });
 
       addNotification({
-        title: 'Alerte créée',
+        title: t('authority.alertes.createAlerte.messages.alerteCreated'),
         message: publishNow 
-          ? 'L\'alerte a été créée et sera diffusée'
-          : 'L\'alerte a été enregistrée en brouillon',
+          ? t('authority.alertes.createAlerte.messages.alerteCreatedAndPublished')
+          : t('authority.alertes.createAlerte.messages.alerteSavedAsDraft'),
         type: 'success',
       });
 
       navigate(`/authority/alertes/${alerte.id}`);
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la création',
+        title: t('authority.alertes.createAlerte.messages.error'),
+        message: err.message || t('authority.alertes.createAlerte.messages.creationError'),
         type: 'error',
       });
     } finally {
@@ -138,25 +140,25 @@ export const CreateAlertePage: React.FC = () => {
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
-          <h1><Megaphone size={24} /> Créer une Alerte</h1>
+          <h1><Megaphone size={24} /> {t('authority.alertes.createAlerte.title')}</h1>
           <p className={styles.subtitle}>
-            Diffusez une alerte aux utilisateurs pour retrouver une personne disparue
+            {t('authority.alertes.createAlerte.subtitle')}
           </p>
         </div>
 
         {/* Form */}
         <div className={styles.formContainer}>
           <div className={styles.formSection}>
-            <h2><FileText size={20} /> Informations de l'alerte</h2>
+            <h2><FileText size={20} /> {t('authority.alertes.createAlerte.form.alertInfo')}</h2>
 
             <div className={styles.formGroup}>
-              <label>Dossier lié *</label>
+              <label>{t('authority.alertes.createAlerte.form.linkedDossier')}</label>
               <select
                 value={formData.id_dossier}
                 onChange={(e) => setFormData({ ...formData, id_dossier: e.target.value })}
                 required
               >
-                <option value="">-- Sélectionner un dossier --</option>
+                <option value="">{t('authority.alertes.createAlerte.form.selectDossier')}</option>
                 {activeDossiers.map((d: any) => (
                   <option key={d.id} value={d.id}>
                     {d.numero_dossier || `DOS-${d.id.substring(0, 6)}`} 
@@ -166,29 +168,29 @@ export const CreateAlertePage: React.FC = () => {
               </select>
               {activeDossiers.length === 0 && (
                 <small style={{ color: '#999', marginTop: '4px' }}>
-                  Aucun dossier actif avec diffusion autorisée
+                  {t('authority.alertes.createAlerte.form.noActiveDossiers')}
                 </small>
               )}
             </div>
 
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label>Type d'alerte *</label>
+                <label>{t('authority.alertes.createAlerte.form.alertType')}</label>
                 <select
                   value={formData.type_alerte}
                   onChange={(e) => setFormData({ ...formData, type_alerte: e.target.value as any })}
                 >
-                  <option value={TypeAlerteEnum.DISPARITION_STANDARD}>Disparition standard</option>
-                  <option value={TypeAlerteEnum.DISPARITION_ENFANT}>Disparition d'enfant</option>
-                  <option value={TypeAlerteEnum.DISPARITION_ADULTE_VULNERABLE}>Disparition d'adulte vulnérable</option>
-                  <option value={TypeAlerteEnum.AMBER_ALERT}>Alerte Amber</option>
-                  <option value={TypeAlerteEnum.MISE_A_JOUR}>Mise à jour</option>
-                  <option value={TypeAlerteEnum.PERSONNE_RETROUVEE}>Personne retrouvée</option>
+                  <option value={TypeAlerteEnum.DISPARITION_STANDARD}>{t('authority.alertes.createAlerte.form.types.standard')}</option>
+                  <option value={TypeAlerteEnum.DISPARITION_ENFANT}>{t('authority.alertes.createAlerte.form.types.child')}</option>
+                  <option value={TypeAlerteEnum.DISPARITION_ADULTE_VULNERABLE}>{t('authority.alertes.createAlerte.form.types.vulnerable')}</option>
+                  <option value={TypeAlerteEnum.AMBER_ALERT}>{t('authority.alertes.createAlerte.form.types.amber')}</option>
+                  <option value={TypeAlerteEnum.MISE_A_JOUR}>{t('authority.alertes.createAlerte.form.types.update')}</option>
+                  <option value={TypeAlerteEnum.PERSONNE_RETROUVEE}>{t('authority.alertes.createAlerte.form.types.found')}</option>
                 </select>
               </div>
 
               <div className={styles.formGroup}>
-                <label>Rayon de diffusion (km)</label>
+                <label>{t('authority.alertes.createAlerte.form.radius')}</label>
                 <input
                   type="number"
                   min="1"
@@ -200,50 +202,50 @@ export const CreateAlertePage: React.FC = () => {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Titre de l'alerte *</label>
+              <label>{t('authority.alertes.createAlerte.form.title')}</label>
               <input
                 type="text"
                 value={formData.titre}
                 onChange={(e) => setFormData({ ...formData, titre: e.target.value })}
-                placeholder="Ex: Disparition inquiétante à Yaoundé"
+                placeholder={t('authority.alertes.createAlerte.form.titlePlaceholder')}
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>Message complet *</label>
+              <label>{t('authority.alertes.createAlerte.form.fullMessage')}</label>
               <textarea
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                placeholder="Description détaillée de la disparition, signes particuliers, dernière localisation..."
+                placeholder={t('authority.alertes.createAlerte.form.fullMessagePlaceholder')}
                 rows={6}
                 required
               />
-              <small>{formData.message.length} caractères</small>
+              <small>{formData.message.length} {t('authority.alertes.createAlerte.form.characters')}</small>
             </div>
 
             <div className={styles.formGroup}>
-              <label>Message court (pour notifications push)</label>
+              <label>{t('authority.alertes.createAlerte.form.shortMessage')}</label>
               <textarea
                 value={formData.message_court}
                 onChange={(e) => setFormData({ ...formData, message_court: e.target.value })}
-                placeholder="Version courte du message (max 200 caractères)"
+                placeholder={t('authority.alertes.createAlerte.form.shortMessagePlaceholder')}
                 rows={2}
                 maxLength={200}
               />
-              <small>{formData.message_court.length}/200 caractères</small>
+              <small>{formData.message_court.length}/200 {t('authority.alertes.createAlerte.form.characters')}</small>
             </div>
           </div>
 
           <div className={styles.formSection}>
-            <h2><Radio size={20} /> Canaux de diffusion</h2>
+            <h2><Radio size={20} /> {t('authority.alertes.createAlerte.form.diffusionChannels')}</h2>
             
             <div className={styles.canaux}>
               {[
-                { id: 'push', icon: Smartphone, label: 'Push Notifications', desc: 'Notifications sur mobile' },
-                { id: 'in_app', icon: Bell, label: 'In-App', desc: 'Notifications dans l\'application' },
-                { id: 'email', icon: Mail, label: 'Email', desc: 'Par courrier électronique' },
-                { id: 'sms', icon: MessageSquare, label: 'SMS', desc: 'Par message texte' },
+                { id: 'push', icon: Smartphone, labelKey: 'push', descKey: 'pushDesc' },
+                { id: 'in_app', icon: Bell, labelKey: 'inApp', descKey: 'inAppDesc' },
+                { id: 'email', icon: Mail, labelKey: 'email', descKey: 'emailDesc' },
+                { id: 'sms', icon: MessageSquare, labelKey: 'sms', descKey: 'smsDesc' },
               ].map(canal => {
                 const Icon = canal.icon;
                 return (
@@ -255,9 +257,9 @@ export const CreateAlertePage: React.FC = () => {
                     />
                     <div className={styles.canalInfo}>
                       <span className={styles.canalLabel}>
-                        <Icon size={16} /> {canal.label}
+                        <Icon size={16} /> {t(`authority.alertes.createAlerte.form.channels.${canal.labelKey}`)}
                       </span>
-                      <span className={styles.canalDesc}>{canal.desc}</span>
+                      <span className={styles.canalDesc}>{t(`authority.alertes.createAlerte.form.channels.${canal.descKey}`)}</span>
                     </div>
                   </label>
                 );
@@ -268,14 +270,14 @@ export const CreateAlertePage: React.FC = () => {
           {/* Preview */}
           {formData.titre && (
             <div className={styles.preview}>
-              <h3><Eye size={18} /> Aperçu</h3>
+              <h3><Eye size={18} /> {t('authority.alertes.createAlerte.preview.title')}</h3>
               <div className={styles.previewCard}>
                 <div className={styles.previewHeader}>
                   <span className={styles.previewType}>
                     {formData.type_alerte.toUpperCase()}
                   </span>
                   <span className={styles.previewRadius}>
-                    <MapPin size={14} /> {formData.rayon_km} km
+                    <MapPin size={14} /> {formData.rayon_km} {t('authority.alertes.unitKm')}
                   </span>
                 </div>
                 <h4>{formData.titre}</h4>
@@ -291,14 +293,14 @@ export const CreateAlertePage: React.FC = () => {
               className={styles.cancelBtn}
               disabled={isSubmitting}
             >
-              <ArrowLeft size={16} /> Annuler
+              <ArrowLeft size={16} /> {t('authority.alertes.createAlerte.actions.cancel')}
             </button>
             <button 
               onClick={() => handleSubmit(false)}
               className={styles.draftBtn}
               disabled={isSubmitting}
             >
-              <Save size={16} /> Enregistrer brouillon
+              <Save size={16} /> {t('authority.alertes.createAlerte.actions.saveDraft')}
             </button>
             <button 
               onClick={() => handleSubmit(true)}
@@ -306,9 +308,9 @@ export const CreateAlertePage: React.FC = () => {
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <><Loader2 size={16} className={styles.spinner} /> Création...</>
+                <><Loader2 size={16} className={styles.spinner} /> {t('authority.alertes.createAlerte.actions.creating')}</>
               ) : (
-                <><Megaphone size={16} /> Créer et Publier</>
+                <><Megaphone size={16} /> {t('authority.alertes.createAlerte.actions.createAndPublish')}</>
               )}
             </button>
           </div>

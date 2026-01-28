@@ -23,12 +23,16 @@ import {
   X,
   Loader2,
   Globe,
-  ChevronDown,
+  MessageSquare,
+  List,
+  Grid,
+  Maximize2,
 } from 'lucide-react';
 import { supabase } from '../../../config';
 import { useAuth } from '../../../contexts';
 import { useI18n } from '../../../hooks';
 import { getLanguageName } from '../../../locales';
+import { useCoordinationMessages } from '../../../features/coordination';
 import styles from './AuthorityHeader.module.css';
 
 // Interface adaptée au modèle de données réel
@@ -72,8 +76,14 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [messageView, setMessageView] = useState<'list' | 'compact' | 'expanded'>('list');
   const notificationRef = useRef<HTMLDivElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  
+  // Hook pour les messages de coordination
+  const { messages, loading: messagesLoading } = useCoordinationMessages();
 
   // Fermer les dropdowns quand on clique en dehors
   useEffect(() => {
@@ -84,16 +94,19 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
         setShowLanguageMenu(false);
       }
+      if (messagesRef.current && !messagesRef.current.contains(event.target as Node)) {
+        setShowMessages(false);
+      }
     };
 
-    if (showNotifications || showLanguageMenu) {
+    if (showNotifications || showLanguageMenu || showMessages) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showNotifications, showLanguageMenu]);
+  }, [showNotifications, showLanguageMenu, showMessages]);
 
   // Normaliser une notification de la DB vers notre format
   const normalizeNotification = (dbNotif: NotificationDB): Notification => ({
@@ -415,6 +428,105 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                   {language === lang && <CheckCircle size={16} />}
                 </button>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Mini Messagerie */}
+        <div className={styles.messagesWrapper} ref={messagesRef}>
+          <button 
+            className={styles.iconBtn}
+            onClick={() => setShowMessages(!showMessages)}
+            title={t('authority.header.coordinationMessages')}
+          >
+            <MessageSquare size={20} />
+            {messages.length > 0 && (
+              <span className={styles.messagesBadge}>
+                {messages.length > 9 ? '9+' : messages.length}
+              </span>
+            )}
+          </button>
+
+          {showMessages && (
+            <div className={styles.messagesDropdown}>
+              <div className={styles.messagesHeader}>
+                <span>{t('authority.header.coordinationMessages')}</span>
+                <div className={styles.viewOptions}>
+                  <button
+                    className={`${styles.viewBtn} ${messageView === 'list' ? styles.active : ''}`}
+                    onClick={() => setMessageView('list')}
+                    title={t('authority.header.messagesView.list')}
+                  >
+                    <List size={14} />
+                  </button>
+                  <button
+                    className={`${styles.viewBtn} ${messageView === 'compact' ? styles.active : ''}`}
+                    onClick={() => setMessageView('compact')}
+                    title={t('authority.header.messagesView.compact')}
+                  >
+                    <Grid size={14} />
+                  </button>
+                  <button
+                    className={`${styles.viewBtn} ${messageView === 'expanded' ? styles.active : ''}`}
+                    onClick={() => setMessageView('expanded')}
+                    title={t('authority.header.messagesView.expanded')}
+                  >
+                    <Maximize2 size={14} />
+                  </button>
+                </div>
+                <button 
+                  className={styles.closeBtn}
+                  onClick={() => setShowMessages(false)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              
+              {messagesLoading ? (
+                <div className={styles.loadingMessages}>
+                  <Loader2 size={24} className={styles.spinner} />
+                  <span>{t('authority.header.loading')}</span>
+                </div>
+              ) : messages.length > 0 ? (
+                <div className={`${styles.messagesList} ${styles[`view${messageView.charAt(0).toUpperCase() + messageView.slice(1)}`]}`}>
+                  {messages.slice(0, messageView === 'expanded' ? 10 : messageView === 'compact' ? 5 : 8).map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={styles.messageItem}
+                      onClick={() => {
+                        navigate('/authority/coordination');
+                        setShowMessages(false);
+                      }}
+                    >
+                      <div className={styles.messageIcon}>
+                        <Users size={16} />
+                      </div>
+                      <div className={styles.messageContent}>
+                        <p className={styles.messageAuthor}>{msg.author}</p>
+                        <p className={styles.messageText}>{msg.text.substring(0, messageView === 'compact' ? 30 : 60)}...</p>
+                        <span className={styles.messageTime}>
+                          {new Date(msg.timestamp).toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyMessages}>
+                  <MessageSquare size={32} className={styles.emptyIcon} />
+                  <p>{t('authority.header.noMessages')}</p>
+                </div>
+              )}
+
+              <button 
+                className={styles.viewAllBtn}
+                onClick={() => {
+                  navigate('/authority/coordination');
+                  setShowMessages(false);
+                }}
+              >
+                {t('authority.header.viewAllMessages')}
+              </button>
             </div>
           )}
         </div>

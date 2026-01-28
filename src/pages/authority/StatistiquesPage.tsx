@@ -12,6 +12,7 @@ import { useStatisticsHistory } from '../../features/statistiques/hooks/useStati
 import { usePerformanceMetrics } from '../../features/statistiques/hooks/usePerformanceMetrics';
 import { exportStatistics } from '../../features/statistiques/services/statistiqueAPI';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import {
   BarChart2,
   FolderOpen,
@@ -39,6 +40,7 @@ import styles from './StatistiquesPage.module.css';
 type StatsPeriod = '7j' | '30j' | '90j' | 'tout';
 
 export const StatistiquesPage: React.FC = () => {
+  const { t } = useI18n();
   const { dossiers, isLoading: dossiersLoading } = useDossiers();
   const { trendData, fetchTrendData, isLoading: trendLoading } = useStatisticsHistory();
   const { metrics, isLoading: metricsLoading, fetchMetrics } = usePerformanceMetrics();
@@ -75,10 +77,10 @@ export const StatistiquesPage: React.FC = () => {
   const urgenceDistribution = (() => {
     if (dossiers.length === 0) {
       return [
-        { label: 'Critique', count: 0, color: '#dc3545', icon: AlertTriangle },
-        { label: 'Urgent', count: 0, color: '#fd7e14', icon: Zap },
-        { label: 'Normal', count: 0, color: '#ffc107', icon: Minus },
-        { label: 'Faible', count: 0, color: '#28a745', icon: CheckCircle },
+        { label: t('authority.dossiers.urgency.critique'), count: 0, color: '#dc3545', icon: AlertTriangle },
+        { label: t('authority.dossiers.urgency.urgent'), count: 0, color: '#fd7e14', icon: Zap },
+        { label: t('authority.dossiers.urgency.normal'), count: 0, color: '#ffc107', icon: Minus },
+        { label: t('authority.dossiers.urgency.faible'), count: 0, color: '#28a745', icon: CheckCircle },
       ];
     }
 
@@ -90,16 +92,16 @@ export const StatistiquesPage: React.FC = () => {
     };
 
     return [
-      { label: 'Critique', count: urgenceCounts.critique, color: '#dc3545', icon: AlertTriangle },
-      { label: 'Urgent', count: urgenceCounts.urgent, color: '#fd7e14', icon: Zap },
-      { label: 'Normal', count: urgenceCounts.normal, color: '#ffc107', icon: Minus },
-      { label: 'Faible', count: urgenceCounts.faible, color: '#28a745', icon: CheckCircle },
+      { label: t('authority.dossiers.urgency.critique'), count: urgenceCounts.critique, color: '#dc3545', icon: AlertTriangle },
+      { label: t('authority.dossiers.urgency.urgent'), count: urgenceCounts.urgent, color: '#fd7e14', icon: Zap },
+      { label: t('authority.dossiers.urgency.normal'), count: urgenceCounts.normal, color: '#ffc107', icon: Minus },
+      { label: t('authority.dossiers.urgency.faible'), count: urgenceCounts.faible, color: '#28a745', icon: CheckCircle },
     ];
   })();
 
   const resolutionData = [
     { 
-      status: 'Retrouvés', 
+      status: t('authority.statistiques.resolution.found'),
       count: stats.dossierRetrouves, 
       percent: stats.totalDossiers > 0 
         ? Math.round((stats.dossierRetrouves / stats.totalDossiers) * 100) 
@@ -107,7 +109,7 @@ export const StatistiquesPage: React.FC = () => {
       color: '#22c55e',
     },
     { 
-      status: 'En Cours', 
+      status: t('authority.dossiers.status.en_cours'),
       count: stats.dossierActifs, 
       percent: stats.totalDossiers > 0 
         ? Math.round((stats.dossierActifs / stats.totalDossiers) * 100) 
@@ -115,7 +117,7 @@ export const StatistiquesPage: React.FC = () => {
       color: '#1d4ed8',
     },
     { 
-      status: 'Suspendus', 
+      status: t('authority.dossiers.status.suspendu'),
       count: stats.dossiersSuspendus, 
       percent: stats.totalDossiers > 0 
         ? Math.round((stats.dossiersSuspendus / stats.totalDossiers) * 100) 
@@ -155,9 +157,9 @@ export const StatistiquesPage: React.FC = () => {
             <BarChart2 size={32} />
           </div>
           <div className={styles.headerContent}>
-            <h1>Tableau de Bord Statistique</h1>
+            <h1>{t('authority.statistiques.title')}</h1>
             <p className={styles.subtitle}>
-              Analyse des données et tendances (données en temps réel)
+              {t('authority.statistiques.subtitle')}
             </p>
           </div>
         </div>
@@ -172,10 +174,10 @@ export const StatistiquesPage: React.FC = () => {
             >
               <Calendar size={16} />
               <span>
-                {p === '7j' && '7 Jours'}
-                {p === '30j' && '30 Jours'}
-                {p === '90j' && '90 Jours'}
-                {p === 'tout' && 'Tous'}
+                {p === '7j' && t('authority.statistiques.periods.7days')}
+                {p === '30j' && t('authority.statistiques.periods.30days')}
+                {p === '90j' && t('authority.statistiques.periods.90days')}
+                {p === 'tout' && t('authority.statistiques.periods.all')}
               </span>
             </button>
           ))}
@@ -184,7 +186,7 @@ export const StatistiquesPage: React.FC = () => {
         {isLoading ? (
           <div className={styles.loadingState}>
             <Loader2 size={40} className={styles.spinner} />
-            <span>Chargement des statistiques...</span>
+            <span>{t('authority.statistiques.loading')}</span>
           </div>
         ) : (
           <>
@@ -195,7 +197,7 @@ export const StatistiquesPage: React.FC = () => {
                   <FolderOpen size={24} />
                 </div>
                 <div className={styles.metricContent}>
-                  <span className={styles.metricLabel}>Dossiers Total</span>
+                  <span className={styles.metricLabel}>{t('authority.statistiques.metrics.totalDossiers')}</span>
                   <span className={styles.metricValue}>{stats.totalDossiers}</span>
                 </div>
               </div>
@@ -205,7 +207,7 @@ export const StatistiquesPage: React.FC = () => {
                   <AlertTriangle size={24} />
                 </div>
                 <div className={styles.metricContent}>
-                  <span className={styles.metricLabel}>Cas Urgents</span>
+                  <span className={styles.metricLabel}>{t('authority.statistiques.metrics.urgentCases')}</span>
                   <span className={styles.metricValue}>{stats.dossierUrgent}</span>
                 </div>
               </div>
@@ -215,7 +217,7 @@ export const StatistiquesPage: React.FC = () => {
                   <CheckCircle size={24} />
                 </div>
                 <div className={styles.metricContent}>
-                  <span className={styles.metricLabel}>Retrouvés</span>
+                  <span className={styles.metricLabel}>{t('authority.statistiques.metrics.found')}</span>
                   <span className={styles.metricValue}>{stats.dossierRetrouves}</span>
                 </div>
               </div>
@@ -225,7 +227,7 @@ export const StatistiquesPage: React.FC = () => {
                   <TrendingUp size={24} />
                 </div>
                 <div className={styles.metricContent}>
-                  <span className={styles.metricLabel}>Taux Résolution</span>
+                  <span className={styles.metricLabel}>{t('authority.statistiques.metrics.resolutionRate')}</span>
                   <span className={styles.metricValue}>{stats.tauxResolution}%</span>
                 </div>
               </div>
@@ -237,7 +239,7 @@ export const StatistiquesPage: React.FC = () => {
               <div className={styles.chartCard}>
                 <div className={styles.chartHeader}>
                   <Activity size={20} className={styles.chartIcon} />
-                  <h3>Tendances Hebdomadaires</h3>
+                  <h3>{t('authority.statistiques.charts.weeklyTrends')}</h3>
                 </div>
                 <div className={styles.chart}>
                   <div className={styles.chartBars}>
@@ -251,7 +253,7 @@ export const StatistiquesPage: React.FC = () => {
                                 height: `${Math.min((data.dossiers / Math.max(...trendData.map(d => d.dossiers), 1)) * 100, 100)}%`, 
                                 background: 'linear-gradient(to top, #1d4ed8, #60a5fa)'
                               }}
-                              title={`${data.dossiers} dossiers`}
+                              title={`${data.dossiers} ${t('authority.statistiques.tooltips.dossiersSuffix')}`}
                             />
                           </div>
                           <div className={styles.barContainer}>
@@ -261,7 +263,7 @@ export const StatistiquesPage: React.FC = () => {
                                 height: `${Math.min((data.retrouves / Math.max(...trendData.map(d => d.dossiers), 1)) * 100, 100)}%`, 
                                 background: 'linear-gradient(to top, #22c55e, #4ade80)'
                               }}
-                              title={`${data.retrouves} retrouvés`}
+                              title={`${data.retrouves} ${t('authority.statistiques.tooltips.foundSuffix')}`}
                             />
                           </div>
                           <span className={styles.barLabel}>{data.period}</span>
@@ -270,18 +272,18 @@ export const StatistiquesPage: React.FC = () => {
                     ) : (
                       <div className={styles.noData}>
                         <PieChart size={32} className={styles.noDataIcon} />
-                        <p>Aucune donnée pour cette période</p>
+                        <p>{t('authority.statistiques.noData')}</p>
                       </div>
                     )}
                   </div>
                   <div className={styles.legend}>
                     <span className={styles.legendItem}>
                       <span className={styles.dot} style={{ background: 'linear-gradient(135deg, #1d4ed8, #60a5fa)' }} />
-                      Dossiers
+                      {t('authority.statistiques.legend.dossiers')}
                     </span>
                     <span className={styles.legendItem}>
                       <span className={styles.dot} style={{ background: 'linear-gradient(135deg, #22c55e, #4ade80)' }} />
-                      Retrouvés
+                      {t('authority.statistiques.legend.found')}
                     </span>
                   </div>
                 </div>
@@ -291,7 +293,7 @@ export const StatistiquesPage: React.FC = () => {
               <div className={styles.chartCard}>
                 <div className={styles.chartHeader}>
                   <PieChart size={20} className={styles.chartIcon} />
-                  <h3>État des Dossiers</h3>
+                  <h3>{t('authority.statistiques.charts.dossierStatus')}</h3>
                 </div>
                 <div className={styles.statusChart}>
                   {resolutionData.map((data, idx) => (
@@ -319,7 +321,7 @@ export const StatistiquesPage: React.FC = () => {
             <div className={styles.fullWidthCard}>
               <div className={styles.cardHeader}>
                 <AlertTriangle size={20} className={styles.cardIcon} />
-                <h3>Distribution par Niveau d'Urgence</h3>
+                <h3>{t('authority.statistiques.charts.urgencyDistribution')}</h3>
               </div>
               <div className={styles.urgenceGrid}>
                 {urgenceDistribution.map((item, idx) => {
@@ -341,7 +343,7 @@ export const StatistiquesPage: React.FC = () => {
             <div className={styles.fullWidthCard}>
               <div className={styles.cardHeader}>
                 <Activity size={20} className={styles.cardIcon} />
-                <h3>Métriques de Performance (Temps Réel)</h3>
+                <h3>{t('authority.statistiques.performance.title')}</h3>
               </div>
               <div className={styles.performanceGrid}>
                 <div className={styles.performanceItem}>
@@ -349,15 +351,15 @@ export const StatistiquesPage: React.FC = () => {
                     <Clock size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Temps Moyen de Résolution</h4>
+                    <h4>{t('authority.statistiques.performance.avgResolutionTime')}</h4>
                     <p className={styles.performanceValue}>
                       {metrics.tempsMoyenResolution > 0 
-                        ? `${metrics.tempsMoyenResolution} jours` 
-                        : 'N/A'}
+                        ? `${metrics.tempsMoyenResolution} ${t('authority.statistiques.units.days')}`
+                        : t('authority.statistiques.values.na')}
                     </p>
                     {metrics.tempsMedianResolution > 0 && (
                       <small className={styles.performanceSubtext}>
-                        Médiane: {metrics.tempsMedianResolution} jours
+                        {t('authority.statistiques.performance.median')}: {metrics.tempsMedianResolution} {t('authority.statistiques.units.days')}
                       </small>
                     )}
                   </div>
@@ -367,11 +369,11 @@ export const StatistiquesPage: React.FC = () => {
                     <FileText size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Signalements par Dossier</h4>
+                    <h4>{t('authority.statistiques.performance.reportsPerDossier')}</h4>
                     <p className={styles.performanceValue}>
                       {metrics.signalementsParDossier > 0 
-                        ? `${metrics.signalementsParDossier} avg` 
-                        : '0 avg'}
+                        ? `${metrics.signalementsParDossier} ${t('authority.statistiques.units.avg')}`
+                        : `0 ${t('authority.statistiques.units.avg')}`}
                     </p>
                   </div>
                 </div>
@@ -380,7 +382,7 @@ export const StatistiquesPage: React.FC = () => {
                     <Target size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Taux de Validation</h4>
+                    <h4>{t('authority.statistiques.performance.validationRate')}</h4>
                     <p className={styles.performanceValue}>
                       {metrics.tauxValidation}%
                     </p>
@@ -391,7 +393,7 @@ export const StatistiquesPage: React.FC = () => {
                     <Bell size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Alertes Diffusées</h4>
+                    <h4>{t('authority.statistiques.performance.broadcastAlerts')}</h4>
                     <p className={styles.performanceValue}>
                       {metrics.alertesDiffusees}
                     </p>
@@ -404,7 +406,7 @@ export const StatistiquesPage: React.FC = () => {
             <div className={styles.fullWidthCard}>
               <div className={styles.cardHeader}>
                 <Award size={20} className={styles.cardIcon} />
-                <h3>Statistiques Complémentaires</h3>
+                <h3>{t('authority.statistiques.additional.title')}</h3>
               </div>
               <div className={styles.performanceGrid}>
                 <div className={styles.performanceItem}>
@@ -412,7 +414,7 @@ export const StatistiquesPage: React.FC = () => {
                     <ArrowUp size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Dossiers Résolus ce Mois</h4>
+                    <h4>{t('authority.statistiques.additional.resolvedThisMonth')}</h4>
                     <p className={styles.performanceValue}>
                       {metrics.dossiersResolusRecemment}
                     </p>
@@ -423,7 +425,7 @@ export const StatistiquesPage: React.FC = () => {
                     <TrendingUp size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Taux Résolution Mensuel</h4>
+                    <h4>{t('authority.statistiques.additional.monthlyResolutionRate')}</h4>
                     <p className={styles.performanceValue}>
                       {metrics.tauxResolutionMensuel}%
                     </p>
@@ -434,7 +436,7 @@ export const StatistiquesPage: React.FC = () => {
                     <Activity size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Dossiers En Cours</h4>
+                    <h4>{t('authority.statistiques.additional.inProgress')}</h4>
                     <p className={styles.performanceValue}>
                       {stats.dossierActifs}
                     </p>
@@ -445,7 +447,7 @@ export const StatistiquesPage: React.FC = () => {
                     <Users size={20} />
                   </div>
                   <div className={styles.performanceContent}>
-                    <h4>Dossiers Suspendus</h4>
+                    <h4>{t('authority.statistiques.additional.suspended')}</h4>
                     <p className={styles.performanceValue}>
                       {stats.dossiersSuspendus}
                     </p>
@@ -464,12 +466,12 @@ export const StatistiquesPage: React.FC = () => {
                 {isExporting ? (
                   <>
                     <Loader2 size={18} className={styles.spinner} />
-                    <span>Export en cours...</span>
+                    <span>{t('authority.statistiques.export.exporting')}</span>
                   </>
                 ) : (
                   <>
                     <Download size={18} />
-                    <span>Exporter Rapport</span>
+                    <span>{t('authority.statistiques.export.exportReport')}</span>
                   </>
                 )}
               </button>
@@ -481,7 +483,7 @@ export const StatistiquesPage: React.FC = () => {
                 }}
               >
                 <RefreshCw size={18} />
-                <span>Rafraîchir</span>
+                <span>{t('authority.statistiques.refresh')}</span>
               </button>
             </div>
           </>

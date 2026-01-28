@@ -14,6 +14,7 @@ import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks
 import { supabase } from '../../config';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import {
   Search,
   Calendar,
@@ -51,6 +52,7 @@ interface NewSuspect {
 export const InvestigationPage: React.FC = () => {
   const navigate = useNavigate();
   const { addNotification } = useNotification();
+  const { t, language } = useI18n();
   const { dossiers, isLoading } = useDossiers();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
@@ -82,8 +84,8 @@ export const InvestigationPage: React.FC = () => {
   const handleAddPreuve = useCallback(async () => {
     if (!selectedDossier || !newPreuve.description) {
       addNotification({
-        title: 'Erreur',
-        message: 'Veuillez remplir tous les champs obligatoires',
+        title: t('authority.investigation.messages.error'),
+        message: t('authority.investigation.messages.fillRequiredFields'),
         type: 'error',
       });
       return;
@@ -108,8 +110,8 @@ export const InvestigationPage: React.FC = () => {
       if (error) throw error;
 
       addNotification({
-        title: 'Preuve ajoutée',
-        message: 'La preuve a été enregistrée avec succès',
+        title: t('authority.investigation.messages.evidenceAdded'),
+        message: t('authority.investigation.messages.evidenceAddedSuccess'),
         type: 'success',
       });
 
@@ -119,8 +121,8 @@ export const InvestigationPage: React.FC = () => {
       setNewPreuve({ titre: '', description: '', type: 'document' });
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de l\'ajout de la preuve',
+        title: t('authority.investigation.messages.error'),
+        message: err.message || t('authority.investigation.messages.addEvidenceError'),
         type: 'error',
       });
     } finally {
@@ -132,8 +134,8 @@ export const InvestigationPage: React.FC = () => {
   const handleAddLocalisation = useCallback(async () => {
     if (!selectedDossier || !newLocalisation.lieu) {
       addNotification({
-        title: 'Erreur',
-        message: 'Veuillez remplir le lieu',
+        title: t('authority.investigation.messages.error'),
+        message: t('authority.investigation.messages.fillLocation'),
         type: 'error',
       });
       return;
@@ -160,8 +162,8 @@ export const InvestigationPage: React.FC = () => {
       if (error) throw error;
 
       addNotification({
-        title: 'Localisation ajoutée',
-        message: 'Le lieu a été enregistré avec succès',
+        title: t('authority.investigation.messages.locationAdded'),
+        message: t('authority.investigation.messages.locationAddedSuccess'),
         type: 'success',
       });
 
@@ -171,8 +173,8 @@ export const InvestigationPage: React.FC = () => {
       setNewLocalisation({ lieu: '', latitude: '', longitude: '', description: '' });
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de l\'ajout de la localisation',
+        title: t('authority.investigation.messages.error'),
+        message: err.message || t('authority.investigation.messages.addLocationError'),
         type: 'error',
       });
     } finally {
@@ -184,8 +186,8 @@ export const InvestigationPage: React.FC = () => {
   const handleAddSuspect = useCallback(async () => {
     if (!selectedDossier || !newSuspect.nom) {
       addNotification({
-        title: 'Erreur',
-        message: 'Veuillez renseigner le nom du suspect',
+        title: t('authority.investigation.messages.error'),
+        message: t('authority.investigation.messages.fillSuspectName'),
         type: 'error',
       });
       return;
@@ -211,8 +213,8 @@ export const InvestigationPage: React.FC = () => {
       if (error) throw error;
 
       addNotification({
-        title: 'Suspect ajouté',
-        message: 'Le suspect a été enregistré pour investigation',
+        title: t('authority.investigation.messages.suspectAdded'),
+        message: t('authority.investigation.messages.suspectAddedSuccess'),
         type: 'success',
       });
 
@@ -222,8 +224,8 @@ export const InvestigationPage: React.FC = () => {
       setNewSuspect({ nom: '', description: '', relation: '' });
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de l\'ajout du suspect',
+        title: t('authority.investigation.messages.error'),
+        message: err.message || t('authority.investigation.messages.addSuspectError'),
         type: 'error',
       });
     } finally {
@@ -244,17 +246,17 @@ export const InvestigationPage: React.FC = () => {
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
-          <h1><Search size={24} /> Investigation Détaillée</h1>
-          <p className={styles.subtitle}>Outils d'investigation avancée pour les enquêteurs</p>
+          <h1><Search size={24} /> {t('authority.investigation.title')}</h1>
+          <p className={styles.subtitle}>{t('authority.investigation.subtitle')}</p>
         </div>
 
         <div className={styles.content}>
           {/* Left Panel - Dossiers List */}
           <div className={styles.leftPanel}>
-            <h2>Dossiers Actifs</h2>
+            <h2>{t('authority.investigation.activeDossiers')}</h2>
             <div className={styles.dossiersList}>
               {isLoading ? (
-                <p>Chargement...</p>
+                <p>{t('authority.investigation.loading')}</p>
               ) : dossiers.filter((d: any) => d.statut_dossier === 'en_cours').length > 0 ? (
                 dossiers
                   .filter((d: any) => d.statut_dossier === 'en_cours')
@@ -281,12 +283,12 @@ export const InvestigationPage: React.FC = () => {
                         </span>
                       </div>
                       <p className={styles.itemMeta}>
-                        {d.nombre_signalements || 0} signalements
+                        {d.nombre_signalements || 0} {t('authority.investigation.reports')}
                       </p>
                     </div>
                   ))
               ) : (
-                <p className={styles.empty}>Aucun dossier actif</p>
+                <p className={styles.empty}>{t('authority.investigation.noActiveDossiers')}</p>
               )}
             </div>
           </div>
@@ -312,22 +314,22 @@ export const InvestigationPage: React.FC = () => {
                       fontSize: '0.85rem',
                     }}
                   >
-                    Voir dossier complet →
+                    {t('authority.investigation.viewFullDossier')} →
                   </button>
                 </div>
 
                 {/* Tabs */}
                 <div className={styles.tabsContainer}>
-                  {(['timeline', 'preuves', 'suspects', 'lieux'] as const).map((t) => (
+                  {(['timeline', 'preuves', 'suspects', 'lieux'] as const).map((tabKey) => (
                     <button
-                      key={t}
-                      className={`${styles.tab} ${tab === t ? styles.active : ''}`}
-                      onClick={() => setTab(t)}
+                      key={tabKey}
+                      className={`${styles.tab} ${tab === tabKey ? styles.active : ''}`}
+                      onClick={() => setTab(tabKey)}
                     >
-                      {t === 'timeline' && <><Calendar size={16} /> Timeline</>}
-                      {t === 'preuves' && <><FileText size={16} /> Preuves ({preuves.length})</>}
-                      {t === 'suspects' && <><Users size={16} /> Suspects ({suspects.length})</>}
-                      {t === 'lieux' && <><MapPin size={16} /> Lieux ({localisations.length})</>}
+                      {tabKey === 'timeline' && <><Calendar size={16} /> {t('authority.investigation.tabs.timeline')}</>}
+                      {tabKey === 'preuves' && <><FileText size={16} /> {t('authority.investigation.tabs.evidence')} ({preuves.length})</>}
+                      {tabKey === 'suspects' && <><Users size={16} /> {t('authority.investigation.tabs.suspects')} ({suspects.length})</>}
+                      {tabKey === 'lieux' && <><MapPin size={16} /> {t('authority.investigation.tabs.locations')} ({localisations.length})</>}
                     </button>
                   ))}
                 </div>
@@ -338,12 +340,12 @@ export const InvestigationPage: React.FC = () => {
                     <div className={styles.timeline}>
                       <div className={styles.timelineItem}>
                         <div className={styles.timelineDate}>
-                          {new Date((dossier as any).date_disparition || dossier.created_at).toLocaleDateString('fr-FR')}
+                          {new Date((dossier as any).date_disparition || dossier.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                         </div>
                         <div className={styles.timelineContent}>
-                          <p className={styles.timelineTitle}><AlertTriangle size={16} /> Disparition</p>
+                          <p className={styles.timelineTitle}><AlertTriangle size={16} /> {t('authority.investigation.timeline.disappearance')}</p>
                           <p className={styles.timelineDesc}>
-                            {(dossier as any).circonstances || 'Circonstances non renseignées'}
+                            {(dossier as any).circonstances || t('authority.investigation.timeline.circumstancesNotProvided')}
                           </p>
                         </div>
                       </div>
@@ -351,12 +353,12 @@ export const InvestigationPage: React.FC = () => {
                       {(dossier as any).date_derniere_observation && (
                         <div className={styles.timelineItem}>
                           <div className={styles.timelineDate}>
-                            {new Date((dossier as any).date_derniere_observation).toLocaleDateString('fr-FR')}
+                            {new Date((dossier as any).date_derniere_observation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                           </div>
                           <div className={styles.timelineContent}>
-                            <p className={styles.timelineTitle}><Eye size={16} /> Dernière observation</p>
+                            <p className={styles.timelineTitle}><Eye size={16} /> {t('authority.investigation.timeline.lastObservation')}</p>
                             <p className={styles.timelineDesc}>
-                              {(dossier as any).derniere_activite_connue || 'Non renseignée'}
+                              {(dossier as any).derniere_activite_connue || t('authority.investigation.timeline.notProvided')}
                             </p>
                           </div>
                         </div>
@@ -366,11 +368,11 @@ export const InvestigationPage: React.FC = () => {
                       {signalements.slice(0, 5).map((sig: any) => (
                         <div key={sig.id} className={styles.timelineItem}>
                           <div className={styles.timelineDate}>
-                            {new Date(sig.date_observation).toLocaleDateString('fr-FR')}
+                            {new Date(sig.date_observation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                           </div>
                           <div className={styles.timelineContent}>
                             <p className={styles.timelineTitle}>
-                              {sig.description?.startsWith('[SUSPECT]') ? <><User size={16} /> Suspect signalé</> : <><FileText size={16} /> Signalement</>}
+                              {sig.description?.startsWith('[SUSPECT]') ? <><User size={16} /> {t('authority.investigation.timeline.suspectReported')}</> : <><FileText size={16} /> {t('authority.investigation.timeline.report')}</>}
                             </p>
                             <p className={styles.timelineDesc}>
                               {(sig.description || '').substring(0, 100)}...
@@ -383,72 +385,72 @@ export const InvestigationPage: React.FC = () => {
 
                   {tab === 'preuves' && (
                     <div className={styles.evidenceSection}>
-                      <h3>Preuves et Documents</h3>
+                      <h3>{t('authority.investigation.evidence.title')}</h3>
                       {preuves.length > 0 ? (
                         <div className={styles.itemsList}>
                           {preuves.map((sig: any) => (
                             <div key={sig.id} className={styles.itemCard}>
-                              <h4>{(sig.description || 'Preuve').substring(0, 50)}</h4>
-                              <p><strong>Lieu:</strong> {sig.lieu_observation || 'Non renseigné'}</p>
-                              <p><strong>Date:</strong> {new Date(sig.date_observation).toLocaleDateString('fr-FR')}</p>
-                              <small>État: {sig.statut_validation || sig.etat}</small>
+                              <h4>{(sig.description || t('authority.investigation.evidence.evidence')).substring(0, 50)}</h4>
+                              <p><strong>{t('authority.investigation.evidence.location')}:</strong> {sig.lieu_observation || t('authority.investigation.evidence.notProvided')}</p>
+                              <p><strong>{t('authority.investigation.evidence.date')}:</strong> {new Date(sig.date_observation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
+                              <small>{t('authority.investigation.evidence.status')}: {sig.statut_validation || sig.etat}</small>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className={styles.empty}>Aucune preuve documentée</div>
+                        <div className={styles.empty}>{t('authority.investigation.evidence.noEvidence')}</div>
                       )}
                       <button 
                         className={styles.addButton}
                         onClick={() => setShowAddPreuveModal(true)}
                       >
-                        <Plus size={16} /> Ajouter une Preuve
+                        <Plus size={16} /> {t('authority.investigation.evidence.addEvidence')}
                       </button>
                     </div>
                   )}
 
                   {tab === 'suspects' && (
                     <div className={styles.suspectsSection}>
-                      <h3>Suspects et Personnes d'Intérêt</h3>
+                      <h3>{t('authority.investigation.suspects.title')}</h3>
                       {suspects.length > 0 ? (
                         <div className={styles.itemsList}>
                           {suspects.map((sig: any) => {
                             // Parser la description pour extraire les infos
                             const lines = (sig.description || '').split('\n');
-                            const nom = lines[0]?.replace('[SUSPECT] ', '') || 'Inconnu';
+                            const nom = lines[0]?.replace('[SUSPECT] ', '') || t('authority.investigation.suspects.unknown');
                             const relation = lines[1]?.replace('Relation: ', '') || '';
                             const desc = lines.slice(3).join('\n');
                             
                             return (
                               <div key={sig.id} className={styles.itemCard}>
                                 <h4><User size={16} /> {nom}</h4>
-                                {relation && <p><strong>Relation:</strong> {relation}</p>}
-                                <p><strong>Description:</strong> {desc || 'Aucune description'}</p>
-                                <p><strong>Ajouté le:</strong> {new Date(sig.date_observation).toLocaleDateString('fr-FR')}</p>
-                                <small>État: {sig.statut_validation || sig.etat}</small>
+                                {relation && <p><strong>{t('authority.investigation.suspects.relation')}:</strong> {relation}</p>}
+                                <p><strong>{t('authority.investigation.suspects.description')}:</strong> {desc || t('authority.investigation.suspects.noDescription')}</p>
+                                <p><strong>{t('authority.investigation.suspects.addedOn')}:</strong> {new Date(sig.date_observation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
+                                <small>{t('authority.investigation.suspects.status')}: {sig.statut_validation || sig.etat}</small>
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className={styles.empty}>Aucun suspect enregistré</div>
+                        <div className={styles.empty}>{t('authority.investigation.suspects.noSuspects')}</div>
                       )}
                       <button 
                         className={styles.addButton}
                         onClick={() => setShowAddSuspectModal(true)}
                       >
-                        <Plus size={16} /> Ajouter un Suspect
+                        <Plus size={16} /> {t('authority.investigation.suspects.addSuspect')}
                       </button>
                     </div>
                   )}
 
                   {tab === 'lieux' && (
                     <div className={styles.locationsSection}>
-                      <h3>Lieux d'Intérêt</h3>
+                      <h3>{t('authority.investigation.locations.title')}</h3>
                       <div className={styles.locationsList}>
                         <div className={styles.locationItem}>
-                          <h4><MapPin size={16} /> Lieu de Disparition</h4>
-                          <p>{(dossier as any).lieu_disparition || 'Non renseigné'}</p>
+                          <h4><MapPin size={16} /> {t('authority.investigation.locations.disappearanceLocation')}</h4>
+                          <p>{(dossier as any).lieu_disparition || t('authority.investigation.locations.notProvided')}</p>
                           {(dossier as any).latitude_disparition && (dossier as any).longitude_disparition && (
                             <p className={styles.coordinates}>
                               {(dossier as any).latitude_disparition.toFixed(4)}, {(dossier as any).longitude_disparition.toFixed(4)}
@@ -460,14 +462,14 @@ export const InvestigationPage: React.FC = () => {
                             <div className={styles.divider} />
                             {localisations.map((loc: any, idx: number) => (
                               <div key={loc.id || idx} className={styles.locationItem}>
-                                <h4><MapPin size={16} /> {loc.lieu_localisation || `Localisation ${idx + 1}`}</h4>
+                                <h4><MapPin size={16} /> {loc.lieu_localisation || `${t('authority.investigation.locations.location')} ${idx + 1}`}</h4>
                                 {loc.description && <p>{loc.description}</p>}
                                 {loc.latitude && loc.longitude && (
                                   <p className={styles.coordinates}>
                                     {loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}
                                   </p>
                                 )}
-                                <small>{new Date(loc.date_localisation || loc.created_at).toLocaleDateString('fr-FR')}</small>
+                                <small>{new Date(loc.date_localisation || loc.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</small>
                               </div>
                             ))}
                           </>
@@ -477,7 +479,7 @@ export const InvestigationPage: React.FC = () => {
                         className={styles.addButton}
                         onClick={() => setShowAddLocalisationModal(true)}
                       >
-                        <Plus size={16} /> Ajouter Lieu
+                        <Plus size={16} /> {t('authority.investigation.locations.addLocation')}
                       </button>
                     </div>
                   )}
@@ -485,7 +487,7 @@ export const InvestigationPage: React.FC = () => {
               </>
             ) : (
               <div className={styles.noSelection}>
-                Sélectionnez un dossier pour commencer l'investigation
+                {t('authority.investigation.selectDossierToStart')}
               </div>
             )}
           </div>
@@ -508,49 +510,49 @@ export const InvestigationPage: React.FC = () => {
               }}
               onClick={e => e.stopPropagation()}
             >
-              <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> Ajouter une Preuve</h2>
+              <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> {t('authority.investigation.modals.addEvidence.title')}</h2>
               
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Type:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addEvidence.type')}:</label>
                 <select
                   value={newPreuve.type}
                   onChange={(e) => setNewPreuve({ ...newPreuve, type: e.target.value })}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 >
-                  <option value="document">Document</option>
-                  <option value="photo">Photo</option>
-                  <option value="video">Vidéo</option>
-                  <option value="temoignage">Témoignage</option>
-                  <option value="autre">Autre</option>
+                  <option value="document">{t('authority.investigation.modals.addEvidence.typeDocument')}</option>
+                  <option value="photo">{t('authority.investigation.modals.addEvidence.typePhoto')}</option>
+                  <option value="video">{t('authority.investigation.modals.addEvidence.typeVideo')}</option>
+                  <option value="temoignage">{t('authority.investigation.modals.addEvidence.typeTestimony')}</option>
+                  <option value="autre">{t('authority.investigation.modals.addEvidence.typeOther')}</option>
                 </select>
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Titre:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addEvidence.titleLabel')}:</label>
                 <input
                   type="text"
                   value={newPreuve.titre}
                   onChange={(e) => setNewPreuve({ ...newPreuve, titre: e.target.value })}
-                  placeholder="Titre de la preuve"
+                  placeholder={t('authority.investigation.modals.addEvidence.titlePlaceholder')}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Description *:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addEvidence.description')} *:</label>
                 <textarea
                   value={newPreuve.description}
                   onChange={(e) => setNewPreuve({ ...newPreuve, description: e.target.value })}
-                  placeholder="Description détaillée..."
+                  placeholder={t('authority.investigation.modals.addEvidence.descriptionPlaceholder')}
                   rows={4}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAddPreuveModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setShowAddPreuveModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
                 <button onClick={handleAddPreuve} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                  {isSubmitting ? 'Ajout...' : 'Ajouter'}
+                  {isSubmitting ? t('authority.investigation.modals.adding') : t('authority.investigation.modals.addEvidence.add')}
                 </button>
               </div>
             </div>
@@ -574,57 +576,57 @@ export const InvestigationPage: React.FC = () => {
               }}
               onClick={e => e.stopPropagation()}
             >
-              <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={20} /> Ajouter un Lieu</h2>
+              <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={20} /> {t('authority.investigation.modals.addLocation.title')}</h2>
               
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Lieu *:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addLocation.location')} *:</label>
                 <input
                   type="text"
                   value={newLocalisation.lieu}
                   onChange={(e) => setNewLocalisation({ ...newLocalisation, lieu: e.target.value })}
-                  placeholder="Nom ou adresse du lieu"
+                  placeholder={t('authority.investigation.modals.addLocation.locationPlaceholder')}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Latitude:</label>
+                  <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addLocation.latitude')}:</label>
                   <input
                     type="text"
                     value={newLocalisation.latitude}
                     onChange={(e) => setNewLocalisation({ ...newLocalisation, latitude: e.target.value })}
-                    placeholder="ex: 3.848"
+                    placeholder={t('authority.investigation.modals.addLocation.latitudePlaceholder')}
                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Longitude:</label>
+                  <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addLocation.longitude')}:</label>
                   <input
                     type="text"
                     value={newLocalisation.longitude}
                     onChange={(e) => setNewLocalisation({ ...newLocalisation, longitude: e.target.value })}
-                    placeholder="ex: 11.5021"
+                    placeholder={t('authority.investigation.modals.addLocation.longitudePlaceholder')}
                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                   />
                 </div>
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Description:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addLocation.description')}:</label>
                 <textarea
                   value={newLocalisation.description}
                   onChange={(e) => setNewLocalisation({ ...newLocalisation, description: e.target.value })}
-                  placeholder="Informations sur ce lieu..."
+                  placeholder={t('authority.investigation.modals.addLocation.descriptionPlaceholder')}
                   rows={3}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAddLocalisationModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setShowAddLocalisationModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
                 <button onClick={handleAddLocalisation} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                  {isSubmitting ? 'Ajout...' : 'Ajouter'}
+                  {isSubmitting ? t('authority.investigation.modals.adding') : t('authority.investigation.modals.addLocation.add')}
                 </button>
               </div>
             </div>
@@ -648,45 +650,45 @@ export const InvestigationPage: React.FC = () => {
               }}
               onClick={e => e.stopPropagation()}
             >
-              <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><User size={20} /> Ajouter un Suspect</h2>
+              <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><User size={20} /> {t('authority.investigation.modals.addSuspect.title')}</h2>
               
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Nom/Pseudonyme *:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addSuspect.name')} *:</label>
                 <input
                   type="text"
                   value={newSuspect.nom}
                   onChange={(e) => setNewSuspect({ ...newSuspect, nom: e.target.value })}
-                  placeholder="Nom ou identifiant"
+                  placeholder={t('authority.investigation.modals.addSuspect.namePlaceholder')}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Relation avec la personne disparue:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addSuspect.relation')}:</label>
                 <input
                   type="text"
                   value={newSuspect.relation}
                   onChange={(e) => setNewSuspect({ ...newSuspect, relation: e.target.value })}
-                  placeholder="ex: voisin, collègue, inconnu..."
+                  placeholder={t('authority.investigation.modals.addSuspect.relationPlaceholder')}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Description / Notes:</label>
+                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addSuspect.description')}:</label>
                 <textarea
                   value={newSuspect.description}
                   onChange={(e) => setNewSuspect({ ...newSuspect, description: e.target.value })}
-                  placeholder="Informations sur cette personne..."
+                  placeholder={t('authority.investigation.modals.addSuspect.descriptionPlaceholder')}
                   rows={4}
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAddSuspectModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setShowAddSuspectModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
                 <button onClick={handleAddSuspect} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                  {isSubmitting ? 'Ajout...' : 'Ajouter Suspect'}
+                  {isSubmitting ? t('authority.investigation.modals.adding') : t('authority.investigation.modals.addSuspect.add')}
                 </button>
               </div>
             </div>

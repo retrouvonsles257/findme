@@ -56,13 +56,26 @@
       "inProgress": "En Cours",
       "foundAlive": "Retrouvé Vivant",
       "foundDeceased": "Retrouvé Décédé",
-      "suspended": "Suspendu"
+      "suspended": "Suspendu",
+      "en_cours": "En Cours",
+      "suspendu": "Suspendu",
+      "retrouve_vivant": "Retrouvé Vivant",
+      "retrouve_decede": "Retrouvé Décédé"
     },
     "urgency": {
       "critical": "CRITIQUE",
       "urgent": "URGENT",
       "normal": "NORMAL",
-      "low": "FAIBLE"
+      "low": "FAIBLE",
+      "critique": "Critique",
+      "faible": "Faible"
+    },
+    "disappearanceType": {
+      "inconnue": "Inconnue",
+      "volontaire": "Volontaire",
+      "involontaire": "Involontaire",
+      "suspicion_enlevement": "Suspicion d'enlèvement",
+      "fugue": "Fugue"
     },
     "stats": {
       "total": "Total",
@@ -129,6 +142,170 @@
     "location": "Lieu",
     "date": "Date"
   },
+  "createDossier": {
+    "title": "Créer un Nouveau Dossier",
+    "stepInfo": "Étape {{step}} sur {{total}}",
+    "steps": {
+      "personInfo": "Informations Personne",
+      "disappearanceDetails": "Détails Disparition",
+      "verification": "Vérification"
+    },
+    "progress": {
+      "person": "Personne",
+      "disappearance": "Disparition",
+      "verification": "Vérification"
+    },
+    "step1": {
+      "title": "Informations sur la Personne Disparue",
+      "lastName": "Nom *",
+      "lastNamePlaceholder": "Nom de famille",
+      "firstName": "Prénom *",
+      "firstNamePlaceholder": "Prénom",
+      "birthDate": "Date de naissance",
+      "gender": "Sexe",
+      "genderMale": "Masculin",
+      "genderFemale": "Féminin",
+      "genderNotSpecified": "Non précisé",
+      "genderUnknown": "Inconnu",
+      "nationality": "Nationalité",
+      "height": "Taille (cm)",
+      "heightPlaceholder": "ex: 175",
+      "weight": "Poids (kg)",
+      "weightPlaceholder": "ex: 70",
+      "eyeColor": "Couleur des yeux",
+      "eyeColorPlaceholder": "ex: Marron",
+      "hairColor": "Couleur des cheveux",
+      "hairColorPlaceholder": "ex: Noir",
+      "distinctiveMarks": "Signes particuliers",
+      "distinctiveMarksPlaceholder": "Cicatrices, tatouages, marques distinctives...",
+      "photos": "Photos",
+      "uploading": "Upload...",
+      "addPhotos": "Ajouter des photos",
+      "mainPhoto": "Principale"
+    },
+    "step2": {
+      "title": "Détails de la Disparition",
+      "urgency": "Niveau d'urgence *",
+      "disappearanceDate": "Date de disparition *",
+      "disappearanceLocation": "Lieu de disparition *",
+      "locationPlaceholder": "Adresse ou description du lieu",
+      "city": "Ville",
+      "cityPlaceholder": "ex: Yaoundé",
+      "country": "Pays",
+      "circumstances": "Circonstances",
+      "circumstancesPlaceholder": "Décrivez les circonstances de la disparition...",
+      "clothing": "Vêtements portés",
+      "clothingPlaceholder": "Description des vêtements...",
+      "personalItems": "Objets personnels",
+      "personalItemsPlaceholder": "Téléphone, sac, bijoux...",
+      "lastKnownActivity": "Dernière activité connue",
+      "lastActivityPlaceholder": "Qu'était en train de faire la personne avant sa disparition...",
+      "familyContact": "Contact de la Famille",
+      "contactName": "Nom du contact",
+      "contactNamePlaceholder": "Nom complet",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+237...",
+      "email": "Email",
+      "emailPlaceholder": "email@example.com",
+      "diffusionOptions": "Options de Diffusion",
+      "visiblePublic": "Visible au public",
+      "diffusionAuthorized": "Diffusion autorisée (alertes)"
+    },
+    "step3": {
+      "title": "Vérification et Confirmation",
+      "person": "Personne",
+      "name": "Nom",
+      "birthDate": "Date de naissance",
+      "gender": "Sexe",
+      "height": "Taille",
+      "photos": "Photos",
+      "photoCount": "photo",
+      "photoCount_plural": "photos",
+      "disappearance": "Disparition",
+      "urgency": "Urgence",
+      "date": "Date",
+      "location": "Lieu",
+      "city": "Ville",
+      "circumstances": "Circonstances",
+      "contact": "Contact",
+      "phone": "Téléphone",
+      "options": "Options",
+      "visiblePublic": "Visible au public",
+      "diffusionAuthorized": "Diffusion autorisée",
+      "yes": "Oui",
+      "no": "Non",
+      "notProvided": "Non renseigné"
+    },
+    "actions": {
+      "cancel": "Annuler",
+      "next": "Suivant",
+      "back": "Retour",
+      "edit": "Modifier",
+      "creating": "Création en cours...",
+      "createDossier": "Créer le Dossier"
+    },
+    "messages": {
+      "photosUploaded": "Photos uploadées",
+      "photoAdded": "photo ajoutée",
+      "photosAdded": "photos ajoutées",
+      "uploadError": "Erreur upload",
+      "uploadErrorMsg": "Erreur lors de l'upload",
+      "requiredFields": "Champs requis",
+      "nameRequired": "Le nom et prénom sont obligatoires",
+      "dateLocationRequired": "La date et le lieu de disparition sont obligatoires",
+      "error": "Erreur",
+      "mustBeLoggedIn": "Vous devez être connecté",
+      "dossierCreated": "Dossier créé",
+      "dossierCreatedSuccess": "Dossier {{numero}} créé avec succès",
+      "creationError": "Erreur lors de la création du dossier"
+    }
+  },
+  "editDossier": {
+    "title": "Modifier le Dossier",
+    "backToDossier": "Retour au dossier",
+    "loading": "Chargement du dossier...",
+    "notFound": "Dossier non trouvé",
+    "personInfo": {
+      "title": "Informations Personne (lecture seule)",
+      "name": "Nom",
+      "birthDate": "Date naissance",
+      "gender": "Sexe",
+      "notAvailable": "N/A"
+    },
+    "form": {
+      "detailsTitle": "Détails du Dossier",
+      "status": "Statut du Dossier *",
+      "statusClosed": "Clôturé",
+      "urgency": "Niveau d'Urgence *",
+      "disappearanceLocation": "Lieu de Disparition",
+      "locationPlaceholder": "Adresse ou description",
+      "city": "Ville",
+      "circonstances": "Circonstances",
+      "clothing": "Vêtements Portés",
+      "personalItems": "Objets Personnels",
+      "lastKnownActivity": "Dernière Activité Connue",
+      "contactTitle": "Contact",
+      "contactName": "Nom du Contact",
+      "phone": "Téléphone",
+      "optionsTitle": "Options",
+      "visiblePublic": "Visible au Public",
+      "diffusionAuthorized": "Diffusion Autorisée",
+      "internalNotesTitle": "Notes Internes",
+      "internalNotesPlaceholder": "Notes visibles uniquement par les autorités..."
+    },
+    "actions": {
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saving": "Enregistrement..."
+    },
+    "messages": {
+      "error": "Erreur",
+      "loadError": "Impossible de charger le dossier",
+      "saved": "Modifications enregistrées",
+      "updated": "Le dossier a été mis à jour",
+      "saveError": "Erreur lors de la sauvegarde"
+    }
+  },
   "analysis": "Analyses",
   "investigation": "Enquête",
   "signalements": "Signalements",
@@ -170,7 +347,15 @@
       "loading": "Chargement...",
       "openMenu": "Ouvrir le menu",
       "closeMenu": "Fermer le menu",
-      "changeLanguage": "Changer de langue"
+      "changeLanguage": "Changer de langue",
+      "coordinationMessages": "Messages de coordination",
+      "noMessages": "Aucun message",
+      "viewAllMessages": "Voir tous les messages",
+      "messagesView": {
+        "list": "Vue liste",
+        "compact": "Vue compacte",
+        "expanded": "Vue étendue"
+      }
     },
   "sidebar": {
     "appName": "RetrouvonsLes",
@@ -210,6 +395,8 @@
     },
     "noTitle": "Sans titre",
     "noMessage": "Pas de message",
+    "typeStandard": "Standard",
+    "unitKm": "km",
     "actions": {
       "publish": "Publier",
       "delete": "Supprimer",
@@ -233,6 +420,104 @@
       "error": "Erreur",
       "errorOccurred": "Une erreur est survenue"
     },
+    "createAlerte": {
+      "title": "Créer une Alerte",
+      "subtitle": "Diffusez une alerte aux utilisateurs pour retrouver une personne disparue",
+      "form": {
+        "alertInfo": "Informations de l'alerte",
+        "linkedDossier": "Dossier lié *",
+        "selectDossier": "-- Sélectionner un dossier --",
+        "noActiveDossiers": "Aucun dossier actif avec diffusion autorisée",
+        "alertType": "Type d'alerte *",
+        "types": {
+          "standard": "Disparition standard",
+          "child": "Disparition d'enfant",
+          "vulnerable": "Disparition d'adulte vulnérable",
+          "amber": "Alerte Amber",
+          "update": "Mise à jour",
+          "found": "Personne retrouvée"
+        },
+        "radius": "Rayon de diffusion (km)",
+        "title": "Titre de l'alerte *",
+        "titlePlaceholder": "Ex: Disparition inquiétante à Yaoundé",
+        "fullMessage": "Message complet *",
+        "fullMessagePlaceholder": "Description détaillée de la disparition, signes particuliers, dernière localisation...",
+        "shortMessage": "Message court (pour notifications push)",
+        "shortMessagePlaceholder": "Version courte du message (max 200 caractères)",
+        "characters": "caractères",
+        "diffusionChannels": "Canaux de diffusion",
+        "channels": {
+          "push": "Push Notifications",
+          "pushDesc": "Notifications sur mobile",
+          "inApp": "In-App",
+          "inAppDesc": "Notifications dans l'application",
+          "email": "Email",
+          "emailDesc": "Par courrier électronique",
+          "sms": "SMS",
+          "smsDesc": "Par message texte"
+        }
+      },
+      "preview": {
+        "title": "Aperçu"
+      },
+      "actions": {
+        "cancel": "Annuler",
+        "saveDraft": "Enregistrer brouillon",
+        "creating": "Création...",
+        "createAndPublish": "Créer et Publier"
+      },
+      "messages": {
+        "requiredField": "Champ requis",
+        "titleRequired": "Le titre est obligatoire",
+        "messageRequired": "Le message est obligatoire",
+        "dossierRequired": "Veuillez sélectionner un dossier",
+        "alerteCreated": "Alerte créée",
+        "alerteCreatedAndPublished": "L'alerte a été créée et sera diffusée",
+        "alerteSavedAsDraft": "L'alerte a été enregistrée en brouillon",
+        "error": "Erreur",
+        "creationError": "Erreur lors de la création"
+      }
+    },
+    "alerteDetail": {
+      "loading": "Chargement de l'alerte...",
+      "notFound": "Alerte non trouvée",
+      "sections": {
+        "information": "Informations",
+        "message": "Message",
+        "statistics": "Statistiques",
+        "linkedDossier": "Dossier Lié"
+      },
+      "fields": {
+        "alertType": "Type d'alerte",
+        "creationDate": "Date de création",
+        "diffusionDate": "Date de diffusion",
+        "notDiffused": "Non diffusée",
+        "diffusionRadius": "Rayon de diffusion",
+        "shortMessage": "Message court"
+      },
+      "stats": {
+        "recipients": "Destinataires",
+        "views": "Vues",
+        "shares": "Partages",
+        "reports": "Signalements"
+      },
+      "actions": {
+        "viewDossier": "Voir le dossier",
+        "processing": "Traitement...",
+        "diffusing": "Diffusion...",
+        "rediffuse": "Re-diffuser"
+      },
+      "messages": {
+        "error": "Erreur",
+        "loadError": "Impossible de charger l'alerte",
+        "statusUpdated": "Statut mis à jour",
+        "statusChanged": "Alerte passée en statut: {{status}}",
+        "updateError": "Erreur lors de la mise à jour",
+        "alerteDiffused": "Alerte diffusée",
+        "alerteSentToUsers": "Alerte envoyée à {{count}} utilisateurs",
+        "diffusionError": "Erreur lors de la diffusion"
+      }
+    },
     "empty": {
       "title": "Aucune alerte",
       "noSearchResults": "Aucune alerte ne correspond à votre recherche",
@@ -242,7 +527,6 @@
       "noannulee": "Aucune alerte annulée",
       "noAlerts": "Aucune alerte trouvée"
     },
-    "createAlerte": "Créer une alerte",
     "modal": {
       "publishTitle": "Publier l'alerte",
       "cancelTitle": "Annuler l'alerte",
@@ -286,7 +570,6 @@
   "reports": "Signalements",
   "locations": "Localisations",
   "timeline": "Chronologie",
-  "editDossier": "Modifier",
   "closeDossier": "Fermer le dossier",
   "markAsFound": "Marquer comme retrouvé",
   "analysisTitle": "Analyse IA",
@@ -306,6 +589,73 @@
   "investigationNotes": "Notes d'enquête",
   "addNote": "Add Note",
   "assignTeam": "Assigner l'équipe",
+  "signalements": {
+    "title": "Validation des Signalements",
+    "subtitle": "{{count}} signalement en attente de validation",
+    "subtitlePlural": "{{count}} signalements en attente de validation",
+    "refresh": "Actualiser",
+    "searchPlaceholder": "Rechercher par description ou lieu...",
+    "loading": "Chargement des signalements...",
+    "noDescription": "Pas de description",
+    "unknownDate": "Date inconnue",
+    "stats": {
+      "total": "Total",
+      "pending": "En attente",
+      "inVerification": "En vérification",
+      "validated": "Validés",
+      "rejected": "Rejetés"
+    },
+    "certitude": {
+      "certain": "Certain",
+      "tres_probable": "Très probable",
+      "probable": "Probable",
+      "incertain": "Incertain",
+      "notSpecified": "Non spécifié"
+    },
+    "status": {
+      "pending": "En attente",
+      "inVerification": "En vérification",
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "actions": {
+      "validate": "Valider",
+      "reject": "Rejeter",
+      "viewDetails": "Voir détails"
+    },
+    "messages": {
+      "error": "Erreur",
+      "missingData": "Données manquantes pour la validation",
+      "defaultValidationReason": "Validation par les autorités",
+      "success": "Succès",
+      "validatedSuccess": "Signalement validé avec succès",
+      "rejectedSuccess": "Signalement rejeté avec succès",
+      "validationError": "Erreur lors de la validation",
+      "notAuthenticated": "Utilisateur non authentifié",
+      "quickValidationApproved": "Validation rapide - Approuvé",
+      "quickValidationRejected": "Validation rapide - Rejeté"
+    },
+    "empty": {
+      "title": "Aucun signalement",
+      "noSearchResults": "Aucun signalement ne correspond à votre recherche",
+      "noPending": "Aucun signalement en attente",
+      "noInVerification": "Aucun signalement en vérification",
+      "noValidated": "Aucun signalement validé",
+      "noRejected": "Aucun signalement rejeté",
+      "noSignalements": "Aucun signalement trouvé"
+    },
+    "modal": {
+      "validateTitle": "Valider le signalement",
+      "rejectTitle": "Rejeter le signalement",
+      "validateInfo": "Ce signalement sera marqué comme validé et pourra être utilisé dans l'enquête.",
+      "rejectInfo": "Ce signalement sera marqué comme rejeté et ne sera pas pris en compte.",
+      "commentLabel": "Commentaire (optionnel)",
+      "commentPlaceholder": "Ajoutez un commentaire pour justifier votre décision...",
+      "cancel": "Annuler",
+      "processing": "Traitement...",
+      "confirm": "Confirmer"
+    }
+  },
   "signallementsTitle": "Signalements",
   "signallementsSubtitle": "Gérez les signalements reçus",
   "validatedReports": "Signalements validés",
@@ -350,6 +700,462 @@
     "operateur_saisie": "Opérateur",
     "admin_organisation": "Admin Organisation",
     "default": "Autorité"
+  },
+  "iaAnalysis": {
+    "title": "Analyse IA Avancée",
+    "subtitle": "Reconnaissance faciale, détection de similarités et prédictions de localisation",
+    "serviceNotConfigured": "Service IA non configuré. Contactez l'administrateur.",
+    "loading": "Chargement...",
+    "messages": {
+      "selectImage": "Veuillez sélectionner une image",
+      "errorOccurred": "Une erreur est survenue. Veuillez réessayer."
+    },
+    "tabs": {
+      "facialRecognition": "Reconnaissance Faciale",
+      "similarities": "Similarités",
+      "predictions": "Prédictions",
+      "results": "Résultats"
+    },
+    "facialRecognition": {
+      "title": "Reconnaissance Faciale",
+      "description": "Analysez des photos pour extraire les caractéristiques faciales",
+      "uploadText": "Cliquez pour sélectionner une image ou glissez-la ici",
+      "uploadHint": "PNG, JPG, WEBP jusqu'à 10MB",
+      "analyzing": "Analyse en cours...",
+      "startAnalysis": "Lancer l'Analyse",
+      "analysisComplete": "Analyse terminée",
+      "reliability": "Fiabilité",
+      "face": "Visage",
+      "detected": "Détecté",
+      "notDetected": "Non détecté",
+      "duration": "Durée"
+    },
+    "progress": {
+      "detection": "Détection",
+      "analysis": "Analyse",
+      "processing": "Traitement"
+    },
+    "similarities": {
+      "title": "Détection de Similarités",
+      "description": "Détectez les cas potentiellement liés entre eux",
+      "analysisOf": "Analyse du",
+      "matches": "correspondances",
+      "case": "Cas",
+      "noAnalysis": "Aucune analyse de similarité effectuée"
+    },
+    "predictions": {
+      "title": "Prédictions de Localisation",
+      "description": "Zones de recherche estimées",
+      "calculating": "Calcul des prédictions...",
+      "predictionOf": "Prédiction du",
+      "zones": "zones",
+      "reliability": "Fiabilité",
+      "noPredictions": "Aucune prédiction de localisation disponible"
+    },
+    "results": {
+      "title": "Historique des Analyses",
+      "description": "Toutes les analyses effectuées",
+      "facialRecognition": "Reconnaissance Faciale",
+      "imageComparison": "Comparaison d'Images",
+      "reliability": "Fiabilité",
+      "face": "Visage",
+      "similarity": "Similarité",
+      "matchFound": "Correspondance trouvée",
+      "noMatch": "Pas de correspondance",
+      "noAnalysis": "Aucune analyse effectuée",
+      "startWithImage": "Commencez par analyser une image"
+    },
+    "actions": {
+      "viewDetails": "Voir Détails"
+    },
+    "confidence": {
+      "veryHigh": "Très élevée",
+      "high": "Élevée",
+      "medium": "Moyenne",
+      "low": "Faible",
+      "veryLow": "Très faible"
+    },
+    "modal": {
+      "title": "Détails de l'analyse",
+      "generalInfo": "Informations générales",
+      "analysisDate": "Date d'analyse",
+      "reliability": "Fiabilité",
+      "processingTime": "Durée de traitement",
+      "seconds": "secondes",
+      "status": "Statut",
+      "statusPending": "En attente de validation",
+      "statusConfirmed": "Confirmé",
+      "statusRefuted": "Infirmé",
+      "statusToVerify": "À vérifier",
+      "detectionResults": "Résultats de la détection",
+      "analyzedImage": "Image analysée",
+      "faceDetected": "Visage détecté",
+      "yes": "Oui",
+      "no": "Non",
+      "imageQuality": "Qualité de l'image",
+      "faceCount": "Nombre de visages",
+      "estimatedAge": "Tranche d'âge estimée",
+      "gender": "Genre",
+      "genderMale": "Masculin",
+      "genderFemale": "Féminin",
+      "detectionConfidence": "Confiance détection",
+      "facialExpression": "Expression faciale",
+      "emotionHappy": "Heureux",
+      "emotionSad": "Triste",
+      "emotionAngry": "En colère",
+      "emotionNeutral": "Neutre",
+      "emotionSurprise": "Surpris",
+      "emotionFear": "Apeuré",
+      "noFaceDetected": "Aucun visage n'a été détecté dans cette image. Essayez avec une photo plus claire ou de face.",
+      "analysisError": "Une erreur s'est produite lors de l'analyse",
+      "unknownError": "Erreur inconnue",
+      "matches": "Correspondances",
+      "potentialMatch": "Correspondance potentielle",
+      "noMatches": "Aucune correspondance trouvée",
+      "predictedZones": "Zones prédites"
+    }
+  },
+  "investigation": {
+    "title": "Investigation Détaillée",
+    "subtitle": "Outils d'investigation avancée pour les enquêteurs",
+    "loading": "Chargement...",
+    "activeDossiers": "Dossiers Actifs",
+    "reports": "signalements",
+    "noActiveDossiers": "Aucun dossier actif",
+    "viewFullDossier": "Voir dossier complet",
+    "selectDossierToStart": "Sélectionnez un dossier pour commencer l'investigation",
+    "tabs": {
+      "timeline": "Timeline",
+      "evidence": "Preuves",
+      "suspects": "Suspects",
+      "locations": "Lieux"
+    },
+    "timeline": {
+      "disappearance": "Disparition",
+      "circumstancesNotProvided": "Circonstances non renseignées",
+      "lastObservation": "Dernière observation",
+      "notProvided": "Non renseignée",
+      "suspectReported": "Suspect signalé",
+      "report": "Signalement"
+    },
+    "evidence": {
+      "title": "Preuves et Documents",
+      "evidence": "Preuve",
+      "location": "Lieu",
+      "notProvided": "Non renseigné",
+      "date": "Date",
+      "status": "État",
+      "noEvidence": "Aucune preuve documentée",
+      "addEvidence": "Ajouter une Preuve"
+    },
+    "suspects": {
+      "title": "Suspects et Personnes d'Intérêt",
+      "unknown": "Inconnu",
+      "relation": "Relation",
+      "description": "Description",
+      "noDescription": "Aucune description",
+      "addedOn": "Ajouté le",
+      "status": "État",
+      "noSuspects": "Aucun suspect enregistré",
+      "addSuspect": "Ajouter un Suspect"
+    },
+    "locations": {
+      "title": "Lieux d'Intérêt",
+      "disappearanceLocation": "Lieu de Disparition",
+      "notProvided": "Non renseigné",
+      "location": "Localisation",
+      "addLocation": "Ajouter Lieu"
+    },
+    "messages": {
+      "error": "Erreur",
+      "fillRequiredFields": "Veuillez remplir tous les champs obligatoires",
+      "evidenceAdded": "Preuve ajoutée",
+      "evidenceAddedSuccess": "La preuve a été enregistrée avec succès",
+      "addEvidenceError": "Erreur lors de l'ajout de la preuve",
+      "fillLocation": "Veuillez remplir le lieu",
+      "locationAdded": "Localisation ajoutée",
+      "locationAddedSuccess": "Le lieu a été enregistré avec succès",
+      "addLocationError": "Erreur lors de l'ajout de la localisation",
+      "fillSuspectName": "Veuillez renseigner le nom du suspect",
+      "suspectAdded": "Suspect ajouté",
+      "suspectAddedSuccess": "Le suspect a été enregistré pour investigation",
+      "addSuspectError": "Erreur lors de l'ajout du suspect"
+    },
+    "modals": {
+      "cancel": "Annuler",
+      "adding": "Ajout...",
+      "addEvidence": {
+        "title": "Ajouter une Preuve",
+        "type": "Type",
+        "typeDocument": "Document",
+        "typePhoto": "Photo",
+        "typeVideo": "Vidéo",
+        "typeTestimony": "Témoignage",
+        "typeOther": "Autre",
+        "titleLabel": "Titre",
+        "titlePlaceholder": "Titre de la preuve",
+        "description": "Description",
+        "descriptionPlaceholder": "Description détaillée...",
+        "add": "Ajouter"
+      },
+      "addLocation": {
+        "title": "Ajouter un Lieu",
+        "location": "Lieu",
+        "locationPlaceholder": "Nom ou adresse du lieu",
+        "latitude": "Latitude",
+        "latitudePlaceholder": "ex: 3.848",
+        "longitude": "Longitude",
+        "longitudePlaceholder": "ex: 11.5021",
+        "description": "Description",
+        "descriptionPlaceholder": "Informations sur ce lieu...",
+        "add": "Ajouter"
+      },
+      "addSuspect": {
+        "title": "Ajouter un Suspect",
+        "name": "Nom/Pseudonyme",
+        "namePlaceholder": "Nom ou identifiant",
+        "relation": "Relation avec la personne disparue",
+        "relationPlaceholder": "ex: voisin, collègue, inconnu...",
+        "description": "Description / Notes",
+        "descriptionPlaceholder": "Informations sur cette personne...",
+        "add": "Ajouter Suspect"
+      }
+    }
+  },
+  "signalementDetail": {
+    "title": "Signalement",
+    "loading": "Chargement du signalement...",
+    "notFound": "Signalement non trouvé",
+    "messages": {
+      "loadError": "Impossible de charger le signalement"
+    },
+    "sections": {
+      "observationInfo": "Informations de l'observation",
+      "description": "Description",
+      "witnessInfo": "Informations du témoin",
+      "photos": "Photos",
+      "linkedDossier": "Dossier lié",
+      "metadata": "Métadonnées"
+    },
+    "fields": {
+      "observationLocation": "Lieu d'observation",
+      "city": "Ville",
+      "observationDate": "Date d'observation",
+      "certaintyLevel": "Niveau de certitude",
+      "gpsCoordinates": "Coordonnées GPS",
+      "createdAt": "Créé le",
+      "relevanceScore": "Score de pertinence",
+      "matchScore": "Score de correspondance"
+    },
+    "values": {
+      "notProvided": "Non renseigné",
+      "notProvidedFeminine": "Non renseignée",
+      "na": "N/A",
+      "noDescription": "Aucune description fournie"
+    },
+    "witness": {
+      "anonymous": "Ce signalement a été fait de manière anonyme",
+      "name": "Nom",
+      "phone": "Téléphone",
+      "email": "Email"
+    },
+    "photos": {
+      "altMain": "Photo du signalement",
+      "photo": "Photo"
+    }
+  },
+  "statistiques": {
+    "title": "Tableau de Bord Statistique",
+    "subtitle": "Analyse des données et tendances (données en temps réel)",
+    "loading": "Chargement des statistiques...",
+    "refresh": "Rafraîchir",
+    "periods": {
+      "7days": "7 jours",
+      "30days": "30 jours",
+      "90days": "90 jours",
+      "all": "Tous"
+    },
+    "metrics": {
+      "totalDossiers": "Total dossiers",
+      "urgentCases": "Cas urgents",
+      "found": "Retrouvés",
+      "resolutionRate": "Taux de résolution"
+    },
+    "charts": {
+      "weeklyTrends": "Tendances hebdomadaires",
+      "dossierStatus": "État des dossiers",
+      "urgencyDistribution": "Distribution par niveau d'urgence"
+    },
+    "legend": {
+      "dossiers": "Dossiers",
+      "found": "Retrouvés"
+    },
+    "tooltips": {
+      "dossiersSuffix": "dossiers",
+      "foundSuffix": "retrouvés"
+    },
+    "noData": "Aucune donnée pour cette période",
+    "resolution": {
+      "found": "Retrouvés"
+    },
+    "performance": {
+      "title": "Métriques de performance (temps réel)",
+      "avgResolutionTime": "Temps moyen de résolution",
+      "median": "Médiane",
+      "reportsPerDossier": "Signalements par dossier",
+      "validationRate": "Taux de validation",
+      "broadcastAlerts": "Alertes diffusées"
+    },
+    "additional": {
+      "title": "Statistiques complémentaires",
+      "resolvedThisMonth": "Dossiers résolus ce mois",
+      "monthlyResolutionRate": "Taux de résolution mensuel",
+      "inProgress": "Dossiers en cours",
+      "suspended": "Dossiers suspendus"
+    },
+    "export": {
+      "exporting": "Export en cours...",
+      "exportReport": "Exporter rapport"
+    },
+    "units": {
+      "days": "jours",
+      "avg": "avg"
+    },
+    "values": {
+      "na": "N/A"
+    }
+  },
+  "profilePage": {
+    "title": "Mon profil",
+    "loading": "Chargement du profil...",
+    "notFound": "Profil introuvable",
+    "notFoundDescription": "Impossible de charger vos informations de profil.",
+    "backToDashboard": "Retour au tableau de bord",
+    "saving": "Enregistrement...",
+    "messages": {
+      "error": "Erreur",
+      "success": "Succès",
+      "loadError": "Impossible de charger le profil",
+      "saveError": "Impossible de sauvegarder le profil",
+      "profileUpdated": "Profil mis à jour avec succès",
+      "genericError": "Une erreur est survenue",
+      "photoUpdated": "Photo de profil mise à jour",
+      "photoUploadError": "Impossible de télécharger la photo"
+    },
+    "accountStatus": {
+      "active": "Actif",
+      "suspended": "Suspendu",
+      "pendingVerification": "En attente"
+    },
+    "stats": {
+      "reliabilityScore": "Score fiabilité",
+      "validReports": "Signalements valides",
+      "invalidReports": "Signalements invalides"
+    },
+    "sections": {
+      "personalInfo": "Informations personnelles",
+      "address": "Adresse",
+      "preferences": "Préférences",
+      "security": "Sécurité"
+    },
+    "fields": {
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "phone": "Téléphone",
+      "birthDate": "Date de naissance",
+      "fullAddress": "Adresse complète",
+      "city": "Ville",
+      "region": "Région",
+      "country": "Pays"
+    },
+    "placeholders": {
+      "lastName": "Votre nom",
+      "firstName": "Votre prénom",
+      "phone": "+237 6XX XXX XXX",
+      "fullAddress": "Rue, quartier...",
+      "city": "Votre ville",
+      "country": "Pays",
+      "select": "Sélectionner"
+    },
+    "defaults": {
+      "country": "Cameroun"
+    },
+    "units": {
+      "km": "km"
+    },
+    "regions": {
+      "centre": "Centre",
+      "littoral": "Littoral",
+      "ouest": "Ouest",
+      "nordOuest": "Nord-Ouest",
+      "sudOuest": "Sud-Ouest",
+      "sud": "Sud",
+      "est": "Est",
+      "adamaoua": "Adamaoua",
+      "nord": "Nord",
+      "extremeNord": "Extrême-Nord"
+    },
+    "toggle": {
+      "enabled": "Activé",
+      "disabled": "Désactivé"
+    },
+    "preferences": {
+      "notifications": {
+        "title": "Notifications",
+        "description": "Recevoir les alertes et mises à jour"
+      },
+      "geolocation": {
+        "title": "Géolocalisation",
+        "description": "Partager ma position pour les alertes locales"
+      },
+      "notificationRadius": {
+        "title": "Rayon de notification",
+        "description": "Distance pour recevoir les alertes"
+      }
+    },
+    "security": {
+      "badge": "Badge",
+      "notAssigned": "Non attribué",
+      "memberSince": "Membre depuis",
+      "lastLogin": "Dernière connexion",
+      "changePassword": "Changer le mot de passe"
+    },
+    "values": {
+      "na": "N/A",
+      "placeholderDash": "-"
+    }
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "loading": "Chargement des notifications...",
+    "refresh": "Actualiser",
+    "unreadCountSuffix": "non lue(s)",
+    "markAllRead": "Tout marquer comme lu",
+    "filters": {
+      "all": "Toutes",
+      "unread": "Non lues",
+      "read": "Lues"
+    },
+    "actions": {
+      "markRead": "Marquer comme lu",
+      "delete": "Supprimer"
+    },
+    "empty": {
+      "title": "Aucune notification",
+      "unread": "Toutes vos notifications ont été lues",
+      "read": "Aucune notification lue",
+      "all": "Vous n'avez pas encore de notifications"
+    },
+    "time": {
+      "todayAt": "Aujourd'hui à",
+      "yesterdayAt": "Hier à"
+    },
+    "fallback": {
+      "reportValidatedTitle": "Signalement validé",
+      "reportValidatedMessage": "Nouveau signalement approuvé",
+      "newAlertTitle": "Nouvelle alerte",
+      "statusLabel": "Statut"
+    }
   },
   "time": {
     "justNow": "À l'instant",

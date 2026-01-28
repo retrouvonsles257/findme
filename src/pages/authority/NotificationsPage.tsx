@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthorityLayout } from '../../components/layout';
 import { useAuth } from '../../contexts';
+import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import {
   Bell,
@@ -52,6 +53,7 @@ interface Notification {
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useI18n();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
@@ -118,8 +120,8 @@ export const NotificationsPage: React.FC = () => {
         fallbackNotifs.push({
           id: `sig-${sig.id}`,
           type: 'signalement_valide',
-          titre: 'Signalement validé',
-          message: sig.description?.substring(0, 100) || 'Nouveau signalement approuvé',
+          titre: t('authority.notificationsPage.fallback.reportValidatedTitle'),
+          message: sig.description?.substring(0, 100) || t('authority.notificationsPage.fallback.reportValidatedMessage'),
           lu: false,
           created_at: sig.created_at,
           lien_action: `/authority/signalements/${sig.id}`,
@@ -131,8 +133,8 @@ export const NotificationsPage: React.FC = () => {
         fallbackNotifs.push({
           id: `alerte-${alerte.id}`,
           type: 'nouvelle_alerte',
-          titre: alerte.titre || 'Nouvelle alerte',
-          message: `Statut: ${alerte.statut_alerte}`,
+          titre: alerte.titre || t('authority.notificationsPage.fallback.newAlertTitle'),
+          message: `${t('authority.notificationsPage.fallback.statusLabel')}: ${alerte.statut_alerte}`,
           lu: false,
           created_at: alerte.created_at,
           lien_action: `/authority/alertes/${alerte.id}`,
@@ -238,11 +240,11 @@ export const NotificationsPage: React.FC = () => {
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return `Aujourd'hui à ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      return `${t('authority.notificationsPage.time.todayAt')} ${date.toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}`;
     } else if (diffInHours < 48) {
-      return `Hier à ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      return `${t('authority.notificationsPage.time.yesterdayAt')} ${date.toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}`;
     }
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -264,9 +266,9 @@ export const NotificationsPage: React.FC = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <h1><Bell size={24} /> Notifications</h1>
+            <h1><Bell size={24} /> {t('authority.notificationsPage.title')}</h1>
             {unreadCount > 0 && (
-              <span className={styles.unreadBadge}>{unreadCount} non lue(s)</span>
+              <span className={styles.unreadBadge}>{unreadCount} {t('authority.notificationsPage.unreadCountSuffix')}</span>
             )}
           </div>
           <div className={styles.headerActions}>
@@ -274,12 +276,13 @@ export const NotificationsPage: React.FC = () => {
               className={styles.refreshBtn}
               onClick={fetchNotifications}
               disabled={isLoading}
+              title={t('authority.notificationsPage.refresh')}
             >
               <RefreshCw size={18} className={isLoading ? styles.spinning : ''} />
             </button>
             {unreadCount > 0 && (
               <button className={styles.markAllBtn} onClick={markAllAsRead}>
-                <Check size={18} /> Tout marquer comme lu
+                <Check size={18} /> {t('authority.notificationsPage.markAllRead')}
               </button>
             )}
           </div>
@@ -290,26 +293,26 @@ export const NotificationsPage: React.FC = () => {
             className={`${styles.filterBtn} ${filter === 'all' ? styles.active : ''}`}
             onClick={() => setFilter('all')}
           >
-            Toutes ({notifications.length})
+            {t('authority.notificationsPage.filters.all')} ({notifications.length})
           </button>
           <button
             className={`${styles.filterBtn} ${filter === 'unread' ? styles.active : ''}`}
             onClick={() => setFilter('unread')}
           >
-            Non lues ({unreadCount})
+            {t('authority.notificationsPage.filters.unread')} ({unreadCount})
           </button>
           <button
             className={`${styles.filterBtn} ${filter === 'read' ? styles.active : ''}`}
             onClick={() => setFilter('read')}
           >
-            Lues ({notifications.length - unreadCount})
+            {t('authority.notificationsPage.filters.read')} ({notifications.length - unreadCount})
           </button>
         </div>
 
         {isLoading ? (
           <div className={styles.loading}>
             <Loader2 size={32} className={styles.spinner} />
-            <p>Chargement des notifications...</p>
+            <p>{t('authority.notificationsPage.loading')}</p>
           </div>
         ) : filteredNotifications.length > 0 ? (
           <div className={styles.notificationsList}>
@@ -342,7 +345,7 @@ export const NotificationsPage: React.FC = () => {
                         e.stopPropagation();
                         handleNotificationClick({ ...notif, lien_action: undefined });
                       }}
-                      title="Marquer comme lu"
+                      title={t('authority.notificationsPage.actions.markRead')}
                     >
                       <Check size={16} />
                     </button>
@@ -353,7 +356,7 @@ export const NotificationsPage: React.FC = () => {
                       e.stopPropagation();
                       deleteNotification(notif);
                     }}
-                    title="Supprimer"
+                    title={t('authority.notificationsPage.actions.delete')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -364,13 +367,13 @@ export const NotificationsPage: React.FC = () => {
         ) : (
           <div className={styles.emptyState}>
             <Inbox size={48} />
-            <h3>Aucune notification</h3>
+            <h3>{t('authority.notificationsPage.empty.title')}</h3>
             <p>
               {filter === 'unread' 
-                ? 'Toutes vos notifications ont été lues'
+                ? t('authority.notificationsPage.empty.unread')
                 : filter === 'read'
-                ? 'Aucune notification lue'
-                : 'Vous n\'avez pas encore de notifications'}
+                ? t('authority.notificationsPage.empty.read')
+                : t('authority.notificationsPage.empty.all')}
             </p>
           </div>
         )}

@@ -29,6 +29,7 @@ import { useSignalementValidation } from '../../features/signalements/hooks/useS
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import styles from './SignalementsPage.module.css';
 
 type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide';
@@ -38,6 +39,7 @@ export const SignalementsPage: React.FC = () => {
   const { user } = useAuth();
   const { addNotification } = useNotification();
   const { signalements, isLoading, fetchSignalements } = useSignalements();
+  const { t, language } = useI18n();
   const { 
     validateSignalement, 
     isLoading: validationLoading, 
@@ -86,8 +88,8 @@ export const SignalementsPage: React.FC = () => {
   const handleValidate = useCallback(async () => {
     if (!selectedSignalement || !pendingDecision || !user?.id) {
       addNotification({
-        title: 'Erreur',
-        message: 'Données manquantes pour la validation',
+        title: t('authority.signalements.messages.error'),
+        message: t('authority.signalements.messages.missingData'),
         type: 'error',
       });
       return;
@@ -96,13 +98,15 @@ export const SignalementsPage: React.FC = () => {
     try {
       await validateSignalement(selectedSignalement, user.id, {
         decision: pendingDecision,
-        raison: validationComment || 'Validation par les autorités',
+        raison: validationComment || t('authority.signalements.messages.defaultValidationReason'),
         score_confiance: pendingDecision === 'approuve' ? 80 : 30,
       });
 
       addNotification({
-        title: 'Succès',
-        message: `Signalement ${pendingDecision === 'approuve' ? 'validé' : 'rejeté'} avec succès`,
+        title: t('authority.signalements.messages.success'),
+        message: pendingDecision === 'approuve' 
+          ? t('authority.signalements.messages.validatedSuccess')
+          : t('authority.signalements.messages.rejectedSuccess'),
         type: 'success',
       });
 
@@ -121,8 +125,8 @@ export const SignalementsPage: React.FC = () => {
   const handleQuickValidate = useCallback(async (signalementId: string, approved: boolean) => {
     if (!user?.id) {
       addNotification({
-        title: 'Erreur',
-        message: 'Utilisateur non authentifié',
+        title: t('authority.signalements.messages.error'),
+        message: t('authority.signalements.messages.notAuthenticated'),
         type: 'error',
       });
       return;
@@ -131,25 +135,29 @@ export const SignalementsPage: React.FC = () => {
     try {
       await validateSignalement(signalementId, user.id, {
         decision: approved ? 'approuve' : 'rejete',
-        raison: approved ? 'Validation rapide - Approuvé' : 'Validation rapide - Rejeté',
+        raison: approved 
+          ? t('authority.signalements.messages.quickValidationApproved')
+          : t('authority.signalements.messages.quickValidationRejected'),
         score_confiance: approved ? 80 : 30,
       });
 
       addNotification({
-        title: 'Succès',
-        message: `Signalement ${approved ? 'validé' : 'rejeté'} avec succès`,
+        title: t('authority.signalements.messages.success'),
+        message: approved 
+          ? t('authority.signalements.messages.validatedSuccess')
+          : t('authority.signalements.messages.rejectedSuccess'),
         type: 'success',
       });
 
       fetchSignalements();
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la validation',
+        title: t('authority.signalements.messages.error'),
+        message: err.message || t('authority.signalements.messages.validationError'),
         type: 'error',
       });
     }
-  }, [user?.id, validateSignalement, addNotification, fetchSignalements]);
+  }, [user?.id, validateSignalement, addNotification, fetchSignalements, t]);
 
   const getCertitudeColor = (certitude?: string) => {
     switch (certitude) {
@@ -170,10 +178,12 @@ export const SignalementsPage: React.FC = () => {
             <div className={styles.titleSection}>
               <h1 className={styles.pageTitle}>
                 <FileSearch size={24} />
-                Validation des Signalements
+                {t('authority.signalements.title')}
               </h1>
               <p className={styles.pageSubtitle}>
-                {countByStatus.en_attente} signalement{countByStatus.en_attente > 1 ? 's' : ''} en attente de validation
+                {countByStatus.en_attente === 1
+                  ? t('authority.signalements.subtitle').replace('{{count}}', String(countByStatus.en_attente))
+                  : t('authority.signalements.subtitlePlural').replace('{{count}}', String(countByStatus.en_attente))}
               </p>
             </div>
             <button 
@@ -182,7 +192,7 @@ export const SignalementsPage: React.FC = () => {
               disabled={isLoading}
             >
               <RefreshCw size={18} className={isLoading ? styles.spinning : ''} />
-              <span>Actualiser</span>
+              <span>{t('authority.signalements.refresh')}</span>
             </button>
           </div>
         </header>
@@ -196,7 +206,7 @@ export const SignalementsPage: React.FC = () => {
             <FileSearch size={20} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{countByStatus.all}</span>
-              <span className={styles.statLabel}>Total</span>
+              <span className={styles.statLabel}>{t('authority.signalements.stats.total')}</span>
             </div>
           </button>
           <button 
@@ -206,7 +216,7 @@ export const SignalementsPage: React.FC = () => {
             <Clock size={20} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{countByStatus.en_attente}</span>
-              <span className={styles.statLabel}>En attente</span>
+              <span className={styles.statLabel}>{t('authority.signalements.stats.pending')}</span>
             </div>
           </button>
           <button 
@@ -216,7 +226,7 @@ export const SignalementsPage: React.FC = () => {
             <Search size={20} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{countByStatus.en_verification}</span>
-              <span className={styles.statLabel}>En vérification</span>
+              <span className={styles.statLabel}>{t('authority.signalements.stats.inVerification')}</span>
             </div>
           </button>
           <button 
@@ -226,7 +236,7 @@ export const SignalementsPage: React.FC = () => {
             <CheckCircle size={20} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{countByStatus.valide}</span>
-              <span className={styles.statLabel}>Validés</span>
+              <span className={styles.statLabel}>{t('authority.signalements.stats.validated')}</span>
             </div>
           </button>
           <button 
@@ -236,7 +246,7 @@ export const SignalementsPage: React.FC = () => {
             <XCircle size={20} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{countByStatus.invalide}</span>
-              <span className={styles.statLabel}>Rejetés</span>
+              <span className={styles.statLabel}>{t('authority.signalements.stats.rejected')}</span>
             </div>
           </button>
         </div>
@@ -247,7 +257,7 @@ export const SignalementsPage: React.FC = () => {
             <Search size={18} className={styles.searchIcon} />
             <input
               type="text"
-              placeholder="Rechercher par description ou lieu..."
+              placeholder={t('authority.signalements.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
@@ -260,7 +270,7 @@ export const SignalementsPage: React.FC = () => {
           {isLoading ? (
             <div className={styles.loadingState}>
               <RefreshCw size={24} className={styles.spinning} />
-              <span>Chargement des signalements...</span>
+              <span>{t('authority.signalements.loading')}</span>
             </div>
           ) : filteredSignalements.length > 0 ? (
             filteredSignalements.map((signalement: any) => {
@@ -277,17 +287,23 @@ export const SignalementsPage: React.FC = () => {
                       className={styles.certitudeBadge}
                       style={{ backgroundColor: getCertitudeColor(signalement.niveau_certitude) }}
                     >
-                      {signalement.niveau_certitude || 'Non spécifié'}
+                      {signalement.niveau_certitude 
+                        ? t(`authority.signalements.certitude.${signalement.niveau_certitude}`)
+                        : t('authority.signalements.certitude.notSpecified')}
                     </span>
                     <span className={styles.statusBadge} data-status={status}>
-                      {status === 'en_attente' || status === 'nouveau' ? 'En attente' :
-                       status === 'en_verification' ? 'En vérification' :
-                       status === 'valide' ? 'Validé' : 'Rejeté'}
+                      {status === 'en_attente' || status === 'nouveau' 
+                        ? t('authority.signalements.status.pending')
+                        : status === 'en_verification' 
+                          ? t('authority.signalements.status.inVerification')
+                          : status === 'valide' 
+                            ? t('authority.signalements.status.validated')
+                            : t('authority.signalements.status.rejected')}
                     </span>
                   </div>
 
                   <p className={styles.cardDescription}>
-                    {(signalement.description || 'Pas de description').substring(0, 150)}
+                    {(signalement.description || t('authority.signalements.noDescription')).substring(0, 150)}
                     {(signalement.description || '').length > 150 && '...'}
                   </p>
 
@@ -301,8 +317,8 @@ export const SignalementsPage: React.FC = () => {
                     <span className={styles.metaItem}>
                       <Calendar size={14} />
                       {signalement.date_observation 
-                        ? new Date(signalement.date_observation).toLocaleDateString('fr-FR')
-                        : 'Date inconnue'}
+                        ? new Date(signalement.date_observation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')
+                        : t('authority.signalements.unknownDate')}
                     </span>
                     {signalement.temoin_anonyme === false && signalement.nom_temoin && (
                       <span className={styles.metaItem}>
@@ -318,25 +334,25 @@ export const SignalementsPage: React.FC = () => {
                         <button
                           className={`${styles.actionBtn} ${styles.approve}`}
                           onClick={() => openValidationModal(signalement.id, 'approuve')}
-                          title="Valider"
+                          title={t('authority.signalements.actions.validate')}
                         >
                           <ThumbsUp size={16} />
-                          Valider
+                          {t('authority.signalements.actions.validate')}
                         </button>
                         <button
                           className={`${styles.actionBtn} ${styles.reject}`}
                           onClick={() => openValidationModal(signalement.id, 'rejete')}
-                          title="Rejeter"
+                          title={t('authority.signalements.actions.reject')}
                         >
                           <ThumbsDown size={16} />
-                          Rejeter
+                          {t('authority.signalements.actions.reject')}
                         </button>
                       </>
                     )}
                     <button
                       className={styles.actionBtn}
                       onClick={() => navigate(`/authority/signalements/${signalement.id}`)}
-                      title="Voir détails"
+                      title={t('authority.signalements.actions.viewDetails')}
                     >
                       <Eye size={16} />
                     </button>
@@ -347,13 +363,21 @@ export const SignalementsPage: React.FC = () => {
           ) : (
             <div className={styles.emptyState}>
               <FileSearch size={48} />
-              <h3>Aucun signalement</h3>
+              <h3>{t('authority.signalements.empty.title')}</h3>
               <p>
                 {searchQuery 
-                  ? 'Aucun signalement ne correspond à votre recherche'
+                  ? t('authority.signalements.empty.noSearchResults')
                   : filter !== 'all'
-                    ? `Aucun signalement ${filter === 'en_attente' ? 'en attente' : filter}`
-                    : 'Aucun signalement trouvé'}
+                    ? (() => {
+                        const emptyKeys: Record<string, string> = {
+                          'en_attente': 'authority.signalements.empty.noPending',
+                          'en_verification': 'authority.signalements.empty.noInVerification',
+                          'valide': 'authority.signalements.empty.noValidated',
+                          'invalide': 'authority.signalements.empty.noRejected',
+                        };
+                        return t(emptyKeys[filter] || 'authority.signalements.empty.noSignalements');
+                      })()
+                    : t('authority.signalements.empty.noSignalements')}
               </p>
             </div>
           )}
@@ -374,30 +398,32 @@ export const SignalementsPage: React.FC = () => {
                   <XCircle size={24} className={styles.modalIconReject} />
                 )}
                 <h2>
-                  {pendingDecision === 'approuve' ? 'Valider le signalement' : 'Rejeter le signalement'}
+                  {pendingDecision === 'approuve' 
+                    ? t('authority.signalements.modal.validateTitle')
+                    : t('authority.signalements.modal.rejectTitle')}
                 </h2>
               </div>
 
               <div className={styles.modalInfo}>
                 <AlertTriangle size={16} />
                 {pendingDecision === 'approuve' 
-                  ? 'Ce signalement sera marqué comme validé et pourra être utilisé dans l\'enquête.'
-                  : 'Ce signalement sera marqué comme rejeté et ne sera pas pris en compte.'}
+                  ? t('authority.signalements.modal.validateInfo')
+                  : t('authority.signalements.modal.rejectInfo')}
               </div>
 
               <div className={styles.modalField}>
-                <label>Commentaire (optionnel)</label>
+                <label>{t('authority.signalements.modal.commentLabel')}</label>
                 <textarea
                   value={validationComment}
                   onChange={(e) => setValidationComment(e.target.value)}
-                  placeholder="Ajoutez un commentaire pour justifier votre décision..."
+                  placeholder={t('authority.signalements.modal.commentPlaceholder')}
                   rows={3}
                 />
               </div>
 
               <div className={styles.modalActions}>
                 <button className={styles.cancelButton} onClick={closeValidationModal}>
-                  Annuler
+                  {t('authority.signalements.modal.cancel')}
                 </button>
                 <button
                   className={`${styles.confirmButton} ${pendingDecision === 'approuve' ? styles.approve : styles.reject}`}
@@ -407,12 +433,12 @@ export const SignalementsPage: React.FC = () => {
                   {validationLoading ? (
                     <>
                       <RefreshCw size={16} className={styles.spinning} />
-                      Traitement...
+                      {t('authority.signalements.modal.processing')}
                     </>
                   ) : (
                     <>
                       {pendingDecision === 'approuve' ? <CheckCircle size={16} /> : <XCircle size={16} />}
-                      Confirmer
+                      {t('authority.signalements.modal.confirm')}
                     </>
                   )}
                 </button>

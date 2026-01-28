@@ -15,6 +15,7 @@ import {
   diffuserAlerte 
 } from '../../features/alertes/services/alerteAPI';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import {
   BarChart2,
   FolderOpen,
@@ -24,6 +25,9 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
+  Clipboard,
+  MessageSquare,
+  ArrowLeft,
 } from 'lucide-react';
 import styles from './AlerteDetailPage.module.css';
 
@@ -31,6 +35,7 @@ export const AlerteDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addNotification } = useNotification();
+  const { t, language } = useI18n();
   
   const [alerte, setAlerte] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,8 +52,8 @@ export const AlerteDetailPage: React.FC = () => {
       } catch (err: any) {
         // Erreur gérée par la notification
         addNotification({
-          title: 'Erreur',
-          message: 'Impossible de charger l\'alerte',
+          title: t('authority.alertes.alerteDetail.messages.error'),
+          message: t('authority.alertes.alerteDetail.messages.loadError'),
           type: 'error',
         });
         navigate('/authority/alertes');
@@ -68,15 +73,16 @@ export const AlerteDetailPage: React.FC = () => {
     try {
       const updated = await updateAlerteStatut(id, newStatus as any);
       setAlerte(updated);
+      const statusLabel = t(`authority.alertes.status.${newStatus}`);
       addNotification({
-        title: 'Statut mis à jour',
-        message: `Alerte passée en statut: ${newStatus}`,
+        title: t('authority.alertes.alerteDetail.messages.statusUpdated'),
+        message: t('authority.alertes.alerteDetail.messages.statusChanged').replace('{{status}}', statusLabel),
         type: 'success',
       });
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la mise à jour',
+        title: t('authority.alertes.alerteDetail.messages.error'),
+        message: err.message || t('authority.alertes.alerteDetail.messages.updateError'),
         type: 'error',
       });
     } finally {
@@ -92,8 +98,8 @@ export const AlerteDetailPage: React.FC = () => {
     try {
       const result = await diffuserAlerte(id);
       addNotification({
-        title: 'Alerte diffusée',
-        message: `Alerte envoyée à ${result.nombre_destinataires} utilisateurs`,
+        title: t('authority.alertes.alerteDetail.messages.alerteDiffused'),
+        message: t('authority.alertes.alerteDetail.messages.alerteSentToUsers').replace('{{count}}', String(result.nombre_destinataires)),
         type: 'success',
       });
       // Refresh
@@ -101,8 +107,8 @@ export const AlerteDetailPage: React.FC = () => {
       setAlerte(updated);
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la diffusion',
+        title: t('authority.alertes.alerteDetail.messages.error'),
+        message: err.message || t('authority.alertes.alerteDetail.messages.diffusionError'),
         type: 'error',
       });
     } finally {
@@ -114,13 +120,13 @@ export const AlerteDetailPage: React.FC = () => {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'en_cours':
-        return { label: 'Active', color: '#28a745', icon: <Megaphone size={14} /> };
+        return { label: t('authority.alertes.status.active'), color: '#28a745', icon: <Megaphone size={14} /> };
       case 'terminee':
-        return { label: 'Terminée', color: '#6c757d', icon: <CheckCircle size={14} /> };
+        return { label: t('authority.alertes.status.completed'), color: '#6c757d', icon: <CheckCircle size={14} /> };
       case 'annulee':
-        return { label: 'Annulée', color: '#dc3545', icon: <XCircle size={14} /> };
+        return { label: t('authority.alertes.status.cancelled'), color: '#dc3545', icon: <XCircle size={14} /> };
       default:
-        return { label: 'Brouillon', color: '#ffc107', icon: <FileEdit size={14} /> };
+        return { label: t('authority.alertes.status.draft'), color: '#ffc107', icon: <FileEdit size={14} /> };
     }
   };
 
@@ -129,7 +135,7 @@ export const AlerteDetailPage: React.FC = () => {
       <AuthorityLayout
       >
         <div style={{ padding: '40px', textAlign: 'center' }}>
-          Chargement de l'alerte...
+          {t('authority.alertes.alerteDetail.loading')}
         </div>
       </AuthorityLayout>
     );
@@ -140,7 +146,7 @@ export const AlerteDetailPage: React.FC = () => {
       <AuthorityLayout
       >
         <div style={{ padding: '40px', textAlign: 'center' }}>
-          Alerte non trouvée
+          {t('authority.alertes.alerteDetail.notFound')}
         </div>
       </AuthorityLayout>
     );
@@ -157,10 +163,10 @@ export const AlerteDetailPage: React.FC = () => {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <button onClick={() => navigate('/authority/alertes')} className={styles.backBtn}>
-              ← Retour
+              <ArrowLeft size={16} /> {t('authority.commonActions.back')}
             </button>
             <div>
-              <h1>{alerte.titre || 'Alerte sans titre'}</h1>
+              <h1>{alerte.titre || t('authority.alertes.noTitle')}</h1>
               <p className={styles.alerteId}>
                 {alerte.numero_alerte || `ALE-${alerte.id.substring(0, 8)}`}
               </p>
@@ -178,44 +184,44 @@ export const AlerteDetailPage: React.FC = () => {
         <div className={styles.content}>
           {/* Info Card */}
           <div className={styles.card}>
-            <h2>📋 Informations</h2>
+            <h2><Clipboard size={20} /> {t('authority.alertes.alerteDetail.sections.information')}</h2>
             
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <label>Type d'alerte</label>
-                <span>{alerte.type_alerte || 'Standard'}</span>
+                <label>{t('authority.alertes.alerteDetail.fields.alertType')}</label>
+                <span>{alerte.type_alerte || t('authority.alertes.typeStandard')}</span>
               </div>
               
               <div className={styles.infoItem}>
-                <label>Date de création</label>
-                <span>{new Date(alerte.created_at).toLocaleDateString('fr-FR')}</span>
+                <label>{t('authority.alertes.alerteDetail.fields.creationDate')}</label>
+                <span>{new Date(alerte.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
               </div>
               
               <div className={styles.infoItem}>
-                <label>Date de diffusion</label>
+                <label>{t('authority.alertes.alerteDetail.fields.diffusionDate')}</label>
                 <span>
                   {alerte.date_diffusion 
-                    ? new Date(alerte.date_diffusion).toLocaleDateString('fr-FR')
-                    : 'Non diffusée'}
+                    ? new Date(alerte.date_diffusion).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')
+                    : t('authority.alertes.alerteDetail.fields.notDiffused')}
                 </span>
               </div>
               
               <div className={styles.infoItem}>
-                <label>Rayon de diffusion</label>
-                <span>{alerte.rayon_km || 50} km</span>
+                <label>{t('authority.alertes.alerteDetail.fields.diffusionRadius')}</label>
+                <span>{alerte.rayon_km || 50} {t('authority.alertes.unitKm')}</span>
               </div>
             </div>
           </div>
 
           {/* Message Card */}
           <div className={styles.card}>
-            <h2>💬 Message</h2>
+            <h2><MessageSquare size={20} /> {t('authority.alertes.alerteDetail.sections.message')}</h2>
             <div className={styles.messageContent}>
-              <p>{alerte.message || 'Aucun message'}</p>
+              <p>{alerte.message || t('authority.alertes.noMessage')}</p>
             </div>
             {alerte.message_court && (
               <div className={styles.shortMessage}>
-                <label>Message court:</label>
+                <label>{t('authority.alertes.alerteDetail.fields.shortMessage')}:</label>
                 <p>{alerte.message_court}</p>
               </div>
             )}
@@ -223,23 +229,23 @@ export const AlerteDetailPage: React.FC = () => {
 
           {/* Statistics Card */}
           <div className={styles.card}>
-            <h2><BarChart2 size={20} /> Statistiques</h2>
+            <h2><BarChart2 size={20} /> {t('authority.alertes.alerteDetail.sections.statistics')}</h2>
             <div className={styles.statsGrid}>
               <div className={styles.statItem}>
                 <span className={styles.statValue}>{alerte.nombre_destinataires || 0}</span>
-                <span className={styles.statLabel}>Destinataires</span>
+                <span className={styles.statLabel}>{t('authority.alertes.alerteDetail.stats.recipients')}</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statValue}>{alerte.nombre_vues || 0}</span>
-                <span className={styles.statLabel}>Vues</span>
+                <span className={styles.statLabel}>{t('authority.alertes.alerteDetail.stats.views')}</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statValue}>{alerte.nombre_partages || 0}</span>
-                <span className={styles.statLabel}>Partages</span>
+                <span className={styles.statLabel}>{t('authority.alertes.alerteDetail.stats.shares')}</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statValue}>{alerte.nombre_signalements_generes || 0}</span>
-                <span className={styles.statLabel}>Signalements</span>
+                <span className={styles.statLabel}>{t('authority.alertes.alerteDetail.stats.reports')}</span>
               </div>
             </div>
           </div>
@@ -247,12 +253,12 @@ export const AlerteDetailPage: React.FC = () => {
           {/* Dossier Link */}
           {alerte.dossier_disparition && (
             <div className={styles.card}>
-              <h2><FolderOpen size={20} /> Dossier Lié</h2>
+              <h2><FolderOpen size={20} /> {t('authority.alertes.alerteDetail.sections.linkedDossier')}</h2>
               <div 
                 className={styles.dossierLink}
                 onClick={() => navigate(`/authority/dossiers/${alerte.id_dossier}`)}
               >
-                <span>{alerte.dossier_disparition.numero_dossier || 'Voir le dossier'}</span>
+                <span>{alerte.dossier_disparition.numero_dossier || t('authority.alertes.alerteDetail.actions.viewDossier')}</span>
                 <span>→</span>
               </div>
             </div>
@@ -268,14 +274,14 @@ export const AlerteDetailPage: React.FC = () => {
                 className={styles.editBtn}
                 disabled={actionLoading}
               >
-                <FileEdit size={16} /> Modifier
+                <FileEdit size={16} /> {t('authority.alertes.actions.edit')}
               </button>
               <button 
                 onClick={() => handleStatusChange('en_cours')}
                 className={styles.publishBtn}
                 disabled={actionLoading}
               >
-                {actionLoading ? <><Loader2 size={16} className={styles.spinner} /> Traitement...</> : <><Megaphone size={16} /> Publier</>}
+                {actionLoading ? <><Loader2 size={16} className={styles.spinner} /> {t('authority.alertes.alerteDetail.actions.processing')}</> : <><Megaphone size={16} /> {t('authority.alertes.actions.publish')}</>}
               </button>
             </>
           )}
@@ -287,21 +293,21 @@ export const AlerteDetailPage: React.FC = () => {
                 className={styles.diffuseBtn}
                 disabled={actionLoading}
               >
-                {actionLoading ? <><Loader2 size={16} className={styles.spinner} /> Diffusion...</> : <><Radio size={16} /> Re-diffuser</>}
+                {actionLoading ? <><Loader2 size={16} className={styles.spinner} /> {t('authority.alertes.alerteDetail.actions.diffusing')}</> : <><Radio size={16} /> {t('authority.alertes.alerteDetail.actions.rediffuse')}</>}
               </button>
               <button 
                 onClick={() => handleStatusChange('terminee')}
                 className={styles.completeBtn}
                 disabled={actionLoading}
               >
-                ✓ Terminer
+                <CheckCircle size={16} /> {t('authority.alertes.actions.complete')}
               </button>
               <button 
                 onClick={() => handleStatusChange('annulee')}
                 className={styles.cancelBtn}
                 disabled={actionLoading}
               >
-                ✗ Annuler
+                <XCircle size={16} /> {t('authority.alertes.actions.cancel')}
               </button>
             </>
           )}

@@ -13,6 +13,7 @@ import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
 import { useSignalementValidation } from '../../features/signalements/hooks/useSignalementValidation';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import {
   MapPin,
   FileText,
@@ -31,6 +32,7 @@ export const SignalementDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const { t, language } = useI18n();
   const { validateSignalement, isLoading: validationLoading } = useSignalementValidation();
   
   const [signalement, setSignalement] = useState<any>(null);
@@ -68,8 +70,8 @@ export const SignalementDetailPage: React.FC = () => {
       } catch (err: any) {
         // Erreur gérée par la notification
         addNotification({
-          title: 'Erreur',
-          message: 'Impossible de charger le signalement',
+          title: t('authority.signalements.messages.error'),
+          message: t('authority.signalementDetail.messages.loadError'),
           type: 'error',
         });
         navigate('/authority/signalements');
@@ -95,13 +97,16 @@ export const SignalementDetailPage: React.FC = () => {
     try {
       await validateSignalement(id, user.id, {
         decision: pendingDecision,
-        raison: validationComment || 'Validation par les autorités',
+        raison: validationComment || t('authority.signalements.messages.defaultValidationReason'),
         score_confiance: pendingDecision === 'approuve' ? 80 : 30,
       });
 
       addNotification({
-        title: 'Succès',
-        message: `Signalement ${pendingDecision === 'approuve' ? 'validé' : 'rejeté'}`,
+        title: t('authority.signalements.messages.success'),
+        message:
+          pendingDecision === 'approuve'
+            ? t('authority.signalements.messages.validatedSuccess')
+            : t('authority.signalements.messages.rejectedSuccess'),
         type: 'success',
       });
 
@@ -116,25 +121,33 @@ export const SignalementDetailPage: React.FC = () => {
       setShowValidationModal(false);
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la validation',
+        title: t('authority.signalements.messages.error'),
+        message: err.message || t('authority.signalements.messages.validationError'),
         type: 'error',
       });
     }
-  }, [id, pendingDecision, user?.id, validationComment, validateSignalement, addNotification]);
+  }, [
+    id,
+    pendingDecision,
+    user?.id,
+    validationComment,
+    validateSignalement,
+    addNotification,
+    t,
+  ]);
 
   // Obtenir le statut
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'valide':
-        return { label: 'Validé', color: '#28a745', icon: <CheckCircle size={14} /> };
+        return { label: t('authority.signalements.status.validated'), color: '#28a745', icon: <CheckCircle size={14} /> };
       case 'invalide':
       case 'rejete':
-        return { label: 'Rejeté', color: '#dc3545', icon: <XCircle size={14} /> };
+        return { label: t('authority.signalements.status.rejected'), color: '#dc3545', icon: <XCircle size={14} /> };
       case 'en_verification':
-        return { label: 'En vérification', color: '#17a2b8', icon: <Search size={14} /> };
+        return { label: t('authority.signalements.status.inVerification'), color: '#17a2b8', icon: <Search size={14} /> };
       default:
-        return { label: 'En attente', color: '#ffc107', icon: <Clock size={14} /> };
+        return { label: t('authority.signalements.status.pending'), color: '#ffc107', icon: <Clock size={14} /> };
     }
   };
 
@@ -143,7 +156,7 @@ export const SignalementDetailPage: React.FC = () => {
       <AuthorityLayout
       >
         <div style={{ padding: '40px', textAlign: 'center' }}>
-          Chargement du signalement...
+          {t('authority.signalementDetail.loading')}
         </div>
       </AuthorityLayout>
     );
@@ -154,7 +167,7 @@ export const SignalementDetailPage: React.FC = () => {
       <AuthorityLayout
       >
         <div style={{ padding: '40px', textAlign: 'center' }}>
-          Signalement non trouvé
+          {t('authority.signalementDetail.notFound')}
         </div>
       </AuthorityLayout>
     );
@@ -172,10 +185,10 @@ export const SignalementDetailPage: React.FC = () => {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <button onClick={() => navigate('/authority/signalements')} className={styles.backBtn}>
-              ← Retour
+              {t('authority.commonActions.back')}
             </button>
             <div>
-              <h1>Signalement</h1>
+              <h1>{t('authority.signalementDetail.title')}</h1>
               <p className={styles.signalementId}>
                 SIG-{signalement.id.substring(0, 8).toUpperCase()}
               </p>
@@ -193,36 +206,40 @@ export const SignalementDetailPage: React.FC = () => {
         <div className={styles.content}>
           {/* Info principale */}
           <div className={styles.card}>
-            <h2><MapPin size={20} /> Informations de l'observation</h2>
+            <h2><MapPin size={20} /> {t('authority.signalementDetail.sections.observationInfo')}</h2>
             
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <label>Lieu d'observation</label>
-                <span>{signalement.lieu_observation || 'Non renseigné'}</span>
+                <label>{t('authority.signalementDetail.fields.observationLocation')}</label>
+                <span>{signalement.lieu_observation || t('authority.signalementDetail.values.notProvided')}</span>
               </div>
               
               <div className={styles.infoItem}>
-                <label>Ville</label>
-                <span>{signalement.ville_observation || 'N/A'}</span>
+                <label>{t('authority.signalementDetail.fields.city')}</label>
+                <span>{signalement.ville_observation || t('authority.signalementDetail.values.na')}</span>
               </div>
               
               <div className={styles.infoItem}>
-                <label>Date d'observation</label>
+                <label>{t('authority.signalementDetail.fields.observationDate')}</label>
                 <span>
                   {signalement.date_observation 
-                    ? new Date(signalement.date_observation).toLocaleDateString('fr-FR')
-                    : 'Non renseignée'}
+                    ? new Date(signalement.date_observation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')
+                    : t('authority.signalementDetail.values.notProvidedFeminine')}
                 </span>
               </div>
               
               <div className={styles.infoItem}>
-                <label>Niveau de certitude</label>
-                <span>{signalement.niveau_certitude || 'probable'}</span>
+                <label>{t('authority.signalementDetail.fields.certaintyLevel')}</label>
+                <span>
+                  {t(
+                    `authority.signalements.certitude.${signalement.niveau_certitude || 'probable'}`
+                  )}
+                </span>
               </div>
 
               {signalement.latitude_observation && signalement.longitude_observation && (
                 <div className={styles.infoItem}>
-                  <label>Coordonnées GPS</label>
+                  <label>{t('authority.signalementDetail.fields.gpsCoordinates')}</label>
                   <span>
                     {signalement.latitude_observation.toFixed(4)}, {signalement.longitude_observation.toFixed(4)}
                   </span>
@@ -233,32 +250,32 @@ export const SignalementDetailPage: React.FC = () => {
 
           {/* Description */}
           <div className={styles.card}>
-            <h2><FileText size={20} /> Description</h2>
+            <h2><FileText size={20} /> {t('authority.signalementDetail.sections.description')}</h2>
             <div className={styles.descriptionContent}>
-              <p>{signalement.description || 'Aucune description fournie'}</p>
+              <p>{signalement.description || t('authority.signalementDetail.values.noDescription')}</p>
             </div>
           </div>
 
           {/* Témoin */}
           <div className={styles.card}>
-            <h2><User size={20} /> Informations du témoin</h2>
+            <h2><User size={20} /> {t('authority.signalementDetail.sections.witnessInfo')}</h2>
             {signalement.temoin_anonyme ? (
               <p style={{ color: '#666', fontStyle: 'italic' }}>
-                Ce signalement a été fait de manière anonyme
+                {t('authority.signalementDetail.witness.anonymous')}
               </p>
             ) : (
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
-                  <label>Nom</label>
-                  <span>{signalement.nom_temoin || 'Non renseigné'}</span>
+                  <label>{t('authority.signalementDetail.witness.name')}</label>
+                  <span>{signalement.nom_temoin || t('authority.signalementDetail.values.notProvided')}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <label>Téléphone</label>
-                  <span>{signalement.telephone_temoin || 'Non renseigné'}</span>
+                  <label>{t('authority.signalementDetail.witness.phone')}</label>
+                  <span>{signalement.telephone_temoin || t('authority.signalementDetail.values.notProvided')}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <label>Email</label>
-                  <span>{signalement.email_temoin || 'Non renseigné'}</span>
+                  <label>{t('authority.signalementDetail.witness.email')}</label>
+                  <span>{signalement.email_temoin || t('authority.signalementDetail.values.notProvided')}</span>
                 </div>
               </div>
             )}
@@ -267,13 +284,13 @@ export const SignalementDetailPage: React.FC = () => {
           {/* Photos */}
           {(signalement.photos && signalement.photos.length > 0) || signalement.photo_url ? (
             <div className={styles.card}>
-              <h2><Camera size={20} /> Photos</h2>
+              <h2><Camera size={20} /> {t('authority.signalementDetail.sections.photos')}</h2>
               <div className={styles.photosGrid}>
                 {signalement.photo_url && (
-                  <img src={signalement.photo_url} alt="Photo du signalement" />
+                  <img src={signalement.photo_url} alt={t('authority.signalementDetail.photos.altMain')} />
                 )}
                 {signalement.photos?.map((url: string, idx: number) => (
-                  <img key={idx} src={url} alt={`Photo ${idx + 1}`} />
+                  <img key={idx} src={url} alt={`${t('authority.signalementDetail.photos.photo')} ${idx + 1}`} />
                 ))}
               </div>
             </div>
@@ -282,7 +299,7 @@ export const SignalementDetailPage: React.FC = () => {
           {/* Dossier lié */}
           {dossier && (
             <div className={styles.card}>
-              <h2><FolderOpen size={20} /> Dossier Lié</h2>
+              <h2><FolderOpen size={20} /> {t('authority.signalementDetail.sections.linkedDossier')}</h2>
               <div 
                 className={styles.dossierLink}
                 onClick={() => navigate(`/authority/dossiers/${dossier.id}`)}
@@ -300,21 +317,21 @@ export const SignalementDetailPage: React.FC = () => {
 
           {/* Metadata */}
           <div className={styles.card}>
-            <h2>📋 Métadonnées</h2>
+            <h2><FileText size={20} /> {t('authority.signalementDetail.sections.metadata')}</h2>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <label>Créé le</label>
-                <span>{new Date(signalement.created_at).toLocaleString('fr-FR')}</span>
+                <label>{t('authority.signalementDetail.fields.createdAt')}</label>
+                <span>{new Date(signalement.created_at).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
               </div>
               {signalement.score_pertinence && (
                 <div className={styles.infoItem}>
-                  <label>Score de pertinence</label>
+                  <label>{t('authority.signalementDetail.fields.relevanceScore')}</label>
                   <span>{Math.round(signalement.score_pertinence * 100)}%</span>
                 </div>
               )}
               {signalement.score_correspondance && (
                 <div className={styles.infoItem}>
-                  <label>Score de correspondance</label>
+                  <label>{t('authority.signalementDetail.fields.matchScore')}</label>
                   <span>{Math.round(signalement.score_correspondance * 100)}%</span>
                 </div>
               )}
@@ -330,14 +347,14 @@ export const SignalementDetailPage: React.FC = () => {
               className={styles.approveBtn}
               disabled={validationLoading}
             >
-              ✓ Valider
+              <CheckCircle size={16} /> {t('authority.signalements.actions.validate')}
             </button>
             <button 
               onClick={() => openValidationModal('rejete')}
               className={styles.rejectBtn}
               disabled={validationLoading}
             >
-              ✗ Rejeter
+              <XCircle size={16} /> {t('authority.signalements.actions.reject')}
             </button>
           </div>
         )}
@@ -353,15 +370,17 @@ export const SignalementDetailPage: React.FC = () => {
               onClick={e => e.stopPropagation()}
             >
               <h2>
-                {pendingDecision === 'approuve' ? '✓ Valider' : '✗ Rejeter'} le signalement
+                {pendingDecision === 'approuve'
+                  ? t('authority.signalements.modal.validateTitle')
+                  : t('authority.signalements.modal.rejectTitle')}
               </h2>
               
               <div className={styles.formGroup}>
-                <label>Commentaire (optionnel):</label>
+                <label>{t('authority.signalements.modal.commentLabel')}:</label>
                 <textarea
                   value={validationComment}
                   onChange={(e) => setValidationComment(e.target.value)}
-                  placeholder="Ajoutez un commentaire pour cette décision..."
+                  placeholder={t('authority.signalements.modal.commentPlaceholder')}
                   rows={4}
                 />
               </div>
@@ -371,14 +390,14 @@ export const SignalementDetailPage: React.FC = () => {
                   onClick={() => setShowValidationModal(false)}
                   className={styles.cancelBtn}
                 >
-                  Annuler
+                  {t('authority.signalements.modal.cancel')}
                 </button>
                 <button 
                   onClick={handleValidate}
                   className={pendingDecision === 'approuve' ? styles.approveBtn : styles.rejectBtn}
                   disabled={validationLoading}
                 >
-                  {validationLoading ? 'Traitement...' : 'Confirmer'}
+                  {validationLoading ? t('authority.signalements.modal.processing') : t('authority.signalements.modal.confirm')}
                 </button>
               </div>
             </div>

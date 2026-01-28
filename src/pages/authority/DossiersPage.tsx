@@ -31,7 +31,7 @@ import styles from './DossiersPage.module.css';
 export const DossiersPage: React.FC = () => {
   const navigate = useNavigate();
   const { dossiers, isLoading, fetchDossiers } = useDossiers();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   
   const [filter, setFilter] = useState<'all' | 'en_cours' | 'retrouve' | 'suspendu'>('en_cours');
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,6 +78,26 @@ export const DossiersPage: React.FC = () => {
     if (status === 'en_cours') return <Clock size={14} />;
     if (status?.includes('retrouve')) return <CheckCircle size={14} />;
     return <AlertTriangle size={14} />;
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'en_cours': return t('authority.dossiers.status.inProgress');
+      case 'retrouve_vivant': return t('authority.dossiers.status.foundAlive');
+      case 'retrouve_decede': return t('authority.dossiers.status.foundDeceased');
+      case 'suspendu': return t('authority.dossiers.status.suspended');
+      default: return status?.replace('_', ' ') || '';
+    }
+  };
+
+  const getUrgencyLabel = (urgency: string) => {
+    switch (urgency) {
+      case 'critique': return t('authority.dossiers.urgency.critical');
+      case 'urgent': return t('authority.dossiers.urgency.urgent');
+      case 'normal': return t('authority.dossiers.urgency.normal');
+      case 'faible': return t('authority.dossiers.urgency.low');
+      default: return urgency || '';
+    }
   };
 
   return (
@@ -250,18 +270,18 @@ export const DossiersPage: React.FC = () => {
                     <td>
                       <span className={styles.dateCell}>
                         <Calendar size={14} />
-                        <span>{new Date(dossier.date_disparition).toLocaleDateString('fr-FR')}</span>
+                        <span>{new Date(dossier.date_disparition).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
                       </span>
                     </td>
                     <td>
                       <span className={styles.statusBadge} data-status={dossier.statut_dossier}>
                         {getStatusIcon(dossier.statut_dossier)}
-                        {dossier.statut_dossier?.replace('_', ' ')}
+                        {getStatusLabel(dossier.statut_dossier)}
                       </span>
                     </td>
                     <td>
                       <span className={styles.urgencyBadge} data-urgency={dossier.niveau_urgence}>
-                        {dossier.niveau_urgence}
+                        {getUrgencyLabel(dossier.niveau_urgence)}
                       </span>
                     </td>
                     <td>

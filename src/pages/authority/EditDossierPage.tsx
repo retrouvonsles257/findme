@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import { 
   RefreshCw, 
   AlertTriangle, 
@@ -33,6 +34,7 @@ export const EditDossierPage: React.FC = () => {
   const navigate = useNavigate();
   useAuth(); // Hook call for auth context
   const { addNotification } = useNotification();
+  const { t } = useI18n();
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -91,8 +93,8 @@ export const EditDossierPage: React.FC = () => {
       } catch (err: any) {
         // Erreur gérée par la notification
         addNotification({
-          title: 'Erreur',
-          message: 'Impossible de charger le dossier',
+          title: t('authority.editDossier.messages.error'),
+          message: t('authority.editDossier.messages.loadError'),
           type: 'error',
         });
         navigate('/authority/dossiers');
@@ -122,16 +124,16 @@ export const EditDossierPage: React.FC = () => {
       if (error) throw error;
 
       addNotification({
-        title: 'Modifications enregistrées',
-        message: 'Le dossier a été mis à jour',
+        title: t('authority.editDossier.messages.saved'),
+        message: t('authority.editDossier.messages.updated'),
         type: 'success',
       });
 
       navigate(`/authority/dossiers/${id}`);
     } catch (err: any) {
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la sauvegarde',
+        title: t('authority.editDossier.messages.error'),
+        message: err.message || t('authority.editDossier.messages.saveError'),
         type: 'error',
       });
     } finally {
@@ -144,7 +146,7 @@ export const EditDossierPage: React.FC = () => {
       <AuthorityLayout>
         <div className={styles.loadingState}>
           <RefreshCw size={24} className={styles.spinning} />
-          Chargement du dossier...
+          {t('authority.editDossier.loading')}
         </div>
       </AuthorityLayout>
     );
@@ -155,7 +157,7 @@ export const EditDossierPage: React.FC = () => {
       <AuthorityLayout>
         <div className={styles.emptyState}>
           <AlertTriangle size={48} />
-          <p>Dossier non trouvé</p>
+          <p>{t('authority.editDossier.notFound')}</p>
         </div>
       </AuthorityLayout>
     );
@@ -167,7 +169,7 @@ export const EditDossierPage: React.FC = () => {
         {/* Header */}
         <div className={styles.header}>
           <div>
-            <h1>Modifier le Dossier</h1>
+            <h1>{t('authority.editDossier.title')}</h1>
             <p className={styles.subtitle}>
               {dossier.numero_dossier} - {personne?.prenom} {personne?.nom}
             </p>
@@ -176,65 +178,65 @@ export const EditDossierPage: React.FC = () => {
             onClick={() => navigate(`/authority/dossiers/${id}`)}
             className={styles.backBtn}
           >
-            <ArrowLeft size={18} /> Retour au dossier
+            <ArrowLeft size={18} /> {t('authority.editDossier.backToDossier')}
           </button>
         </div>
 
         {/* Personne Info (lecture seule) */}
         <div className={styles.infoCard}>
-          <h3><User size={18} /> Informations Personne (lecture seule)</h3>
+          <h3><User size={18} /> {t('authority.editDossier.personInfo.title')}</h3>
           <div className={styles.infoGrid}>
-            <p><strong>Nom:</strong> {personne?.prenom} {personne?.nom}</p>
-            <p><strong>Date naissance:</strong> {personne?.date_naissance || 'N/A'}</p>
-            <p><strong>Sexe:</strong> {personne?.sexe || 'N/A'}</p>
+            <p><strong>{t('authority.editDossier.personInfo.name')}:</strong> {personne?.prenom} {personne?.nom}</p>
+            <p><strong>{t('authority.editDossier.personInfo.birthDate')}:</strong> {personne?.date_naissance || t('authority.editDossier.personInfo.notAvailable')}</p>
+            <p><strong>{t('authority.editDossier.personInfo.gender')}:</strong> {personne?.sexe || t('authority.editDossier.personInfo.notAvailable')}</p>
           </div>
         </div>
 
         {/* Formulaire */}
         <div className={styles.formContainer}>
-          <h2><FileText size={20} /> Détails du Dossier</h2>
+          <h2><FileText size={20} /> {t('authority.editDossier.form.detailsTitle')}</h2>
 
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>Statut du Dossier *</label>
+              <label>{t('authority.editDossier.form.status')}</label>
               <select
                 value={formData.statut_dossier}
                 onChange={(e) => setFormData({ ...formData, statut_dossier: e.target.value })}
               >
-                <option value="en_cours">En Cours</option>
-                <option value="suspendu">Suspendu</option>
-                <option value="retrouve_vivant">Retrouvé Vivant</option>
-                <option value="retrouve_decede">Retrouvé Décédé</option>
-                <option value="cloture">Clôturé</option>
+                <option value="en_cours">{t('authority.dossiers.status.en_cours')}</option>
+                <option value="suspendu">{t('authority.dossiers.status.suspendu')}</option>
+                <option value="retrouve_vivant">{t('authority.dossiers.status.retrouve_vivant')}</option>
+                <option value="retrouve_decede">{t('authority.dossiers.status.retrouve_decede')}</option>
+                <option value="cloture">{t('authority.editDossier.form.statusClosed')}</option>
               </select>
             </div>
 
             <div className={styles.formGroup}>
-              <label>Niveau d'Urgence *</label>
+              <label>{t('authority.editDossier.form.urgency')}</label>
               <select
                 value={formData.niveau_urgence}
                 onChange={(e) => setFormData({ ...formData, niveau_urgence: e.target.value })}
                 className={styles.urgenceSelect}
               >
-                <option value="critique">Critique</option>
-                <option value="urgent">Urgent</option>
-                <option value="normal">Normal</option>
-                <option value="faible">Faible</option>
+                <option value="critique">{t('authority.dossiers.urgency.critique')}</option>
+                <option value="urgent">{t('authority.dossiers.urgency.urgent')}</option>
+                <option value="normal">{t('authority.dossiers.urgency.normal')}</option>
+                <option value="faible">{t('authority.dossiers.urgency.faible')}</option>
               </select>
             </div>
 
             <div className={styles.formGroup}>
-              <label>Lieu de Disparition</label>
+              <label>{t('authority.editDossier.form.disappearanceLocation')}</label>
               <input
                 type="text"
                 value={formData.lieu_disparition}
                 onChange={(e) => setFormData({ ...formData, lieu_disparition: e.target.value })}
-                placeholder="Adresse ou description"
+                placeholder={t('authority.editDossier.form.locationPlaceholder')}
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>Ville</label>
+              <label>{t('authority.editDossier.form.city')}</label>
               <input
                 type="text"
                 value={formData.ville_disparition}
@@ -243,7 +245,7 @@ export const EditDossierPage: React.FC = () => {
             </div>
 
             <div className={styles.formGroupFull}>
-              <label>Circonstances</label>
+              <label>{t('authority.editDossier.form.circonstances')}</label>
               <textarea
                 value={formData.circonstances}
                 onChange={(e) => setFormData({ ...formData, circonstances: e.target.value })}
@@ -252,7 +254,7 @@ export const EditDossierPage: React.FC = () => {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Vêtements Portés</label>
+              <label>{t('authority.editDossier.form.clothing')}</label>
               <textarea
                 value={formData.vetements_portes}
                 onChange={(e) => setFormData({ ...formData, vetements_portes: e.target.value })}
@@ -261,7 +263,7 @@ export const EditDossierPage: React.FC = () => {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Objets Personnels</label>
+              <label>{t('authority.editDossier.form.personalItems')}</label>
               <textarea
                 value={formData.objets_personnels}
                 onChange={(e) => setFormData({ ...formData, objets_personnels: e.target.value })}
@@ -270,7 +272,7 @@ export const EditDossierPage: React.FC = () => {
             </div>
 
             <div className={styles.formGroupFull}>
-              <label>Dernière Activité Connue</label>
+              <label>{t('authority.editDossier.form.lastKnownActivity')}</label>
               <textarea
                 value={formData.derniere_activite_connue}
                 onChange={(e) => setFormData({ ...formData, derniere_activite_connue: e.target.value })}
@@ -280,11 +282,11 @@ export const EditDossierPage: React.FC = () => {
           </div>
 
           <h3 style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Phone size={18} /> Contact
+            <Phone size={18} /> {t('authority.editDossier.form.contactTitle')}
           </h3>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>Nom du Contact</label>
+              <label>{t('authority.editDossier.form.contactName')}</label>
               <input
                 type="text"
                 value={formData.contact_nom}
@@ -293,7 +295,7 @@ export const EditDossierPage: React.FC = () => {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Téléphone</label>
+              <label>{t('authority.editDossier.form.phone')}</label>
               <input
                 type="tel"
                 value={formData.contact_telephone}
@@ -303,7 +305,7 @@ export const EditDossierPage: React.FC = () => {
           </div>
 
           <h3 style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Settings size={18} /> Options
+            <Settings size={18} /> {t('authority.editDossier.form.optionsTitle')}
           </h3>
           <div className={styles.checkboxGroup}>
             <label>
@@ -312,7 +314,7 @@ export const EditDossierPage: React.FC = () => {
                 checked={formData.visible_public}
                 onChange={(e) => setFormData({ ...formData, visible_public: e.target.checked })}
               />
-              Visible au Public
+              {t('authority.editDossier.form.visiblePublic')}
             </label>
             <label>
               <input
@@ -320,17 +322,17 @@ export const EditDossierPage: React.FC = () => {
                 checked={formData.diffusion_autorisee}
                 onChange={(e) => setFormData({ ...formData, diffusion_autorisee: e.target.checked })}
               />
-              Diffusion Autorisée
+              {t('authority.editDossier.form.diffusionAuthorized')}
             </label>
           </div>
 
           <h3 style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Clipboard size={18} /> Notes Internes
+            <Clipboard size={18} /> {t('authority.editDossier.form.internalNotesTitle')}
           </h3>
           <textarea
             value={formData.notes_internes}
             onChange={(e) => setFormData({ ...formData, notes_internes: e.target.value })}
-            placeholder="Notes visibles uniquement par les autorités..."
+            placeholder={t('authority.editDossier.form.internalNotesPlaceholder')}
             rows={4}
             style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }}
           />
@@ -341,14 +343,14 @@ export const EditDossierPage: React.FC = () => {
               onClick={() => navigate(`/authority/dossiers/${id}`)}
               className={styles.cancelBtn}
             >
-              Annuler
+              {t('authority.editDossier.actions.cancel')}
             </button>
             <button 
               onClick={handleSave}
               disabled={isSaving}
               className={styles.saveBtn}
             >
-              {isSaving ? <><Loader2 size={16} className={styles.spinner} /> Enregistrement...</> : <><Save size={16} /> Enregistrer</>}
+              {isSaving ? <><Loader2 size={16} className={styles.spinner} /> {t('authority.editDossier.actions.saving')}</> : <><Save size={16} /> {t('authority.editDossier.actions.save')}</>}
             </button>
           </div>
         </div>

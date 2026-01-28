@@ -1,6 +1,181 @@
 {
   "dashboard": "Authority Dashboard",
-  "alertes": "Alerts",
+  "alertes": {
+    "title": "Alert Management",
+    "subtitle": "{{count}} alert",
+    "subtitlePlural": "{{count}} alerts",
+    "refresh": "Refresh",
+    "newAlerte": "New Alert",
+    "searchPlaceholder": "Search for an alert...",
+    "loading": "Loading alerts...",
+    "stats": {
+      "active": "Active",
+      "draft": "Drafts",
+      "completed": "Completed",
+      "totalViews": "Total views"
+    },
+    "filters": {
+      "all": "All",
+      "draft": "Drafts",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "noTitle": "No title",
+    "noMessage": "No message",
+    "typeStandard": "Standard",
+    "unitKm": "km",
+    "actions": {
+      "publish": "Publish",
+      "delete": "Delete",
+      "complete": "Complete",
+      "cancel": "Cancel",
+      "viewDetails": "View details",
+      "edit": "Edit"
+    },
+    "messages": {
+      "publicationApproved": "Publication approved",
+      "published": "Alert published",
+      "diffusedToUsers": "Alert diffused to {{count}} users",
+      "cancelled": "Alert cancelled",
+      "cancelledTitle": "Alert cancelled",
+      "cancelledSuccess": "The alert has been cancelled successfully",
+      "completed": "Alert completed",
+      "completedTitle": "Alert completed",
+      "completedSuccess": "The alert has been marked as completed",
+      "deletedTitle": "Alert deleted",
+      "deletedSuccess": "The alert has been permanently deleted",
+      "error": "Error",
+      "errorOccurred": "An error occurred"
+    },
+    "createAlerte": {
+      "title": "Create Alert",
+      "subtitle": "Broadcast an alert to users to find a missing person",
+      "form": {
+        "alertInfo": "Alert Information",
+        "linkedDossier": "Linked File *",
+        "selectDossier": "-- Select a file --",
+        "noActiveDossiers": "No active files with authorized diffusion",
+        "alertType": "Alert Type *",
+        "types": {
+          "standard": "Standard disappearance",
+          "child": "Child disappearance",
+          "vulnerable": "Vulnerable adult disappearance",
+          "amber": "Amber Alert",
+          "update": "Update",
+          "found": "Person found"
+        },
+        "radius": "Diffusion radius (km)",
+        "title": "Alert Title *",
+        "titlePlaceholder": "e.g. Worrying disappearance in Yaoundé",
+        "fullMessage": "Full Message *",
+        "fullMessagePlaceholder": "Detailed description of the disappearance, distinctive marks, last location...",
+        "shortMessage": "Short message (for push notifications)",
+        "shortMessagePlaceholder": "Short version of the message (max 200 characters)",
+        "characters": "characters",
+        "diffusionChannels": "Diffusion Channels",
+        "channels": {
+          "push": "Push Notifications",
+          "pushDesc": "Mobile notifications",
+          "inApp": "In-App",
+          "inAppDesc": "In-app notifications",
+          "email": "Email",
+          "emailDesc": "By email",
+          "sms": "SMS",
+          "smsDesc": "By text message"
+        }
+      },
+      "preview": {
+        "title": "Preview"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "saveDraft": "Save Draft",
+        "creating": "Creating...",
+        "createAndPublish": "Create and Publish"
+      },
+      "messages": {
+        "requiredField": "Required field",
+        "titleRequired": "Title is required",
+        "messageRequired": "Message is required",
+        "dossierRequired": "Please select a file",
+        "alerteCreated": "Alert created",
+        "alerteCreatedAndPublished": "Alert has been created and will be broadcast",
+        "alerteSavedAsDraft": "Alert has been saved as draft",
+        "error": "Error",
+        "creationError": "Error during creation"
+      }
+    },
+    "alerteDetail": {
+      "loading": "Loading alert...",
+      "notFound": "Alert not found",
+      "sections": {
+        "information": "Information",
+        "message": "Message",
+        "statistics": "Statistics",
+        "linkedDossier": "Linked File"
+      },
+      "fields": {
+        "alertType": "Alert Type",
+        "creationDate": "Creation Date",
+        "diffusionDate": "Diffusion Date",
+        "notDiffused": "Not diffused",
+        "diffusionRadius": "Diffusion Radius",
+        "shortMessage": "Short message"
+      },
+      "stats": {
+        "recipients": "Recipients",
+        "views": "Views",
+        "shares": "Shares",
+        "reports": "Reports"
+      },
+      "actions": {
+        "viewDossier": "View file",
+        "processing": "Processing...",
+        "diffusing": "Diffusing...",
+        "rediffuse": "Re-broadcast"
+      },
+      "messages": {
+        "error": "Error",
+        "loadError": "Unable to load alert",
+        "statusUpdated": "Status updated",
+        "statusChanged": "Alert changed to status: {{status}}",
+        "updateError": "Error during update",
+        "alerteDiffused": "Alert diffused",
+        "alerteSentToUsers": "Alert sent to {{count}} users",
+        "diffusionError": "Error during diffusion"
+      }
+    },
+    "empty": {
+      "title": "No alerts",
+      "noSearchResults": "No alerts match your search",
+      "nobrouillon": "No draft alerts",
+      "noen_cours": "No active alerts",
+      "noterminee": "No completed alerts",
+      "noannulee": "No cancelled alerts",
+      "noAlerts": "No alerts found"
+    },
+    "modal": {
+      "publishTitle": "Publish alert",
+      "cancelTitle": "Cancel alert",
+      "completeTitle": "Complete alert",
+      "deleteTitle": "Delete alert",
+      "alerte": "Alert",
+      "publishInfo": "This alert will be diffused to all users in the concerned area.",
+      "deleteWarning": "This action is irreversible. The alert will be permanently deleted.",
+      "commentLabel": "Comment (optional)",
+      "commentPlaceholder": "Add a comment...",
+      "cancel": "Cancel",
+      "processing": "Processing...",
+      "confirm": "Confirm"
+    }
+  },
   "coordination": {
     "title": "Coordination",
     "subtitle": "Coordinate efforts with other authorities",
@@ -56,13 +231,26 @@
       "inProgress": "In Progress",
       "foundAlive": "Found Alive",
       "foundDeceased": "Found Deceased",
-      "suspended": "Suspended"
+      "suspended": "Suspended",
+      "en_cours": "In Progress",
+      "suspendu": "Suspended",
+      "retrouve_vivant": "Found Alive",
+      "retrouve_decede": "Found Deceased"
     },
     "urgency": {
       "critical": "CRITICAL",
       "urgent": "URGENT",
       "normal": "NORMAL",
-      "low": "LOW"
+      "low": "LOW",
+      "critique": "Critical",
+      "faible": "Low"
+    },
+    "disappearanceType": {
+      "inconnue": "Unknown",
+      "volontaire": "Voluntary",
+      "involontaire": "Involuntary",
+      "suspicion_enlevement": "Suspected abduction",
+      "fugue": "Runaway"
     },
     "stats": {
       "total": "Total",
@@ -129,6 +317,170 @@
     "location": "Location",
     "date": "Date"
   },
+  "createDossier": {
+    "title": "Create New File",
+    "stepInfo": "Step {{step}} of {{total}}",
+    "steps": {
+      "personInfo": "Person Information",
+      "disappearanceDetails": "Disappearance Details",
+      "verification": "Verification"
+    },
+    "progress": {
+      "person": "Person",
+      "disappearance": "Disappearance",
+      "verification": "Verification"
+    },
+    "step1": {
+      "title": "Missing Person Information",
+      "lastName": "Last Name *",
+      "lastNamePlaceholder": "Last name",
+      "firstName": "First Name *",
+      "firstNamePlaceholder": "First name",
+      "birthDate": "Date of birth",
+      "gender": "Gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "genderNotSpecified": "Not specified",
+      "genderUnknown": "Unknown",
+      "nationality": "Nationality",
+      "height": "Height (cm)",
+      "heightPlaceholder": "e.g. 175",
+      "weight": "Weight (kg)",
+      "weightPlaceholder": "e.g. 70",
+      "eyeColor": "Eye color",
+      "eyeColorPlaceholder": "e.g. Brown",
+      "hairColor": "Hair color",
+      "hairColorPlaceholder": "e.g. Black",
+      "distinctiveMarks": "Distinctive marks",
+      "distinctiveMarksPlaceholder": "Scars, tattoos, distinctive marks...",
+      "photos": "Photos",
+      "uploading": "Uploading...",
+      "addPhotos": "Add photos",
+      "mainPhoto": "Main"
+    },
+    "step2": {
+      "title": "Disappearance Details",
+      "urgency": "Urgency Level *",
+      "disappearanceDate": "Disappearance Date *",
+      "disappearanceLocation": "Disappearance Location *",
+      "locationPlaceholder": "Address or location description",
+      "city": "City",
+      "cityPlaceholder": "e.g. Yaoundé",
+      "country": "Country",
+      "circumstances": "Circumstances",
+      "circumstancesPlaceholder": "Describe the circumstances of the disappearance...",
+      "clothing": "Clothing worn",
+      "clothingPlaceholder": "Clothing description...",
+      "personalItems": "Personal items",
+      "personalItemsPlaceholder": "Phone, bag, jewelry...",
+      "lastKnownActivity": "Last known activity",
+      "lastActivityPlaceholder": "What the person was doing before disappearing...",
+      "familyContact": "Family Contact",
+      "contactName": "Contact name",
+      "contactNamePlaceholder": "Full name",
+      "phone": "Phone",
+      "phonePlaceholder": "+237...",
+      "email": "Email",
+      "emailPlaceholder": "email@example.com",
+      "diffusionOptions": "Diffusion Options",
+      "visiblePublic": "Visible to public",
+      "diffusionAuthorized": "Diffusion authorized (alerts)"
+    },
+    "step3": {
+      "title": "Verification and Confirmation",
+      "person": "Person",
+      "name": "Name",
+      "birthDate": "Date of birth",
+      "gender": "Gender",
+      "height": "Height",
+      "photos": "Photos",
+      "photoCount": "photo",
+      "photoCount_plural": "photos",
+      "disappearance": "Disappearance",
+      "urgency": "Urgency",
+      "date": "Date",
+      "location": "Location",
+      "city": "City",
+      "circumstances": "Circumstances",
+      "contact": "Contact",
+      "phone": "Phone",
+      "options": "Options",
+      "visiblePublic": "Visible to public",
+      "diffusionAuthorized": "Diffusion authorized",
+      "yes": "Yes",
+      "no": "No",
+      "notProvided": "Not provided"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "next": "Next",
+      "back": "Back",
+      "edit": "Edit",
+      "creating": "Creating...",
+      "createDossier": "Create File"
+    },
+    "messages": {
+      "photosUploaded": "Photos uploaded",
+      "photoAdded": "photo added",
+      "photosAdded": "photos added",
+      "uploadError": "Upload error",
+      "uploadErrorMsg": "Error during upload",
+      "requiredFields": "Required fields",
+      "nameRequired": "Last name and first name are required",
+      "dateLocationRequired": "Disappearance date and location are required",
+      "error": "Error",
+      "mustBeLoggedIn": "You must be logged in",
+      "dossierCreated": "File created",
+      "dossierCreatedSuccess": "File {{numero}} created successfully",
+      "creationError": "Error during file creation"
+    }
+  },
+  "editDossier": {
+    "title": "Edit File",
+    "backToDossier": "Back to file",
+    "loading": "Loading file...",
+    "notFound": "File not found",
+    "personInfo": {
+      "title": "Person Information (read-only)",
+      "name": "Name",
+      "birthDate": "Birth date",
+      "gender": "Gender",
+      "notAvailable": "N/A"
+    },
+    "form": {
+      "detailsTitle": "File Details",
+      "status": "File Status *",
+      "statusClosed": "Closed",
+      "urgency": "Urgency Level *",
+      "disappearanceLocation": "Disappearance Location",
+      "locationPlaceholder": "Address or description",
+      "city": "City",
+      "circonstances": "Circumstances",
+      "clothing": "Clothing Worn",
+      "personalItems": "Personal Items",
+      "lastKnownActivity": "Last Known Activity",
+      "contactTitle": "Contact",
+      "contactName": "Contact Name",
+      "phone": "Phone",
+      "optionsTitle": "Options",
+      "visiblePublic": "Visible to Public",
+      "diffusionAuthorized": "Diffusion Authorized",
+      "internalNotesTitle": "Internal Notes",
+      "internalNotesPlaceholder": "Notes visible only to authorities..."
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "error": "Error",
+      "loadError": "Unable to load file",
+      "saved": "Changes saved",
+      "updated": "File has been updated",
+      "saveError": "Error during save"
+    }
+  },
   "analysis": "Analysis",
   "investigation": "Investigation",
   "signalements": "Reports",
@@ -169,9 +521,17 @@
       "noNotifications": "No notifications",
       "loading": "Loading...",
       "changeLanguage": "Change language",
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu"
-  },
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "coordinationMessages": "Coordination messages",
+      "noMessages": "No messages",
+      "viewAllMessages": "View all messages",
+      "messagesView": {
+        "list": "List view",
+        "compact": "Compact view",
+        "expanded": "Expanded view"
+      }
+    },
   "sidebar": {
     "appName": "RetrouvonsLes",
     "openMenu": "Open menu",
@@ -209,7 +569,6 @@
   "reports": "Reports",
   "locations": "Locations",
   "timeline": "Timeline",
-  "editDossier": "Edit",
   "closeDossier": "Close File",
   "markAsFound": "Mark as Found",
   "analysisTitle": "AI Analysis",
@@ -229,6 +588,73 @@
   "investigationNotes": "Investigation Notes",
   "addNote": "Add Note",
   "assignTeam": "Assign Team",
+  "signalements": {
+    "title": "Report Validation",
+    "subtitle": "{{count}} report pending validation",
+    "subtitlePlural": "{{count}} reports pending validation",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search by description or location...",
+    "loading": "Loading reports...",
+    "noDescription": "No description",
+    "unknownDate": "Unknown date",
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "inVerification": "In verification",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "certitude": {
+      "certain": "Certain",
+      "tres_probable": "Very probable",
+      "probable": "Probable",
+      "incertain": "Uncertain",
+      "notSpecified": "Not specified"
+    },
+    "status": {
+      "pending": "Pending",
+      "inVerification": "In verification",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "actions": {
+      "validate": "Validate",
+      "reject": "Reject",
+      "viewDetails": "View details"
+    },
+    "messages": {
+      "error": "Error",
+      "missingData": "Missing data for validation",
+      "defaultValidationReason": "Validation by authorities",
+      "success": "Success",
+      "validatedSuccess": "Report validated successfully",
+      "rejectedSuccess": "Report rejected successfully",
+      "validationError": "Error during validation",
+      "notAuthenticated": "User not authenticated",
+      "quickValidationApproved": "Quick validation - Approved",
+      "quickValidationRejected": "Quick validation - Rejected"
+    },
+    "empty": {
+      "title": "No reports",
+      "noSearchResults": "No reports match your search",
+      "noPending": "No pending reports",
+      "noInVerification": "No reports in verification",
+      "noValidated": "No validated reports",
+      "noRejected": "No rejected reports",
+      "noSignalements": "No reports found"
+    },
+    "modal": {
+      "validateTitle": "Validate report",
+      "rejectTitle": "Reject report",
+      "validateInfo": "This report will be marked as validated and can be used in the investigation.",
+      "rejectInfo": "This report will be marked as rejected and will not be taken into account.",
+      "commentLabel": "Comment (optional)",
+      "commentPlaceholder": "Add a comment to justify your decision...",
+      "cancel": "Cancel",
+      "processing": "Processing...",
+      "confirm": "Confirm"
+    }
+  },
   "signallementsTitle": "Reports",
   "signallementsSubtitle": "Manage received reports",
   "validatedReports": "Validated Reports",
@@ -273,6 +699,462 @@
     "operateur_saisie": "Operator",
     "admin_organisation": "Organization Admin",
     "default": "Authority"
+  },
+  "iaAnalysis": {
+    "title": "Advanced AI Analysis",
+    "subtitle": "Facial recognition, similarity detection and location predictions",
+    "serviceNotConfigured": "AI service not configured. Contact the administrator.",
+    "loading": "Loading...",
+    "messages": {
+      "selectImage": "Please select an image",
+      "errorOccurred": "An error occurred. Please try again."
+    },
+    "tabs": {
+      "facialRecognition": "Facial Recognition",
+      "similarities": "Similarities",
+      "predictions": "Predictions",
+      "results": "Results"
+    },
+    "facialRecognition": {
+      "title": "Facial Recognition",
+      "description": "Analyze photos to extract facial features",
+      "uploadText": "Click to select an image or drag it here",
+      "uploadHint": "PNG, JPG, WEBP up to 10MB",
+      "analyzing": "Analyzing...",
+      "startAnalysis": "Start Analysis",
+      "analysisComplete": "Analysis complete",
+      "reliability": "Reliability",
+      "face": "Face",
+      "detected": "Detected",
+      "notDetected": "Not detected",
+      "duration": "Duration"
+    },
+    "progress": {
+      "detection": "Detection",
+      "analysis": "Analysis",
+      "processing": "Processing"
+    },
+    "similarities": {
+      "title": "Similarity Detection",
+      "description": "Detect potentially related cases",
+      "analysisOf": "Analysis of",
+      "matches": "matches",
+      "case": "Case",
+      "noAnalysis": "No similarity analysis performed"
+    },
+    "predictions": {
+      "title": "Location Predictions",
+      "description": "Estimated search zones",
+      "calculating": "Calculating predictions...",
+      "predictionOf": "Prediction of",
+      "zones": "zones",
+      "reliability": "Reliability",
+      "noPredictions": "No location predictions available"
+    },
+    "results": {
+      "title": "Analysis History",
+      "description": "All analyses performed",
+      "facialRecognition": "Facial Recognition",
+      "imageComparison": "Image Comparison",
+      "reliability": "Reliability",
+      "face": "Face",
+      "similarity": "Similarity",
+      "matchFound": "Match found",
+      "noMatch": "No match",
+      "noAnalysis": "No analysis performed",
+      "startWithImage": "Start by analyzing an image"
+    },
+    "actions": {
+      "viewDetails": "View Details"
+    },
+    "confidence": {
+      "veryHigh": "Very High",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "veryLow": "Very Low"
+    },
+    "modal": {
+      "title": "Analysis Details",
+      "generalInfo": "General Information",
+      "analysisDate": "Analysis Date",
+      "reliability": "Reliability",
+      "processingTime": "Processing Time",
+      "seconds": "seconds",
+      "status": "Status",
+      "statusPending": "Pending validation",
+      "statusConfirmed": "Confirmed",
+      "statusRefuted": "Refuted",
+      "statusToVerify": "To verify",
+      "detectionResults": "Detection Results",
+      "analyzedImage": "Analyzed Image",
+      "faceDetected": "Face Detected",
+      "yes": "Yes",
+      "no": "No",
+      "imageQuality": "Image Quality",
+      "faceCount": "Number of Faces",
+      "estimatedAge": "Estimated Age Range",
+      "gender": "Gender",
+      "genderMale": "Male",
+      "genderFemale": "Female",
+      "detectionConfidence": "Detection Confidence",
+      "facialExpression": "Facial Expression",
+      "emotionHappy": "Happy",
+      "emotionSad": "Sad",
+      "emotionAngry": "Angry",
+      "emotionNeutral": "Neutral",
+      "emotionSurprise": "Surprised",
+      "emotionFear": "Afraid",
+      "noFaceDetected": "No face was detected in this image. Try with a clearer or front-facing photo.",
+      "analysisError": "An error occurred during analysis",
+      "unknownError": "Unknown error",
+      "matches": "Matches",
+      "potentialMatch": "Potential match",
+      "noMatches": "No matches found",
+      "predictedZones": "Predicted Zones"
+    }
+  },
+  "investigation": {
+    "title": "Detailed Investigation",
+    "subtitle": "Advanced investigation tools for investigators",
+    "loading": "Loading...",
+    "activeDossiers": "Active Dossiers",
+    "reports": "reports",
+    "noActiveDossiers": "No active dossiers",
+    "viewFullDossier": "View full dossier",
+    "selectDossierToStart": "Select a dossier to start investigation",
+    "tabs": {
+      "timeline": "Timeline",
+      "evidence": "Evidence",
+      "suspects": "Suspects",
+      "locations": "Locations"
+    },
+    "timeline": {
+      "disappearance": "Disappearance",
+      "circumstancesNotProvided": "Circumstances not provided",
+      "lastObservation": "Last observation",
+      "notProvided": "Not provided",
+      "suspectReported": "Suspect reported",
+      "report": "Report"
+    },
+    "evidence": {
+      "title": "Evidence and Documents",
+      "evidence": "Evidence",
+      "location": "Location",
+      "notProvided": "Not provided",
+      "date": "Date",
+      "status": "Status",
+      "noEvidence": "No documented evidence",
+      "addEvidence": "Add Evidence"
+    },
+    "suspects": {
+      "title": "Suspects and Persons of Interest",
+      "unknown": "Unknown",
+      "relation": "Relation",
+      "description": "Description",
+      "noDescription": "No description",
+      "addedOn": "Added on",
+      "status": "Status",
+      "noSuspects": "No suspects recorded",
+      "addSuspect": "Add Suspect"
+    },
+    "locations": {
+      "title": "Places of Interest",
+      "disappearanceLocation": "Disappearance Location",
+      "notProvided": "Not provided",
+      "location": "Location",
+      "addLocation": "Add Location"
+    },
+    "messages": {
+      "error": "Error",
+      "fillRequiredFields": "Please fill in all required fields",
+      "evidenceAdded": "Evidence added",
+      "evidenceAddedSuccess": "Evidence has been successfully recorded",
+      "addEvidenceError": "Error adding evidence",
+      "fillLocation": "Please fill in the location",
+      "locationAdded": "Location added",
+      "locationAddedSuccess": "Location has been successfully recorded",
+      "addLocationError": "Error adding location",
+      "fillSuspectName": "Please provide the suspect's name",
+      "suspectAdded": "Suspect added",
+      "suspectAddedSuccess": "Suspect has been recorded for investigation",
+      "addSuspectError": "Error adding suspect"
+    },
+    "modals": {
+      "cancel": "Cancel",
+      "adding": "Adding...",
+      "addEvidence": {
+        "title": "Add Evidence",
+        "type": "Type",
+        "typeDocument": "Document",
+        "typePhoto": "Photo",
+        "typeVideo": "Video",
+        "typeTestimony": "Testimony",
+        "typeOther": "Other",
+        "titleLabel": "Title",
+        "titlePlaceholder": "Evidence title",
+        "description": "Description",
+        "descriptionPlaceholder": "Detailed description...",
+        "add": "Add"
+      },
+      "addLocation": {
+        "title": "Add Location",
+        "location": "Location",
+        "locationPlaceholder": "Location name or address",
+        "latitude": "Latitude",
+        "latitudePlaceholder": "e.g.: 3.848",
+        "longitude": "Longitude",
+        "longitudePlaceholder": "e.g.: 11.5021",
+        "description": "Description",
+        "descriptionPlaceholder": "Information about this location...",
+        "add": "Add"
+      },
+      "addSuspect": {
+        "title": "Add Suspect",
+        "name": "Name/Pseudonym",
+        "namePlaceholder": "Name or identifier",
+        "relation": "Relation to missing person",
+        "relationPlaceholder": "e.g.: neighbor, colleague, unknown...",
+        "description": "Description / Notes",
+        "descriptionPlaceholder": "Information about this person...",
+        "add": "Add Suspect"
+      }
+    }
+  },
+  "signalementDetail": {
+    "title": "Report",
+    "loading": "Loading report...",
+    "notFound": "Report not found",
+    "messages": {
+      "loadError": "Unable to load the report"
+    },
+    "sections": {
+      "observationInfo": "Observation information",
+      "description": "Description",
+      "witnessInfo": "Witness information",
+      "photos": "Photos",
+      "linkedDossier": "Linked dossier",
+      "metadata": "Metadata"
+    },
+    "fields": {
+      "observationLocation": "Observation location",
+      "city": "City",
+      "observationDate": "Observation date",
+      "certaintyLevel": "Certainty level",
+      "gpsCoordinates": "GPS coordinates",
+      "createdAt": "Created at",
+      "relevanceScore": "Relevance score",
+      "matchScore": "Match score"
+    },
+    "values": {
+      "notProvided": "Not provided",
+      "notProvidedFeminine": "Not provided",
+      "na": "N/A",
+      "noDescription": "No description provided"
+    },
+    "witness": {
+      "anonymous": "This report was submitted anonymously",
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "photos": {
+      "altMain": "Report photo",
+      "photo": "Photo"
+    }
+  },
+  "statistiques": {
+    "title": "Statistics Dashboard",
+    "subtitle": "Data analysis and trends (real-time data)",
+    "loading": "Loading statistics...",
+    "refresh": "Refresh",
+    "periods": {
+      "7days": "7 days",
+      "30days": "30 days",
+      "90days": "90 days",
+      "all": "All"
+    },
+    "metrics": {
+      "totalDossiers": "Total dossiers",
+      "urgentCases": "Urgent cases",
+      "found": "Found",
+      "resolutionRate": "Resolution rate"
+    },
+    "charts": {
+      "weeklyTrends": "Weekly trends",
+      "dossierStatus": "Dossier status",
+      "urgencyDistribution": "Urgency distribution"
+    },
+    "legend": {
+      "dossiers": "Dossiers",
+      "found": "Found"
+    },
+    "tooltips": {
+      "dossiersSuffix": "dossiers",
+      "foundSuffix": "found"
+    },
+    "noData": "No data for this period",
+    "resolution": {
+      "found": "Found"
+    },
+    "performance": {
+      "title": "Performance metrics (real time)",
+      "avgResolutionTime": "Average resolution time",
+      "median": "Median",
+      "reportsPerDossier": "Reports per dossier",
+      "validationRate": "Validation rate",
+      "broadcastAlerts": "Broadcast alerts"
+    },
+    "additional": {
+      "title": "Additional statistics",
+      "resolvedThisMonth": "Dossiers resolved this month",
+      "monthlyResolutionRate": "Monthly resolution rate",
+      "inProgress": "Dossiers in progress",
+      "suspended": "Suspended dossiers"
+    },
+    "export": {
+      "exporting": "Exporting...",
+      "exportReport": "Export report"
+    },
+    "units": {
+      "days": "days",
+      "avg": "avg"
+    },
+    "values": {
+      "na": "N/A"
+    }
+  },
+  "profilePage": {
+    "title": "My profile",
+    "loading": "Loading profile...",
+    "notFound": "Profile not found",
+    "notFoundDescription": "Unable to load your profile information.",
+    "backToDashboard": "Back to dashboard",
+    "saving": "Saving...",
+    "messages": {
+      "error": "Error",
+      "success": "Success",
+      "loadError": "Unable to load profile",
+      "saveError": "Unable to save profile",
+      "profileUpdated": "Profile updated successfully",
+      "genericError": "An error occurred",
+      "photoUpdated": "Profile photo updated",
+      "photoUploadError": "Unable to upload photo"
+    },
+    "accountStatus": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "pendingVerification": "Pending"
+    },
+    "stats": {
+      "reliabilityScore": "Reliability score",
+      "validReports": "Valid reports",
+      "invalidReports": "Invalid reports"
+    },
+    "sections": {
+      "personalInfo": "Personal information",
+      "address": "Address",
+      "preferences": "Preferences",
+      "security": "Security"
+    },
+    "fields": {
+      "lastName": "Last name",
+      "firstName": "First name",
+      "phone": "Phone",
+      "birthDate": "Date of birth",
+      "fullAddress": "Full address",
+      "city": "City",
+      "region": "Region",
+      "country": "Country"
+    },
+    "placeholders": {
+      "lastName": "Your last name",
+      "firstName": "Your first name",
+      "phone": "+237 6XX XXX XXX",
+      "fullAddress": "Street, district...",
+      "city": "Your city",
+      "country": "Country",
+      "select": "Select"
+    },
+    "defaults": {
+      "country": "Cameroon"
+    },
+    "units": {
+      "km": "km"
+    },
+    "regions": {
+      "centre": "Center",
+      "littoral": "Littoral",
+      "ouest": "West",
+      "nordOuest": "North-West",
+      "sudOuest": "South-West",
+      "sud": "South",
+      "est": "East",
+      "adamaoua": "Adamawa",
+      "nord": "North",
+      "extremeNord": "Far North"
+    },
+    "toggle": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "preferences": {
+      "notifications": {
+        "title": "Notifications",
+        "description": "Receive alerts and updates"
+      },
+      "geolocation": {
+        "title": "Geolocation",
+        "description": "Share my location for local alerts"
+      },
+      "notificationRadius": {
+        "title": "Notification radius",
+        "description": "Distance to receive alerts"
+      }
+    },
+    "security": {
+      "badge": "Badge",
+      "notAssigned": "Not assigned",
+      "memberSince": "Member since",
+      "lastLogin": "Last login",
+      "changePassword": "Change password"
+    },
+    "values": {
+      "na": "N/A",
+      "placeholderDash": "-"
+    }
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "loading": "Loading notifications...",
+    "refresh": "Refresh",
+    "unreadCountSuffix": "unread",
+    "markAllRead": "Mark all as read",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "actions": {
+      "markRead": "Mark as read",
+      "delete": "Delete"
+    },
+    "empty": {
+      "title": "No notifications",
+      "unread": "All your notifications have been read",
+      "read": "No read notifications",
+      "all": "You don't have any notifications yet"
+    },
+    "time": {
+      "todayAt": "Today at",
+      "yesterdayAt": "Yesterday at"
+    },
+    "fallback": {
+      "reportValidatedTitle": "Report validated",
+      "reportValidatedMessage": "New approved report",
+      "newAlertTitle": "New alert",
+      "statusLabel": "Status"
+    }
   },
   "time": {
     "justNow": "Just now",

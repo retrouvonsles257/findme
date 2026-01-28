@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthorityLayout } from '../../components/layout';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
+import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { cloudinaryConfig } from '../../config/cloudinary.config';
 import {
@@ -63,6 +64,7 @@ export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const { t, language } = useI18n();
   
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,8 +102,8 @@ export const ProfilePage: React.FC = () => {
       if (error) {
         // Erreur gérée par la notification
         addNotification({
-          title: 'Erreur',
-          message: 'Impossible de charger le profil',
+          title: t('authority.profilePage.messages.error'),
+          message: t('authority.profilePage.messages.loadError'),
           type: 'error',
         });
         return;
@@ -116,7 +118,7 @@ export const ProfilePage: React.FC = () => {
         adresse: data.adresse || '',
         ville: data.ville || '',
         region: data.region || '',
-        pays: data.pays || 'Cameroun',
+        pays: data.pays || t('authority.profilePage.defaults.country'),
         accepte_notifications: data.accepte_notifications ?? true,
         accepte_geolocalisation: data.accepte_geolocalisation ?? false,
         rayon_notification_km: data.rayon_notification_km || 50,
@@ -161,16 +163,16 @@ export const ProfilePage: React.FC = () => {
       if (error) {
         // Erreur gérée par la notification
         addNotification({
-          title: 'Erreur',
-          message: error.message || 'Impossible de sauvegarder le profil',
+          title: t('authority.profilePage.messages.error'),
+          message: error.message || t('authority.profilePage.messages.saveError'),
           type: 'error',
         });
         return;
       }
 
       addNotification({
-        title: 'Succès',
-        message: 'Profil mis à jour avec succès',
+        title: t('authority.profilePage.messages.success'),
+        message: t('authority.profilePage.messages.profileUpdated'),
         type: 'success',
       });
       
@@ -179,8 +181,8 @@ export const ProfilePage: React.FC = () => {
     } catch (err: any) {
       // Erreur gérée par la notification
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Une erreur est survenue',
+        title: t('authority.profilePage.messages.error'),
+        message: err.message || t('authority.profilePage.messages.genericError'),
         type: 'error',
       });
     } finally {
@@ -211,7 +213,7 @@ export const ProfilePage: React.FC = () => {
       const data = await response.json();
 
       if (!data.secure_url) {
-        throw new Error('Upload failed');
+        throw new Error(t('authority.profilePage.messages.photoUploadError'));
       }
 
       // Mettre à jour la base de données
@@ -223,8 +225,8 @@ export const ProfilePage: React.FC = () => {
       if (error) throw error;
 
       addNotification({
-        title: 'Succès',
-        message: 'Photo de profil mise à jour',
+        title: t('authority.profilePage.messages.success'),
+        message: t('authority.profilePage.messages.photoUpdated'),
         type: 'success',
       });
 
@@ -232,8 +234,8 @@ export const ProfilePage: React.FC = () => {
     } catch (err: any) {
       // Erreur gérée par la notification
       addNotification({
-        title: 'Erreur',
-        message: 'Impossible de télécharger la photo',
+        title: t('authority.profilePage.messages.error'),
+        message: t('authority.profilePage.messages.photoUploadError'),
         type: 'error',
       });
     } finally {
@@ -252,7 +254,7 @@ export const ProfilePage: React.FC = () => {
         adresse: profile.adresse || '',
         ville: profile.ville || '',
         region: profile.region || '',
-        pays: profile.pays || 'Cameroun',
+        pays: profile.pays || t('authority.profilePage.defaults.country'),
         accepte_notifications: profile.accepte_notifications ?? true,
         accepte_geolocalisation: profile.accepte_geolocalisation ?? false,
         rayon_notification_km: profile.rayon_notification_km || 50,
@@ -265,11 +267,11 @@ export const ProfilePage: React.FC = () => {
   const getStatutBadge = (statut: string) => {
     switch (statut) {
       case 'actif':
-        return { label: 'Actif', color: '#28a745', icon: <CheckCircle size={14} /> };
+        return { label: t('authority.profilePage.accountStatus.active'), color: '#28a745', icon: <CheckCircle size={14} /> };
       case 'suspendu':
-        return { label: 'Suspendu', color: '#dc3545', icon: <AlertTriangle size={14} /> };
+        return { label: t('authority.profilePage.accountStatus.suspended'), color: '#dc3545', icon: <AlertTriangle size={14} /> };
       case 'en_attente_verification':
-        return { label: 'En attente', color: '#ffc107', icon: <Loader2 size={14} /> };
+        return { label: t('authority.profilePage.accountStatus.pendingVerification'), color: '#ffc107', icon: <Loader2 size={14} /> };
       default:
         return { label: statut, color: '#6c757d', icon: <User size={14} /> };
     }
@@ -280,7 +282,7 @@ export const ProfilePage: React.FC = () => {
       <AuthorityLayout>
         <div className={styles.loadingContainer}>
           <Loader2 size={32} className={styles.spinner} />
-          <p>Chargement du profil...</p>
+          <p>{t('authority.profilePage.loading')}</p>
         </div>
       </AuthorityLayout>
     );
@@ -291,10 +293,10 @@ export const ProfilePage: React.FC = () => {
       <AuthorityLayout>
         <div className={styles.errorContainer}>
           <AlertTriangle size={48} />
-          <h2>Profil introuvable</h2>
-          <p>Impossible de charger vos informations de profil.</p>
+          <h2>{t('authority.profilePage.notFound')}</h2>
+          <p>{t('authority.profilePage.notFoundDescription')}</p>
           <button onClick={() => navigate('/authority/dashboard')}>
-            Retour au tableau de bord
+            {t('authority.profilePage.backToDashboard')}
           </button>
         </div>
       </AuthorityLayout>
@@ -307,13 +309,13 @@ export const ProfilePage: React.FC = () => {
     <AuthorityLayout>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1><User size={24} /> Mon Profil</h1>
+          <h1><User size={24} /> {t('authority.profilePage.title')}</h1>
           {!isEditing ? (
             <button 
               className={styles.editBtn}
               onClick={() => setIsEditing(true)}
             >
-              <Edit size={18} /> Modifier
+              <Edit size={18} /> {t('authority.commonActions.edit')}
             </button>
           ) : (
             <div className={styles.headerActions}>
@@ -322,7 +324,7 @@ export const ProfilePage: React.FC = () => {
                 onClick={handleCancel}
                 disabled={isSaving}
               >
-                <X size={18} /> Annuler
+                <X size={18} /> {t('authority.commonActions.cancel')}
               </button>
               <button 
                 className={styles.saveBtn}
@@ -330,9 +332,9 @@ export const ProfilePage: React.FC = () => {
                 disabled={isSaving}
               >
                 {isSaving ? (
-                  <><Loader2 size={18} className={styles.spinner} /> Enregistrement...</>
+                  <><Loader2 size={18} className={styles.spinner} /> {t('authority.profilePage.saving')}</>
                 ) : (
-                  <><Save size={18} /> Enregistrer</>
+                  <><Save size={18} /> {t('authority.commonActions.save')}</>
                 )}
               </button>
             </div>
@@ -378,32 +380,32 @@ export const ProfilePage: React.FC = () => {
             <div className={styles.statsRow}>
               <div className={styles.stat}>
                 <span className={styles.statValue}>{profile.score_fiabilite?.toFixed(0) || 100}%</span>
-                <span className={styles.statLabel}>Score Fiabilité</span>
+                <span className={styles.statLabel}>{t('authority.profilePage.stats.reliabilityScore')}</span>
               </div>
               <div className={styles.stat}>
                 <span className={styles.statValue}>{profile.nombre_signalements_valides || 0}</span>
-                <span className={styles.statLabel}>Signalements Valides</span>
+                <span className={styles.statLabel}>{t('authority.profilePage.stats.validReports')}</span>
               </div>
               <div className={styles.stat}>
                 <span className={styles.statValue}>{profile.nombre_signalements_invalides || 0}</span>
-                <span className={styles.statLabel}>Signalements Invalides</span>
+                <span className={styles.statLabel}>{t('authority.profilePage.stats.invalidReports')}</span>
               </div>
             </div>
           </div>
 
           {/* Formulaire d'informations personnelles */}
           <div className={styles.formSection}>
-            <h3><User size={18} /> Informations Personnelles</h3>
+            <h3><User size={18} /> {t('authority.profilePage.sections.personalInfo')}</h3>
             
             <div className={styles.formGrid}>
               <div className={styles.formGroup}>
-                <label>Nom</label>
+                <label>{t('authority.profilePage.fields.lastName')}</label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.nom}
                     onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                    placeholder="Votre nom"
+                    placeholder={t('authority.profilePage.placeholders.lastName')}
                   />
                 ) : (
                   <p>{profile.nom || '-'}</p>
@@ -411,13 +413,13 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Prénom</label>
+                <label>{t('authority.profilePage.fields.firstName')}</label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.prenom}
                     onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                    placeholder="Votre prénom"
+                    placeholder={t('authority.profilePage.placeholders.firstName')}
                   />
                 ) : (
                   <p>{profile.prenom || '-'}</p>
@@ -425,13 +427,13 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label><Phone size={14} /> Téléphone</label>
+                <label><Phone size={14} /> {t('authority.profilePage.fields.phone')}</label>
                 {isEditing ? (
                   <input
                     type="tel"
                     value={formData.telephone}
                     onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                    placeholder="+237 6XX XXX XXX"
+                    placeholder={t('authority.profilePage.placeholders.phone')}
                   />
                 ) : (
                   <p>{profile.telephone || '-'}</p>
@@ -439,7 +441,7 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label><Calendar size={14} /> Date de naissance</label>
+                <label><Calendar size={14} /> {t('authority.profilePage.fields.birthDate')}</label>
                 {isEditing ? (
                   <input
                     type="date"
@@ -447,7 +449,7 @@ export const ProfilePage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
                   />
                 ) : (
-                  <p>{profile.date_naissance ? new Date(profile.date_naissance).toLocaleDateString('fr-FR') : '-'}</p>
+                  <p>{profile.date_naissance ? new Date(profile.date_naissance).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US') : t('authority.profilePage.values.placeholderDash')}</p>
                 )}
               </div>
             </div>
@@ -455,17 +457,17 @@ export const ProfilePage: React.FC = () => {
 
           {/* Section Adresse */}
           <div className={styles.formSection}>
-            <h3><MapPin size={18} /> Adresse</h3>
+            <h3><MapPin size={18} /> {t('authority.profilePage.sections.address')}</h3>
             
             <div className={styles.formGrid}>
               <div className={styles.formGroupFull}>
-                <label>Adresse complète</label>
+                <label>{t('authority.profilePage.fields.fullAddress')}</label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.adresse}
                     onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                    placeholder="Rue, quartier..."
+                    placeholder={t('authority.profilePage.placeholders.fullAddress')}
                   />
                 ) : (
                   <p>{profile.adresse || '-'}</p>
@@ -473,13 +475,13 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Ville</label>
+                <label>{t('authority.profilePage.fields.city')}</label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.ville}
                     onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                    placeholder="Votre ville"
+                    placeholder={t('authority.profilePage.placeholders.city')}
                   />
                 ) : (
                   <p>{profile.ville || '-'}</p>
@@ -487,23 +489,23 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Région</label>
+                <label>{t('authority.profilePage.fields.region')}</label>
                 {isEditing ? (
                   <select
                     value={formData.region}
                     onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                   >
-                    <option value="">Sélectionner</option>
-                    <option value="Centre">Centre</option>
-                    <option value="Littoral">Littoral</option>
-                    <option value="Ouest">Ouest</option>
-                    <option value="Nord-Ouest">Nord-Ouest</option>
-                    <option value="Sud-Ouest">Sud-Ouest</option>
-                    <option value="Sud">Sud</option>
-                    <option value="Est">Est</option>
-                    <option value="Adamaoua">Adamaoua</option>
-                    <option value="Nord">Nord</option>
-                    <option value="Extrême-Nord">Extrême-Nord</option>
+                    <option value="">{t('authority.profilePage.placeholders.select')}</option>
+                    <option value="Centre">{t('authority.profilePage.regions.centre')}</option>
+                    <option value="Littoral">{t('authority.profilePage.regions.littoral')}</option>
+                    <option value="Ouest">{t('authority.profilePage.regions.ouest')}</option>
+                    <option value="Nord-Ouest">{t('authority.profilePage.regions.nordOuest')}</option>
+                    <option value="Sud-Ouest">{t('authority.profilePage.regions.sudOuest')}</option>
+                    <option value="Sud">{t('authority.profilePage.regions.sud')}</option>
+                    <option value="Est">{t('authority.profilePage.regions.est')}</option>
+                    <option value="Adamaoua">{t('authority.profilePage.regions.adamaoua')}</option>
+                    <option value="Nord">{t('authority.profilePage.regions.nord')}</option>
+                    <option value="Extrême-Nord">{t('authority.profilePage.regions.extremeNord')}</option>
                   </select>
                 ) : (
                   <p>{profile.region || '-'}</p>
@@ -511,16 +513,16 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label><Globe size={14} /> Pays</label>
+                <label><Globe size={14} /> {t('authority.profilePage.fields.country')}</label>
                 {isEditing ? (
                   <input
                     type="text"
                     value={formData.pays}
                     onChange={(e) => setFormData({ ...formData, pays: e.target.value })}
-                    placeholder="Pays"
+                    placeholder={t('authority.profilePage.placeholders.country')}
                   />
                 ) : (
-                  <p>{profile.pays || 'Cameroun'}</p>
+                  <p>{profile.pays || t('authority.profilePage.defaults.country')}</p>
                 )}
               </div>
             </div>
@@ -528,15 +530,15 @@ export const ProfilePage: React.FC = () => {
 
           {/* Section Préférences */}
           <div className={styles.formSection}>
-            <h3><Bell size={18} /> Préférences</h3>
+            <h3><Bell size={18} /> {t('authority.profilePage.sections.preferences')}</h3>
             
             <div className={styles.preferencesGrid}>
               <div className={styles.preferenceItem}>
                 <div className={styles.preferenceInfo}>
                   <Bell size={20} />
                   <div>
-                    <h4>Notifications</h4>
-                    <p>Recevoir les alertes et mises à jour</p>
+                    <h4>{t('authority.profilePage.preferences.notifications.title')}</h4>
+                    <p>{t('authority.profilePage.preferences.notifications.description')}</p>
                   </div>
                 </div>
                 {isEditing ? (
@@ -550,7 +552,7 @@ export const ProfilePage: React.FC = () => {
                   </label>
                 ) : (
                   <span className={`${styles.statusDot} ${profile.accepte_notifications ? styles.active : ''}`}>
-                    {profile.accepte_notifications ? 'Activé' : 'Désactivé'}
+                    {profile.accepte_notifications ? t('authority.profilePage.toggle.enabled') : t('authority.profilePage.toggle.disabled')}
                   </span>
                 )}
               </div>
@@ -559,8 +561,8 @@ export const ProfilePage: React.FC = () => {
                 <div className={styles.preferenceInfo}>
                   <MapPin size={20} />
                   <div>
-                    <h4>Géolocalisation</h4>
-                    <p>Partager ma position pour les alertes locales</p>
+                    <h4>{t('authority.profilePage.preferences.geolocation.title')}</h4>
+                    <p>{t('authority.profilePage.preferences.geolocation.description')}</p>
                   </div>
                 </div>
                 {isEditing ? (
@@ -574,7 +576,7 @@ export const ProfilePage: React.FC = () => {
                   </label>
                 ) : (
                   <span className={`${styles.statusDot} ${profile.accepte_geolocalisation ? styles.active : ''}`}>
-                    {profile.accepte_geolocalisation ? 'Activé' : 'Désactivé'}
+                    {profile.accepte_geolocalisation ? t('authority.profilePage.toggle.enabled') : t('authority.profilePage.toggle.disabled')}
                   </span>
                 )}
               </div>
@@ -584,8 +586,8 @@ export const ProfilePage: React.FC = () => {
                   <div className={styles.preferenceInfo}>
                     <Globe size={20} />
                     <div>
-                      <h4>Rayon de notification</h4>
-                      <p>Distance pour recevoir les alertes</p>
+                      <h4>{t('authority.profilePage.preferences.notificationRadius.title')}</h4>
+                      <p>{t('authority.profilePage.preferences.notificationRadius.description')}</p>
                     </div>
                   </div>
                   <div className={styles.rangeInput}>
@@ -596,7 +598,7 @@ export const ProfilePage: React.FC = () => {
                       value={formData.rayon_notification_km}
                       onChange={(e) => setFormData({ ...formData, rayon_notification_km: Number(e.target.value) })}
                     />
-                    <span>{formData.rayon_notification_km} km</span>
+                    <span>{formData.rayon_notification_km} {t('authority.profilePage.units.km')}</span>
                   </div>
                 </div>
               )}
@@ -605,22 +607,22 @@ export const ProfilePage: React.FC = () => {
 
           {/* Section Sécurité */}
           <div className={styles.formSection}>
-            <h3><Lock size={18} /> Sécurité</h3>
+            <h3><Lock size={18} /> {t('authority.profilePage.sections.security')}</h3>
             
             <div className={styles.securityInfo}>
               <div className={styles.infoItem}>
                 <Building size={16} />
-                <span>Badge: {profile.numero_badge || 'Non attribué'}</span>
+                <span>{t('authority.profilePage.security.badge')}: {profile.numero_badge || t('authority.profilePage.security.notAssigned')}</span>
               </div>
               <div className={styles.infoItem}>
                 <Calendar size={16} />
-                <span>Membre depuis: {new Date(profile.created_at).toLocaleDateString('fr-FR')}</span>
+                <span>{t('authority.profilePage.security.memberSince')}: {new Date(profile.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
               </div>
               <div className={styles.infoItem}>
                 <Shield size={16} />
-                <span>Dernière connexion: {profile.derniere_connexion 
-                  ? new Date(profile.derniere_connexion).toLocaleString('fr-FR')
-                  : 'N/A'}</span>
+                <span>{t('authority.profilePage.security.lastLogin')}: {profile.derniere_connexion 
+                  ? new Date(profile.derniere_connexion).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')
+                  : t('authority.profilePage.values.na')}</span>
               </div>
             </div>
 
@@ -628,7 +630,7 @@ export const ProfilePage: React.FC = () => {
               className={styles.changePasswordBtn}
               onClick={() => navigate('/authority/security')}
             >
-              <Lock size={16} /> Changer le mot de passe
+              <Lock size={16} /> {t('authority.profilePage.security.changePassword')}
             </button>
           </div>
         </div>

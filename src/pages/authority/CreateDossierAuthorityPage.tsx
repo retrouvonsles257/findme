@@ -13,6 +13,7 @@ import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
 import { cloudinaryConfig, cloudinaryUploadConfig } from '../../config/cloudinary.config';
 import { AuthorityLayout } from '../../components/layout';
+import { useI18n } from '../../hooks';
 import {
   User,
   MapPin,
@@ -56,6 +57,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const { t, language } = useI18n();
   
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,14 +128,14 @@ export const CreateDossierAuthorityPage: React.FC = () => {
       setUploadedPhotos(prev => [...prev, ...urls]);
       
       addNotification({
-        title: 'Photos uploadées',
-        message: `${urls.length} photo(s) ajoutée(s)`,
+        title: t('authority.createDossier.messages.photosUploaded'),
+        message: `${urls.length} ${urls.length === 1 ? t('authority.createDossier.messages.photoAdded') : t('authority.createDossier.messages.photosAdded')}`,
         type: 'success',
       });
     } catch (err: any) {
       addNotification({
-        title: 'Erreur upload',
-        message: err.message || 'Erreur lors de l\'upload',
+        title: t('authority.createDossier.messages.uploadError'),
+        message: err.message || t('authority.createDossier.messages.uploadErrorMsg'),
         type: 'error',
       });
     } finally {
@@ -150,8 +152,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
   const validateStep1 = (): boolean => {
     if (!personneData.nom.trim() || !personneData.prenom.trim()) {
       addNotification({
-        title: 'Champs requis',
-        message: 'Le nom et prénom sont obligatoires',
+        title: t('authority.createDossier.messages.requiredFields'),
+        message: t('authority.createDossier.messages.nameRequired'),
         type: 'error',
       });
       return false;
@@ -163,8 +165,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
   const validateStep2 = (): boolean => {
     if (!dossierData.date_disparition || !dossierData.lieu_disparition.trim()) {
       addNotification({
-        title: 'Champs requis',
-        message: 'La date et le lieu de disparition sont obligatoires',
+        title: t('authority.createDossier.messages.requiredFields'),
+        message: t('authority.createDossier.messages.dateLocationRequired'),
         type: 'error',
       });
       return false;
@@ -176,8 +178,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
   const handleSubmit = useCallback(async () => {
     if (!user?.id) {
       addNotification({
-        title: 'Erreur',
-        message: 'Vous devez être connecté',
+        title: t('authority.createDossier.messages.error'),
+        message: t('authority.createDossier.messages.mustBeLoggedIn'),
         type: 'error',
       });
       return;
@@ -263,8 +265,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
       if (dossierError) throw dossierError;
 
       addNotification({
-        title: 'Dossier créé',
-        message: `Dossier ${numeroDossier} créé avec succès`,
+        title: t('authority.createDossier.messages.dossierCreated'),
+        message: t('authority.createDossier.messages.dossierCreatedSuccess').replace('{{numero}}', numeroDossier),
         type: 'success',
       });
 
@@ -276,8 +278,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     } catch (err: any) {
       // Erreur gérée par la notification
       addNotification({
-        title: 'Erreur',
-        message: err.message || 'Erreur lors de la création du dossier',
+        title: t('authority.createDossier.messages.error'),
+        message: err.message || t('authority.createDossier.messages.creationError'),
         type: 'error',
       });
     } finally {
@@ -290,9 +292,13 @@ export const CreateDossierAuthorityPage: React.FC = () => {
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
-          <h1>Créer un Nouveau Dossier</h1>
+          <h1>{t('authority.createDossier.title')}</h1>
           <p className={styles.subtitle}>
-            Étape {step} sur 3 - {step === 1 ? 'Informations Personne' : step === 2 ? 'Détails Disparition' : 'Vérification'}
+            {t('authority.createDossier.stepInfo').replace('{{step}}', String(step)).replace('{{total}}', '3')} - {step === 1 
+              ? t('authority.createDossier.steps.personInfo')
+              : step === 2 
+                ? t('authority.createDossier.steps.disappearanceDetails')
+                : t('authority.createDossier.steps.verification')}
           </p>
         </div>
 
@@ -302,18 +308,18 @@ export const CreateDossierAuthorityPage: React.FC = () => {
             className={`${styles.progressStep} ${step >= 1 ? styles.active : ''}`}
             onClick={() => setStep(1)}
           >
-            <span>1</span> Personne
+            <span>1</span> {t('authority.createDossier.progress.person')}
           </div>
           <div 
             className={`${styles.progressStep} ${step >= 2 ? styles.active : ''}`}
             onClick={() => step >= 2 && setStep(2)}
           >
-            <span>2</span> Disparition
+            <span>2</span> {t('authority.createDossier.progress.disappearance')}
           </div>
           <div 
             className={`${styles.progressStep} ${step >= 3 ? styles.active : ''}`}
           >
-            <span>3</span> Vérification
+            <span>3</span> {t('authority.createDossier.progress.verification')}
           </div>
         </div>
 
@@ -322,33 +328,33 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           {/* Étape 1: Informations Personne */}
           {step === 1 && (
             <div className={styles.formSection}>
-              <h2><User size={20} /> Informations sur la Personne Disparue</h2>
+              <h2><User size={20} /> {t('authority.createDossier.step1.title')}</h2>
               
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
-                  <label>Nom *</label>
+                  <label>{t('authority.createDossier.step1.lastName')}</label>
                   <input
                     type="text"
                     value={personneData.nom}
                     onChange={(e) => setPersonneData({ ...personneData, nom: e.target.value })}
-                    placeholder="Nom de famille"
+                    placeholder={t('authority.createDossier.step1.lastNamePlaceholder')}
                     required
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Prénom *</label>
+                  <label>{t('authority.createDossier.step1.firstName')}</label>
                   <input
                     type="text"
                     value={personneData.prenom}
                     onChange={(e) => setPersonneData({ ...personneData, prenom: e.target.value })}
-                    placeholder="Prénom"
+                    placeholder={t('authority.createDossier.step1.firstNamePlaceholder')}
                     required
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Date de naissance</label>
+                  <label>{t('authority.createDossier.step1.birthDate')}</label>
                   <input
                     type="date"
                     value={personneData.date_naissance}
@@ -357,20 +363,20 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Sexe</label>
+                  <label>{t('authority.createDossier.step1.gender')}</label>
                   <select
                     value={personneData.sexe}
                     onChange={(e) => setPersonneData({ ...personneData, sexe: e.target.value as any })}
                   >
-                    <option value="masculin">Masculin</option>
-                    <option value="feminin">Féminin</option>
-                    <option value="non_precise">Non précisé</option>
-                    <option value="inconnu">Inconnu</option>
+                    <option value="masculin">{t('authority.createDossier.step1.genderMale')}</option>
+                    <option value="feminin">{t('authority.createDossier.step1.genderFemale')}</option>
+                    <option value="non_precise">{t('authority.createDossier.step1.genderNotSpecified')}</option>
+                    <option value="inconnu">{t('authority.createDossier.step1.genderUnknown')}</option>
                   </select>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Nationalité</label>
+                  <label>{t('authority.createDossier.step1.nationality')}</label>
                   <input
                     type="text"
                     value={personneData.nationalite}
@@ -379,51 +385,51 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Taille (cm)</label>
+                  <label>{t('authority.createDossier.step1.height')}</label>
                   <input
                     type="number"
                     value={personneData.taille_cm}
                     onChange={(e) => setPersonneData({ ...personneData, taille_cm: e.target.value })}
-                    placeholder="ex: 175"
+                    placeholder={t('authority.createDossier.step1.heightPlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Poids (kg)</label>
+                  <label>{t('authority.createDossier.step1.weight')}</label>
                   <input
                     type="number"
                     value={personneData.poids_kg}
                     onChange={(e) => setPersonneData({ ...personneData, poids_kg: e.target.value })}
-                    placeholder="ex: 70"
+                    placeholder={t('authority.createDossier.step1.weightPlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Couleur des yeux</label>
+                  <label>{t('authority.createDossier.step1.eyeColor')}</label>
                   <input
                     type="text"
                     value={personneData.couleur_yeux}
                     onChange={(e) => setPersonneData({ ...personneData, couleur_yeux: e.target.value })}
-                    placeholder="ex: Marron"
+                    placeholder={t('authority.createDossier.step1.eyeColorPlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Couleur des cheveux</label>
+                  <label>{t('authority.createDossier.step1.hairColor')}</label>
                   <input
                     type="text"
                     value={personneData.couleur_cheveux}
                     onChange={(e) => setPersonneData({ ...personneData, couleur_cheveux: e.target.value })}
-                    placeholder="ex: Noir"
+                    placeholder={t('authority.createDossier.step1.hairColorPlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroupFull}>
-                  <label>Signes particuliers</label>
+                  <label>{t('authority.createDossier.step1.distinctiveMarks')}</label>
                   <textarea
                     value={personneData.signes_particuliers}
                     onChange={(e) => setPersonneData({ ...personneData, signes_particuliers: e.target.value })}
-                    placeholder="Cicatrices, tatouages, marques distinctives..."
+                    placeholder={t('authority.createDossier.step1.distinctiveMarksPlaceholder')}
                     rows={3}
                   />
                 </div>
@@ -431,7 +437,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
 
               {/* Upload Photos */}
               <div className={styles.photoSection}>
-                <h3><Camera size={18} /> Photos</h3>
+                <h3><Camera size={18} /> {t('authority.createDossier.step1.photos')}</h3>
                 <div className={styles.photoUpload}>
                   <input
                     type="file"
@@ -443,7 +449,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                     style={{ display: 'none' }}
                   />
                   <label htmlFor="photo-upload" className={styles.uploadButton}>
-                    {photoUploading ? <><Loader2 size={16} className={styles.spinner} /> Upload...</> : <><FolderPlus size={16} /> Ajouter des photos</>}
+                    {photoUploading ? <><Loader2 size={16} className={styles.spinner} /> {t('authority.createDossier.step1.uploading')}</> : <><FolderPlus size={16} /> {t('authority.createDossier.step1.addPhotos')}</>}
                   </label>
                 </div>
                 
@@ -453,7 +459,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                       <div key={index} className={styles.photoPreview}>
                         <img src={url} alt={`Photo ${index + 1}`} />
                         <button onClick={() => removePhoto(index)} className={styles.removePhoto}>✕</button>
-                        {index === 0 && <span className={styles.mainPhotoBadge}>Principale</span>}
+                        {index === 0 && <span className={styles.mainPhotoBadge}>{t('authority.createDossier.step1.mainPhoto')}</span>}
                       </div>
                     ))}
                   </div>
@@ -462,13 +468,13 @@ export const CreateDossierAuthorityPage: React.FC = () => {
 
               <div className={styles.formActions}>
                 <button onClick={() => navigate('/authority/dossiers')} className={styles.cancelBtn}>
-                  Annuler
+                  {t('authority.createDossier.actions.cancel')}
                 </button>
                 <button 
                   onClick={() => validateStep1() && setStep(2)} 
                   className={styles.nextBtn}
                 >
-                  Suivant →
+                  {t('authority.createDossier.actions.next')} →
                 </button>
               </div>
             </div>
@@ -477,24 +483,24 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           {/* Étape 2: Détails Disparition */}
           {step === 2 && (
             <div className={styles.formSection}>
-              <h2><MapPin size={20} /> Détails de la Disparition</h2>
+              <h2><MapPin size={20} /> {t('authority.createDossier.step2.title')}</h2>
               
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
-                  <label>Niveau d'urgence *</label>
+                  <label>{t('authority.createDossier.step2.urgency')}</label>
                   <select
                     value={dossierData.niveau_urgence}
                     onChange={(e) => setDossierData({ ...dossierData, niveau_urgence: e.target.value as any })}
                   >
-                    <option value="critique">🔴 Critique</option>
-                    <option value="urgent">🟠 Urgent</option>
-                    <option value="normal">🟡 Normal</option>
-                    <option value="faible">🟢 Faible</option>
+                    <option value="critique">{t('authority.dossiers.urgency.critique')}</option>
+                    <option value="urgent">{t('authority.dossiers.urgency.urgent')}</option>
+                    <option value="normal">{t('authority.dossiers.urgency.normal')}</option>
+                    <option value="faible">{t('authority.dossiers.urgency.faible')}</option>
                   </select>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Date de disparition *</label>
+                  <label>{t('authority.createDossier.step2.disappearanceDate')}</label>
                   <input
                     type="date"
                     value={dossierData.date_disparition}
@@ -504,28 +510,28 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Lieu de disparition *</label>
+                  <label>{t('authority.createDossier.step2.disappearanceLocation')}</label>
                   <input
                     type="text"
                     value={dossierData.lieu_disparition}
                     onChange={(e) => setDossierData({ ...dossierData, lieu_disparition: e.target.value })}
-                    placeholder="Adresse ou description du lieu"
+                    placeholder={t('authority.createDossier.step2.locationPlaceholder')}
                     required
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Ville</label>
+                  <label>{t('authority.createDossier.step2.city')}</label>
                   <input
                     type="text"
                     value={dossierData.ville_disparition}
                     onChange={(e) => setDossierData({ ...dossierData, ville_disparition: e.target.value })}
-                    placeholder="ex: Yaoundé"
+                    placeholder={t('authority.createDossier.step2.cityPlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Pays</label>
+                  <label>{t('authority.createDossier.step2.country')}</label>
                   <input
                     type="text"
                     value={dossierData.pays_disparition}
@@ -534,82 +540,82 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroupFull}>
-                  <label>Circonstances</label>
+                  <label>{t('authority.createDossier.step2.circumstances')}</label>
                   <textarea
                     value={dossierData.circonstances}
                     onChange={(e) => setDossierData({ ...dossierData, circonstances: e.target.value })}
-                    placeholder="Décrivez les circonstances de la disparition..."
+                    placeholder={t('authority.createDossier.step2.circumstancesPlaceholder')}
                     rows={4}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Vêtements portés</label>
+                  <label>{t('authority.createDossier.step2.clothing')}</label>
                   <textarea
                     value={dossierData.vetements_portes}
                     onChange={(e) => setDossierData({ ...dossierData, vetements_portes: e.target.value })}
-                    placeholder="Description des vêtements..."
+                    placeholder={t('authority.createDossier.step2.clothingPlaceholder')}
                     rows={2}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Objets personnels</label>
+                  <label>{t('authority.createDossier.step2.personalItems')}</label>
                   <textarea
                     value={dossierData.objets_personnels}
                     onChange={(e) => setDossierData({ ...dossierData, objets_personnels: e.target.value })}
-                    placeholder="Téléphone, sac, bijoux..."
+                    placeholder={t('authority.createDossier.step2.personalItemsPlaceholder')}
                     rows={2}
                   />
                 </div>
 
                 <div className={styles.formGroupFull}>
-                  <label>Dernière activité connue</label>
+                  <label>{t('authority.createDossier.step2.lastKnownActivity')}</label>
                   <textarea
                     value={dossierData.derniere_activite_connue}
                     onChange={(e) => setDossierData({ ...dossierData, derniere_activite_connue: e.target.value })}
-                    placeholder="Qu'était en train de faire la personne avant sa disparition..."
+                    placeholder={t('authority.createDossier.step2.lastActivityPlaceholder')}
                     rows={3}
                   />
                 </div>
               </div>
 
               {/* Contact */}
-              <h3 style={{ marginTop: '24px' }}>📞 Contact de la Famille</h3>
+              <h3 style={{ marginTop: '24px' }}>{t('authority.createDossier.step2.familyContact')}</h3>
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
-                  <label>Nom du contact</label>
+                  <label>{t('authority.createDossier.step2.contactName')}</label>
                   <input
                     type="text"
                     value={dossierData.contact_nom}
                     onChange={(e) => setDossierData({ ...dossierData, contact_nom: e.target.value })}
-                    placeholder="Nom complet"
+                    placeholder={t('authority.createDossier.step2.contactNamePlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Téléphone</label>
+                  <label>{t('authority.createDossier.step2.phone')}</label>
                   <input
                     type="tel"
                     value={dossierData.contact_telephone}
                     onChange={(e) => setDossierData({ ...dossierData, contact_telephone: e.target.value })}
-                    placeholder="+237..."
+                    placeholder={t('authority.createDossier.step2.phonePlaceholder')}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Email</label>
+                  <label>{t('authority.createDossier.step2.email')}</label>
                   <input
                     type="email"
                     value={dossierData.contact_email}
                     onChange={(e) => setDossierData({ ...dossierData, contact_email: e.target.value })}
-                    placeholder="email@example.com"
+                    placeholder={t('authority.createDossier.step2.emailPlaceholder')}
                   />
                 </div>
               </div>
 
               {/* Options de diffusion */}
-              <h3 style={{ marginTop: '24px' }}>⚙️ Options de Diffusion</h3>
+              <h3 style={{ marginTop: '24px' }}>{t('authority.createDossier.step2.diffusionOptions')}</h3>
               <div className={styles.checkboxGroup}>
                 <label>
                   <input
@@ -617,7 +623,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                     checked={dossierData.visible_public}
                     onChange={(e) => setDossierData({ ...dossierData, visible_public: e.target.checked })}
                   />
-                  Visible au public
+                  {t('authority.createDossier.step2.visiblePublic')}
                 </label>
                 <label>
                   <input
@@ -625,19 +631,19 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                     checked={dossierData.diffusion_autorisee}
                     onChange={(e) => setDossierData({ ...dossierData, diffusion_autorisee: e.target.checked })}
                   />
-                  Diffusion autorisée (alertes)
+                  {t('authority.createDossier.step2.diffusionAuthorized')}
                 </label>
               </div>
 
               <div className={styles.formActions}>
                 <button onClick={() => setStep(1)} className={styles.backBtn}>
-                  ← Retour
+                  ← {t('authority.createDossier.actions.back')}
                 </button>
                 <button 
                   onClick={() => validateStep2() && setStep(3)} 
                   className={styles.nextBtn}
                 >
-                  Suivant →
+                  {t('authority.createDossier.actions.next')} →
                 </button>
               </div>
             </div>
@@ -646,45 +652,45 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           {/* Étape 3: Vérification */}
           {step === 3 && (
             <div className={styles.formSection}>
-              <h2>✓ Vérification et Confirmation</h2>
+              <h2>✓ {t('authority.createDossier.step3.title')}</h2>
               
               <div className={styles.summary}>
                 <div className={styles.summarySection}>
-                  <h3><User size={16} /> Personne</h3>
-                  <p><strong>Nom:</strong> {personneData.prenom} {personneData.nom}</p>
-                  <p><strong>Date de naissance:</strong> {personneData.date_naissance || 'Non renseignée'}</p>
-                  <p><strong>Sexe:</strong> {personneData.sexe}</p>
-                  <p><strong>Taille:</strong> {personneData.taille_cm ? `${personneData.taille_cm} cm` : 'Non renseignée'}</p>
-                  <p><strong>Photos:</strong> {uploadedPhotos.length} photo(s)</p>
+                  <h3><User size={16} /> {t('authority.createDossier.step3.person')}</h3>
+                  <p><strong>{t('authority.createDossier.step3.name')}:</strong> {personneData.prenom} {personneData.nom}</p>
+                  <p><strong>{t('authority.createDossier.step3.birthDate')}:</strong> {personneData.date_naissance || t('authority.createDossier.step3.notProvided')}</p>
+                  <p><strong>{t('authority.createDossier.step3.gender')}:</strong> {personneData.sexe}</p>
+                  <p><strong>{t('authority.createDossier.step3.height')}:</strong> {personneData.taille_cm ? `${personneData.taille_cm} cm` : t('authority.createDossier.step3.notProvided')}</p>
+                  <p><strong>{t('authority.createDossier.step3.photos')}:</strong> {uploadedPhotos.length} {uploadedPhotos.length === 1 ? t('authority.createDossier.step3.photoCount') : t('authority.createDossier.step3.photoCount_plural')}</p>
                 </div>
 
                 <div className={styles.summarySection}>
-                  <h3><MapPin size={16} /> Disparition</h3>
-                  <p><strong>Urgence:</strong> {dossierData.niveau_urgence}</p>
-                  <p><strong>Date:</strong> {new Date(dossierData.date_disparition).toLocaleDateString('fr-FR')}</p>
-                  <p><strong>Lieu:</strong> {dossierData.lieu_disparition}</p>
-                  <p><strong>Ville:</strong> {dossierData.ville_disparition || 'Non renseignée'}</p>
+                  <h3><MapPin size={16} /> {t('authority.createDossier.step3.disappearance')}</h3>
+                  <p><strong>{t('authority.createDossier.step3.urgency')}:</strong> {t(`authority.dossiers.urgency.${dossierData.niveau_urgence}`)}</p>
+                  <p><strong>{t('authority.createDossier.step3.date')}:</strong> {new Date(dossierData.date_disparition).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
+                  <p><strong>{t('authority.createDossier.step3.location')}:</strong> {dossierData.lieu_disparition}</p>
+                  <p><strong>{t('authority.createDossier.step3.city')}:</strong> {dossierData.ville_disparition || t('authority.createDossier.step3.notProvided')}</p>
                   {dossierData.circonstances && (
-                    <p><strong>Circonstances:</strong> {dossierData.circonstances.substring(0, 100)}...</p>
+                    <p><strong>{t('authority.createDossier.step3.circumstances')}:</strong> {dossierData.circonstances.substring(0, 100)}...</p>
                   )}
                 </div>
 
                 <div className={styles.summarySection}>
-                  <h3>📞 Contact</h3>
-                  <p><strong>Nom:</strong> {dossierData.contact_nom || 'Non renseigné'}</p>
-                  <p><strong>Téléphone:</strong> {dossierData.contact_telephone || 'Non renseigné'}</p>
+                  <h3>{t('authority.createDossier.step3.contact')}</h3>
+                  <p><strong>{t('authority.createDossier.step3.name')}:</strong> {dossierData.contact_nom || t('authority.createDossier.step3.notProvided')}</p>
+                  <p><strong>{t('authority.createDossier.step3.phone')}:</strong> {dossierData.contact_telephone || t('authority.createDossier.step3.notProvided')}</p>
                 </div>
 
                 <div className={styles.summarySection}>
-                  <h3>⚙️ Options</h3>
-                  <p><strong>Visible au public:</strong> {dossierData.visible_public ? 'Oui' : 'Non'}</p>
-                  <p><strong>Diffusion autorisée:</strong> {dossierData.diffusion_autorisee ? 'Oui' : 'Non'}</p>
+                  <h3>{t('authority.createDossier.step3.options')}</h3>
+                  <p><strong>{t('authority.createDossier.step3.visiblePublic')}:</strong> {dossierData.visible_public ? t('authority.createDossier.step3.yes') : t('authority.createDossier.step3.no')}</p>
+                  <p><strong>{t('authority.createDossier.step3.diffusionAuthorized')}:</strong> {dossierData.diffusion_autorisee ? t('authority.createDossier.step3.yes') : t('authority.createDossier.step3.no')}</p>
                 </div>
               </div>
 
               {uploadedPhotos.length > 0 && (
                 <div className={styles.previewPhotos}>
-                  <h3><Camera size={18} /> Photos</h3>
+                  <h3><Camera size={18} /> {t('authority.createDossier.step3.photos')}</h3>
                   <div className={styles.photoGrid}>
                     {uploadedPhotos.slice(0, 4).map((url, index) => (
                       <img key={index} src={url} alt={`Preview ${index}`} />
@@ -698,14 +704,14 @@ export const CreateDossierAuthorityPage: React.FC = () => {
 
               <div className={styles.formActions}>
                 <button onClick={() => setStep(2)} className={styles.backBtn}>
-                  ← Modifier
+                  ← {t('authority.createDossier.actions.edit')}
                 </button>
                 <button 
                   onClick={handleSubmit} 
                   className={styles.submitBtn}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? <><Loader2 size={16} className={styles.spinner} /> Création en cours...</> : 'Créer le Dossier'}
+                  {isSubmitting ? <><Loader2 size={16} className={styles.spinner} /> {t('authority.createDossier.actions.creating')}</> : t('authority.createDossier.actions.createDossier')}
                 </button>
               </div>
             </div>

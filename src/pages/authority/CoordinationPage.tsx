@@ -451,17 +451,10 @@ export const CoordinationPage: React.FC = () => {
                 <h2>{t('authority.coordination.history.title')}</h2>
                 <button 
                   onClick={fetchHistory}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#17a2b8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
+                  className={styles.historyRefreshBtn}
                   disabled={historyLoading}
                 >
-                  <RefreshCw size={16} /> {t('authority.header.refresh')}
+                  <RefreshCw size={16} className={historyLoading ? styles.spinner : ''} /> {t('authority.header.refresh')}
                 </button>
               </div>
 

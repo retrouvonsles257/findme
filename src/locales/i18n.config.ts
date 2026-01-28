@@ -99,12 +99,24 @@ const resources = {
   },
 };
 
+// Vérifier si une langue est déjà sauvegardée, sinon utiliser 'fr'
+const getInitialLanguage = (): string => {
+  if (typeof window !== 'undefined') {
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage === 'fr' || savedLanguage === 'en') {
+      return savedLanguage;
+    }
+  }
+  return 'fr';
+};
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
     fallbackLng: 'fr',
+    lng: getInitialLanguage(),
     defaultNS: 'common',
     ns: ['common', 'auth', 'navigation', 'forms', 'dossiers', 'signalements', 'alertes', 'users', 'success', 'errors', 'validation', 'citizen', 'profile', 'admin', 'operator', 'moderator', 'authority', 'super_admin', 'ngo', 'public'],
     
@@ -117,8 +129,9 @@ i18n
     },
     
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage'],
       caches: ['localStorage'],
+      lookupLocalStorage: 'language',
     },
 
     react: {
