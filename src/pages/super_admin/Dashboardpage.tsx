@@ -127,14 +127,14 @@ export const SuperAdminDashboardPage: React.FC = () => {
       title={t('super_admin.dashboardTitle')}
       activeNav="dashboard"
     >
-      <div className={styles['sa-dashboard']}>
+      <div className={styles.dashboard}>
         {/* Welcome Section */}
-        <section className={styles['sa-dashboard__welcome']}>
-          <div className={styles['sa-dashboard__welcome-content']}>
-            <h1 className={styles['sa-dashboard__welcome-title']}>
+        <section className={styles['dashboard__welcome']}>
+          <div className={styles['dashboard__welcome-content']}>
+            <h1 className={styles['dashboard__welcome-title']}>
               {t('super_admin.dashboardSubtitle')}
             </h1>
-            <p className={styles['sa-dashboard__welcome-description']}>
+            <p className={styles['dashboard__welcome-description']}>
               {t('super_admin.dashboardDescription')}
             </p>
           </div>
@@ -142,7 +142,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
         {/* Error State */}
         {error && (
-          <div className={styles['sa-dashboard__error']}>
+          <div className={styles['dashboard__error']}>
             <AlertCircle size={20} />
             <span>{error}</span>
           </div>
@@ -150,25 +150,25 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading ? (
-          <div className={styles['sa-dashboard__loading']}>
-            <Loader2 size={32} className={styles['sa-dashboard__spinner']} />
+          <div className={styles['dashboard__loading']}>
+            <Loader2 size={32} className={styles['dashboard__loading-spin']} />
             <p>{t('common.loading')}</p>
           </div>
         ) : (
           <>
             {/* Stats Grid */}
-            <div className={styles['sa-dashboard__stats-grid']}>
+            <div className={styles['dashboard__stats-grid']}>
               {statsCards.map((stat) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={stat.label} className={styles['sa-dashboard__stat-card']}>
-                    <div className={styles['sa-dashboard__stat-header']}>
-                      <div className={styles['sa-dashboard__stat-icon']} style={{ backgroundColor: `${stat.color}20`, color: stat.color }}>
+                  <div key={stat.label} className={styles['dashboard__stat-card']}>
+                    <div className={styles['dashboard__stat-header']}>
+                      <div className={styles['dashboard__stat-icon']} style={{ backgroundColor: `${stat.color}20`, color: stat.color }}>
                         <Icon size={24} />
                       </div>
-                      <div className={styles['sa-dashboard__stat-content']}>
-                        <h3 className={styles['sa-dashboard__stat-value']}>{stat.value}</h3>
-                        <p className={styles['sa-dashboard__stat-label']}>{stat.label}</p>
+                      <div className={styles['dashboard__stat-content']}>
+                        <h3 className={styles['dashboard__stat-value']}>{stat.value}</h3>
+                        <p className={styles['dashboard__stat-label']}>{stat.label}</p>
                       </div>
                     </div>
                   </div>
@@ -177,20 +177,20 @@ export const SuperAdminDashboardPage: React.FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <h2 className={styles['sa-dashboard__section-title']}>{t('super_admin.quickActions')}</h2>
-            <div className={styles['sa-dashboard__actions-grid']}>
+            <h2 className={styles['dashboard__section-title']}>{t('super_admin.quickActions')}</h2>
+            <div className={styles['dashboard__actions-grid']}>
               {quickActions.map((action) => {
                 const Icon = action.icon;
                 return (
                   <button
                     key={action.title}
-                    className={`${styles['sa-dashboard__action-card']} ${action.primary ? styles['sa-dashboard__action-card--primary'] : ''}`}
+                    className={`${styles['dashboard__action-card']} ${action.primary ? styles['dashboard__action-card--primary'] : ''}`}
                     onClick={action.onClick}
                   >
-                    <Icon size={32} className={styles['sa-dashboard__action-icon']} />
-                    <div className={styles['sa-dashboard__action-content']}>
-                      <h3 className={styles['sa-dashboard__action-title']}>{action.title}</h3>
-                      <p className={styles['sa-dashboard__action-description']}>{action.description}</p>
+                    <Icon size={32} className={styles['dashboard__action-icon']} />
+                    <div>
+                      <h3 className={styles['dashboard__action-title']}>{action.title}</h3>
+                      <p className={styles['dashboard__action-description']}>{action.description}</p>
                     </div>
                   </button>
                 );

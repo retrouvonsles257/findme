@@ -80,20 +80,6 @@ export const CitizenAlertesPage: React.FC = () => {
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  // Mapper le statut pour le style
-  const getStatusClass = (statut: string) => {
-    switch (statut) {
-      case 'active':
-      case 'diffusee':
-        return styles['alerte__status--active'];
-      case 'expiree':
-      case 'cloturee':
-        return styles['alerte__status--closed'];
-      default:
-        return styles['alerte__status--pending'];
-    }
-  };
-
   // Mapper le type pour l'icône
   const getTypeIcon = (type: string) => {
     switch (type) {

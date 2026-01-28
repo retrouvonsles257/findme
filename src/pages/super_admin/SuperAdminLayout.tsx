@@ -1,12 +1,12 @@
 /**
  * =====================================================
  * RETROUVONSLES - Super Admin Layout
- * Master layout component for super admin pages
+ * Aligné sur le layout Citizen (sidebar image + header)
  * =====================================================
  */
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
@@ -29,18 +29,33 @@ import {
   Brain,
   CheckSquare,
   User,
+  Search,
+  ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
 import styles from './SuperAdminLayout.module.css';
 
-type ActiveNavType = 'dashboard' | 'global-stats' | 'organisations' | 'system-users' | 
-  'ia-config' | 'security' | 'system-logs' | 'system-settings' |
-  'campagnes' | 'dons' | 'roles' | 'dossiers-critiques' | 'resultats-ia' |
-  'signalement-validation' | 'profile';
+type ActiveNavType =
+  | 'dashboard'
+  | 'global-stats'
+  | 'organisations'
+  | 'system-users'
+  | 'ia-config'
+  | 'security'
+  | 'system-logs'
+  | 'system-settings'
+  | 'campagnes'
+  | 'dons'
+  | 'roles'
+  | 'dossiers-critiques'
+  | 'resultats-ia'
+  | 'signalement-validation'
+  | 'profile';
 
 interface SuperAdminLayoutProps {
   children: React.ReactNode;
   title: string;
-  activeNav: ActiveNavType;
+  activeNav?: ActiveNavType;
 }
 
 export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
@@ -49,9 +64,32 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
   activeNav,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectUser);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('superAdminSidebarCollapsed');
+    return saved === 'true';
+  });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const [headerSearch, setHeaderSearch] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('superAdminSidebarCollapsed', String(isCollapsed));
+  }, [isCollapsed]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const navItems = [
     {
@@ -150,111 +188,224 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
     navigate('/auth/login');
   };
 
-  const toggleLanguage = async () => {
-    const newLang = language === 'en' ? 'fr' : 'en';
-    await changeLanguage(newLang as any);
+  const toggleLanguage = () => {
+    changeLanguage(language === 'fr' ? 'en' : 'fr');
+    setUserMenuOpen(false);
+  };
+
+  const getInitials = () => {
+    const user = currentUser as any;
+    const name = user?.prenom || user?.nom_complet || user?.email;
+    if (!name) return 'SA';
+    const parts = String(name).split(' ').filter(Boolean);
+    if (parts.length === 0) return 'SA';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
+  const getUserLabel = () => {
+    const user = currentUser as any;
+    return user?.prenom || user?.nom_complet || user?.email || 'Super Admin';
+  };
+
+  const handleHeaderSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const query = headerSearch.trim();
+    if (query) {
+      navigate(`/super-admin/system-users?search=${encodeURIComponent(query)}`);
+    } else {
+      navigate('/super-admin/system-users');
+    }
+  };
+
+  const isActive = (itemId: ActiveNavType, itemPath: string) => {
+    if (activeNav) return activeNav === itemId;
+    return location.pathname.startsWith(itemPath);
   };
 
   return (
-    <div className={styles['super-admin-layout']}>
-      {/* Header */}
-      <header className={styles['super-admin-layout__header']}>
-        <div className={styles['super-admin-layout__header-left']}>
+    <div className={styles.layout}>
+      {/* Overlay mobile */}
+      {mobileOpen && (
+        <div
+          className={styles.overlay}
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''} ${
+          isCollapsed ? styles.sidebarCollapsed : ''
+        }`}
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.96)), url('/assets/images/niveau_7_super_admin.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        <div className={styles.sidebarHeader}>
+          {!isCollapsed && (
+            <div className={styles.logoContainer}>
+              <div className={styles.logoIcon}>
+                <span>RetrouvonsLes</span>
+              </div>
+            </div>
+          )}
+
           <button
-            className={styles['super-admin-layout__menu-btn']}
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className={styles.toggleBtn}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            title={isCollapsed ? 'Ouvrir le menu' : 'Réduire le menu'}
+          >
+            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
+
+          <button
+            className={styles.closeMobileBtn}
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className={styles.nav}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.id as ActiveNavType, item.path);
+            return (
+              <button
+                key={item.id}
+                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <Icon size={20} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* User section */}
+        <div className={styles.userSection} ref={userMenuRef}>
+          <button
+            className={styles.userBtn}
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            title={isCollapsed ? getUserLabel() : undefined}
+          >
+            <div className={styles.userAvatarPlaceholder}>{getInitials()}</div>
+            {!isCollapsed && <span className={styles.userName}>{getUserLabel()}</span>}
+          </button>
+
+          {userMenuOpen && (
+            <div className={styles.userMenu}>
+              <button
+                className={styles.userMenuItem}
+                onClick={() => {
+                  navigate('/super-admin/profile');
+                  setUserMenuOpen(false);
+                  setMobileOpen(false);
+                }}
+              >
+                <User size={18} />
+                <span>{t('common.profile')}</span>
+              </button>
+              <button
+                className={styles.userMenuItem}
+                onClick={toggleLanguage}
+              >
+                <Globe size={18} />
+                <span>{language === 'fr' ? 'English' : 'Français'}</span>
+              </button>
+              <div className={styles.userMenuDivider} />
+              <button
+                className={`${styles.userMenuItem} ${styles.userMenuItemDanger}`}
+                onClick={handleLogout}
+              >
+                <LogOut size={18} />
+                <span>{t('common.logout')}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div className={`${styles.main} ${isCollapsed ? styles.mainExpanded : ''}`}>
+        {/* Header desktop */}
+        <header className={styles.topHeader}>
+          <form className={styles.topHeaderSearchForm} onSubmit={handleHeaderSearch}>
+            <Search size={18} className={styles.topHeaderSearchIcon} />
+            <input
+              type="text"
+              placeholder={t('common.search') || 'Search...'}
+              value={headerSearch}
+              onChange={(e) => setHeaderSearch(e.target.value)}
+              className={styles.topHeaderSearchInput}
+            />
+          </form>
+
+          <div className={styles.topHeaderRight}>
+            <button
+              type="button"
+              className={styles.topHeaderIconBtn}
+              onClick={toggleLanguage}
+              title={t('common.language')}
+            >
+              <Globe size={18} />
+              <span>{language.toUpperCase()}</span>
+            </button>
+            <button
+              type="button"
+              className={styles.topHeaderUser}
+              onClick={() => navigate('/super-admin/profile')}
+              title={getUserLabel()}
+            >
+              <div className={styles.topHeaderUserAvatarPlaceholder}>{getInitials()}</div>
+              <span className={styles.topHeaderUserName}>{getUserLabel()}</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Header mobile */}
+        <header className={styles.mobileHeader}>
+          <button
+            className={styles.menuBtn}
+            onClick={() => setMobileOpen(true)}
           >
             <Menu size={24} />
           </button>
-          <h1 className={styles['super-admin-layout__logo']} onClick={() => navigate('/super-admin/dashboard')}>RL</h1>
-        </div>
-
-        <div className={styles['super-admin-layout__header-right']}>
-          {/* Language Switcher */}
-          <button
-            className={styles['super-admin-layout__language']}
-            onClick={toggleLanguage}
-            title={t('common.language')}
-          >
-            <Globe size={20} />
-            <span>{language.toUpperCase()}</span>
-          </button>
-
-          {/* User Info */}
-          <div className={styles['super-admin-layout__user']}>
-            <div className={styles['super-admin-layout__user-avatar']}>
-              {currentUser?.prenom?.charAt(0).toUpperCase() || 'S'}
-            </div>
-            <span className={styles['super-admin-layout__user-name']}>
-              {currentUser?.prenom || 'Super Admin'}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* Body with Sidebar and Content */}
-      <div className={styles['super-admin-layout__body']}>
-        {/* Overlay for mobile */}
-        <div 
-          className={`${styles['super-admin-layout__overlay']} ${sidebarOpen ? styles['super-admin-layout__overlay--visible'] : ''}`}
-          onClick={() => setSidebarOpen(false)}
-        />
-
-        {/* Sidebar */}
-        <aside className={`${styles['super-admin-layout__sidebar']} ${sidebarOpen ? styles['super-admin-layout__sidebar--open'] : ''}`}>
-          {/* Close button for mobile */}
-          <div className={styles['super-admin-layout__sidebar-header']}>
+          <span className={styles.appName}>RetrouvonsLes</span>
+          <div className={styles.mobileHeaderRight}>
             <button
-              className={styles['super-admin-layout__close-btn']}
-              onClick={() => setSidebarOpen(false)}
-              aria-label={t('common.close')}
+              type="button"
+              className={styles.mobileHeaderIconBtn}
+              onClick={toggleLanguage}
+              title={t('common.language')}
             >
-              <X size={24} />
+              <Globe size={18} />
+            </button>
+            <button
+              className={styles.mobileAvatarBtn}
+              onClick={() => setMobileOpen(true)}
+            >
+              <div className={styles.mobileAvatarPlaceholder}>{getInitials()}</div>
             </button>
           </div>
+        </header>
 
-          {/* Navigation */}
-          <nav className={styles['super-admin-layout__nav']}>
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    navigate(item.path);
-                    if (window.innerWidth <= 768) setSidebarOpen(false);
-                  }}
-                  className={`${styles['super-admin-layout__nav-item']} ${
-                    activeNav === item.id ? styles['super-admin-layout__nav-item--active'] : ''
-                  }`}
-                  title={item.label}
-                >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className={styles['super-admin-layout__logout']}
-            title={t('common.logout')}
-          >
-            <LogOut size={20} />
-            <span>{t('common.logout')}</span>
-          </button>
-        </aside>
-
-        {/* Main Content */}
-        <div className={styles['super-admin-layout__main']}>
-          {/* Content */}
-          <div className={styles['super-admin-layout__content']}>
-            <h1 className={styles['super-admin-layout__page-title']}>{title}</h1>
-            {children}
-          </div>
-        </div>
+        {/* Content */}
+        <main className={styles.content}>
+          <h1 className={styles.pageTitle}>{title}</h1>
+          {children}
+        </main>
       </div>
     </div>
   );
