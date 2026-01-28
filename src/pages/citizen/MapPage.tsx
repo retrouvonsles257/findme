@@ -164,7 +164,7 @@ export const CitizenMapPage: React.FC = () => {
             type: 'dossier',
             lat: dossier.latitude_disparition,
             lng: dossier.longitude_disparition,
-            title: `${dossier.prenom || ''} ${dossier.nom || ''}`.trim() || 'Dossier',
+            title: `${dossier.prenom || ''} ${dossier.nom || ''}`.trim() || t('citizen.dossier'),
             description: dossier.lieu_disparition,
             statut: dossier.statut,
             urgence: dossier.niveau_urgence,
@@ -183,7 +183,7 @@ export const CitizenMapPage: React.FC = () => {
             type: 'signalement',
             lat: signalement.latitude,
             lng: signalement.longitude,
-            title: signalement.titre || 'Signalement',
+            title: signalement.titre || t('citizen.report'),
             description: signalement.lieu || signalement.ville,
             statut: signalement.statut,
           });
@@ -253,7 +253,7 @@ export const CitizenMapPage: React.FC = () => {
           <div style="padding: 8px;">
             <strong>${marker.title}</strong>
             ${marker.description ? `<p style="margin: 4px 0 0; font-size: 12px; color: #666;">${marker.description}</p>` : ''}
-            ${marker.type !== 'user' ? `<button onclick="window.location.href='/citizen/${marker.type === 'dossier' ? 'dossier' : 'signalements'}/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">Voir détails</button>` : ''}
+            ${marker.type !== 'user' ? `<button onclick="window.location.href='/citizen/${marker.type === 'dossier' ? 'dossier' : 'signalements'}/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #15803d; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
           </div>
         `);
 
@@ -301,7 +301,7 @@ export const CitizenMapPage: React.FC = () => {
     if (marker.type === 'dossier') {
       if (marker.urgence && marker.urgence >= 8) return '#dc2626';
       if (marker.urgence && marker.urgence >= 5) return '#f59e0b';
-      return '#1d4ed8';
+      return '#15803d';
     }
     return '#8b5cf6';
   };
@@ -309,7 +309,7 @@ export const CitizenMapPage: React.FC = () => {
   const isLoading = loadingDossiers || loadingSignalements;
 
   return (
-    <CitizenLayout activeNav="map">
+    <CitizenLayout>
       <div className={styles.mapPage}>
         {/* Toolbar */}
         <div className={styles['mapPage__toolbar']}>

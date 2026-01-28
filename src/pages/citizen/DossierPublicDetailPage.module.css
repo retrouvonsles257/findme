@@ -3,12 +3,12 @@
    ===================================================== */
 
 .dossierDetail {
-  padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   max-width: 900px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* Loading */
@@ -58,7 +58,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #1d4ed8;
+  background: var(--citizen-primary, #15803d);
   color: #ffffff;
   border: none;
   border-radius: 0.375rem;
@@ -68,7 +68,7 @@
 }
 
 .dossierDetail__error button:hover {
-  background: #1e40af;
+  background: var(--citizen-primary-hover, #166534);
 }
 
 /* Back Button */
@@ -98,9 +98,9 @@
   gap: 2rem;
   padding: 2rem;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .dossierDetail__photo {
@@ -108,8 +108,8 @@
   width: 200px;
   height: 200px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e90ff 100%);
-  border-radius: 0.5rem;
+  background: var(--citizen-primary, #15803d);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -147,7 +147,7 @@
 
 .dossierDetail__name {
   margin: 0;
-  color: #111827;
+  color: #1e293b;
   font-size: 1.75rem;
   font-weight: 700;
 }
@@ -168,14 +168,14 @@
 
 .dossierDetail__status-badge[data-status="actif"],
 .dossierDetail__status-badge[data-status="en_cours"] {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: rgba(245, 158, 11, 0.12);
   color: #d97706;
 }
 
 .dossierDetail__status-badge[data-status="resolu"],
 .dossierDetail__status-badge[data-status="retrouve"] {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #16a34a;
+  background: rgba(21, 128, 61, 0.12);
+  color: var(--citizen-primary, #15803d);
 }
 
 .dossierDetail__status-badge[data-status="archive"] {
@@ -229,13 +229,14 @@
 }
 
 .dossierDetail__action-primary {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e90ff 100%);
+  background: var(--citizen-primary, #15803d);
   color: #ffffff;
 }
 
 .dossierDetail__action-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+  background: var(--citizen-primary-hover, #166534);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .dossierDetail__action-secondary {
@@ -246,8 +247,8 @@
 
 .dossierDetail__action-secondary:hover {
   background: #f9fafb;
-  border-color: #1d4ed8;
-  color: #1d4ed8;
+  border-color: var(--citizen-primary, #15803d);
+  color: var(--citizen-primary, #15803d);
 }
 
 /* Tabs */
@@ -281,16 +282,17 @@
 
 .dossierDetail__tab--active {
   background: #ffffff;
-  color: #1d4ed8;
+  color: var(--citizen-primary, #15803d);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Content */
 .dossierDetail__content {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* Info Grid */
@@ -351,7 +353,7 @@
 }
 
 .dossierDetail__location svg {
-  color: #1d4ed8;
+  color: var(--citizen-primary, #15803d);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -436,7 +438,7 @@
 .dossierDetail__timeline-dot {
   width: 12px;
   height: 12px;
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e90ff 100%);
+  background: var(--citizen-primary, #15803d);
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 4px;
@@ -486,9 +488,9 @@
   display: flex;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  background: rgba(21, 128, 61, 0.10);
   border: 1px solid #86efac;
-  border-radius: 0.5rem;
+  border-radius: 12px;
 }
 
 .dossierDetail__contact svg {
@@ -512,7 +514,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .dossierDetail {
-    padding: 1.5rem;
+    padding: 0;
   }
 
   .dossierDetail__header {
@@ -555,7 +557,7 @@
 
 @media (max-width: 480px) {
   .dossierDetail {
-    padding: 1rem;
+    padding: 0;
   }
 
   .dossierDetail__photos-grid {

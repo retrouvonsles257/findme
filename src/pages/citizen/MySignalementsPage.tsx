@@ -18,7 +18,7 @@ import styles from './MySignalementsPage.module.css';
 
 export const CitizenMySignalementsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
 
@@ -78,7 +78,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
       case 'invalide':
         return t('citizen.rejected');
       default:
-        return status;
+        return t('citizen.pending') || status;
     }
   };
 
@@ -121,7 +121,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
@@ -129,7 +129,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
   };
 
   return (
-    <CitizenLayout activeNav="signalements">
+    <CitizenLayout>
       <div className={styles.signalements}>
         {/* Header avec bouton Nouveau */}
         <div className={styles['signalements__header']}>

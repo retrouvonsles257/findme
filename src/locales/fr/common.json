@@ -147,6 +147,7 @@
     "enabled": "Activé",
     "disabled": "Désactivé",
   "errorLoadingData": "Erreur lors du chargement des données",
+  "appName": "RetrouvonsLes",
   "app_name": "RETROUVONSLES",
   "app_tagline": "Retrouver les personnes disparues ensemble",
   "app_description": "Une plateforme collaborative pour aider à localiser les personnes disparues grâce à l'engagement communautaire et aux capacités de recherche avancées",

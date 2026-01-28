@@ -35,7 +35,7 @@ import styles from './AlertesPage.module.css';
 type FilterType = 'all' | 'active' | 'proximity' | 'closed';
 
 export const CitizenAlertesPage: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
   
   // Hooks
@@ -117,10 +117,11 @@ export const CitizenAlertesPage: React.FC = () => {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return t('common.justNow') || 'À l\'instant';
-    if (minutes < 60) return `Il y a ${minutes}m`;
-    if (hours < 24) return `Il y a ${hours}h`;
-    return `Il y a ${days}j`;
+    if (minutes < 1) return t('citizen.justNow');
+    if (minutes < 60) return t('citizen.timeAgo.minutes').replace('{{count}}', String(minutes));
+    if (hours < 24) return t('citizen.timeAgo.hours').replace('{{count}}', String(hours));
+    if (days < 7) return t('citizen.timeAgo.days').replace('{{count}}', String(days));
+    return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US');
   };
 
   // Filtrer les alertes
@@ -152,7 +153,7 @@ export const CitizenAlertesPage: React.FC = () => {
   const hasError = errorAlertes || errorProximity;
 
   return (
-    <CitizenLayout activeNav="alerts">
+    <CitizenLayout>
       <div className={styles.alertes}>
         {/* Header avec localisation */}
         <div className={styles['alertes__header']}>
@@ -201,7 +202,7 @@ export const CitizenAlertesPage: React.FC = () => {
                       {alert.distance_km && (
                         <span className={styles['alertes__proximity-distance']}>
                           <MapPin size={14} />
-                          À {alert.distance_km.toFixed(1)} km
+                          {t('citizen.distanceAway').replace('{{distance}}', alert.distance_km.toFixed(1))}
                         </span>
                       )}
                     </div>
@@ -287,7 +288,7 @@ export const CitizenAlertesPage: React.FC = () => {
                     <div className={styles['alertes__card-header']}>
                       <h4 className={styles['alertes__card-title']}>{alerte.titre}</h4>
                       <span className={`${styles['alertes__status']} ${getStatusClass(alerte.statut)}`}>
-                        {alerte.statut}
+                        {t(`citizen.alertStatus.${alerte.statut}`) || t('citizen.pending') || alerte.statut}
                       </span>
                     </div>
                     
@@ -305,21 +306,21 @@ export const CitizenAlertesPage: React.FC = () => {
                       {alerte.rayon_km && (
                         <span className={styles['alertes__card-radius']}>
                           <MapPin size={14} />
-                          {alerte.rayon_km} km
+                          {t('citizen.radiusKm').replace('{{radius}}', String(alerte.rayon_km))}
                         </span>
                       )}
                       
                       {alerte.vues !== undefined && (
                         <span className={styles['alertes__card-views']}>
                           <Eye size={14} />
-                          {alerte.vues}
+                          {t('citizen.views').replace('{{count}}', String(alerte.vues))}
                         </span>
                       )}
                       
                       {alerte.partages !== undefined && (
                         <span className={styles['alertes__card-shares']}>
                           <Share2 size={14} />
-                          {alerte.partages}
+                          {t('citizen.shares').replace('{{count}}', String(alerte.partages))}
                         </span>
                       )}
                     </div>
