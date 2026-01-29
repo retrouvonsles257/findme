@@ -7,12 +7,13 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { 
-  AlertTriangle, User, Calendar, MapPin, Clock, Eye, 
-  Loader2, AlertCircle, ChevronLeft, ChevronRight, Filter
+  AlertTriangle, User, Calendar, MapPin, Clock, Eye, Edit2,
+  Loader2, AlertCircle, ChevronLeft, ChevronRight, Filter, Download, X, LayoutList, Tag
 } from 'lucide-react';
 import styles from './DossiersCritiquesPage.module.css';
 
@@ -36,6 +37,7 @@ interface DossierCritique {
 const ITEMS_PER_PAGE = 10;
 
 export const SuperAdminDossiersCritiquesPage: React.FC = () => {
+  const navigate = useNavigate();
   useI18n(); // For future i18n support
 
   const [dossiers, setDossiers] = useState<DossierCritique[]>([]);
@@ -59,7 +61,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
       // Compter avec filtres
       let countQuery = (supabase as any).from('dossier_disparition').select('id', { count: 'exact', head: true });
       if (filterUrgence) countQuery = countQuery.eq('niveau_urgence', filterUrgence);
-      if (filterStatut) countQuery = countQuery.eq('statut', filterStatut);
+      if (filterStatut) countQuery = countQuery.eq('statut_dossier', filterStatut);
       
       const { count } = await countQuery;
       setTotalCount(count || 0);
@@ -78,17 +80,29 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
-      // Enrichir avec déclarant et nombre de signalements
+      // Enrichir avec déclarant, personne et nombre de signalements - RÉCUPÉRER TOUS LES CHAMPS
       const enrichedDossiers = await Promise.all(
-        (data || []).map(async (dossier: DossierCritique) => {
-          let declarant;
-          if (dossier.id_declarant) {
+        (data || []).map(async (dossier: any) => {
+          let declarant, personne;
+          
+          // Récupérer le créateur (id_utilisateur_createur)
+          if (dossier.id_utilisateur_createur) {
             const { data: d } = await (supabase as any)
               .from('utilisateur')
               .select('nom, email')
-              .eq('id', dossier.id_declarant)
+              .eq('id', dossier.id_utilisateur_createur)
               .single();
             declarant = d;
+          }
+          
+          // Récupérer la personne disparue
+          if (dossier.id_personne) {
+            const { data: p } = await (supabase as any)
+              .from('personne')
+              .select('nom, prenom, date_naissance, age_estime_min, age_estime_max')
+              .eq('id', dossier.id_personne)
+              .single();
+            personne = p;
           }
           
           const { count: signalementsCount } = await (supabase as any)
@@ -96,7 +110,31 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
             .select('id', { count: 'exact', head: true })
             .eq('id_dossier', dossier.id);
 
-          return { ...dossier, declarant, _signalements: signalementsCount || 0 };
+          // Normaliser le champ de statut pour l'UI (statut_dossier → statut)
+          const statut = dossier.statut_dossier || 'en_cours';
+          
+          // Calculer l'âge si disponible
+          let age_moment_disparition: number | undefined;
+          if (personne?.date_naissance && dossier.date_disparition) {
+            const birthDate = new Date(personne.date_naissance);
+            const disappearanceDate = new Date(dossier.date_disparition);
+            age_moment_disparition = Math.floor((disappearanceDate.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+          } else if (personne?.age_estime_min && personne?.age_estime_max) {
+            age_moment_disparition = Math.floor((personne.age_estime_min + personne.age_estime_max) / 2);
+          }
+
+          return {
+            ...dossier,
+            statut, // Map statut_dossier from DB to 'statut' property for UI consistency
+            declarant,
+            personne,
+            nom_personne: personne?.nom || '',
+            prenom_personne: personne?.prenom || '',
+            age_moment_disparition,
+            titre: dossier.circonstances?.substring(0, 100) || 'Disparition',
+            description: dossier.circonstances,
+            _signalements: signalementsCount || 0,
+          };
         })
       );
 
@@ -114,6 +152,79 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   }, [loadDossiers]);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  const exportToCSV = async () => {
+    try {
+      setIsLoading(true);
+      
+      let query = (supabase as any)
+        .from('dossier_disparition')
+        .select(`
+          *,
+          personne:personne(nom, prenom, date_naissance),
+          createur:utilisateur!dossier_disparition_id_utilisateur_createur_fkey(nom, email)
+        `)
+        .eq('niveau_urgence', 'critique')
+        .order('created_at', { ascending: false });
+
+      if (filterStatut) query = query.eq('statut_dossier', filterStatut);
+      if (filterUrgence) query = query.eq('niveau_urgence', filterUrgence);
+
+      const { data: allDossiers, error: fetchError } = await query;
+      if (fetchError) throw fetchError;
+
+      // Enrichir avec compteurs
+      const enrichedDossiers = await Promise.all(
+        (allDossiers || []).map(async (d: any) => {
+          const { count } = await (supabase as any)
+            .from('signalement')
+            .select('id', { count: 'exact', head: true })
+            .eq('id_dossier', d.id);
+          return { ...d, nombre_signalements: count || 0 };
+        })
+      );
+
+      const headers = [
+        'ID', 'Numéro dossier', 'Titre', 'Nom personne', 'Prénom personne',
+        'Date disparition', 'Lieu disparition', 'Ville', 'Région', 'Type disparition',
+        'Statut dossier', 'Niveau urgence', 'Circonstances', 'Créateur', 'Date création'
+      ];
+      
+      const rows = enrichedDossiers.map((d: any) => [
+        d.id,
+        d.numero_dossier,
+        d.titre || '',
+        d.personne?.nom || '',
+        d.personne?.prenom || '',
+        d.date_disparition ? new Date(d.date_disparition).toLocaleString('fr-FR') : '',
+        d.lieu_disparition || '',
+        d.ville_disparition || '',
+        d.region_disparition || '',
+        d.type_disparition,
+        d.statut_dossier,
+        d.niveau_urgence,
+        d.circonstances ? d.circonstances.substring(0, 100) : '',
+        d.createur ? `${d.createur.nom} (${d.createur.email})` : '',
+        d.created_at ? new Date(d.created_at).toLocaleString('fr-FR') : '',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row: any[]) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `dossiers_critiques_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    } catch (err: any) {
+      console.error('Erreur export CSV:', err);
+      setError('Erreur lors de l\'export: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getUrgenceColor = (niveau: string) => {
     const colors: Record<string, string> = {
@@ -138,9 +249,11 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   const getStatutLabel = (statut: string) => {
     const labels: Record<string, string> = {
       en_cours: 'En cours',
-      resolu: 'Résolu',
-      clos: 'Clos',
-      archive: 'Archivé',
+      retrouve_vivant: 'Retrouvé vivant',
+      retrouve_decede: 'Retrouvé décédé',
+      suspendu: 'Suspendu',
+      classe_sans_suite: 'Classé sans suite',
+      transfere: 'Transféré',
     };
     return labels[statut] || statut;
   };
@@ -148,9 +261,11 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   const getStatutColor = (statut: string) => {
     const colors: Record<string, string> = {
       en_cours: 'warning',
-      resolu: 'success',
-      clos: 'default',
-      archive: 'info',
+      retrouve_vivant: 'success',
+      retrouve_decede: 'danger',
+      suspendu: 'info',
+      classe_sans_suite: 'default',
+      transfere: 'info',
     };
     return colors[statut] || 'default';
   };
@@ -189,6 +304,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
             </select>
           </div>
           <div className={styles['sa-dossiers-critiques__filter-group']}>
+            <Tag size={16} />
             <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
               <option value="">Tous statuts</option>
               <option value="en_cours">En cours</option>
@@ -197,6 +313,10 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
               <option value="archive">Archivé</option>
             </select>
           </div>
+          <button type="button" onClick={exportToCSV} disabled={isLoading} className={styles['sa-dossiers-critiques__btn-export']}>
+            <Download size={16} />
+            Exporter CSV
+          </button>
         </div>
 
         {/* Error */}
@@ -264,9 +384,13 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
                   </div>
                   
                   <div className={styles['sa-dossiers-critiques__card-actions']}>
-                    <button onClick={() => setSelectedDossier(dossier)}>
+                    <button type="button" onClick={() => navigate(`/super-admin/dossiers/${dossier.id}`)}>
                       <Eye size={16} />
-                      Voir détails
+                      Voir détail complet
+                    </button>
+                    <button type="button" onClick={() => setSelectedDossier(dossier)}>
+                      <LayoutList size={16} />
+                      Aperçu rapide
                     </button>
                   </div>
                 </div>
@@ -278,11 +402,11 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className={styles['sa-dossiers-critiques__pagination']}>
-            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+            <button type="button" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
               <ChevronLeft size={16} /> Précédent
             </button>
             <span>Page {currentPage} sur {totalPages}</span>
-            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+            <button type="button" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
               Suivant <ChevronRight size={16} />
             </button>
           </div>
@@ -292,20 +416,37 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
         {selectedDossier && (
           <div className={styles['sa-dossiers-critiques__modal-overlay']} onClick={() => setSelectedDossier(null)}>
             <div className={styles['sa-dossiers-critiques__modal']} onClick={(e) => e.stopPropagation()}>
-              <h2>{selectedDossier.prenom_personne} {selectedDossier.nom_personne}</h2>
-              <div className={styles['sa-dossiers-critiques__details']}>
-                <p><strong>Titre:</strong> {selectedDossier.titre}</p>
-                <p><strong>Niveau urgence:</strong> {getUrgenceLabel(selectedDossier.niveau_urgence)}</p>
-                <p><strong>Statut:</strong> {getStatutLabel(selectedDossier.statut)}</p>
-                <p><strong>Date disparition:</strong> {new Date(selectedDossier.date_disparition).toLocaleDateString('fr-FR')}</p>
-                {selectedDossier.lieu_disparition && <p><strong>Lieu:</strong> {selectedDossier.lieu_disparition}</p>}
-                {selectedDossier.age_moment_disparition && <p><strong>Âge:</strong> {selectedDossier.age_moment_disparition} ans</p>}
-                {selectedDossier.description && <p><strong>Description:</strong> {selectedDossier.description}</p>}
-                {selectedDossier.declarant && <p><strong>Déclarant:</strong> {selectedDossier.declarant.nom} ({selectedDossier.declarant.email})</p>}
-                <p><strong>Signalements:</strong> {selectedDossier._signalements}</p>
-                <p><strong>Créé le:</strong> {new Date(selectedDossier.created_at).toLocaleDateString('fr-FR')}</p>
+              <div className={styles['sa-dossiers-critiques__modal-header']}>
+                <h2>{selectedDossier.prenom_personne || ''} {selectedDossier.nom_personne}</h2>
+                <button type="button" onClick={() => setSelectedDossier(null)} className={styles['sa-dossiers-critiques__modal-close']} aria-label="Fermer">
+                  <X size={20} />
+                </button>
               </div>
-              <button onClick={() => setSelectedDossier(null)}>Fermer</button>
+              <div className={styles['sa-dossiers-critiques__modal-body']}>
+                <div className={styles['sa-dossiers-critiques__details']}>
+                  <p><strong>Titre:</strong> {selectedDossier.titre || '—'}</p>
+                  <p><strong>Niveau urgence:</strong> {getUrgenceLabel(selectedDossier.niveau_urgence)}</p>
+                  <p><strong>Statut:</strong> {getStatutLabel(selectedDossier.statut)}</p>
+                  <p><strong>Date disparition:</strong> {new Date(selectedDossier.date_disparition).toLocaleDateString('fr-FR')}</p>
+                  {selectedDossier.lieu_disparition && <p><strong>Lieu:</strong> {selectedDossier.lieu_disparition}</p>}
+                  {selectedDossier.age_moment_disparition != null && <p><strong>Âge:</strong> {selectedDossier.age_moment_disparition} ans</p>}
+                  {selectedDossier.description && <p><strong>Description:</strong> {selectedDossier.description}</p>}
+                  {selectedDossier.declarant && <p><strong>Déclarant:</strong> {selectedDossier.declarant.nom} ({selectedDossier.declarant.email})</p>}
+                  <p><strong>Signalements:</strong> {selectedDossier._signalements ?? 0}</p>
+                  <p><strong>Créé le:</strong> {new Date(selectedDossier.created_at).toLocaleDateString('fr-FR')}</p>
+                </div>
+                <div className={styles['sa-dossiers-critiques__modal-actions']}>
+                  <button type="button" className={styles['sa-dossiers-critiques__modal-btn-primary']} onClick={() => navigate(`/super-admin/dossiers/${selectedDossier.id}`)}>
+                    <Eye size={16} /> Voir détail complet
+                  </button>
+                  <button type="button" className={styles['sa-dossiers-critiques__modal-btn-secondary']} onClick={() => { setSelectedDossier(null); navigate(`/super-admin/dossiers?edit=${selectedDossier.id}`); }}>
+                    <Edit2 size={16} /> Modifier
+                  </button>
+                  <button type="button" className={styles['sa-dossiers-critiques__modal-btn-close']} onClick={() => setSelectedDossier(null)}>
+                    <X size={16} /> Fermer
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

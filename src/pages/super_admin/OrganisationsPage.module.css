@@ -69,6 +69,32 @@
   box-shadow: 0 8px 16px rgba(29, 78, 216, 0.3);
 }
 
+.sa-organisations__export-btn {
+  font-family: var(--sa-font);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  color: var(--sa-primary);
+  border: 1px solid var(--sa-primary);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sa-organisations__export-btn:hover:not(:disabled) {
+  background: var(--sa-primary);
+  color: white;
+}
+
+.sa-organisations__export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sa-organisations__error {
   display: flex;
   align-items: center;
@@ -456,6 +482,91 @@
 
 .sa-organisations__view-details strong {
   color: #1f2937;
+}
+
+.sa-organisations__users-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sa-organisations__users-title {
+  font-family: var(--sa-font);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sa-organisations__users-title svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--sa-primary);
+}
+
+.sa-organisations__users-loading,
+.sa-organisations__users-empty {
+  font-family: var(--sa-font);
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sa-organisations__users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.sa-organisations__user-card {
+  font-family: var(--sa-font);
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.sa-organisations__user-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.sa-organisations__user-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.sa-organisations__user-email {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.sa-organisations__user-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.sa-organisations__user-badge {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

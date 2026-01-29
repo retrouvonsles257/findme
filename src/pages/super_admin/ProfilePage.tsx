@@ -6,13 +6,15 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
+import { uploadFileToCloudinary } from '../../services/cloudinary';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { 
   User, Mail, Phone, MapPin, Shield, Lock, Save,
-  Loader2, AlertCircle, Check, Eye, EyeOff, Camera
+  Loader2, AlertCircle, Check, Eye, EyeOff, Camera,
+  Calendar, Globe, Map, Bell, Settings, Minus, Plus
 } from 'lucide-react';
 import styles from './ProfilePage.module.css';
 
@@ -24,9 +26,28 @@ interface UserProfile {
   telephone?: string;
   adresse?: string;
   ville?: string;
+  region?: string;
   pays?: string;
   photo_profil?: string;
-  bio?: string;
+  date_naissance?: string;
+  numero_badge?: string;
+  document_accreditation?: string;
+  latitude_actuelle?: number;
+  longitude_actuelle?: number;
+  rayon_notification_km?: number;
+  preferences_notification?: Record<string, any> | null;
+  langue_preferee?: string;
+  accepte_notifications?: boolean;
+  accepte_geolocalisation?: boolean;
+  score_fiabilite?: number;
+  nombre_signalements_valides?: number;
+  nombre_signalements_invalides?: number;
+  derniere_connexion?: string;
+  derniere_maj_localisation?: string;
+  ip_derniere_connexion?: string;
+  id_organisation?: string;
+  statut_compte?: string;
+  type_compte?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -47,8 +68,18 @@ export const SuperAdminProfilePage: React.FC = () => {
     telephone: '',
     adresse: '',
     ville: '',
+    region: '',
     pays: '',
-    bio: '',
+    date_naissance: '',
+    numero_badge: '',
+    document_accreditation: '',
+    latitude_actuelle: '',
+    longitude_actuelle: '',
+    rayon_notification_km: '',
+    preferences_notification: '',
+    langue_preferee: 'fr',
+    accepte_notifications: true,
+    accepte_geolocalisation: false,
   });
 
   // Password change
@@ -64,6 +95,8 @@ export const SuperAdminProfilePage: React.FC = () => {
     confirm: false,
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -91,8 +124,18 @@ export const SuperAdminProfilePage: React.FC = () => {
         telephone: data.telephone || '',
         adresse: data.adresse || '',
         ville: data.ville || '',
+        region: data.region || '',
         pays: data.pays || '',
-        bio: data.bio || '',
+        date_naissance: data.date_naissance || '',
+        numero_badge: data.numero_badge || '',
+        document_accreditation: data.document_accreditation || '',
+        latitude_actuelle: data.latitude_actuelle?.toString() || '',
+        longitude_actuelle: data.longitude_actuelle?.toString() || '',
+        rayon_notification_km: data.rayon_notification_km?.toString() || '',
+        preferences_notification: data.preferences_notification ? JSON.stringify(data.preferences_notification, null, 2) : '',
+        langue_preferee: data.langue_preferee || 'fr',
+        accepte_notifications: data.accepte_notifications ?? true,
+        accepte_geolocalisation: data.accepte_geolocalisation ?? false,
       });
     } catch (err: any) {
       console.error('Erreur chargement profil:', err);
@@ -106,6 +149,43 @@ export const SuperAdminProfilePage: React.FC = () => {
     loadProfile();
   }, [loadProfile]);
 
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    e.target.value = '';
+    try {
+      setIsUploadingPhoto(true);
+      setError(null);
+      setSuccess(null);
+
+      const result = await uploadFileToCloudinary(file, {
+        type: 'profilePhoto',
+      });
+
+      if (!result.success || (!result.secureUrl && !result.url)) {
+        setError(result.error || 'Erreur lors de l\'upload Cloudinary.');
+        return;
+      }
+
+      const photoUrl = result.secureUrl ?? result.url!;
+      const { error: updateError } = await (supabase as any)
+        .from('utilisateur')
+        .update({
+          photo_profil: photoUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+      setSuccess('Photo de profil mise à jour');
+      loadProfile();
+    } catch (err: any) {
+      setError(err?.message || 'Erreur lors de l\'upload');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -116,18 +196,44 @@ export const SuperAdminProfilePage: React.FC = () => {
 
       if (!profile) throw new Error('Profil non chargé');
 
+      // Parser les préférences de notification JSON
+      let preferencesJson = null;
+      if (formData.preferences_notification.trim()) {
+        try {
+          preferencesJson = JSON.parse(formData.preferences_notification);
+        } catch (parseError) {
+          setError('Format JSON invalide pour les préférences de notification');
+          return;
+        }
+      }
+
+      const updateData: any = {
+        nom: formData.nom,
+        prenom: formData.prenom || null,
+        telephone: formData.telephone || null,
+        adresse: formData.adresse || null,
+        ville: formData.ville || null,
+        region: formData.region || null,
+        pays: formData.pays || null,
+        date_naissance: formData.date_naissance || null,
+        numero_badge: formData.numero_badge || null,
+        document_accreditation: formData.document_accreditation || null,
+        latitude_actuelle: formData.latitude_actuelle ? parseFloat(formData.latitude_actuelle) : null,
+        longitude_actuelle: formData.longitude_actuelle ? parseFloat(formData.longitude_actuelle) : null,
+        rayon_notification_km: formData.rayon_notification_km ? parseFloat(formData.rayon_notification_km) : null,
+        langue_preferee: formData.langue_preferee || 'fr',
+        accepte_notifications: formData.accepte_notifications,
+        accepte_geolocalisation: formData.accepte_geolocalisation,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (preferencesJson !== null) {
+        updateData.preferences_notification = preferencesJson;
+      }
+
       const { error: updateError } = await (supabase as any)
         .from('utilisateur')
-        .update({
-          nom: formData.nom,
-          prenom: formData.prenom || null,
-          telephone: formData.telephone || null,
-          adresse: formData.adresse || null,
-          ville: formData.ville || null,
-          pays: formData.pays || null,
-          bio: formData.bio || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', profile.id);
 
       if (updateError) throw updateError;
@@ -175,6 +281,64 @@ export const SuperAdminProfilePage: React.FC = () => {
     }
   };
 
+  const roundStep = (v: number, s: number) => {
+    if (s >= 1) return Math.round(v);
+    if (s >= 0.01) return Math.round(v * 100) / 100;
+    return Math.round(v * 10000) / 10000;
+  };
+  const Stepper = (
+    {
+      value,
+      onChange,
+      min,
+      max,
+      step = 1,
+    }: {
+      value: number;
+      onChange: (v: number) => void;
+      min: number;
+      max: number;
+      step?: number;
+    }
+  ) => (
+    <div className={styles['sa-profile__stepper']}>
+      <button
+        type="button"
+        className={styles['sa-profile__stepper-btn']}
+        onClick={() => onChange(roundStep(Math.max(min, value - step), step))}
+        disabled={value <= min}
+        aria-label="Diminuer"
+      >
+        <Minus size={14} />
+      </button>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) =>
+          onChange(
+            roundStep(
+              Math.min(max, Math.max(min, parseFloat(e.target.value) || min)),
+              step
+            )
+          )
+        }
+        min={min}
+        max={max}
+        step={step}
+        className={styles['sa-profile__stepper-input']}
+      />
+      <button
+        type="button"
+        className={styles['sa-profile__stepper-btn']}
+        onClick={() => onChange(roundStep(Math.min(max, value + step), step))}
+        disabled={value >= max}
+        aria-label="Augmenter"
+      >
+        <Plus size={14} />
+      </button>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <SuperAdminLayout title="Mon Profil" activeNav="profile">
@@ -212,8 +376,22 @@ export const SuperAdminProfilePage: React.FC = () => {
               ) : (
                 <User size={48} />
               )}
-              <button className={styles['sa-profile__avatar-edit']}>
-                <Camera size={16} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className={styles['sa-profile__avatar-input']}
+                onChange={handlePhotoChange}
+                aria-label="Changer la photo"
+              />
+              <button
+                type="button"
+                className={styles['sa-profile__avatar-edit']}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingPhoto}
+                title="Changer la photo"
+              >
+                {isUploadingPhoto ? <Loader2 size={16} className={styles['sa-profile__spinner']} /> : <Camera size={16} />}
               </button>
             </div>
             <div className={styles['sa-profile__header-info']}>
@@ -287,19 +465,134 @@ export const SuperAdminProfilePage: React.FC = () => {
                   type="text"
                   value={formData.adresse}
                   onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                  placeholder="Votre adresse"
+                  placeholder="Votre adresse complète"
+                />
+              </div>
+
+              <div className={styles['sa-profile__form-field']}>
+                <label><MapPin size={16} /> Région</label>
+                <input
+                  type="text"
+                  value={formData.region}
+                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                  placeholder="Votre région"
+                />
+              </div>
+
+              <div className={styles['sa-profile__form-field']}>
+                <label><Calendar size={16} /> Date de naissance</label>
+                <input
+                  type="date"
+                  value={formData.date_naissance}
+                  onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
+                />
+              </div>
+
+              <div className={styles['sa-profile__form-field']}>
+                <label><Shield size={16} /> Numéro de badge</label>
+                <input
+                  type="text"
+                  value={formData.numero_badge}
+                  onChange={(e) => setFormData({ ...formData, numero_badge: e.target.value })}
+                  placeholder="Numéro de badge (si applicable)"
+                />
+              </div>
+
+              <div className={styles['sa-profile__form-field']}>
+                <label><Shield size={16} /> Document d'accréditation</label>
+                <input
+                  type="text"
+                  value={formData.document_accreditation}
+                  onChange={(e) => setFormData({ ...formData, document_accreditation: e.target.value })}
+                  placeholder="Référence du document d'accréditation"
                 />
               </div>
             </div>
 
+            <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>Localisation</h3>
+            <div className={styles['sa-profile__form-grid']}>
+              <div className={styles['sa-profile__form-field']}>
+                <label><Map size={16} /> Latitude</label>
+                <Stepper
+                  value={parseFloat(formData.latitude_actuelle) || 0}
+                  onChange={(v) => setFormData({ ...formData, latitude_actuelle: String(v) })}
+                  min={-90}
+                  max={90}
+                  step={0.0001}
+                />
+              </div>
+              <div className={styles['sa-profile__form-field']}>
+                <label><Map size={16} /> Longitude</label>
+                <Stepper
+                  value={parseFloat(formData.longitude_actuelle) || 0}
+                  onChange={(v) => setFormData({ ...formData, longitude_actuelle: String(v) })}
+                  min={-180}
+                  max={180}
+                  step={0.0001}
+                />
+              </div>
+              <div className={styles['sa-profile__form-field']}>
+                <label><MapPin size={16} /> Rayon de notification (km)</label>
+                <Stepper
+                  value={parseFloat(formData.rayon_notification_km) || 0}
+                  onChange={(v) => setFormData({ ...formData, rayon_notification_km: String(v) })}
+                  min={0}
+                  max={500}
+                  step={0.5}
+                />
+              </div>
+            </div>
+
+            <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>Préférences</h3>
+            <div className={styles['sa-profile__form-grid']}>
+              <div className={styles['sa-profile__form-field']}>
+                <label><Globe size={16} /> Langue préférée</label>
+                <select
+                  value={formData.langue_preferee}
+                  onChange={(e) => setFormData({ ...formData, langue_preferee: e.target.value })}
+                >
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+
+              <div className={styles['sa-profile__form-field']} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="accepte_notifications"
+                  checked={formData.accepte_notifications}
+                  onChange={(e) => setFormData({ ...formData, accepte_notifications: e.target.checked })}
+                />
+                <label htmlFor="accepte_notifications" style={{ margin: 0, cursor: 'pointer' }}>
+                  <Bell size={16} /> Accepter les notifications
+                </label>
+              </div>
+
+              <div className={styles['sa-profile__form-field']} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="accepte_geolocalisation"
+                  checked={formData.accepte_geolocalisation}
+                  onChange={(e) => setFormData({ ...formData, accepte_geolocalisation: e.target.checked })}
+                />
+                <label htmlFor="accepte_geolocalisation" style={{ margin: 0, cursor: 'pointer' }}>
+                  <Map size={16} /> Accepter la géolocalisation
+                </label>
+              </div>
+            </div>
+
             <div className={styles['sa-profile__form-field']}>
-              <label>Bio</label>
+              <label><Settings size={16} /> Préférences de notification (JSON)</label>
               <textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Quelques mots sur vous..."
-                rows={3}
+                value={formData.preferences_notification}
+                onChange={(e) => setFormData({ ...formData, preferences_notification: e.target.value })}
+                placeholder='{"email": true, "sms": false, "push": true}'
+                rows={4}
+                style={{ fontFamily: 'monospace', fontSize: '12px' }}
               />
+              <small style={{ color: '#666', fontSize: '12px' }}>
+                Format JSON valide requis pour les préférences de notification
+              </small>
             </div>
 
             <div className={styles['sa-profile__form-actions']}>
@@ -371,14 +664,33 @@ export const SuperAdminProfilePage: React.FC = () => {
           </div>
 
           {/* Account Info */}
-          {profile?.created_at && (
-            <div className={styles['sa-profile__account-info']}>
+          <div className={styles['sa-profile__account-info']}>
+            <h3>Informations du compte</h3>
+            {profile?.created_at && (
               <p>Compte créé le {new Date(profile.created_at).toLocaleDateString('fr-FR')}</p>
-              {profile.updated_at && (
-                <p>Dernière modification le {new Date(profile.updated_at).toLocaleDateString('fr-FR')}</p>
-              )}
-            </div>
-          )}
+            )}
+            {profile?.updated_at && (
+              <p>Dernière modification le {new Date(profile.updated_at).toLocaleDateString('fr-FR')}</p>
+            )}
+            {profile?.derniere_connexion && (
+              <p>Dernière connexion le {new Date(profile.derniere_connexion).toLocaleString('fr-FR')}</p>
+            )}
+            {profile?.statut_compte && (
+              <p>Statut: <strong>{profile.statut_compte}</strong></p>
+            )}
+            {profile?.type_compte && (
+              <p>Type de compte: <strong>{profile.type_compte}</strong></p>
+            )}
+            {profile?.score_fiabilite !== undefined && (
+              <p>Score de fiabilité: <strong>{profile.score_fiabilite}</strong></p>
+            )}
+            {(profile?.nombre_signalements_valides !== undefined || profile?.nombre_signalements_invalides !== undefined) && (
+              <p>
+                Signalements: <strong>{profile.nombre_signalements_valides || 0} valides</strong>, 
+                {' '}<strong>{profile.nombre_signalements_invalides || 0} invalides</strong>
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </SuperAdminLayout>

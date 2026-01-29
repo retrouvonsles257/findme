@@ -138,6 +138,49 @@
   color: var(--authority-text-dark, #1e293b);
 }
 
+/* Header avatar (profile photo) */
+.headerAvatarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  overflow: hidden;
+}
+
+.headerAvatarBtn:hover {
+  background: #f1f5f9;
+}
+
+.headerAvatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--authority-primary, #1d4ed8);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.headerAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
 /* Language Selector */
 .languageWrapper {
   position: relative;

@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { Shield, Lock, Key, Save, Loader2, AlertCircle, CheckCircle, Eye, Clock, Users } from 'lucide-react';
+import { Shield, Lock, Key, Save, Loader2, AlertCircle, CheckCircle, Eye, Clock, Users, Minus, Plus, RefreshCw } from 'lucide-react';
 import styles from './SecurityPage.module.css';
 
 interface SecurityConfig {
@@ -128,6 +128,27 @@ export const SuperAdminSecurityPage: React.FC = () => {
 
   const hasChanges = JSON.stringify(config) !== JSON.stringify(originalConfig);
 
+  const handleReset = () => setConfig(DEFAULT_CONFIG);
+  const roundStep = (v: number, s: number) => {
+    if (s >= 1) return Math.round(v);
+    const d = s <= 0.01 ? 100 : 10;
+    return Math.round(v * d) / d;
+  };
+  const Stepper = (
+    { value, onChange, min, max, step = 1, disabled }: 
+    { value: number; onChange: (v: number) => void; min: number; max: number; step?: number; disabled?: boolean }
+  ) => (
+    <div className={styles['sa-security__stepper']}>
+      <button type="button" className={styles['sa-security__stepper-btn']} onClick={() => onChange(roundStep(Math.max(min, value - step), step))} disabled={disabled || value <= min} aria-label="Diminuer">
+        <Minus size={14} />
+      </button>
+      <input type="number" value={value} onChange={(e) => onChange(roundStep(Math.min(max, Math.max(min, parseFloat(e.target.value) || min)), step))} min={min} max={max} step={step} disabled={disabled} className={styles['sa-security__stepper-input']} />
+      <button type="button" className={styles['sa-security__stepper-btn']} onClick={() => onChange(roundStep(Math.min(max, value + step), step))} disabled={disabled || value >= max} aria-label="Augmenter">
+        <Plus size={14} />
+      </button>
+    </div>
+  );
+
   return (
     <SuperAdminLayout
       title={t('super_admin.securityTitle') || 'Sécurité'}
@@ -205,14 +226,7 @@ export const SuperAdminSecurityPage: React.FC = () => {
                       <small>Déconnexion automatique après inactivité</small>
                     </div>
                   </div>
-                  <input 
-                    type="number" 
-                    value={config.session_timeout_minutes}
-                    onChange={(e) => setConfig({ ...config, session_timeout_minutes: parseInt(e.target.value) || 0 })}
-                    min={5}
-                    max={480}
-                    className={styles['sa-security__number-input']}
-                  />
+                  <Stepper value={config.session_timeout_minutes} onChange={(v) => setConfig({ ...config, session_timeout_minutes: v })} min={5} max={480} />
                 </div>
                 <div className={styles['sa-security__setting']}>
                   <div className={styles['sa-security__setting-info']}>
@@ -222,14 +236,7 @@ export const SuperAdminSecurityPage: React.FC = () => {
                       <small>Avant verrouillage du compte</small>
                     </div>
                   </div>
-                  <input 
-                    type="number" 
-                    value={config.max_login_attempts}
-                    onChange={(e) => setConfig({ ...config, max_login_attempts: parseInt(e.target.value) || 0 })}
-                    min={3}
-                    max={10}
-                    className={styles['sa-security__number-input']}
-                  />
+                  <Stepper value={config.max_login_attempts} onChange={(v) => setConfig({ ...config, max_login_attempts: v })} min={3} max={10} />
                 </div>
               </div>
             </div>
@@ -266,15 +273,7 @@ export const SuperAdminSecurityPage: React.FC = () => {
                       <small>Par utilisateur</small>
                     </div>
                   </div>
-                  <input 
-                    type="number" 
-                    value={config.max_requests_per_hour}
-                    onChange={(e) => setConfig({ ...config, max_requests_per_hour: parseInt(e.target.value) || 0 })}
-                    min={100}
-                    max={10000}
-                    disabled={!config.api_rate_limiting}
-                    className={styles['sa-security__number-input']}
-                  />
+                  <Stepper value={config.max_requests_per_hour} onChange={(v) => setConfig({ ...config, max_requests_per_hour: v })} min={100} max={10000} disabled={!config.api_rate_limiting} />
                 </div>
               </div>
             </div>
@@ -294,14 +293,7 @@ export const SuperAdminSecurityPage: React.FC = () => {
                       <small>Nombre de caractères requis</small>
                     </div>
                   </div>
-                  <input 
-                    type="number" 
-                    value={config.password_min_length}
-                    onChange={(e) => setConfig({ ...config, password_min_length: parseInt(e.target.value) || 0 })}
-                    min={6}
-                    max={20}
-                    className={styles['sa-security__number-input']}
-                  />
+                  <Stepper value={config.password_min_length} onChange={(v) => setConfig({ ...config, password_min_length: v })} min={6} max={20} />
                 </div>
                 <div className={styles['sa-security__setting']}>
                   <div className={styles['sa-security__setting-info']}>
@@ -360,14 +352,14 @@ export const SuperAdminSecurityPage: React.FC = () => {
               </div>
             )}
 
-            {/* Save Button */}
+            {/* Actions */}
             <div className={styles['sa-security__actions']}>
-              <button 
-                className={styles['sa-security__save-btn']}
-                onClick={handleSave}
-                disabled={isSaving || !hasChanges}
-              >
-                {isSaving ? <Loader2 size={16} className={styles['sa-security__spinner']} /> : <Save size={16} />}
+              <button type="button" className={styles['sa-security__reset-btn']} onClick={handleReset}>
+                <RefreshCw size={18} />
+                Réinitialiser
+              </button>
+              <button type="button" className={styles['sa-security__save-btn']} onClick={handleSave} disabled={isSaving || !hasChanges}>
+                {isSaving ? <Loader2 size={18} className={styles['sa-security__spinner']} /> : <Save size={18} />}
                 Sauvegarder
               </button>
             </div>

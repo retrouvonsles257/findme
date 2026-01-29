@@ -25,6 +25,9 @@ import {
   DollarSign,
   Brain,
   Megaphone,
+  Image,
+  MessageSquare,
+  FileText,
 } from 'lucide-react';
 import styles from './Dashboardpage.module.css';
 
@@ -36,6 +39,11 @@ interface DashboardStats {
   totalAlerts: number;
   totalSignalements: number;
   pendingValidations: number;
+  totalNotifications: number;
+  unreadNotifications: number;
+  pendingPhotos: number;
+  confidentialComments: number;
+  totalDocuments: number;
 }
 
 export const SuperAdminDashboardPage: React.FC = () => {
@@ -50,6 +58,11 @@ export const SuperAdminDashboardPage: React.FC = () => {
     totalAlerts: 0,
     totalSignalements: 0,
     pendingValidations: 0,
+    totalNotifications: 0,
+    unreadNotifications: 0,
+    pendingPhotos: 0,
+    confidentialComments: 0,
+    totalDocuments: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +82,11 @@ export const SuperAdminDashboardPage: React.FC = () => {
           alertsResult,
           signalementsResult,
           pendingResult,
+          notificationsResult,
+          unreadNotificationsResult,
+          pendingPhotosResult,
+          confidentialCommentsResult,
+          documentsResult,
         ] = await Promise.all([
           (supabase as any).from('organisation').select('id', { count: 'exact', head: true }),
           (supabase as any).from('utilisateur').select('id', { count: 'exact', head: true }),
@@ -77,6 +95,11 @@ export const SuperAdminDashboardPage: React.FC = () => {
           (supabase as any).from('alerte').select('id', { count: 'exact', head: true }),
           (supabase as any).from('signalement').select('id', { count: 'exact', head: true }),
           (supabase as any).from('signalement').select('id', { count: 'exact', head: true }).eq('statut_validation', 'en_attente'),
+          (supabase as any).from('notification').select('id', { count: 'exact', head: true }),
+          (supabase as any).from('notification').select('id', { count: 'exact', head: true }).eq('lue', false),
+          (supabase as any).from('photo').select('id', { count: 'exact', head: true }).eq('approuvee', false),
+          (supabase as any).from('commentaire').select('id', { count: 'exact', head: true }).eq('confidentiel', true),
+          (supabase as any).from('document').select('id', { count: 'exact', head: true }),
         ]);
 
         setStats({
@@ -87,6 +110,11 @@ export const SuperAdminDashboardPage: React.FC = () => {
           totalAlerts: alertsResult.count || 0,
           totalSignalements: signalementsResult.count || 0,
           pendingValidations: pendingResult.count || 0,
+          totalNotifications: notificationsResult.count || 0,
+          unreadNotifications: unreadNotificationsResult.count || 0,
+          pendingPhotos: pendingPhotosResult.count || 0,
+          confidentialComments: confidentialCommentsResult.count || 0,
+          totalDocuments: documentsResult.count || 0,
         });
 
       } catch (err: any) {
@@ -108,6 +136,11 @@ export const SuperAdminDashboardPage: React.FC = () => {
     { label: t('super_admin.totalAlerts'), value: stats.totalAlerts.toString(), icon: Bell, color: '#8b5cf6' },
     { label: t('super_admin.totalSignalements') || 'Signalements', value: stats.totalSignalements.toString(), icon: Globe, color: '#06b6d4' },
     { label: t('super_admin.pendingValidations') || 'En attente', value: stats.pendingValidations.toString(), icon: AlertCircle, color: '#f97316' },
+    { label: 'Notifications système', value: stats.totalNotifications.toString(), icon: Bell, color: '#9333ea' },
+    { label: 'Notifications non lues', value: stats.unreadNotifications.toString(), icon: AlertCircle, color: '#dc2626' },
+    { label: 'Photos en attente', value: stats.pendingPhotos.toString(), icon: Image, color: '#ea580c' },
+    { label: 'Commentaires confidentiels', value: stats.confidentialComments.toString(), icon: MessageSquare, color: '#7c3aed' },
+    { label: 'Documents joints', value: stats.totalDocuments.toString(), icon: FileText, color: '#059669' },
     { label: t('super_admin.systemHealth'), value: '99%', icon: Heart, color: '#22c55e' },
   ];
 

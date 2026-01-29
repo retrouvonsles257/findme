@@ -6,13 +6,14 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useLogout } from '../../features/auth/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
+import { supabase } from '../../config';
 import { 
   Menu, 
   X, 
@@ -57,6 +58,33 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [headerSearch, setHeaderSearch] = useState('');
+  const [photoProfil, setPhotoProfil] = useState<string | null>(null);
+
+  const loadPhotoProfil = useCallback(async (uid: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('photo_profil')
+        .eq('id', uid)
+        .maybeSingle();
+      setPhotoProfil(data?.photo_profil || null);
+    } catch {
+      setPhotoProfil(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      let uid = userId;
+      if (!uid && typeof (supabase as any)?.auth?.getUser === 'function') {
+        const { data: { user } } = await (supabase as any).auth.getUser();
+        uid = user?.id;
+      }
+      if (uid) loadPhotoProfil(uid);
+      else setPhotoProfil(null);
+    };
+    load();
+  }, [userId, loadPhotoProfil, location.pathname]);
 
   // Sauvegarder l'état du sidebar
   useEffect(() => {
@@ -102,10 +130,13 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
     return 'U';
   };
 
-  const getUserPhoto = () => {
+  const getUserPhoto = (): string | null => {
+    if (photoProfil) return photoProfil;
     const user = currentUser as any;
     return user?.photo_profil || user?.avatar_url || null;
   };
+
+  const photo = getUserPhoto();
 
   const handleHeaderSearch = (event: FormEvent) => {
     event.preventDefault();
@@ -240,13 +271,13 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             title={isCollapsed ? (currentUser as any)?.nom_complet || (currentUser as any)?.email : undefined}
           >
-            {getUserPhoto() ? (
-              <img src={getUserPhoto()} alt="" className={styles.userAvatar} />
-            ) : (
-              <div className={styles.userAvatarPlaceholder}>
-                {getInitials()}
-              </div>
-            )}
+            <div className={styles.userAvatarPlaceholder}>
+              {photo ? (
+                <img src={photo} alt="" className={styles.userAvatarImg} />
+              ) : (
+                getInitials()
+              )}
+            </div>
             {!isCollapsed && (
               <span className={styles.userName}>
                 {(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
@@ -334,13 +365,13 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
               onClick={() => navigate('/citizen/profile')}
               title={(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
             >
-              {getUserPhoto() ? (
-                <img src={getUserPhoto()} alt="" className={styles.topHeaderUserAvatar} />
-              ) : (
-                <div className={styles.topHeaderUserAvatarPlaceholder}>
-                  {getInitials()}
-                </div>
-              )}
+              <div className={styles.topHeaderUserAvatarPlaceholder}>
+                {photo ? (
+                  <img src={photo} alt="" className={styles.userAvatarImg} />
+                ) : (
+                  getInitials()
+                )}
+              </div>
               <span className={styles.topHeaderUserName}>
                 {(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
               </span>
@@ -381,16 +412,17 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
             </button>
             {/* Avatar dans le header mobile */}
             <button 
+              type="button"
               className={styles.mobileAvatarBtn}
               onClick={() => setMobileOpen(true)}
             >
-              {getUserPhoto() ? (
-                <img src={getUserPhoto()} alt="" className={styles.mobileAvatar} />
-              ) : (
-                <div className={styles.mobileAvatarPlaceholder}>
-                  {getInitials()}
-                </div>
-              )}
+              <div className={styles.mobileAvatarPlaceholder}>
+                {photo ? (
+                  <img src={photo} alt="" className={styles.userAvatarImg} />
+                ) : (
+                  getInitials()
+                )}
+              </div>
             </button>
           </div>
         </header>

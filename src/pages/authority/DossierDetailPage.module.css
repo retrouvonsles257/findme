@@ -21,6 +21,12 @@
   transition: all 0.2s ease;
 }
 
+.backButton svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
 .backButton:hover {
   background: #e2e8f0;
   color: #1d4ed8;
@@ -162,6 +168,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.tab svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
 .tab:hover {
@@ -501,6 +513,13 @@
   gap: 0.5rem;
 }
 
+.infoBlock h3 svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  opacity: 0.9;
+}
+
 .infoItem {
   margin-bottom: 1rem;
 }
@@ -582,6 +601,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.tabContent h3 svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
 }
 
 .itemsList {

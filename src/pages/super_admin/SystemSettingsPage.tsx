@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { Settings, Save, Loader2, AlertCircle, CheckCircle, Globe, Database, Mail, Bell } from 'lucide-react';
+import { Settings, Save, Loader2, AlertCircle, CheckCircle, Globe, Database, Mail, Bell, Minus, Plus, RefreshCw } from 'lucide-react';
 import styles from './SystemSettingsPage.module.css';
 
 interface SystemConfig {
@@ -118,6 +118,27 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
   };
 
   const hasChanges = JSON.stringify(config) !== JSON.stringify(originalConfig);
+
+  const handleReset = () => setConfig(DEFAULT_CONFIG);
+  const roundStep = (v: number, s: number) => {
+    if (s >= 1) return Math.round(v);
+    const d = s <= 0.01 ? 100 : 10;
+    return Math.round(v * d) / d;
+  };
+  const Stepper = (
+    { value, onChange, min, max, step = 1, disabled }: 
+    { value: number; onChange: (v: number) => void; min: number; max: number; step?: number; disabled?: boolean }
+  ) => (
+    <div className={styles['sa-system-settings__stepper']}>
+      <button type="button" className={styles['sa-system-settings__stepper-btn']} onClick={() => onChange(roundStep(Math.max(min, value - step), step))} disabled={disabled || value <= min} aria-label="Diminuer">
+        <Minus size={14} />
+      </button>
+      <input type="number" value={value} onChange={(e) => onChange(roundStep(Math.min(max, Math.max(min, parseFloat(e.target.value) || min)), step))} min={min} max={max} step={step} disabled={disabled} className={styles['sa-system-settings__stepper-input']} />
+      <button type="button" className={styles['sa-system-settings__stepper-btn']} onClick={() => onChange(roundStep(Math.min(max, value + step), step))} disabled={disabled || value >= max} aria-label="Augmenter">
+        <Plus size={14} />
+      </button>
+    </div>
+  );
 
   return (
     <SuperAdminLayout
@@ -244,12 +265,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                 </div>
                 <div className={styles['sa-system-settings__field']}>
                   <label>Port SMTP</label>
-                  <input 
-                    type="number" 
-                    value={config.smtp_port}
-                    onChange={(e) => setConfig({ ...config, smtp_port: parseInt(e.target.value) || 587 })}
-                    disabled={!config.email_notifications_enabled}
-                  />
+                  <Stepper value={config.smtp_port} onChange={(v) => setConfig({ ...config, smtp_port: v })} min={1} max={65535} disabled={!config.email_notifications_enabled} />
                 </div>
                 <div className={styles['sa-system-settings__field']}>
                   <label>Email support</label>
@@ -271,13 +287,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
               <div className={styles['sa-system-settings__form']}>
                 <div className={styles['sa-system-settings__field']}>
                   <label>Taille max upload (Mo)</label>
-                  <input 
-                    type="number" 
-                    value={config.max_file_upload_mb}
-                    onChange={(e) => setConfig({ ...config, max_file_upload_mb: parseInt(e.target.value) || 10 })}
-                    min={1}
-                    max={100}
-                  />
+                  <Stepper value={config.max_file_upload_mb} onChange={(v) => setConfig({ ...config, max_file_upload_mb: v })} min={1} max={100} />
                 </div>
                 <div className={styles['sa-system-settings__field']}>
                   <label>Types de fichiers autorisés</label>
@@ -290,13 +300,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                 </div>
                 <div className={styles['sa-system-settings__field']}>
                   <label>Rétention des données (jours)</label>
-                  <input 
-                    type="number" 
-                    value={config.data_retention_days}
-                    onChange={(e) => setConfig({ ...config, data_retention_days: parseInt(e.target.value) || 365 })}
-                    min={30}
-                    max={3650}
-                  />
+                  <Stepper value={config.data_retention_days} onChange={(v) => setConfig({ ...config, data_retention_days: v })} min={30} max={3650} />
                 </div>
                 <div className={styles['sa-system-settings__field-toggle']}>
                   <label>Sauvegarde automatique</label>
@@ -311,26 +315,19 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                 </div>
                 <div className={styles['sa-system-settings__field']}>
                   <label>Fréquence sauvegarde (heures)</label>
-                  <input 
-                    type="number" 
-                    value={config.backup_frequency_hours}
-                    onChange={(e) => setConfig({ ...config, backup_frequency_hours: parseInt(e.target.value) || 24 })}
-                    min={1}
-                    max={168}
-                    disabled={!config.auto_backup_enabled}
-                  />
+                  <Stepper value={config.backup_frequency_hours} onChange={(v) => setConfig({ ...config, backup_frequency_hours: v })} min={1} max={168} disabled={!config.auto_backup_enabled} />
                 </div>
               </div>
             </div>
 
-            {/* Save Button */}
+            {/* Actions */}
             <div className={styles['sa-system-settings__actions']}>
-              <button 
-                className={styles['sa-system-settings__save-btn']}
-                onClick={handleSave}
-                disabled={isSaving || !hasChanges}
-              >
-                {isSaving ? <Loader2 size={16} className={styles['sa-system-settings__spinner']} /> : <Save size={16} />}
+              <button type="button" className={styles['sa-system-settings__reset-btn']} onClick={handleReset}>
+                <RefreshCw size={18} />
+                Réinitialiser
+              </button>
+              <button type="button" className={styles['sa-system-settings__save-btn']} onClick={handleSave} disabled={isSaving || !hasChanges}>
+                {isSaving ? <Loader2 size={18} className={styles['sa-system-settings__spinner']} /> : <Save size={18} />}
                 Sauvegarder
               </button>
             </div>

@@ -158,6 +158,25 @@
 .sa-roles__card-icon--green { background: linear-gradient(135deg, #16a34a, #22c55e); }
 .sa-roles__card-icon--gray { background: linear-gradient(135deg, #6b7280, #9ca3af); }
 
+.sa-roles__badge-img {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.sa-roles__view-badge {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.sa-roles__view-badge .sa-roles__badge-img {
+  width: 3rem;
+  height: 3rem;
+}
+
 .sa-roles__niveau {
   font-family: var(--sa-font);
   font-size: 0.75rem;
@@ -427,6 +446,91 @@
 .sa-roles__modal-footer button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.sa-roles__users-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sa-roles__users-title {
+  font-family: var(--sa-font);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sa-roles__users-title svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--sa-primary);
+}
+
+.sa-roles__users-loading,
+.sa-roles__users-empty {
+  font-family: var(--sa-font);
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sa-roles__users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.sa-roles__user-card {
+  font-family: var(--sa-font);
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.sa-roles__user-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.sa-roles__user-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.sa-roles__user-email {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.sa-roles__user-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.sa-roles__user-badge {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

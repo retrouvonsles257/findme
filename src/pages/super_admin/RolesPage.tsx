@@ -12,7 +12,7 @@ import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { 
   Shield, Users, Plus, Edit2, Trash2, X, Check, 
-  Loader2, AlertCircle, Search
+  Loader2, AlertCircle, Search, Eye, CheckCircle, Download
 } from 'lucide-react';
 import styles from './RolesPage.module.css';
 
@@ -21,6 +21,7 @@ interface Role {
   nom_role: string;
   description?: string;
   niveau_accreditation: number;
+  permissions?: Record<string, any> | null;
   created_at: string;
   _count?: { utilisateurs: number };
 }
@@ -38,12 +39,26 @@ const NOM_ROLE_OPTIONS = [
   { value: 'citoyen_standard', label: 'Citoyen Standard' },
 ];
 
+// Badges (images) par rôle – public/assets/images/
+const ROLE_BADGE_IMAGES: Record<string, string> = {
+  citoyen_standard: '/assets/images/niveau_0_citoyen_standard.png',
+  citoyen_verifie: '/assets/images/niveau_1_citoyen_verifie.png',
+  operateur_saisie: '/assets/images/niveau_2_operateur_saisie.png',
+  moderateur: '/assets/images/niveau_3_moderateur.png',
+  officier_police: '/assets/images/niveau_4_officier_police.png',
+  agent_gendarmerie: '/assets/images/niveau_4_officier_police.png',
+  responsable_ong: '/assets/images/niveau_5_responsable_ong.png',
+  admin_organisation: '/assets/images/niveau_6_admin_organisation.png',
+  super_admin: '/assets/images/niveau_7_super_admin.png',
+};
+
 export const SuperAdminRolesPage: React.FC = () => {
   useI18n(); // For future i18n support
   
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Modal states
@@ -51,16 +66,54 @@ export const SuperAdminRolesPage: React.FC = () => {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [viewingRole, setViewingRole] = useState<Role | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
     nom_role: '',
     description: '',
     niveau_accreditation: 1,
+    permissions: '',
   });
 
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Utilisateurs du rôle (modal vue)
+  const [roleUsers, setRoleUsers] = useState<any[]>([]);
+  const [loadingRoleUsers, setLoadingRoleUsers] = useState(false);
+
+  const loadRoleUsers = useCallback(async (roleId: string) => {
+    setLoadingRoleUsers(true);
+    try {
+      const { data: ur, error: urError } = await (supabase as any)
+        .from('utilisateur_role')
+        .select('id_utilisateur')
+        .eq('id_role', roleId);
+      if (urError) throw urError;
+      const ids = (ur || []).map((r: any) => r.id_utilisateur).filter(Boolean);
+      if (ids.length === 0) {
+        setRoleUsers([]);
+        return;
+      }
+      const { data: us, error: usError } = await (supabase as any)
+        .from('utilisateur')
+        .select('id, nom, prenom, email, telephone, statut_compte, type_compte, organisation:organisation(nom)')
+        .in('id', ids)
+        .order('nom');
+      if (usError) throw usError;
+      setRoleUsers(us || []);
+    } catch {
+      setRoleUsers([]);
+    } finally {
+      setLoadingRoleUsers(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (viewingRole?.id) loadRoleUsers(viewingRole.id);
+    else setRoleUsers([]);
+  }, [viewingRole?.id, loadRoleUsers]);
 
   const loadRoles = useCallback(async () => {
     try {
@@ -74,14 +127,14 @@ export const SuperAdminRolesPage: React.FC = () => {
 
       if (fetchError) throw fetchError;
 
-      // Compter les utilisateurs par rôle
+      // Compter les utilisateurs par rôle (utilisateur_role n'a pas de colonne id, PK = id_utilisateur + id_role)
       const rolesWithCounts = await Promise.all(
         (data || []).map(async (role: Role) => {
           const { count } = await (supabase as any)
             .from('utilisateur_role')
-            .select('id', { count: 'exact', head: true })
+            .select('id_utilisateur', { count: 'exact', head: true })
             .eq('id_role', role.id);
-          return { ...role, _count: { utilisateurs: count || 0 } };
+          return { ...role, _count: { utilisateurs: count ?? 0 } };
         })
       );
 
@@ -110,6 +163,7 @@ export const SuperAdminRolesPage: React.FC = () => {
       nom_role: '',
       description: '',
       niveau_accreditation: 1,
+      permissions: '',
     });
     setSelectedRole(null);
     setModalMode('create');
@@ -122,6 +176,7 @@ export const SuperAdminRolesPage: React.FC = () => {
       nom_role: role.nom_role,
       description: role.description || '',
       niveau_accreditation: role.niveau_accreditation,
+      permissions: role.permissions ? JSON.stringify(role.permissions, null, 2) : '',
     });
     setSelectedRole(role);
     setModalMode('edit');
@@ -133,28 +188,44 @@ export const SuperAdminRolesPage: React.FC = () => {
     try {
       setIsSaving(true);
       setError(null);
+      setSuccess(null);
+
+      // Parser les permissions JSON
+      let permissionsJson = null;
+      if (formData.permissions.trim()) {
+        try {
+          permissionsJson = JSON.parse(formData.permissions);
+        } catch (parseError) {
+          setError('Format JSON invalide pour les permissions');
+          return;
+        }
+      }
+
+      const roleData: any = {
+        nom_role: formData.nom_role,
+        description: formData.description || null,
+        niveau_accreditation: formData.niveau_accreditation,
+      };
+
+      if (permissionsJson !== null) {
+        roleData.permissions = permissionsJson;
+      }
 
       if (modalMode === 'create') {
         const { error: insertError } = await (supabase as any)
           .from('role')
-          .insert({
-            nom_role: formData.nom_role,
-            description: formData.description || null,
-            niveau_accreditation: formData.niveau_accreditation,
-          });
+          .insert(roleData);
 
         if (insertError) throw insertError;
+        setSuccess('Rôle créé avec succès');
       } else if (modalMode === 'edit' && selectedRole) {
         const { error: updateError } = await (supabase as any)
           .from('role')
-          .update({
-            nom_role: formData.nom_role,
-            description: formData.description || null,
-            niveau_accreditation: formData.niveau_accreditation,
-          })
+          .update(roleData)
           .eq('id', selectedRole.id);
 
         if (updateError) throw updateError;
+        setSuccess('Rôle modifié avec succès');
       }
 
       setShowModal(false);
@@ -215,6 +286,60 @@ export const SuperAdminRolesPage: React.FC = () => {
     return 'gray';
   };
 
+  const exportToCSV = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data: allRoles, error: fetchError } = await (supabase as any)
+        .from('role')
+        .select('*')
+        .order('niveau_accreditation', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      // Enrichir avec compteurs
+      const enrichedRoles = await Promise.all(
+        (allRoles || []).map(async (role: any) => {
+          const { count } = await (supabase as any)
+            .from('utilisateur_role')
+            .select('id_utilisateur', { count: 'exact', head: true })
+            .eq('id_role', role.id);
+          return { ...role, nombre_utilisateurs: count ?? 0 };
+        })
+      );
+
+      const headers = [
+        'ID', 'Nom rôle', 'Description', 'Niveau accréditation', 'Permissions', 'Nombre utilisateurs', 'Date création'
+      ];
+      
+      const rows = enrichedRoles.map((r: any) => [
+        r.id,
+        r.nom_role,
+        r.description || '',
+        r.niveau_accreditation,
+        r.permissions ? JSON.stringify(r.permissions) : '',
+        r.nombre_utilisateurs || 0,
+        r.created_at ? new Date(r.created_at).toLocaleString('fr-FR') : '',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row: any[]) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `roles_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    } catch (err: any) {
+      console.error('Erreur export CSV:', err);
+      setError('Erreur lors de l\'export: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <SuperAdminLayout title="Gestion des Rôles" activeNav="roles">
       <div className={styles['sa-roles']}>
@@ -229,10 +354,26 @@ export const SuperAdminRolesPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className={styles['sa-roles__add-btn']} onClick={openCreateModal}>
-            <Plus size={20} />
-            Nouveau rôle
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button onClick={exportToCSV} disabled={isLoading} style={{
+              background: '#f1f5f9',
+              color: '#475569',
+              border: '1px solid #e2e8f0',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              cursor: 'pointer'
+            }}>
+              <Download size={18} />
+              Exporter CSV
+            </button>
+            <button className={styles['sa-roles__add-btn']} onClick={openCreateModal}>
+              <Plus size={20} />
+              Nouveau rôle
+            </button>
+          </div>
         </div>
 
         {/* Error */}
@@ -241,6 +382,24 @@ export const SuperAdminRolesPage: React.FC = () => {
             <AlertCircle size={20} />
             <span>{error}</span>
             <button onClick={() => setError(null)}><X size={16} /></button>
+          </div>
+        )}
+
+        {/* Success */}
+        {success && (
+          <div className={styles['sa-roles__success']} style={{ 
+            background: '#d4edda', 
+            color: '#155724', 
+            padding: '12px 16px', 
+            borderRadius: '8px', 
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <CheckCircle size={20} />
+            <span>{success}</span>
+            <button onClick={() => setSuccess(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}><X size={16} /></button>
           </div>
         )}
 
@@ -261,7 +420,11 @@ export const SuperAdminRolesPage: React.FC = () => {
                 <div key={role.id} className={styles['sa-roles__card']}>
                   <div className={styles['sa-roles__card-header']}>
                     <div className={`${styles['sa-roles__card-icon']} ${styles[`sa-roles__card-icon--${getNiveauColor(role.niveau_accreditation)}`]}`}>
-                      <Shield size={24} />
+                      {ROLE_BADGE_IMAGES[role.nom_role] ? (
+                        <img src={ROLE_BADGE_IMAGES[role.nom_role]} alt="" className={styles['sa-roles__badge-img']} />
+                      ) : (
+                        <Shield size={24} />
+                      )}
                     </div>
                     <span className={`${styles['sa-roles__niveau']} ${styles[`sa-roles__niveau--${getNiveauColor(role.niveau_accreditation)}`]}`}>
                       Niveau {role.niveau_accreditation}
@@ -284,6 +447,7 @@ export const SuperAdminRolesPage: React.FC = () => {
                     </div>
                   </div>
                   <div className={styles['sa-roles__card-actions']}>
+                    <button onClick={() => setViewingRole(role)} title="Voir détails"><Eye size={16} /></button>
                     <button onClick={() => openEditModal(role)} title="Modifier"><Edit2 size={16} /></button>
                     <button 
                       onClick={() => setDeleteConfirm(role.id)} 
@@ -358,6 +522,19 @@ export const SuperAdminRolesPage: React.FC = () => {
                       1-19: Invité, 20-39: Utilisateur, 40-59: Opérateur, 60-79: Gestionnaire, 80-99: Admin, 100: Super Admin
                     </small>
                   </div>
+                  <div className={styles['sa-roles__form-field']}>
+                    <label>Permissions (JSON)</label>
+                    <textarea 
+                      value={formData.permissions} 
+                      onChange={(e) => setFormData({ ...formData, permissions: e.target.value })} 
+                      placeholder='{"can_view_public": true, "can_report": true, "can_create_dossier": false}'
+                      rows={6}
+                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                    />
+                    <small style={{ color: '#666', fontSize: '12px' }}>
+                      Format JSON valide requis. Exemple: {"{"}"can_view_public": true, "can_report": true{"}"}
+                    </small>
+                  </div>
                   <div className={styles['sa-roles__modal-footer']}>
                     <button type="button" onClick={() => setShowModal(false)}>Annuler</button>
                     <button type="submit" disabled={isSaving || !formData.nom_role}>
@@ -366,6 +543,110 @@ export const SuperAdminRolesPage: React.FC = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Role Details Modal */}
+        {viewingRole && (
+          <div className={styles['sa-roles__modal-overlay']} onClick={() => setViewingRole(null)}>
+            <div className={styles['sa-roles__modal']} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+              <div className={styles['sa-roles__modal-header']}>
+                <h2>Détails du rôle</h2>
+                <button onClick={() => setViewingRole(null)}><X size={20} /></button>
+              </div>
+
+              <div className={styles['sa-roles__modal-body']}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className={styles['sa-roles__view-badge']}>
+                    {ROLE_BADGE_IMAGES[viewingRole.nom_role] ? (
+                      <img src={ROLE_BADGE_IMAGES[viewingRole.nom_role]} alt="" className={styles['sa-roles__badge-img']} />
+                    ) : (
+                      <Shield size={32} />
+                    )}
+                  </div>
+                  <div>
+                    <strong>Nom du rôle:</strong>
+                    <p>{NOM_ROLE_OPTIONS.find(opt => opt.value === viewingRole.nom_role)?.label || viewingRole.nom_role}</p>
+                  </div>
+                  
+                  {viewingRole.description && (
+                    <div>
+                      <strong>Description:</strong>
+                      <p>{viewingRole.description}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <strong>Niveau d'accréditation:</strong>
+                    <p>{viewingRole.niveau_accreditation} - {getNiveauLabel(viewingRole.niveau_accreditation)}</p>
+                  </div>
+                  
+                  <div>
+                    <strong>Nombre d&apos;utilisateurs:</strong>
+                    <p>{viewingRole._count?.utilisateurs || 0}</p>
+                  </div>
+
+                  <div className={styles['sa-roles__users-section']}>
+                    <h4 className={styles['sa-roles__users-title']}>
+                      <Users size={18} />
+                      Liste des utilisateurs ({viewingRole._count?.utilisateurs || 0})
+                    </h4>
+                    {loadingRoleUsers ? (
+                      <div className={styles['sa-roles__users-loading']}>
+                        <Loader2 size={20} className={styles['sa-roles__spinner']} />
+                        Chargement…
+                      </div>
+                    ) : roleUsers.length === 0 ? (
+                      <p className={styles['sa-roles__users-empty']}>Aucun utilisateur</p>
+                    ) : (
+                      <div className={styles['sa-roles__users-list']}>
+                        {roleUsers.map((u) => (
+                          <div key={u.id} className={styles['sa-roles__user-card']}>
+                            <div className={styles['sa-roles__user-main']}>
+                              <span className={styles['sa-roles__user-name']}>{u.prenom} {u.nom}</span>
+                              <span className={styles['sa-roles__user-email']}>{u.email}</span>
+                            </div>
+                            <div className={styles['sa-roles__user-meta']}>
+                              {u.telephone && <span>Tél. {u.telephone}</span>}
+                              <span className={styles['sa-roles__user-badge']}>{u.statut_compte}</span>
+                              <span className={styles['sa-roles__user-badge']}>{u.type_compte}</span>
+                              {u.organisation?.nom && <span>Org. {u.organisation.nom}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <strong>Date de création:</strong>
+                    <p>{new Date(viewingRole.created_at).toLocaleString('fr-FR')}</p>
+                  </div>
+                  
+                  {viewingRole.permissions && (
+                    <div>
+                      <strong>Permissions:</strong>
+                      <pre style={{ 
+                        background: '#f5f5f5', 
+                        padding: '12px', 
+                        borderRadius: '6px', 
+                        overflow: 'auto',
+                        fontSize: '12px',
+                        fontFamily: 'monospace',
+                        maxHeight: '300px'
+                      }}>
+                        {JSON.stringify(viewingRole.permissions, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles['sa-roles__modal-footer']}>
+                <button type="button" onClick={() => setViewingRole(null)}>Fermer</button>
+                <button type="button" onClick={() => { setViewingRole(null); openEditModal(viewingRole); }}>Modifier</button>
               </div>
             </div>
           </div>

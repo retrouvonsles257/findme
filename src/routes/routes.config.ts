@@ -125,7 +125,10 @@ export const SUPER_ADMIN_ROUTES = {
   SECURITY: '/super-admin/security',
   SYSTEM_LOGS: '/super-admin/system-logs',
   SYSTEM_SETTINGS: '/super-admin/system-settings',
-  SYSTEM_USERS: '/super-admin/system-users'
+  SYSTEM_USERS: '/super-admin/system-users',
+  DOSSIERS: '/super-admin/dossiers',
+  ALERTES: '/super-admin/alertes',
+  MAINTENANCE: '/super-admin/maintenance'
 } as const;
 
 // ============================================

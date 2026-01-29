@@ -22,12 +22,15 @@ import {
   SuperAdminDossiersCritiquesPage,
   SuperAdminResultatsIAPage,
   SuperAdminSignalementValidationPage,
-  SuperAdminProfilePage
+  SuperAdminProfilePage,
+  SuperAdminDossiersPage,
+  SuperAdminDossierDetailPage,
+  SuperAdminAlertesPage,
+  SuperAdminMaintenancePage
 } from '../pages/super_admin';
 
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
-import { SUPER_ADMIN_ROUTES } from './routes.config';
 import { NomRole } from '../@types/enums.types';
 
 /**
@@ -158,12 +161,42 @@ const SuperAdminRoutes: React.FC = () => {
           }
         />
 
+        {/* Gestion complète des dossiers */}
+        <Route
+          path="/dossiers"
+          element={
+            <RoleBasedRoute requiredRoles={superAdminRoles}>
+              <SuperAdminDossiersPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Détail dossier — accès complet */}
+        <Route
+          path="/dossiers/:id"
+          element={
+            <RoleBasedRoute requiredRoles={superAdminRoles}>
+              <SuperAdminDossierDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* Dossiers critiques */}
         <Route
           path="/dossiers-critiques"
           element={
             <RoleBasedRoute requiredRoles={superAdminRoles}>
               <SuperAdminDossiersCritiquesPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Gestion complète des alertes */}
+        <Route
+          path="/alertes"
+          element={
+            <RoleBasedRoute requiredRoles={superAdminRoles}>
+              <SuperAdminAlertesPage />
             </RoleBasedRoute>
           }
         />
@@ -194,6 +227,16 @@ const SuperAdminRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={superAdminRoles}>
               <SuperAdminProfilePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Maintenance */}
+        <Route
+          path="/maintenance"
+          element={
+            <RoleBasedRoute requiredRoles={superAdminRoles}>
+              <SuperAdminMaintenancePage />
             </RoleBasedRoute>
           }
         />

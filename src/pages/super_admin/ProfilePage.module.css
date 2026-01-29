@@ -115,6 +115,20 @@
   background: rgba(0, 0, 0, 0.8);
 }
 
+.sa-profile__avatar-edit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.sa-profile__avatar-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
 .sa-profile__header-info h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
@@ -191,6 +205,57 @@
   color: var(--text-primary, #1a1a2e);
   background: var(--bg-primary, #fff);
   transition: border-color 0.2s;
+}
+
+/* Stepper (lat, long, rayon) */
+.sa-profile__stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--bg-primary, #fff);
+}
+
+.sa-profile__stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.5rem;
+  border: none;
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--primary-color, #6366f1);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sa-profile__stepper-btn:hover:not(:disabled) {
+  background: var(--primary-color, #6366f1);
+  color: #fff;
+}
+
+.sa-profile__stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sa-profile__stepper-input {
+  width: 6rem;
+  padding: 0.5rem 0.5rem;
+  border: none;
+  border-left: 1px solid var(--border-color, #e2e8f0);
+  border-right: 1px solid var(--border-color, #e2e8f0);
+  font-size: 0.9rem;
+  text-align: center;
+  background: #fff;
+  -moz-appearance: textfield;
+}
+
+.sa-profile__stepper-input::-webkit-outer-spin-button,
+.sa-profile__stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .sa-profile__form-field input:focus,

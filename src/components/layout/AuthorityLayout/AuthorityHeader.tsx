@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Menu,
   Search,
@@ -81,7 +81,36 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   const notificationRef = useRef<HTMLDivElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
-  
+  const location = useLocation();
+  const [photoProfil, setPhotoProfil] = useState<string | null>(null);
+
+  const loadPhotoProfil = useCallback(async (uid: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('photo_profil')
+        .eq('id', uid)
+        .maybeSingle();
+      setPhotoProfil(data?.photo_profil || null);
+    } catch {
+      setPhotoProfil(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) loadPhotoProfil(user.id);
+    else setPhotoProfil(null);
+  }, [user?.id, loadPhotoProfil, location.pathname]);
+
+  const getInitials = () => {
+    const m = user?.user_metadata as Record<string, any> | undefined;
+    if (m?.prenom && m?.nom) {
+      return `${(m.prenom as string)[0]}${(m.nom as string)[0]}`.toUpperCase();
+    }
+    if (user?.email) return user.email.slice(0, 2).toUpperCase();
+    return 'U';
+  };
+
   // Hook pour les messages de coordination
   const { messages, loading: messagesLoading } = useCoordinationMessages();
 
@@ -605,6 +634,21 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          className={styles.headerAvatarBtn}
+          onClick={() => navigate('/authority/profile')}
+          title={t('authority.sidebar.editProfile') || 'Profil'}
+        >
+          <div className={styles.headerAvatarPlaceholder}>
+            {photoProfil ? (
+              <img src={photoProfil} alt="" className={styles.headerAvatarImg} />
+            ) : (
+              getInitials()
+            )}
+          </div>
+        </button>
       </div>
     </header>
   );

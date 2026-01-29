@@ -5,7 +5,10 @@
  */
 
 .sa-ia-config {
-  padding: 1.5rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  padding: 1.5rem 2rem;
+  background: #f8fafc;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -102,6 +105,66 @@
   cursor: not-allowed;
 }
 
+/* Stepper (+ / -) */
+.sa-ia-config__stepper {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  max-width: 180px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.sa-ia-config__stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+  border: none;
+  background: #e2e8f0;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sa-ia-config__stepper-btn:hover:not(:disabled) {
+  background: #6366f1;
+  color: white;
+}
+
+.sa-ia-config__stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sa-ia-config__stepper-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.5rem;
+  border: none;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.sa-ia-config__stepper-input::-webkit-outer-spin-button,
+.sa-ia-config__stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sa-ia-config__stepper-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
 .sa-ia-config__hint {
   font-size: 0.75rem;
   color: #6b7280;
@@ -172,30 +235,37 @@
 /* Actions */
 .sa-ia-config__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+  flex-wrap: wrap;
 }
 
 .sa-ia-config__reset-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: white;
-  border: 1px solid #d1d5db;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
   border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .sa-ia-config__reset-btn:hover {
-  background: #f3f4f6;
+  background: #fde68a;
+  border-color: #f59e0b;
+  color: #78350f;
 }
 
 .sa-ia-config__save-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
@@ -203,13 +273,15 @@
   color: white;
   border: none;
   border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .sa-ia-config__save-btn:hover:not(:disabled) {
   background: #4f46e5;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .sa-ia-config__save-btn:disabled {

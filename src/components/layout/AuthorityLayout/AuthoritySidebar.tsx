@@ -7,7 +7,7 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../contexts';
 import { useI18n } from '../../../hooks';
+import { supabase } from '../../../config';
 import styles from './AuthoritySidebar.module.css';
 
 interface NavItem {
@@ -52,6 +53,25 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   const { t } = useI18n();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const [photoProfil, setPhotoProfil] = useState<string | null>(null);
+
+  const loadPhotoProfil = useCallback(async (uid: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('photo_profil')
+        .eq('id', uid)
+        .maybeSingle();
+      setPhotoProfil(data?.photo_profil || null);
+    } catch {
+      setPhotoProfil(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) loadPhotoProfil(user.id);
+    else setPhotoProfil(null);
+  }, [user?.id, loadPhotoProfil, location.pathname]);
 
   // Extraire les infos du user_metadata de Supabase
   const userMetadata = user?.user_metadata as Record<string, any> | undefined;
@@ -59,7 +79,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   const userFullName = userMetadata?.prenom && userMetadata?.nom 
     ? `${userMetadata.prenom} ${userMetadata.nom}` 
     : userName;
-  const userAvatar = userMetadata?.photo_profil_url || userMetadata?.avatar_url;
+  const userAvatar = photoProfil || userMetadata?.photo_profil_url || userMetadata?.avatar_url;
 
   // Fermer le menu profil quand on clique en dehors
   useEffect(() => {

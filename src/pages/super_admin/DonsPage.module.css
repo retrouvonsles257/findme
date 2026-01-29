@@ -99,6 +99,31 @@
 
 .sa-dons__filter-group svg { color: #6b7280; }
 
+.sa-dons__export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: var(--sa-primary);
+  border: 1px solid var(--sa-primary);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.sa-dons__export-btn:hover:not(:disabled) {
+  background: var(--sa-primary);
+  color: white;
+}
+
+.sa-dons__export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sa-dons__filter-group select {
   font-family: var(--sa-font);
   border: none;

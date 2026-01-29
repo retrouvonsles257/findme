@@ -5,11 +5,12 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
+import { supabase } from '../../config';
 import {
   LayoutDashboard,
   Globe,
@@ -32,6 +33,9 @@ import {
   Search,
   ChevronRight,
   ChevronLeft,
+  Bell,
+  FolderOpen,
+  Database,
 } from 'lucide-react';
 import styles from './SuperAdminLayout.module.css';
 
@@ -50,7 +54,15 @@ type ActiveNavType =
   | 'dossiers-critiques'
   | 'resultats-ia'
   | 'signalement-validation'
-  | 'profile';
+  | 'profile'
+  | 'dossiers'
+  | 'alertes'
+  | 'maintenance'
+  | 'notifications-system'
+  | 'photos'
+  | 'commentaires'
+  | 'documents'
+  | 'liens-filiation';
 
 interface SuperAdminLayoutProps {
   children: React.ReactNode;
@@ -76,6 +88,26 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [headerSearch, setHeaderSearch] = useState('');
+  const [photoProfil, setPhotoProfil] = useState<string | null>(null);
+
+  const loadPhotoProfil = useCallback(async (userId: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('photo_profil')
+        .eq('id', userId)
+        .maybeSingle();
+      setPhotoProfil(data?.photo_profil || null);
+    } catch {
+      setPhotoProfil(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const uid = (currentUser as any)?.id;
+    if (uid) loadPhotoProfil(uid);
+    else setPhotoProfil(null);
+  }, [currentUser, loadPhotoProfil, location.pathname]);
 
   useEffect(() => {
     localStorage.setItem('superAdminSidebarCollapsed', String(isCollapsed));
@@ -159,10 +191,22 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
       icon: UserCog,
     },
     {
+      id: 'dossiers',
+      label: 'Gestion Dossiers',
+      path: '/super-admin/dossiers',
+      icon: FolderOpen,
+    },
+    {
       id: 'dossiers-critiques',
       label: 'Dossiers critiques',
       path: '/super-admin/dossiers-critiques',
       icon: AlertTriangle,
+    },
+    {
+      id: 'alertes',
+      label: 'Gestion Alertes',
+      path: '/super-admin/alertes',
+      icon: Bell,
     },
     {
       id: 'resultats-ia',
@@ -181,6 +225,12 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
       label: 'Mon Profil',
       path: '/super-admin/profile',
       icon: User,
+    },
+    {
+      id: 'maintenance',
+      label: 'Maintenance',
+      path: '/super-admin/maintenance',
+      icon: Database,
     },
   ];
 
@@ -300,7 +350,13 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             title={isCollapsed ? getUserLabel() : undefined}
           >
-            <div className={styles.userAvatarPlaceholder}>{getInitials()}</div>
+            <div className={styles.userAvatarPlaceholder}>
+              {photoProfil ? (
+                <img src={photoProfil} alt="" className={styles.userAvatarImg} />
+              ) : (
+                getInitials()
+              )}
+            </div>
             {!isCollapsed && <span className={styles.userName}>{getUserLabel()}</span>}
           </button>
 
@@ -356,6 +412,14 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
             <button
               type="button"
               className={styles.topHeaderIconBtn}
+              title={t('common.notifications') || 'Notifications'}
+              onClick={() => navigate('/super-admin/system-logs')}
+            >
+              <Bell size={18} />
+            </button>
+            <button
+              type="button"
+              className={styles.topHeaderIconBtn}
               onClick={toggleLanguage}
               title={t('common.language')}
             >
@@ -368,7 +432,13 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
               onClick={() => navigate('/super-admin/profile')}
               title={getUserLabel()}
             >
-              <div className={styles.topHeaderUserAvatarPlaceholder}>{getInitials()}</div>
+              <div className={styles.topHeaderUserAvatarPlaceholder}>
+                {photoProfil ? (
+                  <img src={photoProfil} alt="" className={styles.userAvatarImg} />
+                ) : (
+                  getInitials()
+                )}
+              </div>
               <span className={styles.topHeaderUserName}>{getUserLabel()}</span>
             </button>
           </div>
@@ -387,16 +457,31 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
             <button
               type="button"
               className={styles.mobileHeaderIconBtn}
+              title={t('common.notifications') || 'Notifications'}
+              onClick={() => navigate('/super-admin/system-logs')}
+            >
+              <Bell size={18} />
+            </button>
+            <button
+              type="button"
+              className={styles.mobileHeaderIconBtn}
               onClick={toggleLanguage}
               title={t('common.language')}
             >
               <Globe size={18} />
             </button>
             <button
+              type="button"
               className={styles.mobileAvatarBtn}
               onClick={() => setMobileOpen(true)}
             >
-              <div className={styles.mobileAvatarPlaceholder}>{getInitials()}</div>
+              <div className={styles.mobileAvatarPlaceholder}>
+                {photoProfil ? (
+                  <img src={photoProfil} alt="" className={styles.userAvatarImg} />
+                ) : (
+                  getInitials()
+                )}
+              </div>
             </button>
           </div>
         </header>

@@ -12,7 +12,7 @@ import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { 
   DollarSign, Calendar, User, Search, Loader2, AlertCircle, 
-  Eye, ChevronLeft, ChevronRight, TrendingUp, CreditCard, Filter
+  Eye, ChevronLeft, ChevronRight, TrendingUp, CreditCard, Filter, Download
 } from 'lucide-react';
 import styles from './DonsPage.module.css';
 
@@ -24,11 +24,19 @@ interface Don {
   donateur_anonyme: boolean;
   nom_donateur?: string;
   email_donateur?: string;
+  telephone_donateur?: string;
+  organisation_donatrice?: string;
+  message_donateur?: string;
   methode_paiement: string;
   statut_paiement: string;
   reference_transaction?: string;
-  message_donateur?: string;
+  id_transaction_externe?: string;
   date_don: string;
+  date_traitement?: string;
+  remerciement_envoye?: boolean;
+  date_remerciement?: string;
+  recu_fiscal_genere?: boolean;
+  numero_recu?: string;
 }
 
 // Types de statut de paiement: 'en_attente' | 'complete' | 'echoue' | 'rembourse'
@@ -86,7 +94,7 @@ export const SuperAdminDonsPage: React.FC = () => {
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
-      // Charger les dons avec pagination
+      // Charger les dons avec pagination - RÉCUPÉRER TOUS LES CHAMPS
       const offset = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = (supabase as any)
         .from('don')
@@ -123,6 +131,70 @@ export const SuperAdminDonsPage: React.FC = () => {
   useEffect(() => {
     loadDons();
   }, [loadDons]);
+
+  const exportToCSV = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Charger tous les dons avec filtres
+      let query = (supabase as any)
+        .from('don')
+        .select('*')
+        .order('date_don', { ascending: false });
+
+      if (filterStatut) query = query.eq('statut_paiement', filterStatut);
+      if (filterMode) query = query.eq('methode_paiement', filterMode);
+
+      const { data: allDons, error: fetchError } = await query;
+      if (fetchError) throw fetchError;
+
+      // Filtrer par recherche si nécessaire
+      let filtered = allDons || [];
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter((don: Don) =>
+          (don.nom_donateur || '').toLowerCase().includes(term) ||
+          (don.email_donateur || '').toLowerCase().includes(term) ||
+          (don.reference_transaction || '').toLowerCase().includes(term)
+        );
+      }
+
+      // Créer le CSV
+      const headers = ['Date', 'Montant', 'Devise', 'Donateur', 'Email', 'Type', 'Méthode', 'Statut', 'Référence'];
+      const rows = filtered.map((don: Don) => [
+        new Date(don.date_don).toLocaleDateString('fr-FR'),
+        don.montant.toString(),
+        don.devise,
+        don.donateur_anonyme ? 'Anonyme' : (don.nom_donateur || '-'),
+        don.donateur_anonyme ? '-' : (don.email_donateur || '-'),
+        don.type_don,
+        don.methode_paiement,
+        getStatutLabel(don.statut_paiement),
+        don.reference_transaction || '-',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row: string[]) => row.map((cell: string | number) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Télécharger
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `dons_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      console.error('Erreur export CSV:', err);
+      setError('Erreur lors de l\'export: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
@@ -210,6 +282,14 @@ export const SuperAdminDonsPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <button 
+            onClick={exportToCSV} 
+            disabled={isLoading}
+            className={styles['sa-dons__export-btn']}
+          >
+            <Download size={18} />
+            Exporter CSV
+          </button>
           <div className={styles['sa-dons__filter-group']}>
             <Filter size={16} />
             <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
