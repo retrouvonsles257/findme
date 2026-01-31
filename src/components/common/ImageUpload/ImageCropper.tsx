@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import styles from './ImageUpload.module.css';
 
 export interface ImageCropperProps {
@@ -83,7 +83,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
         <img
           ref={imageRef}
           src={imageUrl}
-          alt="Crop image"
+          alt="Zone de recadrage"
           className={styles.cropperImage}
           draggable={false}
         />

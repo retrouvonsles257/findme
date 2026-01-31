@@ -1,12 +1,12 @@
 /**
  * =====================================================
- * RETROUVONSLES - Create Dossier Page Styles
+ * RETROUVONSLES - Create Person Page Styles
  * Design moderne avec stepper et cards
- * Namespace: createDossier__
+ * Namespace: createPerson__
  * =====================================================
  */
 
-.createDossier {
+.createPerson {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -15,7 +15,7 @@
 }
 
 /* Header avec stepper */
-.createDossier__header {
+.createPerson__header {
   background: white;
   border-radius: 16px;
   padding: 1.5rem 2rem;
@@ -23,52 +23,50 @@
   border: 1px solid #e2e8f0;
 }
 
-.createDossier__headerInfo {
+.createPerson__headerInfo {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.createDossier__headerIcon {
+.createPerson__headerIcon {
   width: 48px;
   height: 48px;
   padding: 12px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   border-radius: 12px;
   color: white;
 }
 
-.createDossier__title {
+.createPerson__title {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
 }
 
-.createDossier__subtitle {
+.createPerson__subtitle {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
   color: #64748b;
 }
 
 /* Stepper */
-.createDossier__stepper {
+.createPerson__stepper {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
 }
 
-.createDossier__stepItem {
+.createPerson__stepItem {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  position: relative;
 }
 
-.createDossier__stepCircle {
+.createPerson__stepCircle {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -81,51 +79,49 @@
   transition: all 0.3s ease;
 }
 
-.createDossier__stepItem--active .createDossier__stepCircle {
-  background: #3b82f6;
+.createPerson__stepItem--active .createPerson__stepCircle {
+  background: #8b5cf6;
   color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
-.createDossier__stepItem--completed .createDossier__stepCircle {
+.createPerson__stepItem--completed .createPerson__stepCircle {
   background: #10b981;
   color: white;
   border-color: #10b981;
 }
 
-.createDossier__stepLabel {
+.createPerson__stepLabel {
   font-size: 0.75rem;
   font-weight: 500;
   color: #94a3b8;
-  transition: color 0.3s ease;
 }
 
-.createDossier__stepItem--active .createDossier__stepLabel {
-  color: #3b82f6;
+.createPerson__stepItem--active .createPerson__stepLabel {
+  color: #8b5cf6;
   font-weight: 600;
 }
 
-.createDossier__stepItem--completed .createDossier__stepLabel {
+.createPerson__stepItem--completed .createPerson__stepLabel {
   color: #10b981;
 }
 
-.createDossier__stepConnector {
+.createPerson__stepConnector {
   width: 80px;
   height: 3px;
   background: #e2e8f0;
   margin: 0 0.5rem;
   margin-bottom: 1.5rem;
   border-radius: 2px;
-  transition: background 0.3s ease;
 }
 
-.createDossier__stepConnector--completed {
+.createPerson__stepConnector--completed {
   background: #10b981;
 }
 
 /* Alerts */
-.createDossier__alert {
+.createPerson__alert {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -135,20 +131,20 @@
   font-weight: 500;
 }
 
-.createDossier__alert--error {
+.createPerson__alert--error {
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #dc2626;
 }
 
-.createDossier__alert--success {
+.createPerson__alert--success {
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
   color: #16a34a;
 }
 
 /* Content */
-.createDossier__content {
+.createPerson__content {
   background: white;
   border-radius: 16px;
   padding: 2rem;
@@ -157,7 +153,7 @@
 }
 
 /* Section */
-.createDossier__section {
+.createPerson__section {
   animation: fadeIn 0.3s ease;
 }
 
@@ -166,7 +162,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.createDossier__sectionHeader {
+.createPerson__sectionHeader {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
@@ -175,42 +171,42 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.createDossier__sectionIcon {
+.createPerson__sectionIcon {
   width: 40px;
   height: 40px;
   padding: 10px;
-  background: #f0f9ff;
+  background: #f5f3ff;
   border-radius: 10px;
-  color: #3b82f6;
+  color: #8b5cf6;
   flex-shrink: 0;
 }
 
-.createDossier__sectionTitle {
+.createPerson__sectionTitle {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
   color: #1e293b;
 }
 
-.createDossier__sectionSubtitle {
+.createPerson__sectionSubtitle {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
   color: #64748b;
 }
 
 /* Photo Upload */
-.createDossier__photoUpload {
+.createPerson__photoUpload {
   margin-bottom: 1.5rem;
 }
 
-.createDossier__photoGrid {
+.createPerson__photoGrid {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   margin-top: 0.75rem;
 }
 
-.createDossier__photoItem {
+.createPerson__photoItem {
   position: relative;
   width: 100px;
   height: 100px;
@@ -219,13 +215,13 @@
   border: 2px solid #e2e8f0;
 }
 
-.createDossier__photoItem img {
+.createPerson__photoItem img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.createDossier__photoRemove {
+.createPerson__photoRemove {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -239,20 +235,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
 }
 
-.createDossier__photoRemove:hover {
+.createPerson__photoRemove:hover {
   background: #ef4444;
 }
 
-.createDossier__photoBadge {
+.createPerson__photoBadge {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 4px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   color: white;
   font-size: 0.65rem;
   font-weight: 600;
@@ -260,7 +255,7 @@
   text-transform: uppercase;
 }
 
-.createDossier__photoAdd {
+.createPerson__photoAdd {
   width: 100px;
   height: 100px;
   border: 2px dashed #cbd5e1;
@@ -276,43 +271,37 @@
   background: #f8fafc;
 }
 
-.createDossier__photoAdd:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: #eff6ff;
+.createPerson__photoAdd:hover {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+  background: #f5f3ff;
 }
 
-.createDossier__photoAdd span {
+.createPerson__photoAdd span {
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-.createDossier__photoHint {
-  margin: 0.75rem 0 0;
-  font-size: 0.8rem;
-  color: #94a3b8;
-}
-
 /* Fields */
-.createDossier__fields {
+.createPerson__fields {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-.createDossier__fieldRow {
+.createPerson__fieldRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
 }
 
-.createDossier__fieldGroup {
+.createPerson__fieldGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.createDossier__label {
+.createPerson__label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -321,16 +310,16 @@
   color: #475569;
 }
 
-.createDossier__label svg {
+.createPerson__label svg {
   color: #94a3b8;
 }
 
-.createDossier__required {
+.createPerson__required {
   color: #ef4444;
 }
 
-.createDossier__input,
-.createDossier__select {
+.createPerson__input,
+.createPerson__select {
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -340,128 +329,70 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.createDossier__input:focus,
-.createDossier__select:focus {
+.createPerson__input:focus,
+.createPerson__select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 /* Cacher les flèches des inputs number */
-.createDossier__input[type="number"]::-webkit-outer-spin-button,
-.createDossier__input[type="number"]::-webkit-inner-spin-button {
+.createPerson__input[type="number"]::-webkit-outer-spin-button,
+.createPerson__input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.createDossier__input[type="number"] {
+.createPerson__input[type="number"] {
   -moz-appearance: textfield;
 }
 
-.createDossier__input--error,
-.createDossier__textarea--error {
+.createPerson__input--error,
+.createPerson__textarea--error {
   border-color: #ef4444;
 }
 
-.createDossier__input--error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.createDossier__textarea {
+.createPerson__textarea {
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   font-size: 0.9rem;
   color: #1e293b;
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px;
   font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.createDossier__textarea:focus {
+.createPerson__textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-.createDossier__error {
+.createPerson__error {
   font-size: 0.8rem;
   color: #ef4444;
 }
 
 /* Age Range */
-.createDossier__ageRange {
+.createPerson__ageRange {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.createDossier__ageRange .createDossier__input {
-  width: 80px;
+.createPerson__ageRange .createPerson__input {
+  width: 70px;
   text-align: center;
 }
 
-.createDossier__ageSeparator,
-.createDossier__ageUnit {
+.createPerson__ageRange span {
   color: #64748b;
   font-size: 0.875rem;
-}
-
-/* Map Section */
-.createDossier__mapHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.createDossier__mapToggle {
-  padding: 0.5rem 1rem;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.createDossier__mapToggle:hover {
-  background: #e2e8f0;
-  color: #1e293b;
-}
-
-.createDossier__coordsInfo {
-  font-size: 0.875rem;
-  color: #059669;
-  background: #ecfdf5;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-
-.createDossier__mapContainer {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-  margin-top: 0.5rem;
-}
-
-.createDossier__mapHint {
-  font-size: 0.8125rem;
-  color: #64748b;
-  text-align: center;
-  padding: 0.5rem;
-  background: #f8fafc;
-  margin: 0;
-  border-top: 1px solid #e2e8f0;
 }
 
 /* Summary */
-.createDossier__summary {
+.createPerson__summary {
   margin-top: 1.5rem;
   padding: 1.25rem;
   background: #f8fafc;
@@ -469,40 +400,40 @@
   border: 1px solid #e2e8f0;
 }
 
-.createDossier__summaryTitle {
+.createPerson__summaryTitle {
   margin: 0 0 1rem;
   font-size: 0.9rem;
   font-weight: 600;
   color: #475569;
 }
 
-.createDossier__summaryGrid {
+.createPerson__summaryGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
-.createDossier__summaryItem {
+.createPerson__summaryItem {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.createDossier__summaryLabel {
+.createPerson__summaryLabel {
   font-size: 0.75rem;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.createDossier__summaryValue {
+.createPerson__summaryValue {
   font-size: 0.9rem;
   font-weight: 500;
   color: #1e293b;
 }
 
 /* Upload Progress */
-.createDossier__uploadProgress {
+.createPerson__uploadProgress {
   margin-top: 1rem;
   background: #f1f5f9;
   border-radius: 8px;
@@ -511,16 +442,15 @@
   overflow: hidden;
 }
 
-.createDossier__uploadProgressBar {
+.createPerson__uploadProgressBar {
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #8b5cf6, #7c3aed);
 }
 
-.createDossier__uploadProgress span {
+.createPerson__uploadProgress span {
   position: relative;
   z-index: 1;
   font-size: 0.8rem;
@@ -529,7 +459,7 @@
 }
 
 /* Actions */
-.createDossier__actions {
+.createPerson__actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -538,7 +468,7 @@
   border-top: 1px solid #e2e8f0;
 }
 
-.createDossier__cancelBtn {
+.createPerson__cancelBtn {
   padding: 0.75rem 1.5rem;
   background: white;
   border: 1px solid #e2e8f0;
@@ -547,20 +477,19 @@
   font-weight: 500;
   color: #64748b;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.createDossier__cancelBtn:hover:not(:disabled) {
+.createPerson__cancelBtn:hover:not(:disabled) {
   background: #f8fafc;
   border-color: #cbd5e1;
 }
 
-.createDossier__navBtns {
+.createPerson__navBtns {
   display: flex;
   gap: 0.75rem;
 }
 
-.createDossier__prevBtn {
+.createPerson__prevBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -572,36 +501,33 @@
   font-weight: 500;
   color: #475569;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.createDossier__prevBtn:hover:not(:disabled) {
+.createPerson__prevBtn:hover:not(:disabled) {
   background: #f8fafc;
-  border-color: #cbd5e1;
 }
 
-.createDossier__nextBtn {
+.createPerson__nextBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   border: none;
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
-.createDossier__nextBtn:hover {
+.createPerson__nextBtn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
 }
 
-.createDossier__submitBtn {
+.createPerson__submitBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -613,22 +539,20 @@
   font-weight: 600;
   color: white;
   cursor: pointer;
-  transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-.createDossier__submitBtn:hover:not(:disabled) {
+.createPerson__submitBtn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
 
-.createDossier__submitBtn:disabled {
+.createPerson__submitBtn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-  transform: none;
 }
 
-.createDossier__spinner {
+.createPerson__spinner {
   animation: spin 1s linear infinite;
 }
 
@@ -639,49 +563,46 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .createDossier__header {
+  .createPerson__header {
     padding: 1.25rem;
   }
   
-  .createDossier__stepper {
+  .createPerson__stepper {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
   
-  .createDossier__stepConnector {
+  .createPerson__stepConnector {
     width: 40px;
   }
   
-  .createDossier__content {
+  .createPerson__content {
     padding: 1.25rem;
   }
   
-  .createDossier__fieldRow {
+  .createPerson__fieldRow {
     grid-template-columns: 1fr;
   }
   
-  .createDossier__summaryGrid {
+  .createPerson__summaryGrid {
     grid-template-columns: 1fr;
   }
   
-  .createDossier__actions {
+  .createPerson__actions {
     flex-direction: column;
     gap: 1rem;
   }
   
-  .createDossier__cancelBtn {
-    width: 100%;
-  }
-  
-  .createDossier__navBtns {
-    width: 100%;
-    flex-direction: column;
-  }
-  
-  .createDossier__prevBtn,
-  .createDossier__nextBtn,
-  .createDossier__submitBtn {
+  .createPerson__cancelBtn,
+  .createPerson__prevBtn,
+  .createPerson__nextBtn,
+  .createPerson__submitBtn {
     width: 100%;
     justify-content: center;
+  }
+  
+  .createPerson__navBtns {
+    width: 100%;
+    flex-direction: column;
   }
 }

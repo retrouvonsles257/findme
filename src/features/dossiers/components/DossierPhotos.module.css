@@ -1,0 +1,552 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Dossier Photos Component Styles
+ * =====================================================
+ */
+
+.dossierPhotos {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+/* Header */
+.dossierPhotos__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dossierPhotos__headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dossierPhotos__headerIcon {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  border-radius: 10px;
+  color: white;
+}
+
+.dossierPhotos__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dossierPhotos__subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.dossierPhotos__addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #10b981;
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dossierPhotos__addBtn:hover {
+  background: #059669;
+}
+
+/* Messages */
+.dossierPhotos__error,
+.dossierPhotos__success {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.dossierPhotos__error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.dossierPhotos__error button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.dossierPhotos__success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+/* Upload Form */
+.dossierPhotos__uploadForm {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.625rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.dossierPhotos__formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dossierPhotos__formTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Mode Toggle */
+.dossierPhotos__modeToggle {
+  display: flex;
+  gap: 0.5rem;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+}
+
+.dossierPhotos__modeBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.dossierPhotos__modeBtn:hover {
+  color: #1d4ed8;
+}
+
+.dossierPhotos__modeBtn--active {
+  background: white;
+  color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dossierPhotos__previewContainer {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 1rem;
+}
+
+.dossierPhotos__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.dossierPhotos__removePreview {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(239, 68, 68, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dossierPhotos__formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dossierPhotos__formField {
+  margin-bottom: 1rem;
+}
+
+.dossierPhotos__formField label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.dossierPhotos__formField select,
+.dossierPhotos__formField textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  transition: border-color 0.2s;
+}
+
+.dossierPhotos__formField select:focus,
+.dossierPhotos__formField textarea:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.dossierPhotos__formField textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Progress */
+.dossierPhotos__progressContainer {
+  margin-bottom: 1rem;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  height: 24px;
+}
+
+.dossierPhotos__progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
+  transition: width 0.3s ease;
+}
+
+.dossierPhotos__progressContainer span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+/* Form Actions */
+.dossierPhotos__formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.dossierPhotos__cancelBtn,
+.dossierPhotos__submitBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dossierPhotos__cancelBtn {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+}
+
+.dossierPhotos__cancelBtn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.dossierPhotos__submitBtn {
+  background: #1d4ed8;
+  border: none;
+  color: white;
+}
+
+.dossierPhotos__submitBtn:hover:not(:disabled) {
+  background: #1e40af;
+}
+
+.dossierPhotos__submitBtn:disabled,
+.dossierPhotos__cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Gallery */
+.dossierPhotos__gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.dossierPhotos__photoCard {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.dossierPhotos__photoImg {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.dossierPhotos__photoCard:hover .dossierPhotos__photoImg {
+  transform: scale(1.05);
+}
+
+.dossierPhotos__photoOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+}
+
+.dossierPhotos__photoCard:hover .dossierPhotos__photoOverlay {
+  opacity: 1;
+}
+
+.dossierPhotos__photoBtn {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 4px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.dossierPhotos__photoBtn:hover {
+  background: white;
+  color: #1d4ed8;
+}
+
+.dossierPhotos__photoBtn--danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dossierPhotos__photoInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: white;
+}
+
+.dossierPhotos__photoType {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.dossierPhotos__approvedIcon {
+  color: #10b981;
+}
+
+/* Loading */
+.dossierPhotos__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.dossierPhotos__spinner {
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.dossierPhotos__loading p {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Empty State */
+.dossierPhotos__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 0.625rem;
+}
+
+.dossierPhotos__emptyIcon {
+  width: 48px;
+  height: 48px;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.dossierPhotos__emptyText {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0 0 1rem;
+}
+
+.dossierPhotos__emptyBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #1d4ed8;
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dossierPhotos__emptyBtn:hover {
+  background: #1e40af;
+}
+
+/* Modal */
+.dossierPhotos__modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.dossierPhotos__modalContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.dossierPhotos__modalClose {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.dossierPhotos__modalClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dossierPhotos__modalImg {
+  max-width: 100%;
+  max-height: calc(90vh - 60px);
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.dossierPhotos__modalDescription {
+  color: white;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dossierPhotos__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .dossierPhotos__addBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .dossierPhotos__gallery {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  
+  .dossierPhotos__formRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .dossierPhotos__formActions {
+    flex-direction: column;
+  }
+  
+  .dossierPhotos__cancelBtn,
+  .dossierPhotos__submitBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

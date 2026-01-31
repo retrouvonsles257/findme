@@ -6,19 +6,20 @@
  */
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   OperatorDashboardPage,
   OperatorMyDossiersPage,
   CreateDossierPage,
-  DataEntryPage,
+  CreatePersonPage,
   OperatorDossierDetailPage,
-  OperatorEditDossierPage
+  OperatorEditDossierPage,
+  SignalementsEnAttentePage,
+  PhotosEnAttentePage
 } from '../pages/operator';
 
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
-import { OPERATOR_ROUTES } from './routes.config';
 import { NomRole } from '../@types/enums.types';
 
 /**
@@ -66,6 +67,16 @@ const OperatorRoutes: React.FC = () => {
           }
         />
 
+        {/* Create Person */}
+        <Route
+          path="/create-person"
+          element={
+            <RoleBasedRoute requiredRoles={operatorRoles}>
+              <CreatePersonPage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* Edit Dossier */}
         <Route
           path="/edit-dossier/:id"
@@ -86,12 +97,28 @@ const OperatorRoutes: React.FC = () => {
           }
         />
 
-        {/* Data Entry */}
+        {/* Data Entry - Redirection vers my-dossiers */}
         <Route
           path="/data-entry"
+          element={<Navigate to="/operator/my-dossiers" replace />}
+        />
+
+        {/* Signalements En Attente */}
+        <Route
+          path="/signalements-en-attente"
           element={
             <RoleBasedRoute requiredRoles={operatorRoles}>
-              <DataEntryPage />
+              <SignalementsEnAttentePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Photos En Attente */}
+        <Route
+          path="/photos-en-attente"
+          element={
+            <RoleBasedRoute requiredRoles={operatorRoles}>
+              <PhotosEnAttentePage />
             </RoleBasedRoute>
           }
         />

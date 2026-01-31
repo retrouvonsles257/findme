@@ -1,0 +1,959 @@
+RETROUVONSLES
+
+Questions et Réponses Détaillées
+
+PROCESSUS D'INSCRIPTION
+& SYSTÈME D'INTELLIGENCE ARTIFICIELLE
+
+QUESTION 1 : QUI PEUT S'INSCRIRE DIRECTEMENT ?
+
+Réponse courte
+
+SEULS les citoyens (grand public) peuvent s'inscrire eux-mêmes via la
+page d'inscription. Les autorités (niveaux 2-7) ne peuvent PAS
+s'inscrire eux-mêmes - ils doivent être créés par un administrateur.
+
+1.1. INSCRIPTION LIBRE (Grand Public)
+
+Les utilisateurs suivants peuvent créer leur compte via la page
+d'inscription publique :
+
+  -----------------------------------------------------------------------
+  Niveau                  Rôle                    Processus d'inscription
+  ----------------------- ----------------------- -----------------------
+  0                       Citoyen Standard        ✅ INSCRIPTION DIRECTE
+                                                  via formulaire
+                                                  web/mobile
+                                                  • Email + mot de passe
+                                                  • Nom, prénom,
+                                                  téléphone
+                                                  • Confirmation email
+                                                  obligatoire
+                                                  • Connexion immédiate
+                                                  après validation email
+
+  1                       Citoyen Vérifié         ✅ INSCRIPTION comme
+                                                  Niveau 0 PUIS
+                                                  • Soumettre documents
+                                                  d'identité
+                                                  (CNI/Passeport)
+                                                  • Attente de
+                                                  vérification par
+                                                  modérateur
+                                                  • Passage automatique
+                                                  au niveau 1 après
+                                                  validation
+                                                  • Badge 'Vérifié'
+                                                  ajouté au profil
+  -----------------------------------------------------------------------
+
+Détails du processus d'inscription grand public :
+
+-   1. L'utilisateur accède à la page d'inscription (web ou mobile)
+
+-   2. Il remplit le formulaire :
+    • Email (unique, sera vérifié)
+    • Mot de passe (minimum 8 caractères)
+    • Nom et prénom
+    • Téléphone (optionnel mais recommandé)
+    • Acceptation des conditions d'utilisation
+    • Autorisation de géolocalisation (optionnel)
+
+-   3. Le système crée un compte dans Supabase Auth (table auth.users)
+
+-   4. Un enregistrement est créé dans la table 'utilisateur' :
+    • type_compte = 'grand_public'
+    • statut_compte = 'en_attente_verification' (avant confirmation
+    email)
+    • Un rôle 'citoyen_standard' (niveau 0) est automatiquement attribué
+    dans utilisateur_role
+
+-   5. Un email de confirmation est envoyé à l'utilisateur
+
+-   6. L'utilisateur clique sur le lien de confirmation
+
+-   7. Le statut_compte passe à 'actif'
+
+-   8. L'utilisateur peut maintenant se connecter et utiliser
+    l'application avec toutes les permissions du niveau 0
+
+Pour passer au niveau 1 (Citoyen Vérifié) :
+
+-   1. Dans son profil, l'utilisateur clique sur 'Vérifier mon identité'
+
+-   2. Il uploade une photo de sa pièce d'identité (CNI ou Passeport)
+
+-   3. Il peut aussi faire un selfie pour vérification biométrique
+
+-   4. Le document est sauvegardé dans document_accreditation
+
+-   5. Un modérateur (niveau 3) reçoit une notification
+
+-   6. Le modérateur vérifie l'authenticité du document
+
+-   7. Si validé : Le rôle 'citoyen_verifie' (niveau 1) est ajouté à
+    l'utilisateur
+
+-   8. L'utilisateur reçoit une notification de validation
+
+-   9. Un badge 'Vérifié' apparaît sur son profil
+
+1.2. INSCRIPTION RESTREINTE (Autorités)
+
+Les utilisateurs suivants NE PEUVENT PAS s'inscrire eux-mêmes. Ils
+doivent être créés par un administrateur :
+
+  -----------------------------------------------------------------------
+  Niveau                  Rôle                    Qui peut créer ce
+                                                  compte ?
+  ----------------------- ----------------------- -----------------------
+  2                       Opérateur Saisie        ❌ PAS
+                                                  D'AUTO-INSCRIPTION
+                                                  ✅ Créé par Admin
+                                                  Organisation (niveau 6)
+                                                  ou Super Admin (niveau
+                                                  7)
+
+  3                       Modérateur              ❌ PAS
+                                                  D'AUTO-INSCRIPTION
+                                                  ✅ Créé par Admin
+                                                  Organisation (niveau 6)
+                                                  ou Super Admin (niveau
+                                                  7)
+
+  4                       Officier Police / Agent ❌ PAS
+                          Gendarmerie             D'AUTO-INSCRIPTION
+                                                  ✅ Créé par Admin
+                                                  Organisation (niveau 6)
+                                                  ou Super Admin (niveau
+                                                  7)
+
+  5                       Responsable ONG         ❌ PAS
+                                                  D'AUTO-INSCRIPTION
+                                                  ✅ Créé par Admin
+                                                  Organisation (niveau 6)
+                                                  ou Super Admin (niveau
+                                                  7)
+
+  6                       Admin Organisation      ❌ PAS
+                                                  D'AUTO-INSCRIPTION
+                                                  ✅ Créé UNIQUEMENT par
+                                                  Super Admin (niveau 7)
+
+  7                       Super Admin             ❌ PAS
+                                                  D'AUTO-INSCRIPTION
+                                                  ✅ Créé manuellement
+                                                  par l'équipe technique
+                                                  ou un autre Super Admin
+  -----------------------------------------------------------------------
+
+Processus de création d'un compte autorité :
+
+-   1. L'organisation contacte l'équipe RetrouvonsLes ou un Super Admin
+
+-   2. L'organisation fournit les documents officiels :
+    • Accréditation officielle (badge police, ONG, etc.)
+    • Pièce d'identité de l'utilisateur
+    • Lettre de mission ou ordre de service
+    • Coordonnées de contact vérifiables
+
+-   3. L'équipe RetrouvonsLes vérifie l'authenticité des documents
+
+-   4. Si l'organisation n'existe pas dans le système, un Super Admin la
+    crée dans la table 'organisation'
+
+-   5. Le Super Admin ou Admin Organisation crée le compte utilisateur :
+    • type_compte = 'autorite'
+    • statut_compte = 'en_attente_verification' (initial)
+    • id_organisation = ID de l'organisation validée
+    • document_accreditation = URL du document scanné
+    • numero_badge = Numéro de badge officiel
+
+-   6. Le rôle approprié (niveau 2-7) est attribué dans utilisateur_role
+
+-   7. Un email temporaire avec lien d'activation est envoyé à
+    l'utilisateur
+
+-   8. L'utilisateur clique sur le lien et définit son mot de passe
+
+-   9. Le statut_compte passe à 'actif'
+
+-   10. L'utilisateur peut maintenant se connecter à l'espace Autorités
+
+Pourquoi cette restriction ?
+
+-   🔒 SÉCURITÉ : Éviter que n'importe qui prétende être un officier de
+    police
+
+-   🔒 VÉRIFICATION : Garantir que seules des personnes accréditées ont
+    accès aux données sensibles
+
+-   🔒 RESPONSABILITÉ : Traçabilité complète de qui a accès aux dossiers
+    confidentiels
+
+-   🔒 CONFORMITÉ : Respect des normes de sécurité pour les forces de
+    l'ordre
+
+-   🔒 INTÉGRITÉ : Empêcher les faux comptes et abus du système
+
+1.3. RÉSUMÉ - Qui peut s'inscrire et se connecter
+
+  ------------------------------------------------------------------------
+  Niveau            Rôle              Inscription        Connexion après
+                                                         création
+  ----------------- ----------------- ------------------ -----------------
+  0                 Citoyen Standard  ✅ OUI -           ✅ OUI -
+                                      Auto-inscription   Immédiate après
+                                                         validation email
+
+  1                 Citoyen Vérifié   ✅ OUI - Via       ✅ OUI -
+                                      niveau 0 puis      Immédiate
+                                      vérification       
+
+  2                 Opérateur Saisie  ❌ NON - Créé par  ✅ OUI après
+                                      admin              activation
+
+  3                 Modérateur        ❌ NON - Créé par  ✅ OUI après
+                                      admin              activation
+
+  4                 Officier/Agent    ❌ NON - Créé par  ✅ OUI après
+                                      admin              activation
+
+  5                 Responsable ONG   ❌ NON - Créé par  ✅ OUI après
+                                      admin              activation
+
+  6                 Admin             ❌ NON - Créé par  ✅ OUI après
+                    Organisation      Super Admin        activation
+
+  7                 Super Admin       ❌ NON - Créé      ✅ OUI - Accès
+                                      manuellement       complet
+  ------------------------------------------------------------------------
+
+QUESTION 2 : COMMENT FONCTIONNE L'IA ?
+
+Réponse courte
+
+L'IA fonctionne en arrière-plan de manière AUTOMATIQUE et CONTINUE. Elle
+analyse les photos, détecte les correspondances, prédit les
+localisations, et génère des alertes. Les autorités (niveau 4+) valident
+ensuite les résultats.
+
+2.1. VUE D'ENSEMBLE DU SYSTÈME IA
+
+Le système d'IA de RetrouvonsLes comporte plusieurs modules qui
+travaillent ensemble :
+
+-   🤖 MODULE 1 : Reconnaissance faciale (comparaison photos)
+
+-   🤖 MODULE 2 : Détection de similarités (caractéristiques physiques)
+
+-   🤖 MODULE 3 : Prédiction de localisation (patterns géographiques)
+
+-   🤖 MODULE 4 : Analyse biométrique (mesures corporelles)
+
+-   🤖 MODULE 5 : Regroupement de cas (cas liés/similaires)
+
+-   🤖 MODULE 6 : Estimation d'âge (progression temporelle)
+
+-   🤖 MODULE 7 : Analyse de vêtements (identification textile)
+
+-   🤖 MODULE 8 : Détection d'objets personnels (bijoux, accessoires)
+
+2.2. QUAND L'IA SE DÉCLENCHE-T-ELLE ?
+
+L'IA s'active automatiquement dans plusieurs situations :
+
+  -------------------------------------------------------------------------
+  Événement déclencheur   Type d'analyse IA         Action automatique
+  ----------------------- ------------------------- -----------------------
+  Nouveau dossier créé    reconnaissance_faciale    • Extraction des
+  avec photo              analyse_biometrique       caractéristiques
+                          estimation_age            faciales
+                                                    • Stockage de
+                                                    l'empreinte biométrique
+                                                    • Comparaison avec base
+                                                    existante
+                                                    • Création d'un hash
+                                                    facial unique
+
+  Signalement avec photo  reconnaissance_faciale    • Comparaison avec tous
+  uploadée                comparaison_photos        les dossiers actifs
+                                                    • Calcul du score de
+                                                    confiance (0-100%)
+                                                    • Si >70% :
+                                                    Notification
+                                                    automatique aux
+                                                    autorités
+                                                    • Résultat stocké dans
+                                                    resultat_ia
+
+  Plusieurs signalements  prediction_localisation   • Analyse des patterns
+  dans même zone          regroupement_cas          géographiques
+                                                    • Identification de
+                                                    zones chaudes
+                                                    • Prédiction de
+                                                    trajectoire probable
+                                                    • Suggestion d'alertes
+                                                    ciblées
+
+  Dossier ancien (>6      estimation_age            • Progression de l'âge
+  mois)                   analyse_biometrique       • Ajustement des
+                                                    caractéristiques
+                                                    • Génération de photos
+                                                    vieillies
+                                                    • Mise à jour du profil
+                                                    de recherche
+
+  Analyse planifiée       Toutes les analyses       • Scan complet de la
+  (chaque nuit)                                     base de données
+                                                    • Recherche de
+                                                    nouvelles
+                                                    correspondances
+                                                    • Mise à jour des
+                                                    prédictions
+                                                    • Génération de
+                                                    rapports automatiques
+
+  Demande manuelle        Type choisi par           • Analyse à la demande
+  (niveau 4+)             l'utilisateur             • Paramètres
+                                                    personnalisés
+                                                    • Résultats
+                                                    prioritaires
+                                                    • Rapport détaillé
+                                                    généré
+  -------------------------------------------------------------------------
+
+2.3. WORKFLOW DÉTAILLÉ DE L'IA
+
+SCÉNARIO 1 : Reconnaissance faciale automatique
+
+ÉTAPE 1 : DÉCLENCHEMENT
+
+-   • Un citoyen upload une photo dans un signalement
+
+-   • La photo est sauvegardée dans la table 'photo'
+
+-   • Un trigger déclenche automatiquement l'analyse IA
+
+ÉTAPE 2 : EXTRACTION DES CARACTÉRISTIQUES
+
+-   • L'IA extrait les points clés du visage (landmarks) :
+    - Position des yeux, nez, bouche
+    - Forme du visage
+    - Distance inter-pupillaire
+    - Ratio des traits
+    - 128+ vecteurs de caractéristiques
+
+-   • Création d'un "hash facial" unique pour comparaison
+
+ÉTAPE 3 : COMPARAISON AVEC LA BASE
+
+-   • L'IA compare ce hash avec TOUS les dossiers actifs
+
+-   • Calcul du score de similarité pour chaque comparaison (0-100%)
+
+-   • Prise en compte de :
+    - Angle de la photo
+    - Qualité de l'image
+    - Éclairage
+    - Âge estimé de la photo
+
+ÉTAPE 4 : GÉNÉRATION DES RÉSULTATS
+
+-   • Si score > 70% (seuil par défaut) :
+    → Création d'un enregistrement dans 'resultat_ia'
+    → type_analyse = 'reconnaissance_faciale'
+    → score_confiance = pourcentage calculé
+    → statut_validation = 'en_attente'
+
+-   • Si score entre 50-70% : Résultat marqué comme 'incertain'
+
+-   • Si score < 50% : Pas de notification
+
+ÉTAPE 5 : NOTIFICATION AUX AUTORITÉS
+
+-   • Création automatique d'une notification pour :
+    - L'officier en charge du dossier
+    - Tous les officiers de la zone concernée
+    - Le modérateur du signalement
+
+-   • Type notification : 'correspondance_ia'
+
+-   • Priorité : 'haute' si score > 85%, 'moyenne' sinon
+
+ÉTAPE 6 : VALIDATION HUMAINE
+
+-   • Un officier (niveau 4+) consulte le résultat
+
+-   • Il examine :
+    - La photo du dossier original
+    - La photo du signalement
+    - Les métadonnées (date, lieu, contexte)
+    - Le score de confiance IA
+
+-   • Il décide :
+    ✅ CONFIRME : statut_validation = 'confirme'
+    → Action : Enquête approfondie, contact famille
+    ❌ INFIRME : statut_validation = 'infirme'
+    → Action : Marqué comme faux positif
+    ⚠️ INCERTAIN : statut_validation = 'necessite_verification'
+    → Action : Investigation supplémentaire
+
+ÉTAPE 7 : ACTIONS GÉNÉRÉES
+
+-   Si confirmé par l'autorité :
+    • Mise à jour du dossier avec nouvelle localisation
+    • Création d'une alerte géolocalisée dans la zone
+    • Notification à la famille (si autorisée)
+    • Coordination avec forces de l'ordre locales
+    • Enregistrement dans journal_activite
+
+SCÉNARIO 2 : Prédiction de localisation
+
+ÉTAPE 1 : COLLECTE DES DONNÉES
+
+-   • L'IA récupère tous les signalements validés pour un dossier
+
+-   • Elle extrait :
+    - Coordonnées GPS de chaque observation
+    - Dates et heures des observations
+    - Direction de déplacement (si plusieurs points)
+    - Moyens de transport mentionnés
+    - Points d'intérêt à proximité
+
+ÉTAPE 2 : ANALYSE DES PATTERNS
+
+-   • Calcul de la trajectoire probable basée sur :
+    - Historique des déplacements
+    - Vitesse moyenne de déplacement
+    - Réseau routier et transport public
+    - Barrières géographiques (rivières, montagnes)
+    - Zones de forte densité (marchés, gares)
+
+-   • Machine Learning : Comparaison avec cas similaires résolus
+
+ÉTAPE 3 : GÉNÉRATION DES ZONES PRÉDITES
+
+-   • Création de zones de probabilité (heatmap) :
+    - Zone rouge : 70-100% de probabilité
+    - Zone orange : 50-70% de probabilité
+    - Zone jaune : 30-50% de probabilité
+
+-   • Calcul du centre de gravité (point le plus probable)
+
+-   • Estimation du rayon de recherche optimal
+
+ÉTAPE 4 : STOCKAGE DES PRÉDICTIONS
+
+-   • Enregistrement dans 'resultat_ia' :
+    - type_analyse = 'prediction_localisation'
+    - zones_predites = JSON avec coordonnées et probabilités
+    - facteurs_cles = Éléments ayant influencé la prédiction
+
+ÉTAPE 5 : ACTIONS AUTOMATIQUES
+
+-   • Proposition d'alerte géolocalisée dans les zones prédites
+
+-   • Suggestion d'affectation de patrouilles
+
+-   • Mise à jour de la carte interactive pour les autorités
+
+-   • Notification aux utilisateurs actifs dans ces zones
+
+2.4. QUI UTILISE L'IA ET COMMENT ?
+
+Voici comment chaque niveau d'utilisateur interagit avec l'IA :
+
+  -----------------------------------------------------------------------
+  Niveau                  Interaction avec l'IA   Détails
+  ----------------------- ----------------------- -----------------------
+  0-1                     Déclenchement PASSIF    • Leurs signalements
+  Citoyens                                        déclenchent l'IA
+                                                  automatiquement
+                                                  • Ils ne voient PAS les
+                                                  résultats IA
+                                                  • Reçoivent juste
+                                                  confirmation de
+                                                  réception
+                                                  • L'IA travaille en
+                                                  arrière-plan sans
+                                                  qu'ils le sachent
+
+  2                       Déclenchement PASSIF    • Création de dossiers
+  Opérateur                                       déclenche analyses IA
+                                                  • Ne peut PAS voir les
+                                                  résultats IA
+                                                  • Ne peut PAS valider
+                                                  les correspondances
+                                                  • L'IA s'exécute
+                                                  automatiquement
+
+  3                       Consultation LIMITÉE    • Peut voir les
+  Modérateur                                      résultats IA pour
+                                                  modération
+                                                  • Peut voir les scores
+                                                  de confiance
+                                                  • NE PEUT PAS valider
+                                                  les correspondances
+                                                  importantes
+                                                  • Peut rejeter les faux
+                                                  positifs évidents
+
+  4                       Utilisation COMPLÈTE    ✅ Peut CONSULTER tous
+  Officier                                        les résultats IA
+                                                  ✅ Peut VALIDER ou
+                                                  INVALIDER les
+                                                  correspondances
+                                                  ✅ Peut DÉCLENCHER des
+                                                  analyses manuelles
+                                                  ✅ Peut CONFIGURER les
+                                                  seuils de confiance
+                                                  ✅ Reçoit des
+                                                  notifications
+                                                  prioritaires
+                                                  ✅ Peut générer des
+                                                  actions (alertes,
+                                                  enquêtes)
+
+  5                       Consultation + Stats    ✅ Peut consulter les
+  ONG                                             résultats IA
+                                                  ✅ Peut valider pour
+                                                  cas humanitaires
+                                                  ✅ Accès aux
+                                                  statistiques IA
+                                                  (précision, taux)
+                                                  ✅ Peut exporter
+                                                  données pour analyses
+
+  6                       Gestion + Config        ✅ Tous les droits du
+  Admin Org                                       niveau 4-5
+                                                  ✅ Peut configurer
+                                                  paramètres IA pour son
+                                                  organisation
+                                                  ✅ Peut voir rapports
+                                                  de performance IA
+                                                  ✅ Peut ajuster
+                                                  priorités d'analyse
+
+  7                       Contrôle TOTAL          ✅ Configuration
+  Super Admin                                     complète système IA
+                                                  ✅ Ajustement des
+                                                  algorithmes
+                                                  ✅ Réentraînement des
+                                                  modèles
+                                                  ✅ Gestion des seuils
+                                                  globaux
+                                                  ✅ Analyse des
+                                                  performances
+                                                  ✅ Debug et
+                                                  optimisation
+
+  IA elle-même            Fonctionnement AUTONOME • Analyses automatiques
+                                                  24/7
+                                                  • Apprentissage continu
+                                                  des validations
+                                                  • Amélioration des
+                                                  prédictions
+                                                  • Génération de
+                                                  rapports
+                                                  • Aucune intervention
+                                                  humaine nécessaire
+  -----------------------------------------------------------------------
+
+2.5. INTERFACE UTILISATEUR DE L'IA
+
+Comment les utilisateurs interagissent concrètement avec l'IA dans
+l'application :
+
+Pour les AUTORITÉS (niveau 4+) :
+
+📊 TABLEAU DE BORD IA :
+
+-   • Section dédiée 'Analyses IA' dans le menu
+
+-   • Liste des correspondances en attente de validation
+
+-   • Filtres : score de confiance, type d'analyse, date
+
+-   • Badge rouge sur les correspondances >85% (prioritaires)
+
+🔍 FICHE DE RÉSULTAT IA :
+
+-   Chaque résultat affiche :
+
+-   • Photo du dossier original vs Photo du signalement (côte à côte)
+
+-   • Score de confiance IA : 87% avec barre de progression colorée
+
+-   • Type d'analyse : Reconnaissance faciale
+
+-   • Points clés détectés (landmarks) superposés sur les photos
+
+-   • Métadonnées : Date, lieu, circonstances
+
+-   • Facteurs qui ont influencé le score
+
+-   • Historique de l'analyse
+
+✅ BOUTONS D'ACTION :
+
+-   • 'Confirmer la correspondance' → Marque comme valide
+
+-   • 'Infirmer la correspondance' → Marque comme faux positif
+
+-   • 'Nécessite vérification' → Demande complément d'info
+
+-   • 'Lancer enquête' → Crée une action d'investigation
+
+-   • 'Créer alerte' → Génère une alerte géolocalisée
+
+📈 STATISTIQUES IA :
+
+-   • Taux de précision global de l'IA
+
+-   • Nombre d'analyses effectuées
+
+-   • Nombre de correspondances validées
+
+-   • Taux de faux positifs
+
+-   • Temps moyen de validation
+
+🔧 DÉCLENCHEMENT MANUEL :
+
+-   • Bouton 'Lancer analyse IA' sur chaque dossier
+
+-   • Sélection du type d'analyse souhaité
+
+-   • Configuration des paramètres (optionnel)
+
+-   • Résultats en temps réel ou notification ultérieure
+
+Pour les CITOYENS (niveau 0-1) :
+
+🚫 PAS D'INTERFACE IA DIRECTE
+
+-   Les citoyens ne voient pas le système IA travailler, MAIS :
+
+✅ Ce qu'ils voient :
+
+-   • Confirmation immédiate de réception du signalement
+
+-   • Message : 'Votre signalement est en cours de vérification'
+
+-   • Notification si leur signalement est validé
+
+-   • Notification si la personne est retrouvée grâce à leur aide
+
+❌ Ce qu'ils NE voient PAS :
+
+-   • Les scores de confiance IA
+
+-   • Les détails des analyses en cours
+
+-   • Les comparaisons faciales effectuées
+
+-   • Les résultats 'incertains' ou 'faux positifs'
+
+💡 POURQUOI ?
+
+-   • Éviter la surcharge d'informations
+
+-   • Protéger la confidentialité des analyses
+
+-   • Éviter les faux espoirs (faux positifs)
+
+-   • Seules les autorités valident les résultats avant communication
+
+2.6. INFRASTRUCTURE TECHNIQUE DE L'IA
+
+Architecture du système :
+
+🖥️ SERVEUR IA DÉDIÉ :
+
+-   • Serveur séparé de l'application principale
+
+-   • GPU pour accélérer les calculs de reconnaissance faciale
+
+-   • Modèles pré-entraînés (FaceNet, DeepFace, etc.)
+
+-   • API REST pour communication avec l'application
+
+📊 PIPELINE DE TRAITEMENT :
+
+-   1. File d'attente : Nouvelles photos/signalements en queue
+
+-   2. Prétraitement : Normalisation, redimensionnement, amélioration
+
+-   3. Extraction : Génération des vecteurs de caractéristiques
+
+-   4. Comparaison : Recherche de similarités dans la base
+
+-   5. Scoring : Calcul des scores de confiance
+
+-   6. Stockage : Enregistrement dans resultat_ia
+
+-   7. Notification : Alerte aux utilisateurs concernés
+
+🔄 PLANIFICATION :
+
+-   • Analyses en temps réel : Upload de photo → Analyse immédiate
+
+-   • Analyses planifiées : Tous les jours à 2h du matin
+
+-   • Réentraînement : Tous les mois avec nouvelles validations
+
+📈 MÉTRIQUES SUIVIES :
+
+-   • Précision : (Vrais positifs) / (Vrais positifs + Faux positifs)
+
+-   • Rappel : (Vrais positifs) / (Vrais positifs + Faux négatifs)
+
+-   • F1-Score : Moyenne harmonique précision/rappel
+
+-   • Temps de traitement moyen par analyse
+
+-   • Taux de couverture : % de dossiers avec analyses IA
+
+2.7. CAS D'USAGE CONCRETS
+
+Exemple 1 : Enfant retrouvé grâce à l'IA
+
+📅 Jour 1 - 10h00 : Disparition
+
+-   • Un enfant de 8 ans disparaît à Yaoundé
+
+-   • Un officier de police crée le dossier avec photo
+
+-   • L'IA extrait immédiatement les caractéristiques faciales
+
+-   • Une alerte géolocalisée est diffusée dans un rayon de 10 km
+
+📅 Jour 1 - 15h30 : Signalement citoyen
+
+-   • Un citoyen voit l'enfant dans un marché à 5 km
+
+-   • Il prend une photo discrète et crée un signalement
+
+-   • Upload de la photo dans l'application
+
+📅 Jour 1 - 15h31 : Analyse IA IMMÉDIATE
+
+-   • L'IA reçoit la photo et lance la reconnaissance faciale
+
+-   • Comparaison avec tous les dossiers actifs
+
+-   • MATCH TROUVÉ : Score de confiance 92%
+
+-   • Création automatique du résultat dans resultat_ia
+
+📅 Jour 1 - 15h32 : Notification autorités
+
+-   • Notification PUSH prioritaire envoyée à :
+    - L'officier en charge du dossier
+    - Tous les officiers actifs à Yaoundé
+    - L'unité de recherche de mineurs
+
+-   • Message : 'Correspondance IA détectée - Score 92% - ACTION
+    IMMÉDIATE'
+
+📅 Jour 1 - 15h40 : Validation humaine
+
+-   • L'officier consulte le résultat IA sur son mobile
+
+-   • Compare les deux photos côte à côte
+
+-   • Vérifie les métadonnées (localisation GPS du signalement)
+
+-   • CONFIRME la correspondance
+
+📅 Jour 1 - 15h45 : Action terrain
+
+-   • Déploiement immédiat d'une patrouille au marché
+
+-   • Contact avec le citoyen qui a signalé (remerciements)
+
+-   • Localisation précise grâce au GPS du signalement
+
+📅 Jour 1 - 16h15 : Résolution
+
+-   • L'enfant est retrouvé sain et sauf
+
+-   • Le dossier est mis à jour : statut = 'retrouve_vivant'
+
+-   • Notification automatique à la famille
+
+-   • L'IA enregistre ce succès pour améliorer ses futurs modèles
+
+📊 BILAN :
+
+-   • Temps total : 6h15 (de la disparition à la découverte)
+
+-   • Rôle de l'IA : Détection quasi-instantanée (1 minute)
+
+-   • Rôle humain : Validation et action terrain (30 minutes)
+
+-   • Clé du succès : Collaboration IA + Citoyens + Autorités
+
+Exemple 2 : Prédiction de localisation
+
+📅 Situation initiale
+
+-   • Une jeune fille de 16 ans a fugué de chez elle à Douala
+
+-   • Dossier créé il y a 3 jours
+
+-   • Plusieurs signalements reçus à différents endroits
+
+📍 SIGNALEMENTS COLLECTÉS :
+
+-   • Jour 1 - 14h : Vue à la gare routière (GPS: 4.0511, 9.7679)
+
+-   • Jour 1 - 18h : Vue dans un marché (GPS: 4.0612, 9.7701)
+
+-   • Jour 2 - 10h : Vue à proximité d'un lycée (GPS: 4.0701, 9.7723)
+
+-   • Jour 3 - 09h : Vue dans un quartier résidentiel (GPS: 4.0798,
+    9.7745)
+
+📅 Jour 3 - 10h00 : Déclenchement analyse IA
+
+-   • L'officier clique sur 'Lancer prédiction de localisation'
+
+-   • L'IA collecte tous les signalements validés
+
+📅 Jour 3 - 10h02 : Analyse des patterns
+
+-   • L'IA détecte un pattern de déplacement vers le Nord-Est
+
+-   • Vitesse moyenne : 2 km par jour
+
+-   • Direction constante
+
+-   • Zones visitées : Principalement commerciales/scolaires
+
+📅 Jour 3 - 10h05 : Génération des prédictions
+
+-   L'IA génère 3 zones de probabilité :
+
+-   • Zone A (75% probabilité) : Quartier Akwa (rayon 1,5 km)
+
+-   - Facteurs : Trajectoire, présence d'écoles, transports
+
+-   • Zone B (55% probabilité) : Marché central (rayon 1 km)
+
+-   - Facteurs : Pattern d'activité, densité population
+
+-   • Zone C (40% probabilité) : Gare routière principale
+
+-   - Facteurs : Destination potentielle, mobilité
+
+📅 Jour 3 - 10h10 : Actions générées
+
+-   • Création automatique d'alertes géolocalisées dans les 3 zones
+
+-   • Notification à tous les utilisateurs dans ces périmètres
+
+-   • Suggestion de déploiement de patrouilles
+
+-   • Mise à jour de la carte de recherche
+
+📅 Jour 3 - 14h30 : Nouveau signalement
+
+-   • Un citoyen dans la Zone A signale avoir vu la jeune fille
+
+-   • L'IA compare : Correspondance 88%
+
+-   • Validation par officier : CONFIRMÉ
+
+📅 Jour 3 - 15h00 : Résolution
+
+-   • La jeune fille est retrouvée dans la Zone A
+
+-   • Exactement comme prédit par l'IA (75% de probabilité)
+
+-   • Elle est ramenée à sa famille
+
+📊 BILAN :
+
+-   • Précision de l'IA : Zone correcte identifiée
+
+-   • Gain de temps : Concentration des efforts sur zones prédites
+
+-   • Efficacité : Alertes ciblées vs. diffusion large
+
+-   • L'IA apprend : Ce succès améliore les futures prédictions
+
+2.8. RÉSUMÉ - Comment utiliser l'IA
+
+✅ L'IA FONCTIONNE AUTOMATIQUEMENT
+
+-   • Pas besoin de l'activer manuellement (sauf analyses spécifiques)
+
+-   • Elle tourne 24/7 en arrière-plan
+
+-   • Elle analyse chaque nouvelle photo uploadée
+
+-   • Elle génère des correspondances et prédictions
+
+✅ VALIDATION HUMAINE OBLIGATOIRE
+
+-   • L'IA PROPOSE, les autorités DÉCIDENT
+
+-   • Chaque correspondance doit être validée par un humain (niveau 4+)
+
+-   • L'IA ne prend JAMAIS de décision seule
+
+-   • C'est un outil d'aide à la décision, pas de remplacement
+
+✅ AMÉLIORATION CONTINUE
+
+-   • L'IA apprend de chaque validation/invalidation
+
+-   • Les modèles sont réentraînés régulièrement
+
+-   • La précision augmente avec le temps et les données
+
+-   • Les faux positifs diminuent progressivement
+
+✅ TRANSPARENCE
+
+-   • Tous les résultats IA sont tracés dans resultat_ia
+
+-   • Chaque score de confiance est expliqué
+
+-   • Les facteurs clés sont toujours indiqués
+
+-   • Audit possible de toutes les décisions IA
+
+CONCLUSION
+
+Ces deux questions touchent au cœur du fonctionnement de RetrouvonsLes :
+
+🔐 INSCRIPTION - Sécurité avant tout :
+
+• Grand public : Inscription libre pour maximiser la participation
+citoyenne
+
+• Autorités : Vérification stricte pour garantir la sécurité des données
+sensibles
+
+• Cette séparation protège l'intégrité du système
+
+🤖 INTELLIGENCE ARTIFICIELLE - Automatisation et précision :
+
+• L'IA travaille en continu, 24/7, sans intervention
+
+• Elle ne remplace pas l'humain, elle l'assiste
+
+• Chaque correspondance doit être validée par les autorités
+
+• Le système apprend et s'améliore constamment
+
+🎯 L'ÉQUATION DU SUCCÈS :
+
+Citoyens (signalements) + IA (détection rapide) + Autorités (validation
+& action) = Vies sauvées
+
+Ce système combine le meilleur de la technologie et de l'humain
+pour sauver des vies et réunir des familles.

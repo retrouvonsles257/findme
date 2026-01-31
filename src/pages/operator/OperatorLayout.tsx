@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { Menu, X, LogOut, Globe, LayoutDashboard, FolderPlus, FileInput, FolderOpen, FileText } from 'lucide-react';
+import { Menu, X, LogOut, Globe, LayoutDashboard, FolderPlus, FolderOpen, UserPlus, AlertCircle, Image } from 'lucide-react';
 import styles from './OperatorLayout.module.css';
 
 interface OperatorLayoutProps {
@@ -37,11 +37,12 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
   };
 
   const navItems = [
-    { path: '/operator/dashboard', label: t('common.dashboard'), icon: LayoutDashboard },
-    { path: '/operator/create-dossier', label: t('operator.createDossier'), icon: FolderPlus },
-    { path: '/operator/data-entry', label: t('operator.dataEntry'), icon: FileInput },
-    { path: '/operator/my-dossiers', label: t('operator.myDossiers'), icon: FolderOpen },
-    { path: '/operator/dossier/:id', label: t('operator.dossierDetails'), icon: FileText },
+    { path: '/operator/dashboard', label: t('common.dashboard') || 'Tableau de bord', icon: LayoutDashboard },
+    { path: '/operator/create-dossier', label: t('operator.createDossier') || 'Créer un dossier', icon: FolderPlus },
+    { path: '/operator/create-person', label: t('operator.createPerson') || 'Créer une personne', icon: UserPlus },
+    { path: '/operator/my-dossiers', label: t('operator.myDossiers') || 'Mes dossiers', icon: FolderOpen },
+    { path: '/operator/signalements-en-attente', label: 'Signalements en attente', icon: AlertCircle },
+    { path: '/operator/photos-en-attente', label: 'Photos en attente', icon: Image },
   ];
 
   return (
@@ -103,7 +104,7 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
           </div>
 
           <nav className={styles['operator-layout__nav']}>
-            {navItems.slice(0, 4).map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (

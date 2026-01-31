@@ -30,6 +30,7 @@ export {
   getSignalementVerifications,
   addSignalementVerification,
   getSignalementStats,
+  getSignalementsEnAttente,
 } from './services/signalementAPI';
 
 export {

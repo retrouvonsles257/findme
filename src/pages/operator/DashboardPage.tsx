@@ -14,14 +14,16 @@ import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { OperatorLayout } from './OperatorLayout';
 import { 
   FolderPlus, 
-  FileInput, 
   FolderOpen, 
   Loader2,
   Clock,
   CheckCircle2,
   FileText,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  UserPlus,
+  AlertCircle,
+  Image
 } from 'lucide-react';
 import styles from './DashboardPage.module.css';
 
@@ -55,25 +57,39 @@ export const OperatorDashboardPage: React.FC = () => {
 
   const quickActions = [
     {
-      title: t('operator.createDossier'),
-      description: t('operator.createDossierDesc'),
+      title: t('operator.createDossier') || 'Créer un dossier',
+      description: t('operator.createDossierDesc') || 'Créer un nouveau dossier de disparition',
       icon: FolderPlus,
       action: () => navigate('/operator/create-dossier'),
       color: '#1d4ed8'
     },
     {
-      title: t('operator.dataEntry'),
-      description: t('operator.dataEntryDesc'),
-      icon: FileInput,
-      action: () => navigate('/operator/data-entry'),
-      color: 'rgba(30, 144, 255, 0.92)'
+      title: t('operator.createPerson') || 'Créer une personne',
+      description: t('operator.createPersonDesc') || 'Enregistrer une fiche de personne détaillée',
+      icon: UserPlus,
+      action: () => navigate('/operator/create-person'),
+      color: '#8b5cf6'
     },
     {
-      title: t('operator.myDossiers'),
-      description: t('operator.myDossiersDesc'),
+      title: t('operator.myDossiers') || 'Mes dossiers',
+      description: t('operator.myDossiersDesc') || 'Consulter et gérer vos dossiers',
       icon: FolderOpen,
       action: () => navigate('/operator/my-dossiers'),
       color: '#10b981'
+    },
+    {
+      title: 'Signalements en attente',
+      description: 'Consulter les signalements en attente de validation',
+      icon: AlertCircle,
+      action: () => navigate('/operator/signalements-en-attente'),
+      color: '#f59e0b'
+    },
+    {
+      title: 'Photos en attente',
+      description: 'Consulter les photos non approuvées',
+      icon: Image,
+      action: () => navigate('/operator/photos-en-attente'),
+      color: '#ec4899'
     }
   ];
 

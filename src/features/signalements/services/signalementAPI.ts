@@ -290,6 +290,52 @@ export async function getSignalementStats(): Promise<SignalementStats> {
   return stats;
 }
 /**
+ * Get pending signalements (en_attente) for operator view
+ * Returns signalements with status 'en_attente' linked to dossiers
+ */
+export async function getSignalementsEnAttente(
+  organisationId?: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{ data: Signalement[]; total: number }> {
+  // Récupérer TOUS les signalements en attente d'abord (pour un comptage correct)
+  const { data: allData, error: fetchError } = await supabase
+    .from('signalement')
+    .select(`
+      *,
+      dossier:id_dossier(numero_dossier, id_organisation_responsable)
+    `)
+    .eq('statut_validation', 'en_attente')
+    .order('created_at', { ascending: false });
+
+  if (fetchError) throw fetchError;
+
+  let allSignalements = allData || [];
+  
+  // Filtrer par organisation si fournie
+  if (organisationId) {
+    allSignalements = allSignalements.filter(
+      (s: any) => s.dossier?.id_organisation_responsable === organisationId
+    );
+  }
+
+  // Calculer le total APRÈS filtrage
+  const total = allSignalements.length;
+  
+  // Appliquer la pagination
+  const start = (page - 1) * pageSize;
+  const paginatedData = allSignalements.slice(start, start + pageSize);
+
+  return {
+    data: paginatedData.map((s: any) => ({
+      ...s,
+      numero_dossier: s.dossier?.numero_dossier || 'N/A',
+    })),
+    total,
+  };
+}
+
+/**
  * Get signalements by dossier ID with user and temoin info
  */
 export async function getSignalementsByDossierId(dossierId: string): Promise<Signalement[]> {

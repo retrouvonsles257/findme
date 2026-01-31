@@ -25,7 +25,8 @@ import {
   FileText,
   MapPin,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Plus
 } from 'lucide-react';
 import styles from './MyDossierPage.module.css';
 
@@ -39,11 +40,18 @@ export const OperatorMyDossiersPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
+  const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'organisation'>('mine');
 
-  // Filtrer les dossiers créés par cet opérateur
-  const myDossiers = dossiers.filter(
-    (d: any) => d.id_utilisateur_createur === currentUser?.id || d.enregistre_par === currentUser?.id
-  );
+  // Filtrer les dossiers selon le filtre de propriété
+  const myDossiers = dossiers.filter((d: any) => {
+    if (ownershipFilter === 'mine') {
+      // Mes dossiers uniquement
+      return d.id_utilisateur_createur === currentUser?.id || d.enregistre_par === currentUser?.id;
+    } else {
+      // Dossiers de mon organisation
+      return d.id_organisation_responsable === currentUser?.organisation_id;
+    }
+  });
 
   // Appliquer les filtres
   let filteredDossiers = [...myDossiers];
@@ -95,10 +103,35 @@ export const OperatorMyDossiersPage: React.FC = () => {
   };
 
   return (
-    <OperatorLayout title={t('operator.myDossiersTitle')}>
-      <p className={styles['operator-my-dossiers__subtitle']}>
-        {t('operator.myDossiersSubtitle')} - Total: {myDossiers.length}
-      </p>
+    <OperatorLayout title={t('operator.myDossiersTitle') || 'Gestion des Dossiers'}>
+      <div className={styles['operator-my-dossiers__header']}>
+        <p className={styles['operator-my-dossiers__subtitle']}>
+          {t('operator.myDossiersSubtitle') || 'Gérez vos dossiers de disparition'} - Total: {myDossiers.length}
+        </p>
+        <button
+          className={styles['operator-my-dossiers__create-btn']}
+          onClick={() => navigate('/operator/create-dossier')}
+        >
+          <Plus size={18} />
+          Nouveau dossier
+        </button>
+      </div>
+
+      {/* Ownership Filter Toggle */}
+      <div className={styles['operator-my-dossiers__ownership-toggle']}>
+        <button
+          className={`${styles['operator-my-dossiers__ownership-btn']} ${ownershipFilter === 'mine' ? styles['operator-my-dossiers__ownership-btn--active'] : ''}`}
+          onClick={() => setOwnershipFilter('mine')}
+        >
+          Mes dossiers
+        </button>
+        <button
+          className={`${styles['operator-my-dossiers__ownership-btn']} ${ownershipFilter === 'organisation' ? styles['operator-my-dossiers__ownership-btn--active'] : ''}`}
+          onClick={() => setOwnershipFilter('organisation')}
+        >
+          Dossiers de mon organisation
+        </button>
+      </div>
 
       {/* Controls */}
       <div className={styles['operator-my-dossiers__controls']}>
@@ -140,104 +173,108 @@ export const OperatorMyDossiersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className={styles['operator-my-dossiers__table-wrapper']}>
+        {/* Cards Grid */}
+        <div className={styles['operator-my-dossiers__content']}>
           {isLoading ? (
             <div className={styles['operator-my-dossiers__loading-state']}>
               <Loader2 className={styles['operator-my-dossiers__spinner']} />
               <p className={styles['operator-my-dossiers__loading-text']}>{t('common.loading')}</p>
             </div>
           ) : filteredDossiers.length > 0 ? (
-            <table className={styles['operator-my-dossiers__table']}>
-              <thead className={styles['operator-my-dossiers__table-head']}>
-                <tr>
-                  <th className={styles['operator-my-dossiers__table-header']}>
-                    <FileText size={16} />
-                    {t('operator.tableHeaders.fileNumber')}
-                  </th>
-                  <th className={styles['operator-my-dossiers__table-header']}>
-                    <MapPin size={16} />
-                    {t('operator.tableHeaders.location')}
-                  </th>
-                  <th className={styles['operator-my-dossiers__table-header']}>{t('operator.tableHeaders.status')}</th>
-                  <th className={styles['operator-my-dossiers__table-header']}>
-                    <AlertTriangle size={16} />
-                    {t('operator.tableHeaders.urgency')}
-                  </th>
-                  <th className={styles['operator-my-dossiers__table-header']}>
-                    <Calendar size={16} />
-                    {t('operator.tableHeaders.createdDate')}
-                  </th>
-                  <th className={styles['operator-my-dossiers__table-header']}>{t('operator.tableHeaders.actions')}</th>
-                </tr>
-              </thead>
-              <tbody className={styles['operator-my-dossiers__table-body']}>
-                {filteredDossiers.map((dossier: any) => (
-                  <tr key={dossier.id} className={styles['operator-my-dossiers__table-row']}>
-                    <td className={styles['operator-my-dossiers__table-cell']}>
-                      <span
-                        className={styles['operator-my-dossiers__dossier-number']}
+            <div className={styles['operator-my-dossiers__cards-grid']}>
+              {filteredDossiers.map((dossier: any) => (
+                <div key={dossier.id} className={styles['operator-my-dossiers__card']}>
+                  <div className={styles['operator-my-dossiers__card-header']}>
+                    <h4 className={styles['operator-my-dossiers__card-title']}>
+                      {dossier.numero_dossier}
+                    </h4>
+                    <span
+                      className={`${styles['operator-my-dossiers__status-badge']} ${
+                        dossier.statut_dossier === 'en_cours'
+                          ? styles['operator-my-dossiers__status-badge--encours']
+                          : dossier.statut_dossier?.includes('retrouve')
+                            ? styles['operator-my-dossiers__status-badge--retrouve']
+                            : styles['operator-my-dossiers__status-badge--suspendu']
+                      }`}
+                    >
+                      {getStatusIcon(dossier.statut_dossier)}
+                      <span>{dossier.statut_dossier?.replace(/_/g, ' ')}</span>
+                    </span>
+                  </div>
+                  
+                  <div className={styles['operator-my-dossiers__card-meta']}>
+                    <div className={styles['operator-my-dossiers__card-meta-item']}>
+                      <MapPin size={14} />
+                      <span>{dossier.lieu_disparition || dossier.ville_disparition || 'Non renseigné'}</span>
+                    </div>
+                    <div className={styles['operator-my-dossiers__card-meta-item']}>
+                      <Calendar size={14} />
+                      <span>
+                        {dossier.date_disparition 
+                          ? new Date(dossier.date_disparition).toLocaleDateString('fr-FR')
+                          : 'Date inconnue'
+                        }
+                      </span>
+                    </div>
+                    <div className={styles['operator-my-dossiers__card-meta-item']}>
+                      <AlertTriangle size={14} style={{ color: getUrgencyColor(dossier.niveau_urgence) }} />
+                      <span style={{ color: getUrgencyColor(dossier.niveau_urgence), fontWeight: 500 }}>
+                        {dossier.niveau_urgence?.charAt(0).toUpperCase() + dossier.niveau_urgence?.slice(1) || 'Normal'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {dossier.circonstances && (
+                    <p className={styles['operator-my-dossiers__card-excerpt']}>
+                      {dossier.circonstances.length > 100 
+                        ? `${dossier.circonstances.substring(0, 100)}...` 
+                        : dossier.circonstances
+                      }
+                    </p>
+                  )}
+                  
+                  <div className={styles['operator-my-dossiers__card-footer']}>
+                    <span className={styles['operator-my-dossiers__card-date']}>
+                      Créé le {new Date(dossier.created_at).toLocaleDateString('fr-FR')}
+                    </span>
+                    <div className={styles['operator-my-dossiers__card-actions']}>
+                      <button
+                        className={styles['operator-my-dossiers__view-btn']}
                         onClick={() => handleViewDossier(dossier.id)}
                       >
-                        {dossier.numero_dossier}
-                      </span>
-                    </td>
-                    <td className={styles['operator-my-dossiers__table-cell']}>
-                      {dossier.lieu_disparition || t('common.notSpecified')}
-                    </td>
-                    <td className={styles['operator-my-dossiers__table-cell']}>
-                      <span
-                        className={`${styles['operator-my-dossiers__status-badge']} ${
-                          dossier.statut_dossier === 'en_cours'
-                            ? styles['operator-my-dossiers__status-badge--encours']
-                            : dossier.statut_dossier.includes('retrouve')
-                              ? styles['operator-my-dossiers__status-badge--retrouve']
-                              : styles['operator-my-dossiers__status-badge--suspendu']
-                        }`}
+                        <Eye size={16} />
+                        Voir
+                      </button>
+                      <button
+                        className={styles['operator-my-dossiers__edit-btn']}
+                        onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}
                       >
-                        {getStatusIcon(dossier.statut_dossier)}
-                        <span>{dossier.statut_dossier}</span>
-                      </span>
-                    </td>
-                    <td className={styles['operator-my-dossiers__table-cell']}>
-                      <span
-                        className={styles['operator-my-dossiers__urgence-badge']}
-                        style={{ color: getUrgencyColor(dossier.niveau_urgence) }}
-                      >
-                        {dossier.niveau_urgence}
-                      </span>
-                    </td>
-                    <td className={styles['operator-my-dossiers__table-cell']}>
-                      {new Date(dossier.created_at).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className={styles['operator-my-dossiers__table-cell']}>
-                      <div className={styles['operator-my-dossiers__actions']}>
-                        <button
-                          className={styles['operator-my-dossiers__action-btn']}
-                          onClick={() => handleViewDossier(dossier.id)}
-                          title={t('operator.viewFile')}
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          className={styles['operator-my-dossiers__action-btn']}
-                          onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}
-                          title={t('operator.editFile')}
-                        >
-                          <Edit3 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        <Edit3 size={16} />
+                        Modifier
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className={styles['operator-my-dossiers__empty-state']}>
               <FolderOpen className={styles['operator-my-dossiers__empty-icon']} />
               <p className={styles['operator-my-dossiers__empty-text']}>
-                {t('operator.noDossiersFound')}
+                {ownershipFilter === 'organisation' 
+                  ? 'Aucun dossier dans votre organisation'
+                  : 'Vous n\'avez pas encore créé de dossier'
+                }
               </p>
+              {ownershipFilter === 'mine' && (
+                <button
+                  className={styles['operator-my-dossiers__empty-action']}
+                  onClick={() => navigate('/operator/create-dossier')}
+                >
+                  <Plus size={18} />
+                  Créer mon premier dossier
+                </button>
+              )}
             </div>
           )}
         </div>
