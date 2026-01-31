@@ -5,27 +5,16 @@
  * =====================================================
  */
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { useAppSelector } from '../../store/hooks';
+import React, { useState } from 'react';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { ModerationLayout } from './ModerationLayout';
 import { BarChart3, Clock, CheckCircle, XCircle, Archive, TrendingUp } from 'lucide-react';
 import styles from './ReportsPage.module.css';
 
 export const ReportsPage: React.FC = () => {
-  const navigate = useNavigate();
-  const currentUser = useAppSelector(selectCurrentUser);
+  // Note: La vérification du rôle est gérée par RoleBasedRoute dans ModeratorRoutes.tsx
   const { signalements, isLoading } = useSignalements();
   const [reportPeriod, setReportPeriod] = useState<'7days' | '30days' | 'all'>('7days');
-
-  // Vérifier authentification
-  useEffect(() => {
-    if (currentUser && currentUser.role !== 'moderateur') {
-      navigate('/auth/login');
-    }
-  }, [currentUser, navigate]);
 
   // Filtrer par période
   const getFilteredSignalements = () => {

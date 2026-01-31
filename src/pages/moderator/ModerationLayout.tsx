@@ -5,11 +5,12 @@
  * =====================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
+import { supabase } from '../../config';
 import {
   Home,
   CheckCircle,
@@ -19,13 +20,22 @@ import {
   Menu,
   X,
   Globe,
+  Brain,
+  UserCheck,
+  MapPin,
+  Bell,
+  History,
+  Heart,
 } from 'lucide-react';
 import styles from './ModerationLayout.module.css';
+
+// Helper pour Supabase
+const db = () => supabase as any;
 
 interface ModerationLayoutProps {
   children: React.ReactNode;
   title: string;
-  activeNav: 'dashboard' | 'validation' | 'photos' | 'reports';
+  activeNav: 'dashboard' | 'validation' | 'photos' | 'reports' | 'ia' | 'identity' | 'map' | 'notifications' | 'history';
 }
 
 export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
@@ -37,6 +47,32 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Charger le nombre de notifications non lues
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      if (!currentUser?.id) return;
+      try {
+        const { count, error } = await db()
+          .from('notification')
+          .select('*', { count: 'exact', head: true })
+          .eq('id_utilisateur', currentUser.id)
+          .eq('lue', false);
+        
+        if (!error) {
+          setUnreadNotifications(count || 0);
+        }
+      } catch (err) {
+        console.error('Error loading unread count:', err);
+      }
+    };
+
+    loadUnreadCount();
+    // Rafraîchir toutes les 30 secondes
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [currentUser?.id]);
 
   const navItems = [
     {
@@ -56,6 +92,37 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
       label: t('moderator.photoModeration'),
       path: '/moderator/photos-moderation',
       icon: Image,
+    },
+    {
+      id: 'ia',
+      label: t('moderator.iaResults') || 'Résultats IA',
+      path: '/moderator/ia-results',
+      icon: Brain,
+    },
+    {
+      id: 'identity',
+      label: t('moderator.identityVerification') || 'Vérification ID',
+      path: '/moderator/identity-verification',
+      icon: UserCheck,
+    },
+    {
+      id: 'map',
+      label: t('moderator.mapView') || 'Vue Carte',
+      path: '/moderator/map-view',
+      icon: MapPin,
+    },
+    {
+      id: 'notifications',
+      label: t('common.notifications') || 'Notifications',
+      path: '/moderator/notifications',
+      icon: Bell,
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+    },
+    {
+      id: 'history',
+      label: t('moderator.activityHistory') || 'Mon Historique',
+      path: '/moderator/activity-history',
+      icon: History,
     },
     {
       id: 'reports',
@@ -89,6 +156,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
         <nav className={styles['moderation-layout__nav']}>
           {navItems.map((item) => {
             const Icon = item.icon;
+            const badge = (item as any).badge;
             return (
               <button
                 key={item.id}
@@ -100,7 +168,12 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
                 }`}
                 title={item.label}
               >
-                <Icon size={20} />
+                <div className={styles['moderation-layout__nav-icon']}>
+                  <Icon size={20} />
+                  {badge !== undefined && badge > 0 && (
+                    <span className={styles['moderation-layout__badge']}>{badge > 99 ? '99+' : badge}</span>
+                  )}
+                </div>
                 {sidebarOpen && <span>{item.label}</span>}
               </button>
             );
@@ -132,6 +205,16 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
           </div>
 
           <div className={styles['moderation-layout__header-right']}>
+            {/* Bouton Soutenir le projet */}
+            <button
+              className={styles['moderation-layout__donate-btn']}
+              onClick={() => navigate('/donate')}
+              title={t('common.supportProject') || 'Soutenir le projet'}
+            >
+              <Heart size={18} />
+              <span>{sidebarOpen ? (t('common.support') || 'Soutenir') : ''}</span>
+            </button>
+
             <button
               className={styles['moderation-layout__language']}
               onClick={toggleLanguage}

@@ -199,44 +199,48 @@ export async function deleteSignalementContact(contactId: string): Promise<void>
 }
 
 /**
- * Get signalement verifications
+ * Get signalement verifications from journal_activite
  */
 export async function getSignalementVerifications(
   signalementId: string
 ): Promise<SignalementVerification[]> {
-  const { data, error } = await supabase
-    .from('signalement_verifications')
+  // Récupérer les vérifications depuis journal_activite
+  const { data, error } = await db()
+    .from('journal_activite')
     .select('*')
-    .eq('signalement_id', signalementId)
-    .order('date_verification', { ascending: false });
+    .eq('type_action', 'validation_signalement')
+    .eq('id_signalement', signalementId)
+    .order('date_action', { ascending: false });
 
-  if (error) throw error;
-  return data || [];
+  if (error) {
+    console.error('Error fetching verifications:', error);
+    return [];
+  }
+  
+  // Transformer en format SignalementVerification
+  return (data || []).map((log: any) => ({
+    id: log.id,
+    signalement_id: signalementId,
+    verificateur_id: log.id_utilisateur,
+    date_verification: log.date_action,
+    decision: log.action_detaillee?.includes('approuv') ? 'approuve' : 
+              log.action_detaillee?.includes('rejet') ? 'rejete' : 'besoin_clarification',
+    raison: log.description || '',
+    score_confiance: 0.8,
+    avis: log.action_detaillee || '',
+  }));
 }
 
 /**
  * Add verification to signalement
+ * Updates the signalement status and logs the action
  */
 export async function addSignalementVerification(
   signalementId: string,
   verificateurId: string,
   payload: SignalementValidationPayload
 ): Promise<SignalementVerification> {
-  const { data, error } = await (supabase
-    .from('signalement_verifications') as any)
-    // @ts-ignore - Supabase typing issue with dynamic tables
-    .insert({
-      ...payload,
-      signalement_id: signalementId,
-      verificateur_id: verificateurId,
-      date_verification: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  // Update signalement statut_validation based on decision
+  // Determine new status based on decision
   const newStatut =
     payload.decision === 'approuve'
       ? 'valide'
@@ -244,9 +248,51 @@ export async function addSignalementVerification(
         ? 'invalide'
         : 'en_verification';
 
-  await updateSignalement(signalementId, { statut_validation: newStatut });
+  // Update the signalement directly
+  const { error: updateError } = await db()
+    .from('signalement')
+    .update({
+      statut_validation: newStatut,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', signalementId);
 
-  return data;
+  if (updateError) {
+    console.error('Error updating signalement:', updateError);
+    throw updateError;
+  }
+
+  // Log the action in journal_activite
+  const { error: logError } = await db()
+    .from('journal_activite')
+    .insert({
+      type_action: 'validation_signalement',
+      action_detaillee: payload.decision === 'approuve' 
+        ? 'Signalement approuvé par modérateur'
+        : payload.decision === 'rejete'
+          ? 'Signalement rejeté par modérateur'
+          : 'Signalement en attente de clarification',
+      description: `Décision: ${payload.decision}, Raison: ${payload.raison}, Score: ${payload.score_confiance}`,
+      id_utilisateur: verificateurId,
+      id_signalement: signalementId,
+    });
+
+  if (logError) {
+    console.error('Error logging action:', logError);
+    // Continue even if logging fails
+  }
+
+  // Return a verification object
+  return {
+    id: signalementId,
+    signalement_id: signalementId,
+    verificateur_id: verificateurId,
+    date_verification: new Date().toISOString(),
+    decision: payload.decision,
+    raison: payload.raison,
+    score_confiance: payload.score_confiance,
+    avis: payload.avis || '',
+  };
 }
 
 /**
