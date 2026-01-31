@@ -22,6 +22,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import styles from './CreateDossierPage.module.css';
+import { triggerDossierAnalysis } from '../../features/ia-analysis';
 
 interface PersonneFormData {
   nom: string;
@@ -263,6 +264,30 @@ export const CreateDossierAuthorityPage: React.FC = () => {
         .single();
 
       if (dossierError) throw dossierError;
+
+      // 4. Déclencher l'analyse IA automatique si une photo a été uploadée
+      if (uploadedPhotos.length > 0) {
+        console.log('[CreateDossier] Déclenchement analyse IA automatique...');
+        try {
+          const iaResult = await triggerDossierAnalysis(
+            dossierCreated.id,
+            uploadedPhotos[0], // Photo principale
+            user.id
+          );
+          console.log('[CreateDossier] Résultat IA:', iaResult);
+          
+          if (iaResult.success && iaResult.faceDetected) {
+            addNotification({
+              title: 'Analyse IA effectuée',
+              message: `Visage détecté avec un score de ${iaResult.score.toFixed(0)}%`,
+              type: 'info',
+            });
+          }
+        } catch (iaError) {
+          console.warn('[CreateDossier] Erreur analyse IA (non bloquante):', iaError);
+          // L'erreur IA ne bloque pas la création du dossier
+        }
+      }
 
       addNotification({
         title: t('authority.createDossier.messages.dossierCreated'),

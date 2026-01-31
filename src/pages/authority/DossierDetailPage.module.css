@@ -715,3 +715,273 @@
     padding: 0.25rem 0.625rem;
   }
 }
+
+/* ============================================
+   SECTION IA - ANALYSE
+   ============================================ */
+
+.iaUploadSection {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.iaUploadSection h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.iaWarning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.iaUploadBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.uploadLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 2rem;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.uploadLabel:hover {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.uploadLabel span {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.fileInput {
+  display: none;
+}
+
+.iaPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iaPreview img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.iaAnalyzeBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.iaAnalyzeBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.4);
+}
+
+.iaAnalyzeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.existingPhotosAnalysis {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.existingPhotosAnalysis h5 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.existingPhotosGrid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.existingPhotoCard {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.existingPhotoCard img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.analyzePhotoBtn {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1d4ed8;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.analyzePhotoBtn:hover:not(:disabled) {
+  background: #1e40af;
+  transform: scale(1.1);
+}
+
+.analyzePhotoBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.iaResultsSection h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.iaResultsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.iaResultCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.iaResultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.iaResultType {
+  font-weight: 500;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.iaResultDate {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.iaResultBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.iaResultScore {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scoreLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.scoreValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.iaResultStatus {
+  font-size: 0.85rem;
+}
+
+.faceDetected {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #22c55e;
+}
+
+.faceNotDetected {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #ef4444;
+}
+
+.viewResultBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewResultBtn:hover {
+  background: #e5e7eb;
+}

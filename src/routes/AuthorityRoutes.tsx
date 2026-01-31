@@ -22,6 +22,8 @@ import {
   InvestigationPage,
   IAAnalysisPage,
   CoordinationPage,
+  MapViewPage,
+  DonationsPage,
   StatistiquesPage,
   ProfilePage,
   NotificationsPage,
@@ -187,6 +189,28 @@ const AuthorityRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={authorityRoles}>
               <CoordinationPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* ==================== MAP VIEW ==================== */}
+        
+        <Route
+          path="/map-view"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <MapViewPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* ==================== DONATIONS & CAMPAGNES ==================== */}
+        
+        <Route
+          path="/donations"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <DonationsPage />
             </RoleBasedRoute>
           }
         />

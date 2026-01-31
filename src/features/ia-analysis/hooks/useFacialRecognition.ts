@@ -58,17 +58,34 @@ export const useFacialRecognition = (): UseFacialRecognitionReturn => {
    */
   const analyzeFacial = useCallback(
     async (imageFile: File, dossierId?: string): Promise<ResultatIA> => {
+      console.log('[Hook] ═══════════════════════════════════════════');
+      console.log('[Hook] DÉMARRAGE ANALYSE FACIALE');
+      console.log('[Hook] Image:', imageFile.name, imageFile.size, 'bytes');
+      console.log('[Hook] Dossier ID:', dossierId || 'N/A');
+      console.log('[Hook] Hugging Face configuré:', serviceStatus.huggingFaceConfigured);
+      console.log('[Hook] ═══════════════════════════════════════════');
+      
+      if (!serviceStatus.huggingFaceConfigured) {
+        console.error('[Hook] ✗ ERREUR: Hugging Face non configuré!');
+        throw new Error('Service Hugging Face non configuré. Vérifiez REACT_APP_HUGGINGFACE_API_KEY dans .env');
+      }
+      
       setLocalLoading(true);
       setLocalError(null);
       
       try {
-        console.log('[Hook] Démarrage analyse faciale avec Hugging Face...');
-        console.log('[Hook] Hugging Face configuré:', serviceStatus.huggingFaceConfigured);
+        console.log('[Hook] Appel analyzeFacialImage...');
         
         // Appeler directement le service IA
         const result = await analyzeFacialImage(imageFile, dossierId);
         
-        console.log('[Hook] Résultat analyse:', result);
+        console.log('[Hook] ═══════════════════════════════════════════');
+        console.log('[Hook] RÉSULTAT ANALYSE');
+        console.log('[Hook] ID:', result.id);
+        console.log('[Hook] Score:', result.score_confiance);
+        console.log('[Hook] Visage détecté:', result.donnees_interpretees?.face_detected);
+        console.log('[Hook] Correspondances:', result.correspondances_trouvees);
+        console.log('[Hook] ═══════════════════════════════════════════');
         
         // Ajouter le résultat au state Redux (met aussi à jour currentFacialAnalysis)
         dispatch(addFacialRecognitionResult(result));
@@ -77,7 +94,10 @@ export const useFacialRecognition = (): UseFacialRecognitionReturn => {
         return result;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'analyse';
-        console.error('[Hook] Erreur analyse faciale:', errorMessage);
+        console.error('[Hook] ═══════════════════════════════════════════');
+        console.error('[Hook] ERREUR ANALYSE FACIALE:', errorMessage);
+        console.error('[Hook] Détails:', err);
+        console.error('[Hook] ═══════════════════════════════════════════');
         setLocalError(errorMessage);
         setLocalLoading(false);
         throw err;

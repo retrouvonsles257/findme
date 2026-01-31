@@ -79,6 +79,18 @@ export {
   getLocationWithDistance,
 } from './services/predictionService';
 
+// Auto-trigger IA (déclenchement automatique)
+export {
+  triggerAutoAnalysis,
+  triggerDossierAnalysis,
+  triggerSignalementAnalysis,
+  confirmIAResult,
+  rejectIAResult,
+  markNeedsVerification,
+} from './services/iaAutoTrigger';
+
+export type { PhotoAnalysisRequest, AutoTriggerResult } from './services/iaAutoTrigger';
+
 // Store
 export {
   fetchFacialRecognitionResults,

@@ -30,6 +30,12 @@ export { IAAnalysisPage } from './IAAnalysisPage';
 // Coordination
 export { CoordinationPage } from './CoordinationPage';
 
+// Map View
+export { MapViewPage } from './MapViewPage';
+
+// Donations & Campagnes
+export { DonationsPage } from './DonationsPage';
+
 // Statistiques
 export { StatistiquesPage } from './StatistiquesPage';
 

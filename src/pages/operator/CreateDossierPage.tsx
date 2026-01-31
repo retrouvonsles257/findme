@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import styles from './CreateDossierPage.module.css';
 import { MapTilerView } from '../../components/maps/MapTilerView';
+import { triggerDossierAnalysis } from '../../features/ia-analysis';
 
 interface DossierFormData {
   // Personne disparue
@@ -309,6 +310,22 @@ export const CreateDossierPage: React.FC = () => {
         } catch (photoError) {
           console.error('Error inserting photos:', photoError);
           // On continue même si l'insertion des photos échoue
+        }
+        
+        // Déclencher l'analyse IA automatique si une photo a été uploadée
+        if (photoUrl && createdDossier.id) {
+          console.log('[CreateDossier] Déclenchement analyse IA automatique...');
+          try {
+            const iaResult = await triggerDossierAnalysis(
+              createdDossier.id,
+              photoUrl,
+              currentUser?.id
+            );
+            console.log('[CreateDossier] Résultat IA:', iaResult);
+          } catch (iaError) {
+            console.warn('[CreateDossier] Erreur analyse IA (non bloquante):', iaError);
+            // L'erreur IA ne bloque pas la création du dossier
+          }
         }
       }
       

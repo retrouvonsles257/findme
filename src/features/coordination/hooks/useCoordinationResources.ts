@@ -213,6 +213,15 @@ export const useCoordinationResources = (): UseCoordinationResourcesReturn => {
 
       if (insertError) throw insertError;
 
+      // Log action in journal_activite
+      await (supabase as any).from('journal_activite').insert({
+        type_action: 'autre',
+        action_detaillee: 'Demande de ressources',
+        description: `Demande de ${quantite} ${typeRessource} à l'organisation ${organisationId}`,
+        id_utilisateur: user.id,
+        date_action: new Date().toISOString(),
+      });
+
       // Refresh requests
       fetchResources();
     } catch (err: any) {

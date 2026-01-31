@@ -30,8 +30,15 @@ import {
   Mail,
   User,
   BarChart3,
-  History
+  History,
+  Zap,
+  Loader2,
+  CheckCircle,
+  Eye,
+  Upload
 } from 'lucide-react';
+import { analyzeFacialImage, getResultatsIA, ResultatIA } from '../../features/ia-analysis/services/iaAPI';
+import { isHuggingFaceConfigured } from '../../services/huggingFaceService';
 import styles from './DossierDetailPage.module.css';
 
 export const DossierDetailPage: React.FC = () => {
@@ -71,9 +78,16 @@ export const DossierDetailPage: React.FC = () => {
   };
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
   const { historique, fetchHistorique } = useHistoriqueDossier();
-  const [activeTab, setActiveTab] = useState<'info' | 'signalements' | 'localisations' | 'historique' | 'photos'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'signalements' | 'localisations' | 'historique' | 'photos' | 'ia'>('info');
   const [photos, setPhotos] = useState<any[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
+  
+  // États pour l'analyse IA
+  const [iaResults, setIaResults] = useState<ResultatIA[]>([]);
+  const [loadingIa, setLoadingIa] = useState(false);
+  const [iaAnalyzing, setIaAnalyzing] = useState(false);
+  const [selectedIaImage, setSelectedIaImage] = useState<File | null>(null);
+  const [iaImagePreview, setIaImagePreview] = useState<string | null>(null);
 
   // Charger les photos de la personne
   useEffect(() => {
@@ -102,6 +116,74 @@ export const DossierDetailPage: React.FC = () => {
       loadPhotos();
     }
   }, [dossier?.id_personne]);
+
+  // Charger les résultats IA pour ce dossier
+  useEffect(() => {
+    const loadIaResults = async () => {
+      if (!id) return;
+      setLoadingIa(true);
+      try {
+        const results = await getResultatsIA(undefined, id);
+        setIaResults(results);
+      } catch (err) {
+        console.error('[DossierDetail] Erreur chargement résultats IA:', err);
+      } finally {
+        setLoadingIa(false);
+      }
+    };
+    
+    if (activeTab === 'ia') {
+      loadIaResults();
+    }
+  }, [id, activeTab]);
+
+  // Gérer la sélection d'image pour l'analyse IA
+  const handleIaFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedIaImage(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setIaImagePreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Lancer l'analyse IA
+  const handleStartIaAnalysis = async () => {
+    if (!selectedIaImage || !id) return;
+    setIaAnalyzing(true);
+    try {
+      const result = await analyzeFacialImage(selectedIaImage, id);
+      setIaResults(prev => [result, ...prev]);
+      setSelectedIaImage(null);
+      setIaImagePreview(null);
+    } catch (err) {
+      console.error('[DossierDetail] Erreur analyse IA:', err);
+    } finally {
+      setIaAnalyzing(false);
+    }
+  };
+
+  // Analyser une photo existante du dossier
+  const handleAnalyzeExistingPhoto = async (photoUrl: string) => {
+    if (!id) return;
+    setIaAnalyzing(true);
+    try {
+      // Convertir l'URL en File
+      const response = await fetch(photoUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
+      
+      const result = await analyzeFacialImage(file, id);
+      setIaResults(prev => [result, ...prev]);
+    } catch (err) {
+      console.error('[DossierDetail] Erreur analyse photo existante:', err);
+    } finally {
+      setIaAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -168,7 +250,7 @@ export const DossierDetailPage: React.FC = () => {
 
             {/* Tabs */}
             <div className={styles.tabs}>
-              {(['info', 'photos', 'signalements', 'localisations', 'historique'] as const).map((tab) => (
+              {(['info', 'photos', 'signalements', 'localisations', 'historique', 'ia'] as const).map((tab) => (
                 <button
                   key={tab}
                   className={`${styles.tab} ${activeTab === tab ? styles.active : ''}`}
@@ -179,6 +261,7 @@ export const DossierDetailPage: React.FC = () => {
                   {tab === 'signalements' && <><AlertCircle size={16} /> {t('authority.dossierDetail.tabs.reports')}</>}
                   {tab === 'localisations' && <><MapPin size={16} /> {t('authority.dossierDetail.tabs.locations')}</>}
                   {tab === 'historique' && <><History size={16} /> {t('authority.dossierDetail.tabs.history')}</>}
+                  {tab === 'ia' && <><Brain size={16} /> {t('authority.dossierDetail.tabs.ia')}</>}
                 </button>
               ))}
             </div>
@@ -425,6 +508,135 @@ export const DossierDetailPage: React.FC = () => {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Onglet Analyse IA */}
+              {activeTab === 'ia' && (
+                <div className={styles.tabContent}>
+                  <h3><Brain size={20} /> {t('authority.dossierDetail.tabs.ia')}</h3>
+                  
+                  {/* Section Upload pour analyse */}
+                  <div className={styles.iaUploadSection}>
+                    <h4>{t('authority.dossierDetail.ia.newAnalysis')}</h4>
+                    
+                    {!isHuggingFaceConfigured() && (
+                      <div className={styles.iaWarning}>
+                        <AlertCircle size={18} />
+                        <span>{t('authority.iaAnalysis.serviceNotConfigured')}</span>
+                      </div>
+                    )}
+                    
+                    <div className={styles.iaUploadBox}>
+                      <label className={styles.uploadLabel}>
+                        <Upload size={32} />
+                        <span>{t('authority.iaAnalysis.facialRecognition.uploadText')}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleIaFileSelect}
+                          className={styles.fileInput}
+                        />
+                      </label>
+                      
+                      {iaImagePreview && (
+                        <div className={styles.iaPreview}>
+                          <img src={iaImagePreview} alt="Aperçu" />
+                          <button
+                            className={styles.iaAnalyzeBtn}
+                            onClick={handleStartIaAnalysis}
+                            disabled={iaAnalyzing}
+                          >
+                            {iaAnalyzing ? (
+                              <><Loader2 size={18} className={styles.spinning} /> {t('authority.iaAnalysis.facialRecognition.analyzing')}</>
+                            ) : (
+                              <><Zap size={18} /> {t('authority.iaAnalysis.facialRecognition.startAnalysis')}</>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Analyser une photo existante */}
+                    {photos.length > 0 && (
+                      <div className={styles.existingPhotosAnalysis}>
+                        <h5>{t('authority.dossierDetail.ia.analyzeExisting')}</h5>
+                        <div className={styles.existingPhotosGrid}>
+                          {photos.slice(0, 4).map((photo) => (
+                            <div key={photo.id} className={styles.existingPhotoCard}>
+                              <img src={photo.url_thumbnail || photo.url_cloudinary} alt="Photo" />
+                              <button
+                                className={styles.analyzePhotoBtn}
+                                onClick={() => handleAnalyzeExistingPhoto(photo.url_cloudinary)}
+                                disabled={iaAnalyzing}
+                              >
+                                {iaAnalyzing ? <Loader2 size={14} className={styles.spinning} /> : <Brain size={14} />}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Résultats IA */}
+                  <div className={styles.iaResultsSection}>
+                    <h4>{t('authority.dossierDetail.ia.results')}</h4>
+                    {loadingIa ? (
+                      <div className={styles.loading}><Loader2 size={24} className={styles.spinning} /></div>
+                    ) : iaResults.length > 0 ? (
+                      <div className={styles.iaResultsList}>
+                        {iaResults.map((result) => (
+                          <div key={result.id} className={styles.iaResultCard}>
+                            <div className={styles.iaResultHeader}>
+                              <span className={styles.iaResultType}>{result.type_analyse}</span>
+                              <span className={styles.iaResultDate}>
+                                {new Date(result.date_analyse).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className={styles.iaResultBody}>
+                              <div className={styles.iaResultScore}>
+                                <span className={styles.scoreLabel}>{t('authority.iaAnalysis.results.reliability')}</span>
+                                <span className={styles.scoreValue} style={{
+                                  color: result.score_confiance >= 70 ? '#22c55e' : 
+                                         result.score_confiance >= 40 ? '#f59e0b' : '#ef4444'
+                                }}>
+                                  {result.score_confiance.toFixed(0)}%
+                                </span>
+                              </div>
+                              <div className={styles.iaResultStatus}>
+                                {result.donnees_interpretees?.face_detected ? (
+                                  <span className={styles.faceDetected}>
+                                    <CheckCircle size={14} /> {t('authority.iaAnalysis.facialRecognition.detected')}
+                                  </span>
+                                ) : (
+                                  <span className={styles.faceNotDetected}>
+                                    <AlertCircle size={14} /> {t('authority.iaAnalysis.facialRecognition.notDetected')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className={styles.iaResultStatus}>
+                                <span style={{ fontSize: 12, opacity: 0.8 }}>
+                                  {(((result.correspondances_trouvees as any)?.similar_cases?.length) || 0)} {t('authority.iaAnalysis.similarities.matches')}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              className={styles.viewResultBtn}
+                              onClick={() => navigate(`/authority/ia-analysis?resultId=${result.id}`)}
+                            >
+                              <Eye size={14} /> {t('authority.iaAnalysis.actions.viewDetails')}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.empty}>
+                        <Brain size={48} />
+                        <p>{t('authority.dossierDetail.ia.noResults')}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

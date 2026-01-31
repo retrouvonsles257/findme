@@ -110,7 +110,19 @@ export const createAlerte = async (input: AlerteCreateInput): Promise<Alerte> =>
     console.error('[alerteAPI] Données envoyées:', insertData);
     throw new Error(error.message || 'Erreur lors de la création de l\'alerte');
   }
-  return data;
+
+  // Log action in journal_activite
+  await (supabase as any).from('journal_activite').insert({
+    type_action: 'creation_dossier',
+    action_detaillee: 'Création d\'une nouvelle alerte',
+    description: `Alerte "${input.titre}" créée pour le dossier ${input.id_dossier}`,
+    id_utilisateur: user.id,
+    id_alerte: (data as any).id,
+    id_dossier: input.id_dossier,
+    date_action: new Date().toISOString(),
+  });
+
+  return data as Alerte;
 };
 
 /**
@@ -187,8 +199,26 @@ export const updateAlerte = async (id: string, input: AlerteUpdateInput): Promis
  * Supprimer une alerte
  */
 export const deleteAlerte = async (id: string): Promise<void> => {
+  const user = (await supabase.auth.getUser()).data.user;
+  
+  // Get alerte info before deletion for logging
+  const { data: alerteData } = await (supabase as any).from('alerte').select('titre, id_dossier').eq('id', id).single();
+  const alerte = alerteData as { titre?: string; id_dossier?: string } | null;
+
   const { error } = await supabase.from('alerte').delete().eq('id', id);
   if (error) throw error;
+
+  // Log action in journal_activite
+  if (user) {
+    await (supabase as any).from('journal_activite').insert({
+      type_action: 'autre',
+      action_detaillee: 'Suppression d\'alerte',
+      description: `Alerte "${alerte?.titre || id}" supprimée`,
+      id_utilisateur: user.id,
+      id_dossier: alerte?.id_dossier,
+      date_action: new Date().toISOString(),
+    });
+  }
 };
 
 // ============================================
@@ -223,7 +253,26 @@ export const updateAlerteStatut = async (
     updateData.date_expiration = new Date().toISOString();
   }
 
-  return updateAlerte(id, updateData);
+  const result = await updateAlerte(id, updateData);
+
+  // Log action in journal_activite
+  const actionLabels: Record<string, string> = {
+    'en_cours': 'Publication/Diffusion d\'alerte',
+    'terminee': 'Clôture d\'alerte',
+    'annulee': 'Annulation d\'alerte',
+    'brouillon': 'Retour en brouillon de l\'alerte',
+  };
+
+  await (supabase as any).from('journal_activite').insert({
+    type_action: 'diffusion_alerte',
+    action_detaillee: actionLabels[statut] || `Changement de statut: ${statut}`,
+    description: `Alerte ${id} passée au statut "${statut}"${commentaire ? `. Motif: ${commentaire}` : ''}`,
+    id_utilisateur: user.id,
+    id_alerte: id,
+    date_action: new Date().toISOString(),
+  });
+
+  return result;
 };
 
 /**
@@ -291,6 +340,20 @@ export const diffuserAlerte = async (
     nombre_destinataires: destinataires,
     nombre_envois_reussis: destinataires,
   });
+
+  // Log diffusion action
+  const user = (await supabase.auth.getUser()).data.user;
+  if (user) {
+    await (supabase as any).from('journal_activite').insert({
+      type_action: 'diffusion_alerte',
+      action_detaillee: 'Diffusion d\'alerte aux utilisateurs',
+      description: `Alerte "${alerte.titre}" diffusée à ${destinataires} utilisateur(s)`,
+      id_utilisateur: user.id,
+      id_alerte: id,
+      id_dossier: alerte.id_dossier,
+      date_action: new Date().toISOString(),
+    });
+  }
 
   return {
     success: true,

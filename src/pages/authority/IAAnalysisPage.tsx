@@ -1,7 +1,13 @@
 /**
  * =====================================================
- * RETROUVONSLES - IA Analysis Page
- * Analyse IA: reconnaissance faciale, similarités, prédictions
+ * RETROUVONSLES - IA Analysis Page (Version Complète)
+ * 
+ * Conforme à la documentation :
+ * - Badge rouge >85% prioritaire
+ * - Photos côte à côte (dossier vs signalement)
+ * - Boutons d'action complets (Enquête, Alerte)
+ * - Statistiques IA
+ * - Configuration des seuils
  * =====================================================
  */
 
@@ -32,9 +38,19 @@ import {
   Calendar,
   Activity,
   Smile,
+  Bell,
+  Shield,
+  Settings,
+  FileText,
+  AlertTriangle,
+  PieChart,
+  Download,
+  Filter,
+  Sliders,
 } from 'lucide-react';
-import { useFacialRecognition, useIAAnalysis } from '../../features/ia-analysis';
-import { checkIAServiceStatus, ResultatIA } from '../../features/ia-analysis/services/iaAPI';
+import { useFacialRecognition, useIAAnalysis, confirmIAResult, rejectIAResult, markNeedsVerification } from '../../features/ia-analysis';
+import { checkIAServiceStatus, ResultatIA, getResultatsIA } from '../../features/ia-analysis/services/iaAPI';
+import { useAuth } from '../../features/auth';
 import { useDispatch } from 'react-redux';
 import { 
   fetchFacialRecognitionResults, 
@@ -42,9 +58,14 @@ import {
   fetchLocationPredictions, 
   fetchSimilaritiesResults 
 } from '../../features/ia-analysis/store/iaSlice';
+import { supabase } from '../../config';
 import styles from './IAAnalysisPage.module.css';
 
-type AnalysisTab = 'matching' | 'similarities' | 'predictions' | 'results';
+type AnalysisTab = 'matching' | 'similarities' | 'predictions' | 'results' | 'statistics';
+
+// Seuils par défaut
+const DEFAULT_THRESHOLD = 70;
+const PRIORITY_THRESHOLD = 85;
 
 export const IAAnalysisPage: React.FC = () => {
   const { t, language } = useI18n();
@@ -54,6 +75,29 @@ export const IAAnalysisPage: React.FC = () => {
   const [analysisStarted, setAnalysisStarted] = useState(false);
   const [selectedResult, setSelectedResult] = useState<ResultatIA | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [validationLoading, setValidationLoading] = useState(false);
+  const [validationComment, setValidationComment] = useState('');
+  
+  // États pour les nouvelles fonctionnalités
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(DEFAULT_THRESHOLD);
+  const [filterScore, setFilterScore] = useState<'all' | 'high' | 'priority'>('all');
+  const [iaStatistics, setIaStatistics] = useState<{
+    totalAnalyses: number;
+    confirmedMatches: number;
+    falsePositives: number;
+    pendingValidation: number;
+    averageProcessingTime: number;
+    precisionRate: number;
+  } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  
+  // Photos pour comparaison côte à côte
+  const [dossierPhoto, setDossierPhoto] = useState<string | null>(null);
+  const [signalementPhoto, setSignalementPhoto] = useState<string | null>(null);
+  
+  // Auth pour obtenir l'ID utilisateur
+  const { user } = useAuth();
   
   // Vérifier le statut du service IA
   const [iaStatus, setIaStatus] = useState<{
@@ -87,9 +131,9 @@ export const IAAnalysisPage: React.FC = () => {
 
   const dispatch = useDispatch();
 
-  // Charger l'historique IA au démarrage
+  // Charger l'historique IA et les statistiques au démarrage
   useEffect(() => {
-    const loadHistory = async () => {
+    const loadData = async () => {
       try {
         // Charger tous les types de résultats IA
         await Promise.all([
@@ -98,12 +142,83 @@ export const IAAnalysisPage: React.FC = () => {
           dispatch(fetchLocationPredictions() as any).unwrap().catch(() => []),
           dispatch(fetchSimilaritiesResults() as any).unwrap().catch(() => []),
         ]);
+        
+        // Charger les statistiques
+        await loadStatistics();
       } catch (err) {
         // Erreur silencieuse
       }
     };
-    loadHistory();
+    loadData();
   }, [dispatch]);
+
+  // Charger les statistiques IA
+  const loadStatistics = async () => {
+    try {
+      const allResults = await getResultatsIA();
+      
+      const confirmed = allResults.filter(r => r.statut_validation === 'confirme').length;
+      const falsePos = allResults.filter(r => r.faux_positif === true).length;
+      const pending = allResults.filter(r => r.statut_validation === 'en_attente').length;
+      const avgTime = allResults.length > 0 
+        ? allResults.reduce((sum, r) => sum + (r.temps_traitement_ms || 0), 0) / allResults.length 
+        : 0;
+      
+      // Calcul du taux de précision
+      const validated = confirmed + falsePos;
+      const precision = validated > 0 ? (confirmed / validated) * 100 : 0;
+      
+      setIaStatistics({
+        totalAnalyses: allResults.length,
+        confirmedMatches: confirmed,
+        falsePositives: falsePos,
+        pendingValidation: pending,
+        averageProcessingTime: avgTime,
+        precisionRate: precision,
+      });
+    } catch (err) {
+      console.error('[IAPage] Erreur chargement statistiques:', err);
+    }
+  };
+
+  // Charger les photos pour la comparaison côte à côte
+  const loadComparisonPhotos = async (result: ResultatIA) => {
+    try {
+      // Photo du dossier
+      if (result.id_dossier) {
+        const { data: dossierPhotos } = await (supabase as any)
+          .from('photo')
+          .select('url_photo')
+          .eq('id_dossier', result.id_dossier)
+          .eq('type_photo', 'principale')
+          .limit(1);
+        
+        if (dossierPhotos && dossierPhotos.length > 0) {
+          setDossierPhoto(dossierPhotos[0].url_photo);
+        }
+      }
+      
+      // Photo du signalement
+      if (result.id_signalement) {
+        const { data: signalementPhotos } = await (supabase as any)
+          .from('photo')
+          .select('url_photo')
+          .eq('id_signalement', result.id_signalement)
+          .limit(1);
+        
+        if (signalementPhotos && signalementPhotos.length > 0) {
+          setSignalementPhoto(signalementPhotos[0].url_photo);
+        }
+      }
+      
+      // Si pas de photo signalement, utiliser l'image analysée
+      if (!signalementPhoto && result.donnees_brutes?.image_url) {
+        setSignalementPhoto(result.donnees_brutes.image_url);
+      }
+    } catch (err) {
+      console.error('[IAPage] Erreur chargement photos:', err);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -120,6 +235,11 @@ export const IAAnalysisPage: React.FC = () => {
   };
 
   const handleStartAnalysis = useCallback(async () => {
+    console.log('[IAPage] ═══════════════════════════════════════════');
+    console.log('[IAPage] DÉMARRAGE ANALYSE MANUELLE');
+    console.log('[IAPage] Image sélectionnée:', selectedImage?.name, selectedImage?.size, 'bytes');
+    console.log('[IAPage] ═══════════════════════════════════════════');
+    
     if (!selectedImage) {
       alert(t('authority.iaAnalysis.messages.selectImage'));
       return;
@@ -128,21 +248,243 @@ export const IAAnalysisPage: React.FC = () => {
     setAnalysisStarted(true);
 
     try {
-      await analyzeFacial(selectedImage);
+      console.log('[IAPage] Appel de analyzeFacial...');
+      const result = await analyzeFacial(selectedImage);
+      console.log('[IAPage] Résultat analyse:', result);
+      console.log('[IAPage] Visage détecté:', result?.donnees_interpretees?.face_detected);
+      console.log('[IAPage] Correspondances:', result?.correspondances_trouvees);
+      
       setActiveTab('results');
+      await loadStatistics(); // Refresh stats
+      
+      // Rafraîchir les résultats après l'analyse
+      dispatch(fetchFacialRecognitionResults() as any);
+      dispatch(fetchSimilaritiesResults() as any);
+      
+      console.log('[IAPage] Analyse terminée avec succès');
     } catch (err) {
-      // Erreur gérée par la notification
+      console.error('[IAPage] ERREUR ANALYSE:', err);
+      alert('Erreur lors de l\'analyse: ' + (err instanceof Error ? err.message : 'Erreur inconnue'));
     }
-  }, [selectedImage, analyzeFacial]);
+  }, [selectedImage, analyzeFacial, t, dispatch]);
 
-  const handleViewDetails = (result: ResultatIA) => {
+  const handleViewDetails = async (result: ResultatIA) => {
     setSelectedResult(result);
+    setDossierPhoto(null);
+    setSignalementPhoto(null);
+    await loadComparisonPhotos(result);
     setShowDetailModal(true);
   };
 
   const closeDetailModal = () => {
     setShowDetailModal(false);
     setSelectedResult(null);
+    setValidationComment('');
+    setDossierPhoto(null);
+    setSignalementPhoto(null);
+  };
+
+  // Handlers de validation IA
+  const handleConfirmResult = async () => {
+    if (!selectedResult || !user?.id) return;
+    setValidationLoading(true);
+    try {
+      await confirmIAResult(selectedResult.id, user.id, validationComment || undefined);
+      
+      // Actions automatiques après confirmation
+      await executePostConfirmationActions(selectedResult);
+      
+      dispatch(fetchFacialRecognitionResults() as any);
+      await loadStatistics();
+      closeDetailModal();
+    } catch (err) {
+      console.error('[IAPage] Erreur confirmation:', err);
+    } finally {
+      setValidationLoading(false);
+    }
+  };
+
+  const handleRejectResult = async () => {
+    if (!selectedResult || !user?.id) return;
+    setValidationLoading(true);
+    try {
+      await rejectIAResult(selectedResult.id, user.id, validationComment || undefined);
+      dispatch(fetchFacialRecognitionResults() as any);
+      await loadStatistics();
+      closeDetailModal();
+    } catch (err) {
+      console.error('[IAPage] Erreur rejet:', err);
+    } finally {
+      setValidationLoading(false);
+    }
+  };
+
+  const handleNeedsVerification = async () => {
+    if (!selectedResult || !user?.id) return;
+    setValidationLoading(true);
+    try {
+      await markNeedsVerification(selectedResult.id, user.id, validationComment || undefined);
+      dispatch(fetchFacialRecognitionResults() as any);
+      closeDetailModal();
+    } catch (err) {
+      console.error('[IAPage] Erreur vérification:', err);
+    } finally {
+      setValidationLoading(false);
+    }
+  };
+
+  // Actions automatiques après confirmation
+  const executePostConfirmationActions = async (result: ResultatIA) => {
+    try {
+      // 1. Mettre à jour le dossier avec nouvelle localisation
+      if (result.id_dossier && result.id_signalement) {
+        const { data: signalement } = await (supabase as any)
+          .from('signalement')
+          .select('latitude_observation, longitude_observation, lieu_observation')
+          .eq('id', result.id_signalement)
+          .single();
+        
+        if (signalement) {
+          await (supabase as any)
+            .from('dossier_disparition')
+            .update({
+              derniere_localisation_connue: signalement.lieu_observation,
+              derniere_activite: new Date().toISOString(),
+            })
+            .eq('id', result.id_dossier);
+        }
+      }
+      
+      // 2. Enregistrer dans journal_activite
+      await (supabase as any).from('journal_activite').insert({
+        type_action: 'validation_ia',
+        action_detaillee: 'Correspondance IA confirmée',
+        description: `Correspondance confirmée avec score ${result.score_confiance.toFixed(0)}%`,
+        id_utilisateur: user?.id,
+        id_dossier: result.id_dossier,
+        date_action: new Date().toISOString(),
+      });
+      
+      console.log('[IAPage] Actions post-confirmation exécutées');
+    } catch (err) {
+      console.error('[IAPage] Erreur actions post-confirmation:', err);
+    }
+  };
+
+  // Lancer une enquête
+  const handleLaunchInvestigation = async () => {
+    if (!selectedResult || !user?.id) return;
+    setActionLoading(true);
+    try {
+      // Créer une entrée dans le journal comme action d'investigation
+      await (supabase as any).from('journal_activite').insert({
+        type_action: 'creation_enquete',
+        action_detaillee: 'Enquête lancée suite à correspondance IA',
+        description: `Investigation ouverte pour résultat IA #${selectedResult.id.substring(0, 8)}`,
+        id_utilisateur: user.id,
+        id_dossier: selectedResult.id_dossier,
+        date_action: new Date().toISOString(),
+      });
+      
+      // Mettre à jour le statut du résultat IA
+      await (supabase as any)
+        .from('resultat_ia')
+        .update({ action_generee: 'autre' })
+        .eq('id', selectedResult.id);
+      
+      alert(t('authority.iaAnalysis.actions.investigationLaunched'));
+      closeDetailModal();
+    } catch (err) {
+      console.error('[IAPage] Erreur lancement enquête:', err);
+      alert(t('authority.iaAnalysis.messages.errorOccurred'));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Créer une alerte géolocalisée
+  const handleCreateAlert = async () => {
+    if (!selectedResult || !user?.id) return;
+    setActionLoading(true);
+    try {
+      // Récupérer les coordonnées du signalement
+      let latitude = null;
+      let longitude = null;
+      let lieu = 'Zone non spécifiée';
+      
+      if (selectedResult.id_signalement) {
+        const { data: signalement } = await (supabase as any)
+          .from('signalement')
+          .select('latitude_observation, longitude_observation, lieu_observation')
+          .eq('id', selectedResult.id_signalement)
+          .single();
+        
+        if (signalement) {
+          latitude = signalement.latitude_observation;
+          longitude = signalement.longitude_observation;
+          lieu = signalement.lieu_observation || lieu;
+        }
+      }
+      
+      // Créer l'alerte
+      const { error } = await (supabase as any).from('alerte').insert({
+        titre: `Alerte IA - Correspondance détectée`,
+        description: `Une correspondance a été détectée avec un score de ${selectedResult.score_confiance.toFixed(0)}%. Zone: ${lieu}`,
+        type_alerte: 'signalement_important',
+        niveau_urgence: selectedResult.score_confiance >= PRIORITY_THRESHOLD ? 'critique' : 'eleve',
+        statut_alerte: 'active',
+        latitude_centre: latitude,
+        longitude_centre: longitude,
+        rayon_km: 5,
+        id_dossier: selectedResult.id_dossier,
+        id_createur: user.id,
+        date_creation: new Date().toISOString(),
+        date_expiration: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 jours
+      });
+      
+      if (error) throw error;
+      
+      // Mettre à jour le statut du résultat IA
+      await (supabase as any)
+        .from('resultat_ia')
+        .update({ action_generee: 'alerte_creee' })
+        .eq('id', selectedResult.id);
+      
+      alert(t('authority.iaAnalysis.actions.alertCreated'));
+      closeDetailModal();
+    } catch (err) {
+      console.error('[IAPage] Erreur création alerte:', err);
+      alert(t('authority.iaAnalysis.messages.errorOccurred'));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Sauvegarder les paramètres de seuil
+  const handleSaveThreshold = () => {
+    // Sauvegarder dans localStorage pour persistance
+    localStorage.setItem('ia_confidence_threshold', confidenceThreshold.toString());
+    setShowConfigModal(false);
+  };
+
+  // Charger le seuil sauvegardé
+  useEffect(() => {
+    const savedThreshold = localStorage.getItem('ia_confidence_threshold');
+    if (savedThreshold) {
+      setConfidenceThreshold(parseInt(savedThreshold, 10));
+    }
+  }, []);
+
+  // Filtrer les résultats selon le score
+  const getFilteredResults = (results: ResultatIA[]) => {
+    switch (filterScore) {
+      case 'high':
+        return results.filter(r => r.score_confiance >= DEFAULT_THRESHOLD);
+      case 'priority':
+        return results.filter(r => r.score_confiance >= PRIORITY_THRESHOLD);
+      default:
+        return results;
+    }
   };
 
   // Fonction pour formater la date
@@ -165,6 +507,14 @@ export const IAAnalysisPage: React.FC = () => {
     return { label: t('authority.iaAnalysis.confidence.veryLow'), color: '#ef4444' };
   };
 
+  // Vérifier si un résultat est prioritaire
+  const isPriorityResult = (score: number) => score >= PRIORITY_THRESHOLD;
+
+  // Compter les résultats prioritaires en attente
+  const pendingPriorityCount = facialResults.filter(
+    r => r.statut_validation === 'en_attente' && r.score_confiance >= PRIORITY_THRESHOLD
+  ).length;
+
   return (
     <AuthorityLayout>
       <div className={styles.container}>
@@ -179,9 +529,37 @@ export const IAAnalysisPage: React.FC = () => {
               {t('authority.iaAnalysis.subtitle')}
             </p>
           </div>
+          
+          {/* Bouton Configuration */}
+          <button 
+            className={styles.configButton}
+            onClick={() => setShowConfigModal(true)}
+            title={t('authority.iaAnalysis.config.title')}
+          >
+            <Settings size={20} />
+          </button>
         </div>
 
-        {/* Status Banner - simplifié */}
+        {/* Alerte prioritaires */}
+        {pendingPriorityCount > 0 && (
+          <div className={styles.priorityAlert}>
+            <AlertTriangle size={20} />
+            <span>
+              <strong>{pendingPriorityCount}</strong> {t('authority.iaAnalysis.priorityAlert')}
+            </span>
+            <button 
+              className={styles.viewPriorityBtn}
+              onClick={() => {
+                setFilterScore('priority');
+                setActiveTab('results');
+              }}
+            >
+              {t('authority.iaAnalysis.viewPriority')}
+            </button>
+          </div>
+        )}
+
+        {/* Status Banner */}
         {!isHuggingFaceConfigured && (
           <div className={styles.statusBannerWarning}>
             <AlertCircle size={18} />
@@ -218,6 +596,16 @@ export const IAAnalysisPage: React.FC = () => {
           >
             <BarChart2 size={18} />
             <span>{t('authority.iaAnalysis.tabs.results')}</span>
+            {pendingPriorityCount > 0 && (
+              <span className={styles.priorityBadge}>{pendingPriorityCount}</span>
+            )}
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'statistics' ? styles.active : ''}`}
+            onClick={() => setActiveTab('statistics')}
+          >
+            <PieChart size={18} />
+            <span>{t('authority.iaAnalysis.tabs.statistics')}</span>
           </button>
         </div>
 
@@ -313,6 +701,12 @@ export const IAAnalysisPage: React.FC = () => {
                     <div className={styles.resultHeader}>
                       <CheckCircle size={20} className={styles.successIcon} />
                       <h4>{t('authority.iaAnalysis.facialRecognition.analysisComplete')}</h4>
+                      {isPriorityResult(currentAnalysis.score_confiance) && (
+                        <span className={styles.priorityTag}>
+                          <AlertTriangle size={14} />
+                          {t('authority.iaAnalysis.priority')}
+                        </span>
+                      )}
                     </div>
                     <div className={styles.resultSummary}>
                       <div className={styles.summaryItem}>
@@ -368,7 +762,10 @@ export const IAAnalysisPage: React.FC = () => {
               ) : similaritiesResults.length > 0 ? (
                 <div className={styles.similaritiesList}>
                   {similaritiesResults.map((result) => (
-                    <div key={result.id} className={styles.similarityCard}>
+                    <div key={result.id} className={`${styles.similarityCard} ${isPriorityResult(result.score_confiance) ? styles.priorityCard : ''}`}>
+                      {isPriorityResult(result.score_confiance) && (
+                        <div className={styles.priorityRibbon}>PRIORITÉ</div>
+                      )}
                       <div className={styles.cardHeader}>
                         <div className={styles.cardTitle}>
                           <Users size={18} />
@@ -475,13 +872,36 @@ export const IAAnalysisPage: React.FC = () => {
             </div>
           )}
 
-              {activeTab === 'results' && (
+          {activeTab === 'results' && (
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <BarChart2 size={24} className={styles.sectionIcon} />
                 <div>
                   <h2>{t('authority.iaAnalysis.results.title')}</h2>
                   <p>{t('authority.iaAnalysis.results.description')}</p>
+                </div>
+                
+                {/* Filtres */}
+                <div className={styles.filterButtons}>
+                  <button 
+                    className={`${styles.filterBtn} ${filterScore === 'all' ? styles.activeFilter : ''}`}
+                    onClick={() => setFilterScore('all')}
+                  >
+                    {t('authority.iaAnalysis.filters.all')}
+                  </button>
+                  <button 
+                    className={`${styles.filterBtn} ${filterScore === 'high' ? styles.activeFilter : ''}`}
+                    onClick={() => setFilterScore('high')}
+                  >
+                    {t('authority.iaAnalysis.filters.highScore')} (&ge;{DEFAULT_THRESHOLD}%)
+                  </button>
+                  <button 
+                    className={`${styles.filterBtn} ${filterScore === 'priority' ? styles.activeFilter : ''}`}
+                    onClick={() => setFilterScore('priority')}
+                  >
+                    <AlertTriangle size={14} />
+                    {t('authority.iaAnalysis.filters.priority')} (&ge;{PRIORITY_THRESHOLD}%)
+                  </button>
                 </div>
               </div>
 
@@ -492,9 +912,20 @@ export const IAAnalysisPage: React.FC = () => {
                 </div>
               ) : (
                 <div className={styles.resultsContainer}>
-                  {facialResults.length > 0 ? (
-                    facialResults.map((result) => (
-                      <div key={result.id} className={styles.resultCard}>
+                  {getFilteredResults(facialResults).length > 0 ? (
+                    getFilteredResults(facialResults).map((result) => (
+                      <div 
+                        key={result.id} 
+                        className={`${styles.resultCard} ${isPriorityResult(result.score_confiance) ? styles.priorityResultCard : ''}`}
+                      >
+                        {/* Badge prioritaire */}
+                        {isPriorityResult(result.score_confiance) && (
+                          <div className={styles.priorityBadgeCard}>
+                            <AlertTriangle size={14} />
+                            PRIORITÉ
+                          </div>
+                        )}
+                        
                         <div className={styles.resultCardHeader}>
                           <Camera size={20} />
                           <h4>{t('authority.iaAnalysis.results.facialRecognition')}</h4>
@@ -511,7 +942,7 @@ export const IAAnalysisPage: React.FC = () => {
                                 className={styles.metricValue}
                                 style={{ color: getConfidenceLabel(result.score_confiance).color }}
                               >
-                                {getConfidenceLabel(result.score_confiance).label}
+                                {result.score_confiance.toFixed(0)}%
                               </span>
                             </div>
                             <div className={styles.metric}>
@@ -519,6 +950,16 @@ export const IAAnalysisPage: React.FC = () => {
                               <span className={styles.metricLabel}>{t('authority.iaAnalysis.results.face')}:</span>
                               <span className={styles.metricValue}>
                                 {result.donnees_interpretees?.face_detected ? t('authority.iaAnalysis.facialRecognition.detected') : t('authority.iaAnalysis.facialRecognition.notDetected')}
+                              </span>
+                            </div>
+                            <div className={styles.metric}>
+                              <Shield size={16} />
+                              <span className={styles.metricLabel}>{t('authority.iaAnalysis.results.status')}:</span>
+                              <span className={`${styles.metricValue} ${styles[`status_${result.statut_validation}`]}`}>
+                                {result.statut_validation === 'en_attente' ? t('authority.iaAnalysis.modal.statusPending') :
+                                 result.statut_validation === 'confirme' ? t('authority.iaAnalysis.modal.statusConfirmed') :
+                                 result.statut_validation === 'infirme' ? t('authority.iaAnalysis.modal.statusRefuted') : 
+                                 t('authority.iaAnalysis.modal.statusToVerify')}
                               </span>
                             </div>
                           </div>
@@ -540,8 +981,17 @@ export const IAAnalysisPage: React.FC = () => {
                     </div>
                   )}
 
-                  {comparisonResults.length > 0 && comparisonResults.map((result) => (
-                    <div key={result.id} className={styles.resultCard}>
+                  {getFilteredResults(comparisonResults).length > 0 && getFilteredResults(comparisonResults).map((result) => (
+                    <div 
+                      key={result.id} 
+                      className={`${styles.resultCard} ${isPriorityResult(result.score_confiance) ? styles.priorityResultCard : ''}`}
+                    >
+                      {isPriorityResult(result.score_confiance) && (
+                        <div className={styles.priorityBadgeCard}>
+                          <AlertTriangle size={14} />
+                          PRIORITÉ
+                        </div>
+                      )}
                       <div className={styles.resultCardHeader}>
                         <FileImage size={20} />
                         <h4>{t('authority.iaAnalysis.results.imageComparison')}</h4>
@@ -586,20 +1036,195 @@ export const IAAnalysisPage: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* Nouvel onglet Statistiques */}
+          {activeTab === 'statistics' && (
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <PieChart size={24} className={styles.sectionIcon} />
+                <div>
+                  <h2>{t('authority.iaAnalysis.statistics.title')}</h2>
+                  <p>{t('authority.iaAnalysis.statistics.description')}</p>
+                </div>
+                <button 
+                  className={styles.refreshBtn}
+                  onClick={loadStatistics}
+                >
+                  <Activity size={16} />
+                  {t('authority.iaAnalysis.statistics.refresh')}
+                </button>
+              </div>
+
+              {iaStatistics ? (
+                <div className={styles.statisticsGrid}>
+                  <div className={styles.statCard}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)' }}>
+                      <BarChart2 size={24} />
+                    </div>
+                    <div className={styles.statContent}>
+                      <span className={styles.statValue}>{iaStatistics.totalAnalyses}</span>
+                      <span className={styles.statLabel}>{t('authority.iaAnalysis.statistics.totalAnalyses')}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.statCard}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+                      <CheckCircle size={24} />
+                    </div>
+                    <div className={styles.statContent}>
+                      <span className={styles.statValue}>{iaStatistics.confirmedMatches}</span>
+                      <span className={styles.statLabel}>{t('authority.iaAnalysis.statistics.confirmedMatches')}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.statCard}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
+                      <X size={24} />
+                    </div>
+                    <div className={styles.statContent}>
+                      <span className={styles.statValue}>{iaStatistics.falsePositives}</span>
+                      <span className={styles.statLabel}>{t('authority.iaAnalysis.statistics.falsePositives')}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.statCard}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                      <Clock size={24} />
+                    </div>
+                    <div className={styles.statContent}>
+                      <span className={styles.statValue}>{iaStatistics.pendingValidation}</span>
+                      <span className={styles.statLabel}>{t('authority.iaAnalysis.statistics.pendingValidation')}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.statCard}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}>
+                      <Zap size={24} />
+                    </div>
+                    <div className={styles.statContent}>
+                      <span className={styles.statValue}>{(iaStatistics.averageProcessingTime / 1000).toFixed(1)}s</span>
+                      <span className={styles.statLabel}>{t('authority.iaAnalysis.statistics.avgProcessingTime')}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.statCard}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)' }}>
+                      <TrendingUp size={24} />
+                    </div>
+                    <div className={styles.statContent}>
+                      <span className={styles.statValue}>{iaStatistics.precisionRate.toFixed(1)}%</span>
+                      <span className={styles.statLabel}>{t('authority.iaAnalysis.statistics.precisionRate')}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.loadingState}>
+                  <Loader2 size={32} className={styles.spinner} />
+                  <span>{t('authority.iaAnalysis.loading')}</span>
+                </div>
+              )}
+
+              {/* Graphique de précision */}
+              {iaStatistics && iaStatistics.totalAnalyses > 0 && (
+                <div className={styles.precisionChart}>
+                  <h3>{t('authority.iaAnalysis.statistics.precisionOverview')}</h3>
+                  <div className={styles.chartContainer}>
+                    <div className={styles.chartBar}>
+                      <div 
+                        className={styles.chartFill} 
+                        style={{ 
+                          width: `${(iaStatistics.confirmedMatches / iaStatistics.totalAnalyses) * 100}%`,
+                          background: '#22c55e'
+                        }}
+                      />
+                      <span>{t('authority.iaAnalysis.statistics.confirmed')}: {((iaStatistics.confirmedMatches / iaStatistics.totalAnalyses) * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className={styles.chartBar}>
+                      <div 
+                        className={styles.chartFill} 
+                        style={{ 
+                          width: `${(iaStatistics.falsePositives / iaStatistics.totalAnalyses) * 100}%`,
+                          background: '#ef4444'
+                        }}
+                      />
+                      <span>{t('authority.iaAnalysis.statistics.falsePos')}: {((iaStatistics.falsePositives / iaStatistics.totalAnalyses) * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className={styles.chartBar}>
+                      <div 
+                        className={styles.chartFill} 
+                        style={{ 
+                          width: `${(iaStatistics.pendingValidation / iaStatistics.totalAnalyses) * 100}%`,
+                          background: '#f59e0b'
+                        }}
+                      />
+                      <span>{t('authority.iaAnalysis.statistics.pending')}: {((iaStatistics.pendingValidation / iaStatistics.totalAnalyses) * 100).toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Modal de détails */}
+        {/* Modal de détails - Version améliorée */}
         {showDetailModal && selectedResult && (
           <div className={styles.modalOverlay} onClick={closeDetailModal}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.modalHeader}>
-                <h3>{t('authority.iaAnalysis.modal.title')}</h3>
+                <h3>
+                  {t('authority.iaAnalysis.modal.title')}
+                  {isPriorityResult(selectedResult.score_confiance) && (
+                    <span className={styles.modalPriorityBadge}>
+                      <AlertTriangle size={16} />
+                      PRIORITÉ
+                    </span>
+                  )}
+                </h3>
                 <button className={styles.closeModalBtn} onClick={closeDetailModal}>
                   <X size={24} />
                 </button>
               </div>
               
               <div className={styles.modalContent}>
+                {/* Comparaison photos côte à côte */}
+                {(dossierPhoto || signalementPhoto) && (
+                  <div className={styles.photoComparison}>
+                    <h4><FileImage size={18} /> {t('authority.iaAnalysis.modal.photoComparison')}</h4>
+                    <div className={styles.photosGrid}>
+                      <div className={styles.photoBox}>
+                        <span className={styles.photoLabel}>{t('authority.iaAnalysis.modal.dossierPhoto')}</span>
+                        {dossierPhoto ? (
+                          <img src={dossierPhoto} alt="Photo dossier" className={styles.comparisonPhoto} />
+                        ) : (
+                          <div className={styles.noPhoto}>
+                            <User size={48} />
+                            <span>{t('authority.iaAnalysis.modal.noPhoto')}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.vsIndicator}>
+                        <span>VS</span>
+                        <div className={styles.scoreCircle} style={{ 
+                          background: getConfidenceLabel(selectedResult.score_confiance).color 
+                        }}>
+                          {selectedResult.score_confiance.toFixed(0)}%
+                        </div>
+                      </div>
+                      <div className={styles.photoBox}>
+                        <span className={styles.photoLabel}>{t('authority.iaAnalysis.modal.signalementPhoto')}</span>
+                        {signalementPhoto ? (
+                          <img src={signalementPhoto} alt="Photo signalement" className={styles.comparisonPhoto} />
+                        ) : (
+                          <div className={styles.noPhoto}>
+                            <Camera size={48} />
+                            <span>{t('authority.iaAnalysis.modal.noPhoto')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Informations générales */}
                 <div className={styles.detailSection}>
                   <h4><Calendar size={18} /> {t('authority.iaAnalysis.modal.generalInfo')}</h4>
@@ -634,11 +1259,25 @@ export const IAAnalysisPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Facteurs clés */}
+                {selectedResult.donnees_interpretees?.factors && (
+                  <div className={styles.detailSection}>
+                    <h4><Sliders size={18} /> {t('authority.iaAnalysis.modal.keyFactors')}</h4>
+                    <div className={styles.factorsList}>
+                      {Object.entries(selectedResult.donnees_interpretees.factors).map(([key, value]: [string, any]) => (
+                        <div key={key} className={styles.factorItem}>
+                          <span className={styles.factorLabel}>{key}</span>
+                          <span className={styles.factorValue}>{typeof value === 'number' ? `${value.toFixed(0)}%` : value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Résultats de la détection */}
                 <div className={styles.detailSection}>
                   <h4><User size={18} /> {t('authority.iaAnalysis.modal.detectionResults')}</h4>
                   
-                  {/* Image analysée */}
                   {selectedResult.donnees_brutes?.image_name && (
                     <div className={styles.detailItem} style={{ marginBottom: '1rem' }}>
                       <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.analyzedImage')}</span>
@@ -658,7 +1297,6 @@ export const IAAnalysisPage: React.FC = () => {
                       </span>
                     </div>
                     
-                    {/* Qualité de l'image */}
                     {(selectedResult.donnees_interpretees?.quality_score || selectedResult.donnees_interpretees?.quality_score === 0) && (
                       <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.imageQuality')}</span>
@@ -668,7 +1306,6 @@ export const IAAnalysisPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Nombre de visages */}
                     {selectedResult.donnees_interpretees?.face_count !== undefined && (
                       <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.faceCount')}</span>
@@ -678,7 +1315,6 @@ export const IAAnalysisPage: React.FC = () => {
                       </div>
                     )}
                     
-                    {/* Détails du visage principal */}
                     {selectedResult.donnees_interpretees?.faces?.[0] && (
                       <>
                         {selectedResult.donnees_interpretees.faces[0].age_estimate && (
@@ -699,27 +1335,11 @@ export const IAAnalysisPage: React.FC = () => {
                             </span>
                           </div>
                         )}
-                        {selectedResult.donnees_interpretees.faces[0].confidence && (
-                          <div className={styles.detailItem}>
-                            <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.detectionConfidence')}</span>
-                            <span className={styles.detailValue}>
-                              {(selectedResult.donnees_interpretees.faces[0].confidence * 100).toFixed(0)}%
-                            </span>
-                          </div>
-                        )}
                         {selectedResult.donnees_interpretees.faces[0].emotions?.[0] && (
                           <div className={styles.detailItem}>
                             <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.facialExpression')}</span>
                             <span className={styles.detailValue}>
-                              <Smile size={14} /> {
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label === 'happy' ? t('authority.iaAnalysis.modal.emotionHappy') :
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label === 'sad' ? t('authority.iaAnalysis.modal.emotionSad') :
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label === 'angry' ? t('authority.iaAnalysis.modal.emotionAngry') :
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label === 'neutral' ? t('authority.iaAnalysis.modal.emotionNeutral') :
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label === 'surprise' ? t('authority.iaAnalysis.modal.emotionSurprise') :
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label === 'fear' ? t('authority.iaAnalysis.modal.emotionFear') :
-                                selectedResult.donnees_interpretees.faces[0].emotions[0].label
-                              }
+                              <Smile size={14} /> {selectedResult.donnees_interpretees.faces[0].emotions[0].label}
                             </span>
                           </div>
                         )}
@@ -727,19 +1347,10 @@ export const IAAnalysisPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Message si aucun visage détecté */}
                   {!selectedResult.donnees_interpretees?.face_detected && (
                     <div className={styles.noDataMessage}>
                       <AlertCircle size={20} />
                       <p>{t('authority.iaAnalysis.modal.noFaceDetected')}</p>
-                    </div>
-                  )}
-
-                  {/* Message d'erreur si présent */}
-                  {selectedResult.donnees_interpretees?.error && (
-                    <div className={styles.errorMessage}>
-                      <AlertCircle size={20} />
-                      <p>{t('authority.iaAnalysis.modal.analysisError')}: {selectedResult.donnees_interpretees.error_message || t('authority.iaAnalysis.modal.unknownError')}</p>
                     </div>
                   )}
                 </div>
@@ -787,6 +1398,167 @@ export const IAAnalysisPage: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Section de validation - uniquement pour résultats en attente */}
+                {selectedResult.statut_validation === 'en_attente' && (
+                  <div className={styles.detailSection}>
+                    <h4><Activity size={18} /> {t('authority.iaAnalysis.modal.validation')}</h4>
+                    
+                    <div className={styles.validationComment}>
+                      <label>{t('authority.iaAnalysis.modal.comment')}</label>
+                      <textarea
+                        value={validationComment}
+                        onChange={(e) => setValidationComment(e.target.value)}
+                        placeholder={t('authority.iaAnalysis.modal.commentPlaceholder')}
+                        rows={3}
+                        className={styles.commentTextarea}
+                      />
+                    </div>
+
+                    <div className={styles.validationActions}>
+                      <button
+                        className={styles.confirmBtn}
+                        onClick={handleConfirmResult}
+                        disabled={validationLoading || actionLoading}
+                      >
+                        {validationLoading ? (
+                          <Loader2 size={16} className={styles.spinner} />
+                        ) : (
+                          <CheckCircle size={16} />
+                        )}
+                        <span>{t('authority.iaAnalysis.modal.confirm')}</span>
+                      </button>
+                      
+                      <button
+                        className={styles.rejectBtn}
+                        onClick={handleRejectResult}
+                        disabled={validationLoading || actionLoading}
+                      >
+                        {validationLoading ? (
+                          <Loader2 size={16} className={styles.spinner} />
+                        ) : (
+                          <X size={16} />
+                        )}
+                        <span>{t('authority.iaAnalysis.modal.reject')}</span>
+                      </button>
+                      
+                      <button
+                        className={styles.verifyBtn}
+                        onClick={handleNeedsVerification}
+                        disabled={validationLoading || actionLoading}
+                      >
+                        {validationLoading ? (
+                          <Loader2 size={16} className={styles.spinner} />
+                        ) : (
+                          <AlertCircle size={16} />
+                        )}
+                        <span>{t('authority.iaAnalysis.modal.needsVerification')}</span>
+                      </button>
+                    </div>
+
+                    {/* Boutons d'action supplémentaires */}
+                    <div className={styles.additionalActions}>
+                      <button
+                        className={styles.investigateBtn}
+                        onClick={handleLaunchInvestigation}
+                        disabled={validationLoading || actionLoading}
+                      >
+                        {actionLoading ? (
+                          <Loader2 size={16} className={styles.spinner} />
+                        ) : (
+                          <Search size={16} />
+                        )}
+                        <span>{t('authority.iaAnalysis.modal.launchInvestigation')}</span>
+                      </button>
+                      
+                      <button
+                        className={styles.createAlertBtn}
+                        onClick={handleCreateAlert}
+                        disabled={validationLoading || actionLoading}
+                      >
+                        {actionLoading ? (
+                          <Loader2 size={16} className={styles.spinner} />
+                        ) : (
+                          <Bell size={16} />
+                        )}
+                        <span>{t('authority.iaAnalysis.modal.createAlert')}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Afficher le statut de validation si déjà validé */}
+                {selectedResult.statut_validation !== 'en_attente' && (
+                  <div className={styles.detailSection}>
+                    <h4><Activity size={18} /> {t('authority.iaAnalysis.modal.validationHistory')}</h4>
+                    <div className={styles.validationHistory}>
+                      <div className={styles.validationStatus}>
+                        {selectedResult.statut_validation === 'confirme' && (
+                          <span className={styles.statusConfirmed}><CheckCircle size={16} /> {t('authority.iaAnalysis.modal.statusConfirmed')}</span>
+                        )}
+                        {selectedResult.statut_validation === 'infirme' && (
+                          <span className={styles.statusRejected}><X size={16} /> {t('authority.iaAnalysis.modal.statusRefuted')}</span>
+                        )}
+                        {selectedResult.statut_validation === 'necessite_verification' && (
+                          <span className={styles.statusPending}><AlertCircle size={16} /> {t('authority.iaAnalysis.modal.statusToVerify')}</span>
+                        )}
+                      </div>
+                      {selectedResult.date_validation && (
+                        <p className={styles.validationDate}>
+                          {t('authority.iaAnalysis.modal.validatedOn')} {formatDate(selectedResult.date_validation)}
+                        </p>
+                      )}
+                      {selectedResult.commentaire_validation && (
+                        <p className={styles.validationCommentText}>"{selectedResult.commentaire_validation}"</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de configuration des seuils */}
+        {showConfigModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowConfigModal(false)}>
+            <div className={styles.configModal} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <h3><Settings size={20} /> {t('authority.iaAnalysis.config.title')}</h3>
+                <button className={styles.closeModalBtn} onClick={() => setShowConfigModal(false)}>
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className={styles.configContent}>
+                <div className={styles.configItem}>
+                  <label>{t('authority.iaAnalysis.config.confidenceThreshold')}</label>
+                  <p className={styles.configDescription}>{t('authority.iaAnalysis.config.confidenceDescription')}</p>
+                  <div className={styles.sliderContainer}>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={confidenceThreshold}
+                      onChange={(e) => setConfidenceThreshold(parseInt(e.target.value, 10))}
+                      className={styles.slider}
+                    />
+                    <span className={styles.sliderValue}>{confidenceThreshold}%</span>
+                  </div>
+                </div>
+
+                <div className={styles.configInfo}>
+                  <p><strong>{t('authority.iaAnalysis.config.currentSettings')}:</strong></p>
+                  <ul>
+                    <li>{t('authority.iaAnalysis.config.notificationThreshold')}: {DEFAULT_THRESHOLD}%</li>
+                    <li>{t('authority.iaAnalysis.config.priorityThreshold')}: {PRIORITY_THRESHOLD}%</li>
+                  </ul>
+                </div>
+
+                <button className={styles.saveConfigBtn} onClick={handleSaveThreshold}>
+                  <CheckCircle size={16} />
+                  {t('authority.iaAnalysis.config.save')}
+                </button>
               </div>
             </div>
           </div>

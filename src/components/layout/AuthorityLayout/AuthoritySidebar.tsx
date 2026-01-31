@@ -27,6 +27,8 @@ import {
   X,
   Edit,
   KeyRound,
+  Map,
+  Heart,
 } from 'lucide-react';
 import { useAuth } from '../../../contexts';
 import { useI18n } from '../../../hooks';
@@ -155,9 +157,11 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
     { path: '/authority/dossiers', label: t('authority.menu.dossiers'), icon: <FolderOpen size={20} /> },
     { path: '/authority/alertes', label: t('authority.menu.alertes'), icon: <Bell size={20} /> },
     { path: '/authority/signalements', label: t('authority.menu.signalements'), icon: <FileSearch size={20} /> },
+    { path: '/authority/map-view', label: t('authority.menu.mapView'), icon: <Map size={20} /> },
     { path: '/authority/investigation', label: t('authority.menu.investigation'), icon: <Search size={20} /> },
     { path: '/authority/ia-analysis', label: t('authority.menu.analysis'), icon: <Brain size={20} /> },
     { path: '/authority/coordination', label: t('authority.menu.coordination'), icon: <Users size={20} /> },
+    { path: '/authority/donations', label: t('authority.menu.donations'), icon: <Heart size={20} /> },
     { path: '/authority/statistiques', label: t('authority.menu.statistiques'), icon: <BarChart3 size={20} /> },
   ];
 

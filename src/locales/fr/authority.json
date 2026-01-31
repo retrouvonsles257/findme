@@ -101,7 +101,14 @@
       "photos": "Photos",
       "reports": "Signalements",
       "locations": "Localisations",
-      "history": "Historique"
+      "history": "Historique",
+      "ia": "Analyse IA"
+    },
+    "ia": {
+      "newAnalysis": "Nouvelle analyse",
+      "analyzeExisting": "Analyser une photo existante",
+      "results": "Résultats des analyses IA",
+      "noResults": "Aucune analyse IA pour ce dossier"
     },
     "sections": {
       "disappearance": "Informations de Disparition",
@@ -330,9 +337,11 @@
     "alertes": "Alertes",
     "coordination": "Coordination",
     "dossiers": "Dossiers",
+    "mapView": "Vue Carte",
     "analysis": "Analyse IA",
     "investigation": "Investigation",
     "signalements": "Signalements",
+    "donations": "Dons & Campagnes",
     "statistiques": "Statistiques"
   },
     "header": {
@@ -714,7 +723,8 @@
       "facialRecognition": "Reconnaissance Faciale",
       "similarities": "Similarités",
       "predictions": "Prédictions",
-      "results": "Résultats"
+      "results": "Résultats",
+      "statistics": "Statistiques"
     },
     "facialRecognition": {
       "title": "Reconnaissance Faciale",
@@ -763,10 +773,45 @@
       "matchFound": "Correspondance trouvée",
       "noMatch": "Pas de correspondance",
       "noAnalysis": "Aucune analyse effectuée",
-      "startWithImage": "Commencez par analyser une image"
+      "startWithImage": "Commencez par analyser une image",
+      "status": "Statut"
     },
     "actions": {
-      "viewDetails": "Voir Détails"
+      "viewDetails": "Voir Détails",
+      "investigationLaunched": "Enquête lancée avec succès",
+      "alertCreated": "Alerte créée avec succès"
+    },
+    "priority": "PRIORITÉ",
+    "priorityAlert": "correspondances prioritaires en attente de validation",
+    "viewPriority": "Voir priorités",
+    "filters": {
+      "all": "Tous",
+      "highScore": "Score élevé",
+      "priority": "Prioritaires"
+    },
+    "statistics": {
+      "title": "Statistiques IA",
+      "description": "Performance et métriques du système d'intelligence artificielle",
+      "refresh": "Actualiser",
+      "totalAnalyses": "Analyses totales",
+      "confirmedMatches": "Correspondances confirmées",
+      "falsePositives": "Faux positifs",
+      "pendingValidation": "En attente de validation",
+      "avgProcessingTime": "Temps moyen de traitement",
+      "precisionRate": "Taux de précision",
+      "precisionOverview": "Répartition des résultats",
+      "confirmed": "Confirmées",
+      "falsePos": "Faux positifs",
+      "pending": "En attente"
+    },
+    "config": {
+      "title": "Configuration IA",
+      "confidenceThreshold": "Seuil de confiance",
+      "confidenceDescription": "Les résultats en dessous de ce seuil ne déclencheront pas de notification",
+      "currentSettings": "Paramètres actuels",
+      "notificationThreshold": "Seuil de notification",
+      "priorityThreshold": "Seuil de priorité",
+      "save": "Enregistrer"
     },
     "confidence": {
       "veryHigh": "Très élevée",
@@ -812,7 +857,22 @@
       "matches": "Correspondances",
       "potentialMatch": "Correspondance potentielle",
       "noMatches": "Aucune correspondance trouvée",
-      "predictedZones": "Zones prédites"
+      "predictedZones": "Zones prédites",
+      "validation": "Validation du résultat",
+      "comment": "Commentaire (optionnel)",
+      "commentPlaceholder": "Ajoutez un commentaire pour justifier votre décision...",
+      "confirm": "Confirmer",
+      "reject": "Infirmer (faux positif)",
+      "needsVerification": "Nécessite vérification",
+      "validationHistory": "Historique de validation",
+      "validatedOn": "Validé le",
+      "photoComparison": "Comparaison des photos",
+      "dossierPhoto": "Photo du dossier",
+      "signalementPhoto": "Photo du signalement",
+      "noPhoto": "Pas de photo",
+      "keyFactors": "Facteurs clés de l'analyse",
+      "launchInvestigation": "Lancer une enquête",
+      "createAlert": "Créer une alerte"
     }
   },
   "investigation": {
@@ -1162,5 +1222,123 @@
     "minutesAgo": "Il y a {{count}} min",
     "hoursAgo": "Il y a {{count}}h",
     "daysAgo": "Il y a {{count}}j"
+  },
+  "donations": {
+    "title": "Dons & Campagnes",
+    "subtitle": "Consultation des dons reçus et campagnes de sensibilisation",
+    "refresh": "Actualiser",
+    "loading": "Chargement...",
+    "tabs": {
+      "donations": "Dons",
+      "campaigns": "Campagnes",
+      "statistics": "Statistiques"
+    },
+    "stats": {
+      "totalAmount": "Montant total",
+      "successfulDonations": "Dons réussis",
+      "averageDonation": "Don moyen",
+      "monthlyDonors": "Donateurs mensuels"
+    },
+    "filters": {
+      "all": "Tous",
+      "successful": "Réussis",
+      "pending": "En attente",
+      "failed": "Échoués",
+      "ongoing": "En cours",
+      "completed": "Terminées",
+      "planned": "Planifiées"
+    },
+    "status": {
+      "success": "Réussi",
+      "pending": "En attente",
+      "failed": "Échoué",
+      "refunded": "Remboursé",
+      "cancelled": "Annulé"
+    },
+    "campagneStatus": {
+      "ongoing": "En cours",
+      "completed": "Terminée",
+      "planned": "Planifiée",
+      "cancelled": "Annulée"
+    },
+    "campagneTypes": {
+      "fugue": "Prévention fugue",
+      "childSafety": "Sécurité enfants",
+      "vigilance": "Vigilance communautaire",
+      "firstAid": "Premiers secours",
+      "awareness": "Sensibilisation générale",
+      "fundraising": "Collecte de fonds",
+      "other": "Autre"
+    },
+    "types": {
+      "oneTime": "Ponctuel",
+      "monthly": "Mensuel"
+    },
+    "anonymousDonor": "Donateur anonyme",
+    "unknownDonor": "Donateur inconnu",
+    "noDescription": "Pas de description",
+    "noDonations": "Aucun don enregistré",
+    "noCampaigns": "Aucune campagne",
+    "peopleReached": "personnes atteintes",
+    "interactions": "interactions",
+    "allocated": "alloué",
+    "viewDetails": "Voir détails",
+    "campagneStats": {
+      "total": "Total campagnes",
+      "ongoing": "En cours",
+      "completed": "Terminées",
+      "peopleReached": "Personnes touchées"
+    },
+    "statsOverview": {
+      "title": "Vue d'ensemble",
+      "totalCollected": "Total collecté",
+      "totalDonors": "Total donateurs",
+      "donationBreakdown": "Répartition des dons",
+      "oneTimeDonations": "Dons ponctuels",
+      "monthlyDonations": "Dons mensuels",
+      "averageDonation": "Don moyen",
+      "successRate": "Taux de réussite",
+      "campaignImpact": "Impact des campagnes",
+      "totalCampaigns": "Total campagnes",
+      "activeCampaigns": "Campagnes actives",
+      "totalReach": "Portée totale",
+      "completedCampaigns": "Campagnes terminées"
+    },
+    "modal": {
+      "description": "Description",
+      "objective": "Objectif",
+      "type": "Type",
+      "status": "Statut",
+      "startDate": "Date début",
+      "endDate": "Date fin",
+      "reach": "Portée",
+      "interactions": "Interactions",
+      "budget": "Budget",
+      "targetAudience": "Public cible"
+    },
+    "messages": {
+      "error": "Erreur",
+      "loadError": "Erreur lors du chargement"
+    }
+  },
+  "mapView": {
+    "title": "Vue Carte",
+    "subtitle": "Visualisation géographique des signalements, dossiers et alertes",
+    "refresh": "Actualiser",
+    "loading": "Chargement...",
+    "layers": {
+      "all": "Tous",
+      "signalements": "Signalements",
+      "dossiers": "Dossiers",
+      "alertes": "Alertes"
+    },
+    "filters": {
+      "status": "Statut",
+      "period": "Période",
+      "urgency": "Urgence"
+    },
+    "noData": "Aucune donnée à afficher",
+    "viewList": "Vue liste",
+    "viewMap": "Vue carte"
   }
 }

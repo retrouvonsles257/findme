@@ -13,6 +13,35 @@ import {
 } from '../../../services/huggingFaceService';
 
 // ============================================
+// HELPERS (éviter de "brûler" des appels IA)
+// ============================================
+
+const buildFaceDescription = (face: any): string => {
+  if (!face) return '';
+  const parts: string[] = [];
+
+  if (face.age) parts.push(`age:${String(face.age)}`);
+  if (face.gender) parts.push(`gender:${String(face.gender)}`);
+  if (Array.isArray(face.emotions) && face.emotions[0]?.label) {
+    parts.push(`emotion:${String(face.emotions[0].label)}`);
+  }
+
+  // Si on n'a rien de structuré, on garde un fallback explicite
+  return parts.join(', ') || 'face:detected';
+};
+
+const extractCandidateFaceDescription = (donneesInterpretees: any): string | null => {
+  if (!donneesInterpretees) return null;
+  if (typeof donneesInterpretees.face_description === 'string' && donneesInterpretees.face_description.trim()) {
+    return donneesInterpretees.face_description.trim();
+  }
+  const face0 = donneesInterpretees?.faces?.[0];
+  if (!face0) return null;
+  const desc = buildFaceDescription(face0);
+  return desc.trim() ? desc : null;
+};
+
+// ============================================
 // TYPES basés sur le modèle de données
 // ============================================
 
@@ -190,72 +219,246 @@ export const updateResultatIAValidation = async (
 // ============================================
 
 /**
- * Analyse faciale RÉELLE avec Hugging Face
+ * Analyse faciale avec Hugging Face
+ * Utilise les modèles testés et fonctionnels (émotions + âge)
  */
 export const analyzeFacialImage = async (
   imageFile: File,
   dossierId?: string,
   declenchePar?: string,
 ): Promise<ResultatIA> => {
-  console.log('[IA] Démarrage analyse faciale Hugging Face...');
-  
-  // Vérifier si Hugging Face est configuré
-  if (!isHuggingFaceConfigured()) {
-    console.warn('[IA] Hugging Face non configuré, utilisation du mode simulation');
-    return analyzeFacialImageSimulated(imageFile.name, dossierId, declenchePar);
-  }
+  console.log('[IA] ═══════════════════════════════════════════');
+  console.log('[IA] ANALYSE FACIALE - DÉBUT');
+  console.log('[IA] Fichier:', imageFile.name);
+  console.log('[IA] Taille:', (imageFile.size / 1024).toFixed(1), 'KB');
+  console.log('[IA] ═══════════════════════════════════════════');
 
   try {
-    // Appeler le service Hugging Face RÉEL
-    const faceAnalysis: FaceAnalysisResult & { processingTime: number; rawResponses: any[] } = 
-      await huggingFaceService.analyzeFace(imageFile);
+    // Appeler le service Hugging Face
+    const analysis = await huggingFaceService.analyzeFace(imageFile);
+    const primaryFace = analysis.faces?.[0];
+    const faceDescription = analysis.faceDetected ? buildFaceDescription(primaryFace) : null;
 
-    console.log('[IA] Résultat analyse Hugging Face:', faceAnalysis);
+    console.log('[IA] Résultat Hugging Face:', {
+      faceDetected: analysis.faceDetected,
+      quality: analysis.overallQuality + '%',
+      faces: analysis.faces.length,
+      time: analysis.processingTime + 'ms',
+    });
 
     // Construire le résultat à sauvegarder
     const resultData: CreateResultatIAInput = {
       type_analyse: 'reconnaissance_faciale',
-      score_confiance: faceAnalysis.overallQuality,
+      score_confiance: analysis.overallQuality,
       donnees_brutes: {
         image_name: imageFile.name,
         image_size: imageFile.size,
         image_type: imageFile.type,
-        hugging_face_responses: faceAnalysis.rawResponses,
-        face_detected: faceAnalysis.faceDetected,
+        hugging_face_responses: analysis.rawResponses,
+        face_detected: analysis.faceDetected,
         analysis_timestamp: new Date().toISOString(),
       },
       donnees_interpretees: {
-        face_detected: faceAnalysis.faceDetected,
-        face_count: faceAnalysis.faces.length,
-        quality_score: faceAnalysis.overallQuality,
-        faces: faceAnalysis.faces.map(face => ({
+        face_detected: analysis.faceDetected,
+        face_count: analysis.faces.length,
+        quality_score: analysis.overallQuality,
+        face_description: faceDescription,
+        faces: analysis.faces.map(face => ({
           age_estimate: face.age,
           gender: face.gender,
           confidence: face.confidence,
-          emotions: face.emotions?.slice(0, 3), // Top 3 émotions
+          emotions: face.emotions?.slice(0, 5), // Top 5 émotions
           bounding_box: face.box,
         })),
-        primary_emotion: faceAnalysis.faces[0]?.emotions?.[0]?.label,
+        primary_emotion: analysis.faces[0]?.emotions?.[0]?.label,
+        primary_age: analysis.faces[0]?.age,
+        primary_gender: analysis.faces[0]?.gender,
       },
       correspondances_trouvees: {
-        matches: [],
+        // Aligné avec l'UI (IAAnalysisPage) qui lit `similar_cases`
+        similar_cases: [],
         potential_matches: 0,
         search_performed: false,
+        candidates_considered: 0,
+        method: 'text_similarity(face_description)',
       },
-      modele_ia_utilise: 'Hugging Face (DETR + Age + Gender + Emotions)',
-      version_algorithme: '2.0.0-huggingface',
-      temps_traitement_ms: faceAnalysis.processingTime,
+      modele_ia_utilise: 'Hugging Face (Emotions + Age + Gender + Objects)',
+      version_algorithme: '4.0.0-huggingface',
+      temps_traitement_ms: analysis.processingTime,
       id_dossier: dossierId,
       declenche_par: declenchePar,
     };
 
     // Sauvegarder en base
-    return await createResultatIA(resultData);
+    const savedResult = await createResultatIA(resultData);
+    
+    console.log('[IA] ═══════════════════════════════════════════');
+    console.log('[IA] RÉSULTAT SAUVEGARDÉ EN BASE');
+    console.log('[IA] ID:', savedResult.id);
+    console.log('[IA] Visage détecté:', analysis.faceDetected ? 'OUI ✓' : 'NON ✗');
+    if (analysis.faceDetected && analysis.faces[0]) {
+      console.log('[IA] Âge estimé:', analysis.faces[0].age || 'N/A');
+      console.log('[IA] Émotion:', analysis.faces[0].emotions?.[0]?.label || 'N/A');
+    }
+    
+    // 2. Si un visage est détecté, rechercher des correspondances "low-cost"
+    //    IMPORTANT: on évite ici de re-faire une analyse image↔image pour chaque dossier (trop coûteux).
+    //    On compare une description faciale (ex: age/gender/emotion) via un seul appel de similarité.
+    if (analysis.faceDetected && faceDescription) {
+      console.log('[IA] Recherche de correspondances (text similarity) ...');
+
+      try {
+        // 2.1 Charger des candidats déjà analysés (on ne peut matcher que ce qui a été analysé auparavant)
+        const { data: candidateAnalyses, error: candidatesError } = await db
+          .from('resultat_ia')
+          .select('id, id_dossier, donnees_interpretees, date_analyse, type_analyse')
+          .eq('type_analyse', 'reconnaissance_faciale')
+          .order('date_analyse', { ascending: false })
+          .limit(80);
+
+        if (candidatesError) {
+          console.warn('[IA] Impossible de charger candidats pour correspondances:', candidatesError);
+        }
+
+        const rawCandidates = (candidateAnalyses || [])
+          // enlever notre propre résultat
+          .filter((c: any) => c?.id && c.id !== savedResult.id)
+          // enlever ceux sans dossier
+          .filter((c: any) => !!c?.id_dossier)
+          // enlever ceux sans description exploitable
+          .map((c: any) => {
+            const desc = extractCandidateFaceDescription(c.donnees_interpretees);
+            return { ...c, _desc: desc };
+          })
+          .filter((c: any) => typeof c._desc === 'string' && c._desc.length > 0);
+
+        // Filtrage léger (réduit les ressources)
+        const queryGender = primaryFace?.gender ? String(primaryFace.gender) : null;
+        const filteredCandidates = rawCandidates.filter((c: any) => {
+          if (!queryGender) return true;
+          const candGender = c?.donnees_interpretees?.faces?.[0]?.gender
+            ? String(c.donnees_interpretees.faces[0].gender)
+            : null;
+          return !candGender || candGender === queryGender;
+        });
+
+        // Limiter le coût
+        const candidatesToCompare = filteredCandidates.slice(0, 25);
+        const candidatesConsidered = candidatesToCompare.length;
+
+        console.log('[IA] Candidats retenus:', candidatesConsidered, '(sur', rawCandidates.length, 'analyses disponibles)');
+
+        let similarCases: any[] = [];
+
+        if (candidatesConsidered > 0) {
+          // Map dossier_id -> numero
+          const dossierIds = Array.from(new Set(candidatesToCompare.map((c: any) => c.id_dossier)));
+          const { data: dossiersInfo } = await db
+            .from('dossier_disparition')
+            .select('id, numero_dossier')
+            .in('id', dossierIds);
+          const numeroById = new Map<string, string>();
+          (dossiersInfo || []).forEach((d: any) => {
+            if (d?.id) numeroById.set(d.id, d.numero_dossier || d.id);
+          });
+
+          // Construire des phrases uniques pour retrouver le dossier après tri
+          const candidateStrings = candidatesToCompare.map((c: any) => {
+            const numero = numeroById.get(c.id_dossier) || c.id_dossier;
+            return `${c.id_dossier}||${numero}||${c._desc}`;
+          });
+
+          const similarity = await huggingFaceService.findSimilarCases(faceDescription, candidateStrings);
+
+          if (similarity.success) {
+            similarCases = (similarity.similarities || [])
+              .map((s) => {
+                const [candDossierId, candNumero, ...rest] = String(s.case || '').split('||');
+                const score = typeof s.score === 'number' ? s.score : 0;
+                const desc = rest.join('||');
+                return {
+                  dossier_id: candDossierId,
+                  dossier_numero: candNumero || candDossierId,
+                  similarity_score: score,
+                  is_match: score >= 70,
+                  method: 'text_similarity(face_description)',
+                  candidate_description: desc,
+                };
+              })
+              .filter((m) => !!m.dossier_id)
+              // seuil bas pour montrer des "proches" sans sur-notifier
+              .filter((m) => m.similarity_score >= 30)
+              .sort((a, b) => b.similarity_score - a.similarity_score)
+              .slice(0, 10);
+          } else {
+            console.warn('[IA] Similarité (text) échouée:', similarity);
+          }
+        }
+
+        const potentialMatches = similarCases.filter((c) => c.is_match).length;
+
+        const updatedCorrespondances = {
+          similar_cases: similarCases,
+          potential_matches: potentialMatches,
+          search_performed: true,
+          candidates_considered: candidatesConsidered,
+          method: 'text_similarity(face_description)',
+        };
+
+        // Mettre à jour le résultat "reconnaissance_faciale" avec les correspondances (même si vide)
+        const { error: updateErr } = await db
+          .from('resultat_ia')
+          .update({ correspondances_trouvees: updatedCorrespondances })
+          .eq('id', savedResult.id);
+
+        if (updateErr) {
+          console.warn('[IA] Impossible de sauvegarder correspondances sur resultat_ia:', updateErr);
+        } else {
+          (savedResult as any).correspondances_trouvees = updatedCorrespondances;
+        }
+
+        // Créer aussi un résultat dédié "detection_similitudes" pour alimenter l'onglet Similarités
+        try {
+          const topScore = similarCases[0]?.similarity_score || 0;
+          await createResultatIA({
+            type_analyse: 'detection_similitudes',
+            score_confiance: topScore,
+            donnees_brutes: {
+              source: 'reconnaissance_faciale',
+              face_description: faceDescription,
+              candidates_considered: candidatesConsidered,
+            },
+            donnees_interpretees: {
+              face_detected: true,
+              face_description: faceDescription,
+              match_count: similarCases.length,
+              potential_matches: potentialMatches,
+            },
+            correspondances_trouvees: updatedCorrespondances,
+            modele_ia_utilise: 'Hugging Face (Text Similarity)',
+            version_algorithme: '4.1.0-text-similarity',
+            temps_traitement_ms: undefined,
+            id_dossier: dossierId,
+            declenche_par: declenchePar,
+          } as any);
+        } catch (createSimErr) {
+          console.warn('[IA] Impossible de créer resultat_ia detection_similitudes:', createSimErr);
+        }
+      } catch (searchErr) {
+        console.error('[IA] Erreur recherche correspondances (text):', searchErr);
+      }
+    }
+    
+    console.log('[IA] ═══════════════════════════════════════════');
+    
+    return savedResult;
 
   } catch (error) {
-    console.error('[IA] Erreur analyse Hugging Face:', error);
+    console.error('[IA] ═══════════════════════════════════════════');
+    console.error('[IA] ERREUR ANALYSE:', error);
+    console.error('[IA] ═══════════════════════════════════════════');
     
-    // En cas d'erreur, sauvegarder quand même avec l'erreur
+    // Sauvegarder l'erreur
     const errorResult: CreateResultatIAInput = {
       type_analyse: 'reconnaissance_faciale',
       score_confiance: 0,
@@ -269,8 +472,8 @@ export const analyzeFacialImage = async (
         error: true,
         error_message: error instanceof Error ? error.message : 'Erreur inconnue',
       },
-      modele_ia_utilise: 'Hugging Face (Erreur)',
-      version_algorithme: '2.0.0-huggingface',
+      modele_ia_utilise: 'Hugging Face (Error)',
+      version_algorithme: '4.0.0-huggingface',
       id_dossier: dossierId,
       declenche_par: declenchePar,
     };
@@ -418,59 +621,49 @@ export const getImageComparisonResults = async (
 };
 
 // ============================================
-// DÉTECTION D'OBJETS AVEC HUGGING FACE
+// DÉTECTION D'OBJETS (via analyse faciale)
 // ============================================
 
 /**
- * Détection d'objets RÉELLE avec Hugging Face
+ * Détection d'objets - utilise l'analyse faciale hybride
+ * Note: La détection d'objets spécifique n'est plus disponible via API
  */
 export const detectObjectsInImage = async (
   imageFile: File,
   dossierId?: string,
   declenchePar?: string,
 ): Promise<ResultatIA> => {
-  console.log('[IA] Démarrage détection d\'objets Hugging Face...');
+  console.log('[IA] Détection d\'objets via analyse hybride...');
 
-  if (!isHuggingFaceConfigured()) {
-    console.warn('[IA] Hugging Face non configuré');
-    throw new Error('Hugging Face non configuré');
-  }
+  // Utiliser l'analyse faciale qui inclut classification
+  const analysis = await huggingFaceService.analyzeFace(imageFile);
+  const imageInfo = (analysis as any).imageInfo;
 
-  try {
-    const objectsResult = await huggingFaceService.detectObjects(imageFile);
+  const resultData: CreateResultatIAInput = {
+    type_analyse: 'detection_objets',
+    score_confiance: analysis.overallQuality,
+    donnees_brutes: {
+      image_name: imageFile.name,
+      classifications: imageInfo?.classifications || [],
+      caption: imageInfo?.caption,
+      analysis_timestamp: new Date().toISOString(),
+    },
+    donnees_interpretees: {
+      objects_count: imageInfo?.classifications?.length || 0,
+      objects: imageInfo?.classifications?.map((c: any) => ({
+        label: c.label,
+        confidence: c.score * 100,
+      })) || [],
+      face_detected: analysis.faceDetected,
+    },
+    modele_ia_utilise: 'Hybrid Analysis',
+    version_algorithme: '3.0.0-hybrid',
+    temps_traitement_ms: analysis.processingTime,
+    id_dossier: dossierId,
+    declenche_par: declenchePar,
+  };
 
-    console.log('[IA] Objets détectés:', objectsResult);
-
-    const resultData: CreateResultatIAInput = {
-      type_analyse: 'detection_objets',
-      score_confiance: objectsResult.objects?.[0]?.score ? objectsResult.objects[0].score * 100 : 0,
-      donnees_brutes: {
-        image_name: imageFile.name,
-        raw_detections: objectsResult.objects,
-        analysis_timestamp: new Date().toISOString(),
-      },
-      donnees_interpretees: {
-        objects_count: objectsResult.objects?.length || 0,
-        objects: objectsResult.objects?.map(obj => ({
-          label: obj.label,
-          confidence: obj.score * 100,
-          bounding_box: obj.box,
-        })),
-        persons_detected: objectsResult.objects?.filter(o => o.label === 'person').length || 0,
-      },
-      modele_ia_utilise: 'Hugging Face DETR ResNet-50',
-      version_algorithme: '2.0.0-huggingface',
-      temps_traitement_ms: objectsResult.processingTime,
-      id_dossier: dossierId,
-      declenche_par: declenchePar,
-    };
-
-    return await createResultatIA(resultData);
-
-  } catch (error) {
-    console.error('[IA] Erreur détection objets:', error);
-    throw error;
-  }
+  return await createResultatIA(resultData);
 };
 
 // ============================================

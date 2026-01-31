@@ -146,6 +146,16 @@ export const useCoordinationMessages = (dossierId?: string): UseCoordinationMess
         ]);
 
         if (error) throw error;
+
+        // Log action in journal_activite
+        await (supabase as any).from('journal_activite').insert({
+          type_action: 'autre',
+          action_detaillee: 'Envoi message de coordination',
+          description: `Message de coordination envoyé${dossierFilter ? ` pour le dossier ${dossierFilter}` : ''}`,
+          id_utilisateur: user.id,
+          id_dossier: dossierFilter || null,
+          date_action: new Date().toISOString(),
+        });
         
         // Recharger les messages après envoi
         await fetchMessages(dossierFilter);

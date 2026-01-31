@@ -130,6 +130,16 @@ export const useSharedDossiers = (): UseSharedDossiersReturn => {
         // Ne pas bloquer - le partage est conceptuel
       }
 
+      // Log action in journal_activite
+      await (supabase as any).from('journal_activite').insert({
+        type_action: 'modification_dossier',
+        action_detaillee: 'Partage de dossier inter-organisations',
+        description: `Dossier ${dossierId} partagé avec ${organisations.join(', ')} (Niveau: ${niveauAcces})`,
+        id_utilisateur: user.id,
+        id_dossier: dossierId,
+        date_action: new Date().toISOString(),
+      });
+
       // Refresh
       fetchSharedDossiers();
     } catch (err: any) {

@@ -276,7 +276,14 @@
       "photos": "Photos",
       "reports": "Reports",
       "locations": "Locations",
-      "history": "History"
+      "history": "History",
+      "ia": "AI Analysis"
+    },
+    "ia": {
+      "newAnalysis": "New analysis",
+      "analyzeExisting": "Analyze an existing photo",
+      "results": "AI analysis results",
+      "noResults": "No AI analysis for this file"
     },
     "sections": {
       "disappearance": "Disappearance Information",
@@ -505,9 +512,11 @@
     "alertes": "Alerts",
     "coordination": "Coordination",
     "dossiers": "Files",
+    "mapView": "Map View",
     "analysis": "AI Analysis",
     "investigation": "Investigation",
     "signalements": "Reports",
+    "donations": "Donations & Campaigns",
     "statistiques": "Statistics"
   },
     "header": {
@@ -713,7 +722,8 @@
       "facialRecognition": "Facial Recognition",
       "similarities": "Similarities",
       "predictions": "Predictions",
-      "results": "Results"
+      "results": "Results",
+      "statistics": "Statistics"
     },
     "facialRecognition": {
       "title": "Facial Recognition",
@@ -762,10 +772,45 @@
       "matchFound": "Match found",
       "noMatch": "No match",
       "noAnalysis": "No analysis performed",
-      "startWithImage": "Start by analyzing an image"
+      "startWithImage": "Start by analyzing an image",
+      "status": "Status"
     },
     "actions": {
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "investigationLaunched": "Investigation launched successfully",
+      "alertCreated": "Alert created successfully"
+    },
+    "priority": "PRIORITY",
+    "priorityAlert": "priority matches pending validation",
+    "viewPriority": "View priorities",
+    "filters": {
+      "all": "All",
+      "highScore": "High score",
+      "priority": "Priority"
+    },
+    "statistics": {
+      "title": "AI Statistics",
+      "description": "Performance and metrics of the artificial intelligence system",
+      "refresh": "Refresh",
+      "totalAnalyses": "Total analyses",
+      "confirmedMatches": "Confirmed matches",
+      "falsePositives": "False positives",
+      "pendingValidation": "Pending validation",
+      "avgProcessingTime": "Average processing time",
+      "precisionRate": "Precision rate",
+      "precisionOverview": "Results distribution",
+      "confirmed": "Confirmed",
+      "falsePos": "False positives",
+      "pending": "Pending"
+    },
+    "config": {
+      "title": "AI Configuration",
+      "confidenceThreshold": "Confidence threshold",
+      "confidenceDescription": "Results below this threshold will not trigger notifications",
+      "currentSettings": "Current settings",
+      "notificationThreshold": "Notification threshold",
+      "priorityThreshold": "Priority threshold",
+      "save": "Save"
     },
     "confidence": {
       "veryHigh": "Very High",
@@ -811,7 +856,22 @@
       "matches": "Matches",
       "potentialMatch": "Potential match",
       "noMatches": "No matches found",
-      "predictedZones": "Predicted Zones"
+      "predictedZones": "Predicted Zones",
+      "validation": "Result Validation",
+      "comment": "Comment (optional)",
+      "commentPlaceholder": "Add a comment to justify your decision...",
+      "confirm": "Confirm",
+      "reject": "Reject (false positive)",
+      "needsVerification": "Needs Verification",
+      "validationHistory": "Validation History",
+      "validatedOn": "Validated on",
+      "photoComparison": "Photo Comparison",
+      "dossierPhoto": "File Photo",
+      "signalementPhoto": "Report Photo",
+      "noPhoto": "No photo",
+      "keyFactors": "Key Analysis Factors",
+      "launchInvestigation": "Launch Investigation",
+      "createAlert": "Create Alert"
     }
   },
   "investigation": {
@@ -1161,5 +1221,123 @@
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "donations": {
+    "title": "Donations & Campaigns",
+    "subtitle": "View donations received and awareness campaigns",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "tabs": {
+      "donations": "Donations",
+      "campaigns": "Campaigns",
+      "statistics": "Statistics"
+    },
+    "stats": {
+      "totalAmount": "Total amount",
+      "successfulDonations": "Successful donations",
+      "averageDonation": "Average donation",
+      "monthlyDonors": "Monthly donors"
+    },
+    "filters": {
+      "all": "All",
+      "successful": "Successful",
+      "pending": "Pending",
+      "failed": "Failed",
+      "ongoing": "Ongoing",
+      "completed": "Completed",
+      "planned": "Planned"
+    },
+    "status": {
+      "success": "Successful",
+      "pending": "Pending",
+      "failed": "Failed",
+      "refunded": "Refunded",
+      "cancelled": "Cancelled"
+    },
+    "campagneStatus": {
+      "ongoing": "Ongoing",
+      "completed": "Completed",
+      "planned": "Planned",
+      "cancelled": "Cancelled"
+    },
+    "campagneTypes": {
+      "fugue": "Runaway prevention",
+      "childSafety": "Child safety",
+      "vigilance": "Community vigilance",
+      "firstAid": "First aid training",
+      "awareness": "General awareness",
+      "fundraising": "Fundraising",
+      "other": "Other"
+    },
+    "types": {
+      "oneTime": "One-time",
+      "monthly": "Monthly"
+    },
+    "anonymousDonor": "Anonymous donor",
+    "unknownDonor": "Unknown donor",
+    "noDescription": "No description",
+    "noDonations": "No donations recorded",
+    "noCampaigns": "No campaigns",
+    "peopleReached": "people reached",
+    "interactions": "interactions",
+    "allocated": "allocated",
+    "viewDetails": "View details",
+    "campagneStats": {
+      "total": "Total campaigns",
+      "ongoing": "Ongoing",
+      "completed": "Completed",
+      "peopleReached": "People reached"
+    },
+    "statsOverview": {
+      "title": "Overview",
+      "totalCollected": "Total collected",
+      "totalDonors": "Total donors",
+      "donationBreakdown": "Donation breakdown",
+      "oneTimeDonations": "One-time donations",
+      "monthlyDonations": "Monthly donations",
+      "averageDonation": "Average donation",
+      "successRate": "Success rate",
+      "campaignImpact": "Campaign impact",
+      "totalCampaigns": "Total campaigns",
+      "activeCampaigns": "Active campaigns",
+      "totalReach": "Total reach",
+      "completedCampaigns": "Completed campaigns"
+    },
+    "modal": {
+      "description": "Description",
+      "objective": "Objective",
+      "type": "Type",
+      "status": "Status",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "reach": "Reach",
+      "interactions": "Interactions",
+      "budget": "Budget",
+      "targetAudience": "Target audience"
+    },
+    "messages": {
+      "error": "Error",
+      "loadError": "Error loading data"
+    }
+  },
+  "mapView": {
+    "title": "Map View",
+    "subtitle": "Geographic visualization of reports, files, and alerts",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "layers": {
+      "all": "All",
+      "signalements": "Reports",
+      "dossiers": "Files",
+      "alertes": "Alerts"
+    },
+    "filters": {
+      "status": "Status",
+      "period": "Period",
+      "urgency": "Urgency"
+    },
+    "noData": "No data to display",
+    "viewList": "List view",
+    "viewMap": "Map view"
   }
 }
