@@ -20,6 +20,11 @@ export interface DonationFormProps {
   prefilledAmount?: number;
   prefilledType?: string;
   showPaymentOptions?: boolean;
+  /**
+   * Permet de restreindre les méthodes affichées (ex: ['mobile_money'] pour Citizen).
+   * Si non fourni, toutes les options sont disponibles.
+   */
+  availablePaymentMethods?: string[];
   className?: string;
 }
 
@@ -36,21 +41,28 @@ export const DonationForm: React.FC<DonationFormProps> = ({
   prefilledAmount,
   prefilledType,
   showPaymentOptions = true,
+  availablePaymentMethods,
   className = '',
 }) => {
   const {
-    formData,
     validationErrors,
     isProcessing,
+    processPayment,
     submitDonation,
     clearErrors,
   } = useDonationCreate();
+
+  const defaultPaymentMethod =
+    availablePaymentMethods && availablePaymentMethods.length > 0
+      ? availablePaymentMethods[0]
+      : 'carte_bancaire';
 
   const [localFormData, setLocalFormData] = useState<donService.DonFormData>({
     montant: prefilledAmount || 0,
     devise: 'XAF',
     type_don: (prefilledType as any) || 'ponctuel',
-    methode_paiement: 'carte_bancaire',
+    methode_paiement: defaultPaymentMethod,
+    mobile_money_operator: 'mtn_momo',
     donateur_anonyme: false,
     nom_donateur: '',
     email_donateur: '',
@@ -97,15 +109,29 @@ export const DonationForm: React.FC<DonationFormProps> = ({
       e.preventDefault();
 
       try {
-        await submitDonation(localFormData);
-        if (onSuccess) {
-          onSuccess(formData?.montant?.toString() || '');
+        const don = await submitDonation(localFormData);
+
+        // Traiter le paiement (simulé) si on affiche les options de paiement
+        // -> met à jour statut_paiement, date_traitement, reference_transaction, etc.
+        if (showPaymentOptions) {
+          const ok = await processPayment(don.id, {
+            montant: localFormData.montant,
+            devise: localFormData.devise,
+            methode: localFormData.methode_paiement as any,
+            email: localFormData.email_donateur || undefined,
+            telephone: localFormData.telephone_donateur || undefined,
+            description: localFormData.message_donateur || undefined,
+            mobileMoneyOperator: localFormData.mobile_money_operator,
+          });
+          if (!ok) return;
         }
+
+        if (onSuccess) onSuccess(don.id);
       } catch (error) {
         // L'erreur est déjà gérée par le hook
       }
     },
-    [localFormData, submitDonation, formData, onSuccess],
+    [localFormData, submitDonation, processPayment, onSuccess, showPaymentOptions],
   );
 
   // ========== RENDER ==========
@@ -219,22 +245,6 @@ export const DonationForm: React.FC<DonationFormProps> = ({
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="telephone_donateur">Téléphone</label>
-            <input
-              id="telephone_donateur"
-              type="tel"
-              name="telephone_donateur"
-              value={localFormData.telephone_donateur}
-              onChange={handleInputChange}
-              className={validationErrors.telephone_donateur ? styles.error : ''}
-              disabled={isProcessing}
-            />
-            {validationErrors.telephone_donateur && (
-              <span className={styles.error}>{validationErrors.telephone_donateur}</span>
-            )}
-          </div>
-
-          <div className={styles.formGroup}>
             <label htmlFor="organisation_donatrice">Organisation (optionnel)</label>
             <input
               id="organisation_donatrice"
@@ -247,6 +257,26 @@ export const DonationForm: React.FC<DonationFormProps> = ({
           </div>
         </>
       )}
+
+      {/* Téléphone (toujours disponible, requis pour Mobile Money) */}
+      <div className={styles.formGroup}>
+        <label htmlFor="telephone_donateur">
+          Téléphone{localFormData.methode_paiement === 'mobile_money' ? ' *' : ''}
+        </label>
+        <input
+          id="telephone_donateur"
+          type="tel"
+          name="telephone_donateur"
+          value={localFormData.telephone_donateur}
+          onChange={handleInputChange}
+          className={validationErrors.telephone_donateur ? styles.error : ''}
+          disabled={isProcessing}
+          required={localFormData.methode_paiement === 'mobile_money'}
+        />
+        {validationErrors.telephone_donateur && (
+          <span className={styles.error}>{validationErrors.telephone_donateur}</span>
+        )}
+      </div>
 
       {/* Message */}
       <div className={styles.formGroup}>
@@ -274,15 +304,43 @@ export const DonationForm: React.FC<DonationFormProps> = ({
             required
             disabled={isProcessing}
           >
-            <option value="carte_bancaire">Carte Bancaire</option>
-            <option value="mobile_money">Mobile Money</option>
-            <option value="virement">Virement</option>
-            <option value="paypal">PayPal</option>
-            <option value="autre">Autre</option>
+            {(!availablePaymentMethods || availablePaymentMethods.includes('carte_bancaire')) && (
+              <option value="carte_bancaire">Carte Bancaire</option>
+            )}
+            {(!availablePaymentMethods || availablePaymentMethods.includes('mobile_money')) && (
+              <option value="mobile_money">Mobile Money</option>
+            )}
+            {(!availablePaymentMethods || availablePaymentMethods.includes('virement')) && (
+              <option value="virement">Virement</option>
+            )}
+            {(!availablePaymentMethods || availablePaymentMethods.includes('paypal')) && (
+              <option value="paypal">PayPal</option>
+            )}
+            {(!availablePaymentMethods || availablePaymentMethods.includes('autre')) && (
+              <option value="autre">Autre</option>
+            )}
           </select>
           {validationErrors.methode_paiement && (
             <span className={styles.error}>{validationErrors.methode_paiement}</span>
           )}
+        </div>
+      )}
+
+      {/* Mobile Money: opérateur */}
+      {showPaymentOptions && localFormData.methode_paiement === 'mobile_money' && (
+        <div className={styles.formGroup}>
+          <label htmlFor="mobile_money_operator">Opérateur Mobile Money *</label>
+          <select
+            id="mobile_money_operator"
+            name="mobile_money_operator"
+            value={localFormData.mobile_money_operator || 'mtn_momo'}
+            onChange={handleInputChange}
+            required
+            disabled={isProcessing}
+          >
+            <option value="mtn_momo">MTN MoMo</option>
+            <option value="orange_money">Orange Money</option>
+          </select>
         </div>
       )}
 

@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { clearUsers } from '../../features/users/store/userSlice';
+import { AUTH_ROUTES } from '../../routes/routes.config';
 import styles from './UnauthorizedPage.module.css';
 
 export const UnauthorizedPage: React.FC = () => {
@@ -29,7 +30,7 @@ export const UnauthorizedPage: React.FC = () => {
     if (currentUser) {
       dispatch(clearUsers());
     }
-    navigate('/login');
+    navigate(AUTH_ROUTES.LOGIN);
   };
 
   const handleGoHome = () => {

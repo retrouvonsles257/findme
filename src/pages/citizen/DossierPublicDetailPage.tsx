@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail';
 import { useI18n } from '../../hooks';
+import { supabase } from '../../config';
 import { CitizenLayout } from './CitizenLayout';
 import {
   User,
@@ -20,7 +21,6 @@ import {
   Share2,
   AlertTriangle,
   ChevronLeft,
-  Phone,
   Image,
   Loader2,
   AlertCircle,
@@ -38,6 +38,8 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
   const { dossier, isLoading, error, fetchDossier } = useDossierDetail();
   const [activeTab, setActiveTab] = useState<'info' | 'photos' | 'timeline'>('info');
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [publicPhotos, setPublicPhotos] = useState<Array<{ id: string; url_cloudinary: string; url_thumbnail?: string | null }>>([]);
+  const [photosLoading, setPhotosLoading] = useState(false);
 
   // Charger le dossier
   useEffect(() => {
@@ -46,13 +48,43 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
     }
   }, [dossierId, fetchDossier]);
 
+  // Charger les photos publiques approuvées (conformes au modèle: visible_public = TRUE, approuvee = TRUE)
+  useEffect(() => {
+    const load = async () => {
+      const d: any = dossier;
+      const personId = d?.id_personne;
+      if (!personId) {
+        setPublicPhotos([]);
+        return;
+      }
+      try {
+        setPhotosLoading(true);
+        const { data } = await (supabase as any)
+          .from('photo')
+          .select('id, url_cloudinary, url_thumbnail')
+          .eq('id_personne', personId)
+          .eq('visible_public', true)
+          .eq('approuvee', true)
+          .order('created_at', { ascending: false });
+        setPublicPhotos((data || []) as any[]);
+      } catch {
+        setPublicPhotos([]);
+      } finally {
+        setPhotosLoading(false);
+      }
+    };
+    load();
+  }, [dossier]);
+
   // Partager le dossier
   const handleShare = async () => {
     if (!dossier) return;
     
     const d = dossier as any;
     const shareUrl = `${window.location.origin}/citizen/dossier/${dossier.id}`;
-    const shareText = `${t('citizen.helpFindPerson')}: ${d.prenom || ''} ${d.nom || ''}`;
+    const p = d.personne || {};
+    const name = p.nom_complet || `${p.prenom || ''} ${p.nom || ''}`.trim() || (d.numero_dossier || '');
+    const shareText = `${t('citizen.helpFindPerson')}: ${name}`;
 
     if (navigator.share) {
       try {
@@ -73,7 +105,7 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
   // Signaler un témoignage
   const handleReportSighting = () => {
     if (!dossier) return;
-    navigate(`/citizen/signalements/new?dossierId=${dossier.id}`);
+    navigate(`/citizen/new-signalement?dossierId=${(dossier as any).id}`);
   };
 
   // Formater la date
@@ -101,24 +133,29 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
   };
 
   // Obtenir la couleur d'urgence
-  const getUrgencyColor = (level?: number) => {
+  const getUrgencyColor = (level?: number | string) => {
     if (!level) return '#6b7280';
-    if (level >= 8) return '#dc2626';
-    if (level >= 5) return '#f59e0b';
+    if (typeof level === 'number') {
+      if (level >= 8) return '#dc2626';
+      if (level >= 5) return '#f59e0b';
+      return '#16a34a';
+    }
+    if (level === 'critique') return '#dc2626';
+    if (level === 'urgent') return '#f59e0b';
     return '#16a34a';
   };
 
   // Obtenir le label du statut
   const getStatusLabel = (statut?: string) => {
     switch (statut) {
-      case 'actif':
-        return t('citizen.activeCases');
       case 'en_cours':
         return t('citizen.inProgress');
-      case 'resolu':
-      case 'retrouve':
+      case 'retrouve_vivant':
+      case 'retrouve_decede':
         return t('citizen.resolved');
-      case 'archive':
+      case 'suspendu':
+      case 'classe_sans_suite':
+      case 'transfere':
         return t('citizen.archived');
       default:
         return statut || '—';
@@ -127,7 +164,7 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <CitizenLayout activeNav="map">
+      <CitizenLayout activeNav="dossiers">
         <div className={styles.dossierDetail}>
           <div className={styles['dossierDetail__loading']}>
             <Loader2 size={32} className={styles['dossierDetail__spin']} />
@@ -140,15 +177,15 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
 
   if (error || !dossier) {
     return (
-      <CitizenLayout activeNav="map">
+      <CitizenLayout activeNav="dossiers">
         <div className={styles.dossierDetail}>
           <div className={styles['dossierDetail__error']}>
             <AlertCircle size={48} />
             <h3>{t('citizen.caseNotFound')}</h3>
             <p>{error || t('citizen.caseNotFoundDescription')}</p>
-            <button onClick={() => navigate('/citizen/map')}>
+            <button onClick={() => navigate('/citizen/dossiers')}>
               <ChevronLeft size={18} />
-              {t('citizen.backToMap')}
+              {t('common.back')}
             </button>
           </div>
         </div>
@@ -156,8 +193,67 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
     );
   }
 
+  // Enforce "public dossier" for citizen view
+  const d: any = dossier;
+  if (d.visible_public === false) {
+    return (
+      <CitizenLayout activeNav="dossiers">
+        <div className={styles.dossierDetail}>
+          <div className={styles['dossierDetail__error']}>
+            <AlertCircle size={48} />
+            <h3>{t('citizen.caseNotFound')}</h3>
+            <p>{t('citizen.caseNotFoundDescription')}</p>
+            <button onClick={() => navigate('/citizen/dossiers')}>
+              <ChevronLeft size={18} />
+              {t('common.back')}
+            </button>
+          </div>
+        </div>
+      </CitizenLayout>
+    );
+  }
+
+  const p = d.personne || {};
+  const displayName = p.nom_complet || `${p.prenom || ''} ${p.nom || ''}`.trim() || d.numero_dossier || '—';
+  const mainPhoto = p.photo_principale || null;
+  const views = d.nombre_vues_fiche ?? d.nombre_vues ?? 0;
+
+  const getAgeDisplay = () => {
+    if (p.date_naissance) {
+      const age = Math.max(0, Math.floor((Date.now() - new Date(p.date_naissance).getTime()) / 31557600000));
+      return age;
+    }
+    if (typeof p.age_estime_min === 'number') return p.age_estime_min;
+    return null;
+  };
+
+  const age = getAgeDisplay();
+
+  const sexeLabel = (() => {
+    switch (p.sexe) {
+      case 'masculin':
+        return t('citizen.male');
+      case 'feminin':
+        return t('citizen.female');
+      default:
+        return p.sexe || '—';
+    }
+  })();
+
+  const timelineEntries = [
+    d.date_disparition
+      ? { date: d.date_disparition, description: `${t('citizen.missingSince')}: ${d.lieu_disparition || '—'}` }
+      : null,
+    d.date_derniere_observation
+      ? { date: d.date_derniere_observation, description: `${t('citizen.lastSeen')}: ${d.lieu_disparition || '—'}` }
+      : null,
+    d.date_resolution
+      ? { date: d.date_resolution, description: `${t('citizen.resolved')}` }
+      : null,
+  ].filter(Boolean) as Array<{ date: string; description: string }>;
+
   return (
-    <CitizenLayout activeNav="map">
+    <CitizenLayout activeNav="dossiers">
       <div className={styles.dossierDetail}>
         {/* Back Button */}
         <button 
@@ -171,15 +267,20 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
         {/* Header */}
         <div className={styles['dossierDetail__header']}>
           <div className={styles['dossierDetail__photo']}>
-            {(dossier as any).photo_principale ? (
+            {mainPhoto ? (
               <img 
-                src={(dossier as any).photo_principale} 
-                alt={`${(dossier as any).prenom || ''} ${(dossier as any).nom || ''}`}
+                src={mainPhoto} 
+                alt={displayName}
               />
             ) : (
               <User size={64} />
             )}
-            {(dossier as any).niveau_urgence && (dossier as any).niveau_urgence >= 7 && (
+            {(() => {
+              const u = (dossier as any).niveau_urgence;
+              const isUrgent =
+                (typeof u === 'number' && u >= 7) || u === 'urgent' || u === 'critique';
+              return Boolean(u) && isUrgent;
+            })() && (
               <span className={styles['dossierDetail__urgent-badge']}>
                 <AlertTriangle size={14} />
                 {t('citizen.urgent')}
@@ -189,22 +290,22 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
 
           <div className={styles['dossierDetail__info']}>
             <h1 className={styles['dossierDetail__name']}>
-              {(dossier as any).prenom || ''} {(dossier as any).nom || ''}
+              {displayName}
             </h1>
             
             <div className={styles['dossierDetail__status']}>
               <span 
                 className={styles['dossierDetail__status-badge']}
-                data-status={(dossier as any).statut}
+                data-status={d.statut_dossier}
               >
-                {getStatusLabel((dossier as any).statut)}
+                {getStatusLabel(d.statut_dossier)}
               </span>
-              {(dossier as any).niveau_urgence && (
+              {d.niveau_urgence && (
                 <span 
                   className={styles['dossierDetail__urgency']}
-                  style={{ color: getUrgencyColor((dossier as any).niveau_urgence) }}
+                  style={{ color: getUrgencyColor(d.niveau_urgence) }}
                 >
-                  {t('citizen.urgencyLevel')}: {(dossier as any).niveau_urgence}/10
+                  {t('citizen.urgencyLevel')}: {String(d.niveau_urgence)}
                 </span>
               )}
             </div>
@@ -212,15 +313,15 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
             <div className={styles['dossierDetail__meta']}>
               <span>
                 <Calendar size={16} />
-                {t('citizen.missingSince')}: {formatDate((dossier as any).date_disparition)}
+                {t('citizen.missingSince')}: {formatDate(d.date_disparition)}
               </span>
               <span>
                 <Clock size={16} />
-                {getTimeSince((dossier as any).date_disparition)}
+                {getTimeSince(d.date_disparition)}
               </span>
               <span>
                 <Eye size={16} />
-                {(dossier as any).vues || 0} {t('citizen.views')}
+                {views} {t('citizen.views')}
               </span>
             </div>
           </div>
@@ -287,40 +388,40 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
               <div className={styles['dossierDetail__section']}>
                 <h3>{t('citizen.physicalDescription')}</h3>
                 <div className={styles['dossierDetail__field-grid']}>
-                  {(dossier as any).age && (
+                  {typeof age === 'number' && (
                     <div className={styles['dossierDetail__field']}>
                       <label>{t('citizen.age')}</label>
-                      <span>{(dossier as any).age} {t('citizen.years')}</span>
+                      <span>{age} {t('citizen.years')}</span>
                     </div>
                   )}
-                  {(dossier as any).sexe && (
+                  {p.sexe && (
                     <div className={styles['dossierDetail__field']}>
                       <label>{t('citizen.gender')}</label>
-                      <span>{(dossier as any).sexe === 'M' ? t('citizen.male') : t('citizen.female')}</span>
+                      <span>{sexeLabel}</span>
                     </div>
                   )}
-                  {(dossier as any).taille && (
+                  {p.taille_cm && (
                     <div className={styles['dossierDetail__field']}>
                       <label>{t('citizen.height')}</label>
-                      <span>{(dossier as any).taille} cm</span>
+                      <span>{p.taille_cm} cm</span>
                     </div>
                   )}
-                  {(dossier as any).poids && (
+                  {p.poids_kg && (
                     <div className={styles['dossierDetail__field']}>
                       <label>{t('citizen.weight')}</label>
-                      <span>{(dossier as any).poids} kg</span>
+                      <span>{p.poids_kg} kg</span>
                     </div>
                   )}
-                  {(dossier as any).couleur_cheveux && (
+                  {p.couleur_cheveux && (
                     <div className={styles['dossierDetail__field']}>
                       <label>{t('citizen.hairColor')}</label>
-                      <span>{(dossier as any).couleur_cheveux}</span>
+                      <span>{p.couleur_cheveux}</span>
                     </div>
                   )}
-                  {(dossier as any).couleur_yeux && (
+                  {p.couleur_yeux && (
                     <div className={styles['dossierDetail__field']}>
                       <label>{t('citizen.eyeColor')}</label>
-                      <span>{(dossier as any).couleur_yeux}</span>
+                      <span>{p.couleur_yeux}</span>
                     </div>
                   )}
                 </div>
@@ -333,43 +434,43 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
                   <MapPin size={20} />
                   <div>
                     <p className={styles['dossierDetail__location-name']}>
-                      {(dossier as any).lieu_disparition || '—'}
+                      {d.lieu_disparition || '—'}
                     </p>
                     <p className={styles['dossierDetail__location-city']}>
-                      {(dossier as any).ville_disparition && (dossier as any).region_disparition
-                        ? `${(dossier as any).ville_disparition}, ${(dossier as any).region_disparition}`
-                        : (dossier as any).ville_disparition || (dossier as any).region_disparition || ''}
+                      {d.ville_disparition && d.region_disparition
+                        ? `${d.ville_disparition}, ${d.region_disparition}`
+                        : d.ville_disparition || d.region_disparition || ''}
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Description */}
-              {(dossier as any).description && (
+              {d.circonstances && (
                 <div className={styles['dossierDetail__section']}>
                   <h3>{t('citizen.additionalInfo')}</h3>
                   <p className={styles['dossierDetail__description']}>
-                    {(dossier as any).description}
+                    {d.circonstances}
                   </p>
                 </div>
               )}
 
               {/* Signes distinctifs */}
-              {(dossier as any).signes_distinctifs && (
+              {p.signes_distinctifs && (
                 <div className={styles['dossierDetail__section']}>
                   <h3>{t('citizen.distinctiveFeatures')}</h3>
                   <p className={styles['dossierDetail__description']}>
-                    {(dossier as any).signes_distinctifs}
+                    {p.signes_distinctifs}
                   </p>
                 </div>
               )}
 
               {/* Vêtements */}
-              {(dossier as any).vetements_derniere_vue && (
+              {p.derniers_vetements_portes && (
                 <div className={styles['dossierDetail__section']}>
                   <h3>{t('citizen.lastSeenClothing')}</h3>
                   <p className={styles['dossierDetail__description']}>
-                    {(dossier as any).vetements_derniere_vue}
+                    {p.derniers_vetements_portes}
                   </p>
                 </div>
               )}
@@ -379,18 +480,27 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
           {/* Photos Tab */}
           {activeTab === 'photos' && (
             <div className={styles['dossierDetail__photos']}>
-              {(dossier as any).photos && (dossier as any).photos.length > 0 ? (
+              {photosLoading ? (
+                <div className={styles['dossierDetail__empty']}>
+                  <Loader2 size={24} className={styles['dossierDetail__spin']} />
+                  <p>{t('common.loading')}</p>
+                </div>
+              ) : publicPhotos.length > 0 ? (
                 <div className={styles['dossierDetail__photos-grid']}>
-                  {(dossier as any).photos.map((photo: string, index: number) => (
-                    <div key={index} className={styles['dossierDetail__photo-item']}>
-                      <img src={photo} alt={`${index + 1}`} />
+                  {publicPhotos.map((ph, index) => (
+                    <div key={ph.id} className={styles['dossierDetail__photo-item']}>
+                      <img
+                        src={ph.url_thumbnail || ph.url_cloudinary}
+                        alt={`${index + 1}`}
+                        onClick={() => window.open(ph.url_cloudinary, '_blank')}
+                      />
                     </div>
                   ))}
                 </div>
-              ) : (dossier as any).photo_principale ? (
+              ) : mainPhoto ? (
                 <div className={styles['dossierDetail__photos-grid']}>
                   <div className={styles['dossierDetail__photo-item']}>
-                    <img src={(dossier as any).photo_principale} alt={`${(dossier as any).prenom || ''}`} />
+                    <img src={mainPhoto} alt={displayName} />
                   </div>
                 </div>
               ) : (
@@ -405,8 +515,8 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
           {/* Timeline Tab */}
           {activeTab === 'timeline' && (
             <div className={styles['dossierDetail__timeline']}>
-              {(dossier as any).timeline && (dossier as any).timeline.length > 0 ? (
-                (dossier as any).timeline.map((entry: any, index: number) => (
+              {timelineEntries.length > 0 ? (
+                timelineEntries.map((entry, index) => (
                   <div key={index} className={styles['dossierDetail__timeline-item']}>
                     <div className={styles['dossierDetail__timeline-dot']} />
                     <div className={styles['dossierDetail__timeline-content']}>
@@ -428,17 +538,6 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Contact Info */}
-        {(dossier as any).contact_reference && (
-          <div className={styles['dossierDetail__contact']}>
-            <Phone size={20} />
-            <div>
-              <h4>{t('citizen.contactInfo')}</h4>
-              <p>{(dossier as any).contact_reference}</p>
-            </div>
-          </div>
-        )}
       </div>
     </CitizenLayout>
   );

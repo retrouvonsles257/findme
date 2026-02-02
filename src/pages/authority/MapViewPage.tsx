@@ -599,7 +599,7 @@ export const MapViewPage: React.FC = () => {
               <div className={styles['map-view__modal-body']}>
                 <div className={styles['map-view__modal-grid']}>
                   <div className={styles['map-view__modal-row']}>
-                    <label>{t('authority.map.coordinates')}</label>
+                    <label>{t('authority.map.labels.coordinates')}</label>
                     <span>
                       {selectedItemType === 'signalement' && 
                         `${(selectedItem.latitude_observation ?? selectedItem.latitude)?.toFixed(6)}, ${(selectedItem.longitude_observation ?? selectedItem.longitude)?.toFixed(6)}`
@@ -613,7 +613,7 @@ export const MapViewPage: React.FC = () => {
                     </span>
                   </div>
                   <div className={styles['map-view__modal-row']}>
-                    <label>{t('authority.map.date')}</label>
+                    <label>{t('authority.map.labels.date')}</label>
                     <span>
                       {new Date(
                         selectedItemType === 'signalement' ? selectedItem.date_observation :
@@ -623,7 +623,7 @@ export const MapViewPage: React.FC = () => {
                     </span>
                   </div>
                   <div className={styles['map-view__modal-row']}>
-                    <label>{t('authority.map.status')}</label>
+                    <label>{t('authority.map.labels.status')}</label>
                     <span
                       className={styles['map-view__modal-status']}
                       style={{ backgroundColor: getStatusBadge(selectedItem, selectedItemType).color }}
@@ -635,21 +635,21 @@ export const MapViewPage: React.FC = () => {
 
                 {selectedItemType === 'signalement' && selectedItem.description && (
                   <div className={styles['map-view__modal-description']}>
-                    <label>{t('authority.map.description')}</label>
+                    <label>{t('authority.map.labels.description')}</label>
                     <p>{selectedItem.description}</p>
                   </div>
                 )}
 
                 {selectedItemType === 'dossier' && selectedItem.circonstances && (
                   <div className={styles['map-view__modal-description']}>
-                    <label>{t('authority.map.circumstances')}</label>
+                    <label>{t('authority.map.labels.circumstances')}</label>
                     <p>{selectedItem.circonstances}</p>
                   </div>
                 )}
 
                 {selectedItemType === 'alerte' && selectedItem.message && (
                   <div className={styles['map-view__modal-description']}>
-                    <label>{t('authority.map.message')}</label>
+                    <label>{t('authority.map.labels.message')}</label>
                     <p>{selectedItem.message}</p>
                   </div>
                 )}

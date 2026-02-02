@@ -10,3 +10,6 @@ export { NGOCasesPage } from './CasesPage';
 export { NGOCampagnesPage } from './CampagnesPage';
 export { NGOResourcesPage } from './ResourcesPage';
 export { NGOPartnershipsPage } from './PartnershipsPage';
+export { NGOCreateCasePage } from './CreateCasePage';
+export { NGOCreateCampagnePage } from './CreateCampagnePage';
+export { NGOIAAnalysisPage } from './IAAnalysisPage';

@@ -9,6 +9,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import {
   CitizenDashboardPage,
+  CitizenDossiersPage,
   CitizenMySignalementsPage,
   CitizenNewSignalementPage,
   CitizenSignalementDetailPage,
@@ -17,7 +18,8 @@ import {
   CitizenAlertesPage,
   CitizenMapPage,
   CitizenDossierPublicDetailPage,
-  CitizenSettingsPage
+  CitizenSettingsPage,
+  CitizenDonationsPage
 } from '../pages/citizen';
 
 import PrivateRoute from './PrivateRoutes';
@@ -37,6 +39,7 @@ import { NomRole } from '../@types/enums.types';
  * - Profile
  * - Settings (paramètres)
  * - Dossier Detail (détail dossier public)
+ * - Donations (Orange Money / MTN MoMo)
  */
 const CitizenRoutes: React.FC = () => {
   const citizenRoles = [
@@ -53,6 +56,16 @@ const CitizenRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={citizenRoles}>
               <CitizenDashboardPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Dossiers publics */}
+        <Route
+          path="/dossiers"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenDossiersPage />
             </RoleBasedRoute>
           }
         />
@@ -133,6 +146,16 @@ const CitizenRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={citizenRoles}>
               <CitizenSettingsPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Donations */}
+        <Route
+          path="/donations"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenDonationsPage />
             </RoleBasedRoute>
           }
         />

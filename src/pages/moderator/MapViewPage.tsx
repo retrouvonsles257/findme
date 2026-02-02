@@ -7,9 +7,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useI18n } from '../../hooks';
-import { useAppSelector } from '../../store/types';
-import { selectUser } from '../../features/auth/store/authSelectors';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { ModerationLayout } from './ModerationLayout';
 import { MapTilerView, MapTilerMarker } from '../../components/maps/MapTilerView/MapTilerView';
@@ -36,8 +33,6 @@ interface MapFilters {
 
 export const MapViewPage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useI18n();
-  const currentUser = useAppSelector(selectUser);
   const { signalements, isLoading, fetchSignalements } = useSignalements();
 
   // State
@@ -54,7 +49,7 @@ export const MapViewPage: React.FC = () => {
   // Charger les signalements
   useEffect(() => {
     fetchSignalements(undefined, 1);
-  }, []);
+  }, [fetchSignalements]);
 
   // Filtrer les signalements par statut, date, score (sans filtre de coordonnées pour la liste)
   const filteredByOtherCriteria = useMemo(() => {
@@ -79,7 +74,8 @@ export const MapViewPage: React.FC = () => {
 
       // Filtre par score
       if (filters.minScore > 0) {
-        const score = (sig.score_correspondance || sig.score_pertinence || 0) * 100;
+        const raw = sig.score_pertinence ?? sig.score_correspondance ?? 0;
+        const score = typeof raw === 'number' && raw > 1 ? raw : raw * 100;
         if (score < filters.minScore) return false;
       }
 

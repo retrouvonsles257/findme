@@ -128,7 +128,7 @@ export const InvestigationPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedDossier, newPreuve, addNotification, fetchSignalements]);
+  }, [selectedDossier, newPreuve, addNotification, fetchSignalements, t]);
 
   // Ajouter une localisation
   const handleAddLocalisation = useCallback(async () => {
@@ -136,6 +136,15 @@ export const InvestigationPage: React.FC = () => {
       addNotification({
         title: t('authority.investigation.messages.error'),
         message: t('authority.investigation.messages.fillLocation'),
+        type: 'error',
+      });
+      return;
+    }
+
+    if (!newLocalisation.latitude || !newLocalisation.longitude) {
+      addNotification({
+        title: t('authority.investigation.messages.error'),
+        message: t('authority.investigation.messages.coordinatesRequired'),
         type: 'error',
       });
       return;
@@ -149,13 +158,16 @@ export const InvestigationPage: React.FC = () => {
         .from('localisation')
         .insert({
           id_dossier: selectedDossier,
-          lieu_localisation: newLocalisation.lieu,
-          latitude: newLocalisation.latitude ? parseFloat(newLocalisation.latitude) : null,
-          longitude: newLocalisation.longitude ? parseFloat(newLocalisation.longitude) : null,
+          latitude: parseFloat(newLocalisation.latitude),
+          longitude: parseFloat(newLocalisation.longitude),
+          // Schéma SQL: pas de lieu_localisation / id_utilisateur. On utilise adresse + enregistree_par.
+          adresse: newLocalisation.lieu,
           description: newLocalisation.description,
           date_localisation: new Date().toISOString(),
-          source_localisation: 'investigation',
-          id_utilisateur: user?.id,
+          source_localisation: 'autre',
+          fiabilite_source: 'moyenne',
+          type_localisation: 'autre',
+          enregistree_par: user?.id,
           created_at: new Date().toISOString(),
         });
 
@@ -180,7 +192,7 @@ export const InvestigationPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedDossier, newLocalisation, addNotification, fetchLocalisations]);
+  }, [selectedDossier, newLocalisation, addNotification, fetchLocalisations, t]);
 
   // Ajouter un suspect (via notes du dossier)
   const handleAddSuspect = useCallback(async () => {
@@ -206,7 +218,8 @@ export const InvestigationPage: React.FC = () => {
           id_utilisateur: user?.id,
           statut_validation: 'en_verification',
           date_observation: new Date().toISOString(),
-          niveau_certitude: 'a_verifier',
+          // Aligné enum SQL niveau_certitude
+          niveau_certitude: 'incertain',
           created_at: new Date().toISOString(),
         });
 
@@ -231,7 +244,7 @@ export const InvestigationPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedDossier, newSuspect, addNotification, fetchSignalements]);
+  }, [selectedDossier, newSuspect, addNotification, fetchSignalements, t]);
 
   // Filtrer les signalements par type
   const preuves = signalements.filter((s: any) => 
@@ -462,7 +475,12 @@ export const InvestigationPage: React.FC = () => {
                             <div className={styles.divider} />
                             {localisations.map((loc: any, idx: number) => (
                               <div key={loc.id || idx} className={styles.locationItem}>
-                                <h4><MapPin size={16} /> {loc.lieu_localisation || `${t('authority.investigation.locations.location')} ${idx + 1}`}</h4>
+                                <h4>
+                                  <MapPin size={16} />{' '}
+                                  {loc.adresse ||
+                                    loc.point_interet ||
+                                    `${t('authority.investigation.locations.location')} ${idx + 1}`}
+                                </h4>
                                 {loc.description && <p>{loc.description}</p>}
                                 {loc.latitude && loc.longitude && (
                                   <p className={styles.coordinates}>

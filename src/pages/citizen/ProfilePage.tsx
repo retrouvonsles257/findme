@@ -18,6 +18,7 @@ import {
   Loader2, AlertCircle, Save, Shield, Settings
 } from 'lucide-react';
 import styles from './ProfilePage.module.css';
+import { NomRole, StatutCompte } from '../../@types/enums.types';
 
 interface ProfileData {
   nom: string;
@@ -38,6 +39,7 @@ export const CitizenProfilePage: React.FC = () => {
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const verificationDocInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +47,9 @@ export const CitizenProfilePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingVerificationDoc, setUploadingVerificationDoc] = useState(false);
+  const [verificationDocUrl, setVerificationDocUrl] = useState<string>('');
+  const [submittingVerification, setSubmittingVerification] = useState(false);
 
   const [formData, setFormData] = useState<ProfileData>({
     nom: '',
@@ -60,8 +65,8 @@ export const CitizenProfilePage: React.FC = () => {
     accepte_geolocalisation: false,
   });
 
-  const isVerified = (currentUser as any)?.user_metadata?.role === 'citoyen_verifie' ||
-                     (currentUser as any)?.role === 'citoyen_verifie';
+  const isVerified = (currentUser as any)?.role === NomRole.CITOYEN_VERIFIE;
+  const isVerificationPending = (currentUser as any)?.statut_compte === StatutCompte.EN_ATTENTE_VERIFICATION;
 
   // Charger le profil depuis Supabase
   useEffect(() => {
@@ -94,6 +99,7 @@ export const CitizenProfilePage: React.FC = () => {
             accepte_notifications: data.accepte_notifications ?? true,
             accepte_geolocalisation: data.accepte_geolocalisation ?? false,
           });
+          setVerificationDocUrl(data.document_accreditation || '');
         }
       } catch (err: any) {
         console.error('Erreur chargement profil:', err);
@@ -127,7 +133,7 @@ export const CitizenProfilePage: React.FC = () => {
       setError(null);
 
       const result = await uploadFileToCloudinary(file, {
-        type: 'profile',
+        type: 'profilePhoto',
       });
 
       if (result.success && result.url) {
@@ -139,6 +145,67 @@ export const CitizenProfilePage: React.FC = () => {
       setError(t('citizen.photoUploadError'));
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  // Uploader un document de vérification d'identité (CNI, passeport, etc.)
+  const handleVerificationDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingVerificationDoc(true);
+      setError(null);
+
+      const result = await uploadFileToCloudinary(file, {
+        type: 'document',
+        tags: ['identity-verification'],
+        context: userId ? { userId: String(userId) } : undefined,
+      });
+
+      if (result.success && (result.secureUrl || result.url)) {
+        setVerificationDocUrl((result.secureUrl || result.url) as string);
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (err: any) {
+      setError('Erreur lors de l’upload du document');
+    } finally {
+      setUploadingVerificationDoc(false);
+    }
+  };
+
+  // Soumettre la demande de vérification (visible dans l’interface modérateur)
+  const submitIdentityVerification = async () => {
+    if (!userId) return;
+    if (!verificationDocUrl) {
+      setError('Veuillez d’abord uploader un document (CNI, passeport, etc.)');
+      return;
+    }
+
+    try {
+      setSubmittingVerification(true);
+      setError(null);
+      setSuccess(null);
+
+      const { error: dbError } = await (supabase as any)
+        .from('utilisateur')
+        .update({
+          document_accreditation: verificationDocUrl,
+          statut_compte: StatutCompte.EN_ATTENTE_VERIFICATION,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (dbError) throw dbError;
+
+      setSuccess('Demande de vérification envoyée. Un modérateur va examiner votre document.');
+      setTimeout(() => setSuccess(null), 4000);
+    } catch (err: any) {
+      console.error('Erreur soumission vérification:', err);
+      setError(err.message || 'Erreur lors de la soumission');
+    } finally {
+      setSubmittingVerification(false);
     }
   };
 
@@ -481,6 +548,65 @@ export const CitizenProfilePage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Identity verification */}
+        {!isVerified && (
+          <div className={styles['profile__form-container']}>
+            <div className={styles['profile__form-header']}>
+              <h3 className={styles['profile__form-title']}>
+                <Shield size={18} style={{ marginRight: 8 }} />
+                Vérification d’identité
+              </h3>
+            </div>
+
+            <div className={styles['profile__info-item']}>
+              <Shield size={20} className={styles['profile__info-item-icon']} />
+              <div className={styles['profile__info-item-content']}>
+                <p className={styles['profile__info-item-label']}>Statut</p>
+                <p className={styles['profile__info-item-value']}>
+                  {isVerificationPending ? 'En attente de vérification' : 'Non vérifié'}
+                </p>
+              </div>
+            </div>
+
+            <div className={styles['profile__form']} style={{ marginTop: 12 }}>
+              <div className={styles['profile__form-group']}>
+                <label className={styles['profile__label']}>Document (CNI / Passeport / Acte…)</label>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className={styles['profile__edit-button']}
+                    onClick={() => verificationDocInputRef.current?.click()}
+                    disabled={uploadingVerificationDoc || submittingVerification}
+                  >
+                    {uploadingVerificationDoc ? 'Upload…' : (verificationDocUrl ? 'Changer le document' : 'Uploader un document')}
+                  </button>
+                  {verificationDocUrl && (
+                    <a href={verificationDocUrl} target="_blank" rel="noopener noreferrer">
+                      Voir le document
+                    </a>
+                  )}
+                  <input
+                    ref={verificationDocInputRef}
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleVerificationDocUpload}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className={styles['profile__save-button']}
+                onClick={submitIdentityVerification}
+                disabled={submittingVerification || uploadingVerificationDoc || !verificationDocUrl}
+              >
+                {submittingVerification ? 'Envoi…' : 'Envoyer la demande'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </CitizenLayout>
   );

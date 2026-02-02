@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { Personne, PersonnePhoto, PersonneState } from '../types';
 
 // Helper function to safely access personne state

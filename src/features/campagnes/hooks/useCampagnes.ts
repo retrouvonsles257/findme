@@ -6,9 +6,9 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { useNotification } from '@/contexts';
+import { useNotification } from '../../../contexts';
 import { campagneService, calculateCampagneStatistics } from '../services';
-import type { CampagneSensibilisation, UUID } from '@types';
+import type { CampagneSensibilisation, UUID } from '../../../@types';
 import type { CampagneFilterCriteria, CampagneStatistics } from '../types';
 
 export interface UseCampagnesReturn {

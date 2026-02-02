@@ -9,6 +9,8 @@ import React, { useState, useEffect } from 'react';
 import { ImageUpload, MultipleImageUpload } from '../../../components/common/ImageUpload';
 import { cloudinaryService } from '../../../services/cloudinary/cloudinaryService';
 import { supabase } from '../../../config';
+import { logActivity } from '../../../services/audit/auditService';
+import { TypeAction } from '../../../@types/enums.types';
 import { 
   Camera, 
   X, 
@@ -69,32 +71,46 @@ export const DossierPhotos: React.FC<DossierPhotosProps> = ({
     const fetchPhotos = async () => {
       setIsLoading(true);
       try {
-        // Récupérer les photos de la table photo liées au dossier ou à la personne
-        let query = supabase.from('photo').select('*');
-        
-        if (dossierId) {
-          query = query.eq('id_dossier', dossierId);
-        } else if (personneId) {
-          query = query.eq('id_personne', personneId);
+        // Modèle SQL: photo est reliée à personne ou signalement (pas de id_dossier).
+        // On privilégie donc id_personne. Si seulement dossierId est fourni, on résout id_personne via dossier_disparition.
+        let resolvedPersonneId = personneId;
+        if (!resolvedPersonneId && dossierId) {
+          const { data: dossierData } = await (supabase as any)
+            .from('dossier_disparition')
+            .select('id_personne')
+            .eq('id', dossierId)
+            .maybeSingle();
+          resolvedPersonneId = dossierData?.id_personne || undefined;
         }
-        
-        const { data, error: fetchError } = await query.order('created_at', { ascending: false });
-        
+
+        if (!resolvedPersonneId) {
+          setPhotos([]);
+          return;
+        }
+
+        const { data, error: fetchError } = await (supabase as any)
+          .from('photo')
+          .select('*')
+          .eq('id_personne', resolvedPersonneId)
+          .order('created_at', { ascending: false });
+
         if (fetchError) {
           console.error('Error fetching photos:', fetchError);
-          // Fallback: essayer avec les photos de personne
-          if (personneId) {
-            const { data: personnePhotos } = await supabase
-              .from('personne_photos')
-              .select('*')
-              .eq('personne_id', personneId)
-              .order('created_at', { ascending: false });
-            
-            setPhotos(personnePhotos || []);
-          }
-        } else {
-          setPhotos(data || []);
+          setPhotos([]);
+          return;
         }
+
+        const normalized = (data || []).map((p: any) => ({
+          id: p.id,
+          url: p.url_cloudinary || p.url || '',
+          type_photo: p.type_photo,
+          description: p.description,
+          qualite_image: p.qualite_image,
+          approuvee: p.approuvee,
+          visible_public: p.visible_public,
+          created_at: p.created_at,
+        }));
+        setPhotos(normalized);
       } catch (err) {
         console.error('Error:', err);
       } finally {
@@ -132,16 +148,41 @@ export const DossierPhotos: React.FC<DossierPhotosProps> = ({
       throw new Error(`Échec de l'upload: ${file.name}`);
     }
 
-    // Enregistrer dans la base de données
+    // Récupérer l'utilisateur courant (traçabilité / RLS)
+    let uid: string | null = null;
+    try {
+      const { data } = await (supabase as any).auth.getUser();
+      uid = data?.user?.id || null;
+    } catch {
+      uid = null;
+    }
+
+    // Résoudre id_personne si besoin
+    let resolvedPersonneId = personneId;
+    if (!resolvedPersonneId && dossierId) {
+      const { data: dossierData } = await (supabase as any)
+        .from('dossier_disparition')
+        .select('id_personne')
+        .eq('id', dossierId)
+        .maybeSingle();
+      resolvedPersonneId = dossierData?.id_personne || undefined;
+    }
+
+    if (!resolvedPersonneId) {
+      throw new Error('Impossible de déterminer la personne associée au dossier');
+    }
+
+    // Enregistrer dans la base de données (table photo)
     const photoData = {
-      url: uploadResult.secureUrl,
+      url_cloudinary: uploadResult.secureUrl,
       type_photo: photoType,
       description: description || null,
       qualite_image: 'moyenne',
       approuvee: false,
       visible_public: false,
-      id_dossier: dossierId || null,
-      id_personne: personneId || null,
+      uploadee_par: uid,
+      id_personne: resolvedPersonneId,
+      id_signalement: null,
     };
 
     const { data: newPhoto, error: insertError } = await (supabase
@@ -150,24 +191,27 @@ export const DossierPhotos: React.FC<DossierPhotosProps> = ({
       .select()
       .single();
 
-    if (insertError && personneId) {
-      // Essayer avec personne_photos si photo échoue
-      const { data: personnePhoto, error: personneError } = await (supabase
-        .from('personne_photos') as any)
-        .insert({
-          personne_id: personneId,
-          url: uploadResult.secureUrl,
-          type_photo: photoType,
-          qualite_image: 'moyenne',
-        })
-        .select()
-        .single();
-      
-      if (personneError) throw personneError;
-      return personnePhoto;
-    }
+    if (insertError) throw insertError;
 
-    return newPhoto;
+    await logActivity({
+      type_action: TypeAction.UPLOAD_PHOTO,
+      description: 'Upload photo (galerie dossier)',
+      action_detaillee: 'upload_photo_gallery',
+      id_utilisateur: uid,
+      id_dossier: dossierId || null,
+      donnees_apres: { id_photo: newPhoto.id, id_personne: resolvedPersonneId },
+    });
+
+    return {
+      id: newPhoto.id,
+      url: newPhoto.url_cloudinary || uploadResult.secureUrl,
+      type_photo: newPhoto.type_photo,
+      description: newPhoto.description,
+      qualite_image: newPhoto.qualite_image,
+      approuvee: newPhoto.approuvee,
+      visible_public: newPhoto.visible_public,
+      created_at: newPhoto.created_at,
+    };
   };
 
   const handleUpload = async () => {

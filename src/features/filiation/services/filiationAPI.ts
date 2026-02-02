@@ -30,6 +30,17 @@ const db = {
 export const createFiliationLien = async (
   input: FiliationLienInput,
 ): Promise<FiliationLienDatabase> => {
+  // Best-effort: récupérer l'utilisateur courant si non fourni
+  let uid: string | null = input.cree_par || null;
+  if (!uid) {
+    try {
+      const { data } = await (supabase as any).auth.getUser();
+      uid = data?.user?.id || null;
+    } catch {
+      uid = null;
+    }
+  }
+
   const { data, error } = await db.from('lien_filiation').insert({
     type_lien: input.type_lien,
     id_personne_source: input.id_personne_source,
@@ -44,7 +55,10 @@ export const createFiliationLien = async (
     document_justificatif: input.document_justificatif,
     commentaire: input.commentaire,
     confidentiel: input.confidentiel || false,
-    visible_public: input.visible_public ?? true,
+    // Par défaut: NON public (sinon fuite d'infos familiales)
+    visible_public: input.visible_public ?? false,
+    cree_par: uid,
+    modifie_par: input.modifie_par || uid,
     generation: 0,
     ligne_directe: false,
     personne_contact_principal: false,

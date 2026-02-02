@@ -250,11 +250,14 @@ export const isValidPhoneNumber = (phone: string): boolean => {
  */
 export const getRoleLevel = (role: string): number => {
   const levels: Record<string, number> = {
-    super_admin: 5,
-    admin_organisation: 4,
+    super_admin: 7,
+    admin_organisation: 6,
+    responsable_ong: 5,
     officier_police: 4,
-    delegue_ngo: 3,
-    moderateur: 2,
+    agent_gendarmerie: 4,
+    // Aligné avec la documentation: opérateur=2, modérateur=3
+    operateur_saisie: 2,
+    moderateur: 3,
     citoyen_verifie: 1,
     citoyen_standard: 0,
   };

@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch } from '@/store/types';
+import type { AppDispatch } from '../../../store/types';
 import { fetchProximityZones, fetchAlerts, dismissAlert } from '../store/geolocalisationSlice';
 import {
   selectProximityZones,

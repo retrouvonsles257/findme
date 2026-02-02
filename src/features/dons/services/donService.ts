@@ -17,6 +17,11 @@ export interface DonFormData {
   devise: string;
   type_don: TypeDon;
   methode_paiement: string;
+  /**
+   * Opérateur Mobile Money (spécifique Cameroun).
+   * Utilisé pour l'intégration Orange Money / MTN MoMo via Edge Functions.
+   */
+  mobile_money_operator?: 'mtn_momo' | 'orange_money';
   donateur_anonyme: boolean;
   nom_donateur?: string;
   email_donateur?: string;
@@ -71,6 +76,16 @@ export const validateDonForm = (data: DonFormData): DonValidationErrors => {
     errors.methode_paiement = 'La méthode de paiement est requise';
   }
 
+  // Mobile Money: exiger téléphone + opérateur
+  if (data.methode_paiement === 'mobile_money') {
+    if (!data.telephone_donateur || data.telephone_donateur.trim().length === 0) {
+      errors.telephone_donateur = 'Le numéro de téléphone est requis pour Mobile Money';
+    }
+    if (!data.mobile_money_operator) {
+      errors.methode_paiement = 'Veuillez choisir MTN MoMo ou Orange Money';
+    }
+  }
+
   if (!data.donateur_anonyme && !data.nom_donateur) {
     errors.nom_donateur = 'Le nom du donateur est requis (ou cocher anonyme)';
   }
@@ -98,7 +113,7 @@ const isValidEmail = (email: string): boolean => {
  * Valider un numéro de téléphone
  */
 const isValidPhoneNumber = (phone: string): boolean => {
-  const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+  const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
   return phoneRegex.test(phone);
 };
 
@@ -230,6 +245,16 @@ export const getDonsList = async (
  */
 export const getDonWithDetails = async (id: string): Promise<DonDisplayData> => {
   const don = await donAPI.getDonById(id);
+  return enrichDonForDisplay(don);
+};
+
+/**
+ * Récupérer un don par référence transaction (ex: retour gateway)
+ */
+export const getDonByReferenceTransaction = async (
+  reference: string,
+): Promise<DonDisplayData> => {
+  const don = await donAPI.getDonByReferenceTransaction(reference);
   return enrichDonForDisplay(don);
 };
 

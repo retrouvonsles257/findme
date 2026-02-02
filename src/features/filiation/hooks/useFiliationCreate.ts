@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '@/store/types';
+import type { AppDispatch } from '../../../store/types';
 import { createNewFiliationLien, updateFiliationLien } from '../store/filiationSlice';
 import type { FiliationLienInput, FiliationLienUpdate } from '../types';
 

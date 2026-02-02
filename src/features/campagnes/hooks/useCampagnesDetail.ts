@@ -6,9 +6,9 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useNotification } from '@/contexts';
+import { useNotification } from '../../../contexts';
 import { campagneService } from '../services';
-import type { UUID } from '@types';
+import type { UUID } from '../../../@types';
 import { StatutCampagne } from '../../../@types/enums.types';
 import type { CampagneWithRelations, CampagneUpdatePayload } from '../types';
 

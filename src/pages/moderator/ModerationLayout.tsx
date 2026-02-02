@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
+import { useLogout } from '../../features/auth/hooks/useLogout';
 import { supabase } from '../../config';
 import {
   Home,
@@ -35,7 +36,17 @@ const db = () => supabase as any;
 interface ModerationLayoutProps {
   children: React.ReactNode;
   title: string;
-  activeNav: 'dashboard' | 'validation' | 'photos' | 'reports' | 'ia' | 'identity' | 'map' | 'notifications' | 'history';
+  activeNav:
+    | 'dashboard'
+    | 'validation'
+    | 'photos'
+    | 'reports'
+    | 'ia'
+    | 'identity'
+    | 'map'
+    | 'notifications'
+    | 'history'
+    | 'donations';
 }
 
 export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
@@ -46,6 +57,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
   const navigate = useNavigate();
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectUser);
+  const { logout, isLoading: isLoggingOut } = useLogout();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
@@ -130,9 +142,17 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
       path: '/moderator/reports',
       icon: BarChart3,
     },
+    {
+      id: 'donations',
+      label: 'Dons',
+      path: '/moderator/donations',
+      icon: Heart,
+    },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Déconnexion réelle (Supabase Auth) + redirection
+    await logout();
     navigate('/auth/login');
   };
 
@@ -184,6 +204,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
           onClick={handleLogout}
           className={styles['moderation-layout__logout']}
           title={t('common.logout')}
+          disabled={isLoggingOut}
         >
           <LogOut size={20} />
           {sidebarOpen && <span>{t('common.logout')}</span>}
@@ -208,7 +229,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
             {/* Bouton Soutenir le projet */}
             <button
               className={styles['moderation-layout__donate-btn']}
-              onClick={() => navigate('/donate')}
+              onClick={() => navigate('/moderator/donations')}
               title={t('common.supportProject') || 'Soutenir le projet'}
             >
               <Heart size={18} />

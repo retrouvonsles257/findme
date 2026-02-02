@@ -7,6 +7,7 @@
 
 export { CitizenLayout } from './CitizenLayout';
 export { CitizenDashboardPage } from './DashboardPage';
+export { CitizenDossiersPage } from './DossiersPage';
 export { CitizenMySignalementsPage } from './MySignalementsPage';
 export { CitizenNewSignalementPage } from './NewSignalementPage';
 export { CitizenSignalementDetailPage } from './SignalementDetailPage';
@@ -16,3 +17,4 @@ export { CitizenAlertesPage } from './AlertesPage';
 export { CitizenMapPage } from './MapPage';
 export { CitizenDossierPublicDetailPage } from './DossierPublicDetailPage';
 export { CitizenSettingsPage } from './SettingsPage';
+export { CitizenDonationsPage } from './DonationsPage';

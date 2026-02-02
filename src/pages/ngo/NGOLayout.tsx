@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
-import { useAppSelector } from '../../store/types';
+import { useAppDispatch, useAppSelector } from '../../store/types';
+import { selectUser } from '../../features/auth/store/authSelectors';
+import { logoutThunk } from '../../features/auth/store/authThunks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { Menu, X, LogOut, Globe, FileText, Users, Briefcase, BookOpen, Handshake } from 'lucide-react';
+import { Menu, X, LogOut, Globe, FileText, Users, Briefcase, BookOpen, Handshake, Brain } from 'lucide-react';
 import styles from './NGOLayout.module.css';
 
 interface NGOLayoutProps {
@@ -15,12 +17,21 @@ export const NGOLayout: React.FC<NGOLayoutProps> = ({ children, title }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language, changeLanguage } = useI18n();
-  const currentUser = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
+  const authUser = useAppSelector(selectUser) as any;
+  const currentUserProfile = useAppSelector(selectCurrentUser) as any;
+  const currentUser = currentUserProfile || authUser;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    navigate('/auth/login');
-  };
+  const handleLogout = useCallback(async () => {
+    try {
+      await dispatch(logoutThunk() as any);
+    } catch {
+      // Best-effort: même si le logout échoue, on redirige vers login
+    } finally {
+      navigate('/auth/login', { replace: true });
+    }
+  }, [dispatch, navigate]);
 
   const toggleLanguage = () => {
     changeLanguage(language === 'fr' ? 'en' : 'fr');
@@ -39,7 +50,8 @@ export const NGOLayout: React.FC<NGOLayoutProps> = ({ children, title }) => {
   const navItems = [
     { path: '/ngo/dashboard', label: t('common.dashboard'), icon: FileText },
     { path: '/ngo/cases', label: t('ngo.cases'), icon: Users },
-    { path: '/ngo/campaigns', label: t('ngo.campaigns'), icon: Briefcase },
+    { path: '/ngo/campagnes', label: t('ngo.campaigns'), icon: Briefcase },
+    { path: '/ngo/ia', label: 'IA', icon: Brain },
     { path: '/ngo/resources', label: t('ngo.resources'), icon: BookOpen },
     { path: '/ngo/partnerships', label: t('ngo.partnerships'), icon: Handshake },
   ];

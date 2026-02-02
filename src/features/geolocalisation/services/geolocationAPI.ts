@@ -44,6 +44,7 @@ export const createLocation = async (input: LocationInput): Promise<LocationData
       date_localisation: input.date_localisation,
       id_dossier: input.id_dossier,
       id_signalement: input.id_signalement,
+      enregistree_par: input.enregistree_par,
     })
     .select()
     .single();

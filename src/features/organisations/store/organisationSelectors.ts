@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { Organisation, OrganisationMember, OrganisationStats, OrganisationState } from '../types';
 
 // Helper function to safely access organisation state

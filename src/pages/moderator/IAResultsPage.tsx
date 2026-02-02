@@ -237,17 +237,28 @@ export const IAResultsPage: React.FC = () => {
 
       // Si pas de correspondance explicite, chercher dans le dossier associé
       if (!rightPhoto && result.id_dossier) {
-        const { data } = await db()
-          .from('photo')
-          .select('url_cloudinary')
-          .eq('id_dossier', result.id_dossier)
-          .eq('type_photo', 'portrait')
-          .order('date_prise', { ascending: false })
-          .limit(1)
+        // Schéma: dossier_disparition -> id_personne ; photo est liée à id_personne (pas id_dossier)
+        const { data: dossier } = await db()
+          .from('dossier_disparition')
+          .select('id_personne')
+          .eq('id', result.id_dossier)
           .single();
 
-        if (data) {
-          rightPhoto = data.url_cloudinary;
+        const personneId = dossier?.id_personne as string | undefined;
+        if (personneId) {
+          const { data } = await db()
+            .from('photo')
+            .select('url_cloudinary')
+            .eq('id_personne', personneId)
+            .eq('type_photo', 'portrait')
+            .eq('approuvee', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (data) {
+            rightPhoto = data.url_cloudinary;
+          }
         }
       }
 

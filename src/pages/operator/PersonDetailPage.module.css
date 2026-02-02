@@ -1,0 +1,123 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Operator Person Detail Page Styles
+ * Namespace: operatorPersonDetail__
+ * =====================================================
+ */
+
+.operatorPersonDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.operatorPersonDetail__card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 1rem;
+  box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06);
+}
+
+.operatorPersonDetail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.operatorPersonDetail__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.operatorPersonDetail__meta {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.operatorPersonDetail__btnRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.operatorPersonDetail__btn {
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.operatorPersonDetail__btnPrimary {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.operatorPersonDetail__btnPrimary:hover {
+  background: #1e40af;
+}
+
+.operatorPersonDetail__sectionTitle {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.operatorPersonDetail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.operatorPersonDetail__kv {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #f8fafc;
+}
+
+.operatorPersonDetail__k {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 0.25rem;
+}
+
+.operatorPersonDetail__v {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.operatorPersonDetail__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.operatorPersonDetail__listItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.operatorPersonDetail__state {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #334155;
+}
+

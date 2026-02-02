@@ -31,13 +31,20 @@ export const OperatorDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
-  const { dossiers, isLoading } = useDossiers();
+  const { dossiers, isLoading, fetchDossiers, setPageSize } = useDossiers();
 
   useEffect(() => {
     if (currentUser && !['operateur_saisie', 'admin_organisation'].includes(currentUser.role)) {
       navigate('/auth/login');
     }
   }, [currentUser, navigate]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    // Dashboard: on veut uniquement "mes dossiers"
+    setPageSize(100);
+    fetchDossiers({ createur_id: currentUser.id });
+  }, [currentUser?.id, fetchDossiers, setPageSize]);
 
   const myDossiers = dossiers.filter(
     (d: any) => d.id_utilisateur_createur === currentUser?.id || d.enregistre_par === currentUser?.id

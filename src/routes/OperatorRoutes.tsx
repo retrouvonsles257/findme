@@ -12,6 +12,9 @@ import {
   OperatorMyDossiersPage,
   CreateDossierPage,
   CreatePersonPage,
+  OperatorPersonsPage,
+  OperatorPersonDetailPage,
+  OperatorDonationsPage,
   OperatorDossierDetailPage,
   OperatorEditDossierPage,
   SignalementsEnAttentePage,
@@ -73,6 +76,36 @@ const OperatorRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={operatorRoles}>
               <CreatePersonPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Persons list */}
+        <Route
+          path="/personnes"
+          element={
+            <RoleBasedRoute requiredRoles={operatorRoles}>
+              <OperatorPersonsPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Person detail */}
+        <Route
+          path="/personnes/:id"
+          element={
+            <RoleBasedRoute requiredRoles={operatorRoles}>
+              <OperatorPersonDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Donations */}
+        <Route
+          path="/donations"
+          element={
+            <RoleBasedRoute requiredRoles={operatorRoles}>
+              <OperatorDonationsPage />
             </RoleBasedRoute>
           }
         />

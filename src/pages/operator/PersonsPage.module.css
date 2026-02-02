@@ -1,0 +1,117 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Operator Persons Page Styles
+ * Namespace: operatorPersons__
+ * =====================================================
+ */
+
+.operatorPersons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.operatorPersons__toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.operatorPersons__search {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.operatorPersons__searchInput {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.operatorPersons__primaryBtn {
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.operatorPersons__primaryBtn:hover {
+  background: #1e40af;
+}
+
+.operatorPersons__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.operatorPersons__card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 1rem;
+  box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.operatorPersons__card:hover {
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.operatorPersons__name {
+  font-weight: 650;
+  color: #0f172a;
+  margin: 0 0 0.25rem;
+}
+
+.operatorPersons__meta {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.operatorPersons__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.operatorPersons__pageBtn {
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.operatorPersons__pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.operatorPersons__state {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #334155;
+}
+

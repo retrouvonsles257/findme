@@ -6,14 +6,18 @@
  * =====================================================
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
 import { cloudinaryConfig, cloudinaryUploadConfig } from '../../config/cloudinary.config';
+import { mapConfig } from '../../config/map.config';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
+import { MapSearch } from '../../components/maps';
+import type { MapSearchLocation } from '../../components/maps';
+import { MapTilerView } from '../../components/maps/MapTilerView';
 import {
   User,
   MapPin,
@@ -43,6 +47,8 @@ interface DossierFormData {
   lieu_disparition: string;
   ville_disparition: string;
   pays_disparition: string;
+  latitude_disparition: number | null;
+  longitude_disparition: number | null;
   circonstances: string;
   vetements_portes: string;
   objets_personnels: string;
@@ -62,8 +68,15 @@ export const CreateDossierAuthorityPage: React.FC = () => {
   
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string>('');
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [photoUploading, setPhotoUploading] = useState(false);
+
+  // Carte (sélection + recherche)
+  const [showMap, setShowMap] = useState(false);
+  const [geoResults, setGeoResults] = useState<MapSearchLocation[]>([]);
+  const [isGeoSearching, setIsGeoSearching] = useState(false);
+  const geoTimerRef = useRef<number | null>(null);
 
   // Formulaire personne
   const [personneData, setPersonneData] = useState<PersonneFormData>({
@@ -86,6 +99,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     lieu_disparition: '',
     ville_disparition: '',
     pays_disparition: 'Cameroun',
+    latitude_disparition: null,
+    longitude_disparition: null,
     circonstances: '',
     vetements_portes: '',
     objets_personnels: '',
@@ -96,6 +111,90 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     contact_telephone: '',
     contact_email: '',
   });
+
+  const geocodeMapTiler = async (query: string): Promise<MapSearchLocation[]> => {
+    if (!mapConfig.maptiler.apiKey) return [];
+    const url =
+      `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json` +
+      `?key=${encodeURIComponent(mapConfig.maptiler.apiKey)}` +
+      `&limit=6&language=${encodeURIComponent(language || 'fr')}&country=cm`;
+
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const json = await res.json();
+    const features = json?.features || [];
+    return features
+      .map((f: any) => {
+        const [lng, lat] = f?.center || [];
+        if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+        return {
+          id: String(f.id || `${lat},${lng}`),
+          name: String(f.place_name || f.text || 'Lieu'),
+          lat,
+          lng,
+          type: 'organization' as const,
+          region: f?.context?.map?.((c: any) => c?.text).filter(Boolean).join(', '),
+        } as MapSearchLocation;
+      })
+      .filter(Boolean);
+  };
+
+  const handleGeoSearch = useCallback(
+    (query: string) => {
+      if (!query || query.trim().length < 2) {
+        setGeoResults([]);
+        setIsGeoSearching(false);
+        if (geoTimerRef.current) {
+          window.clearTimeout(geoTimerRef.current);
+          geoTimerRef.current = null;
+        }
+        return;
+      }
+
+      const q = query.trim();
+      setIsGeoSearching(true);
+      if (geoTimerRef.current) {
+        window.clearTimeout(geoTimerRef.current);
+        geoTimerRef.current = null;
+      }
+      geoTimerRef.current = window.setTimeout(async () => {
+        try {
+          const results = await geocodeMapTiler(q);
+          setGeoResults(results);
+        } catch {
+          setGeoResults([]);
+        } finally {
+          setIsGeoSearching(false);
+          geoTimerRef.current = null;
+        }
+      }, 250);
+    },
+    [language]
+  );
+
+  const handleGeoSelect = (loc: MapSearchLocation) => {
+    setDossierData((prev) => ({
+      ...prev,
+      latitude_disparition: loc.lat,
+      longitude_disparition: loc.lng,
+      // UX: si lieu_disparition est vide, remplir avec le résultat
+      lieu_disparition: prev.lieu_disparition?.trim() ? prev.lieu_disparition : loc.name,
+    }));
+  };
+
+  const handleMapClick = (lat: number, lng: number) => {
+    setDossierData((prev) => ({
+      ...prev,
+      latitude_disparition: lat,
+      longitude_disparition: lng,
+    }));
+  };
+
+  useEffect(() => {
+    return () => {
+      if (geoTimerRef.current) window.clearTimeout(geoTimerRef.current);
+    };
+  }, []);
 
   // Upload photo vers Cloudinary
   const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +241,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     } finally {
       setPhotoUploading(false);
     }
-  }, [addNotification]);
+  }, [addNotification, t]);
 
   // Supprimer une photo
   const removePhoto = (index: number) => {
@@ -177,6 +276,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
 
   // Soumission finale
   const handleSubmit = useCallback(async () => {
+    setSubmitError('');
     if (!user?.id) {
       addNotification({
         title: t('authority.createDossier.messages.error'),
@@ -189,6 +289,45 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // S'assurer qu'un profil "utilisateur" existe (sinon FK peuvent échouer)
+      try {
+        const { data: existing, error: existErr } = await (supabase as any)
+          .from('utilisateur')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (existErr) {
+          // silencieux: on tente quand même la création du dossier
+        } else if (!existing) {
+          const m = (user as any)?.user_metadata as Record<string, any> | undefined;
+          const email = (user as any)?.email as string | undefined;
+          const nom = (m?.nom as string | undefined) || 'À compléter';
+          const prenom = (m?.prenom as string | undefined) || 'À compléter';
+
+          if (!email) {
+            throw new Error(t('authority.createDossier.messages.profileEmailMissing'));
+          }
+
+          const { error: upsertErr } = await (supabase as any).from('utilisateur').upsert({
+            id: user.id,
+            email,
+            nom,
+            prenom,
+            telephone: (m?.telephone as string | undefined) || null,
+            statut_compte: (m?.statut_compte as string | undefined) || 'actif',
+            type_compte: 'autorite',
+            pays: (m?.pays as string | undefined) || 'Cameroun',
+            langue_preferee: language || 'fr',
+            updated_at: new Date().toISOString(),
+          });
+          if (upsertErr) throw upsertErr;
+        }
+      } catch (ensureErr: any) {
+        // si on ne peut pas garantir le profil, on remonte une erreur claire
+        throw new Error(ensureErr?.message || t('authority.createDossier.messages.profileMissing'));
+      }
+
       // 1. Créer la personne (sans photos_supplementaires - elles vont dans la table photo)
       const { data: personneCreated, error: personneError } = await (supabase as any)
         .from('personne')
@@ -204,6 +343,9 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           couleur_yeux: personneData.couleur_yeux || null,
           couleur_cheveux: personneData.couleur_cheveux || null,
           signes_distinctifs: personneData.signes_particuliers || null,
+          // Champs saisis à l'étape dossier (schéma SQL: personne.derniers_vetements_portes / accessoires)
+          derniers_vetements_portes: dossierData.vetements_portes || null,
+          accessoires: dossierData.objets_personnels || null,
           photo_principale: uploadedPhotos[0] || null,
           cree_par: user.id,
           created_at: new Date().toISOString(),
@@ -251,6 +393,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           lieu_disparition: dossierData.lieu_disparition,
           ville_disparition: dossierData.ville_disparition || null,
           pays_disparition: dossierData.pays_disparition || 'Cameroun',
+          latitude_disparition: dossierData.latitude_disparition,
+          longitude_disparition: dossierData.longitude_disparition,
           circonstances: dossierData.circonstances || 'Non précisées', // Champ obligatoire
           derniere_activite_connue: dossierData.derniere_activite_connue || null,
           visible_public: dossierData.visible_public,
@@ -301,6 +445,8 @@ export const CreateDossierAuthorityPage: React.FC = () => {
       }, 1500);
 
     } catch (err: any) {
+      console.error('[CreateDossierAuthority] error:', err);
+      setSubmitError(err?.message || t('authority.createDossier.messages.creationError'));
       // Erreur gérée par la notification
       addNotification({
         title: t('authority.createDossier.messages.error'),
@@ -310,7 +456,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, personneData, dossierData, uploadedPhotos, addNotification, navigate]);
+  }, [user, personneData, dossierData, uploadedPhotos, addNotification, navigate, t, language]);
 
   return (
     <AuthorityLayout>
@@ -482,7 +628,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                   <div className={styles.photoGrid}>
                     {uploadedPhotos.map((url, index) => (
                       <div key={index} className={styles.photoPreview}>
-                        <img src={url} alt={`Photo ${index + 1}`} />
+                        <img src={url} alt={`${t('authority.createDossier.step1.mainPhoto')} ${index + 1}`} />
                         <button onClick={() => removePhoto(index)} className={styles.removePhoto}>✕</button>
                         {index === 0 && <span className={styles.mainPhotoBadge}>{t('authority.createDossier.step1.mainPhoto')}</span>}
                       </div>
@@ -562,6 +708,72 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                     value={dossierData.pays_disparition}
                     onChange={(e) => setDossierData({ ...dossierData, pays_disparition: e.target.value })}
                   />
+                </div>
+
+                {/* Carte pour localisation précise */}
+                <div className={styles.formGroupFull}>
+                  <div className={styles.mapHeader}>
+                    <label>{t('authority.createDossier.step2.map.title')}</label>
+                    <button
+                      type="button"
+                      className={styles.mapToggle}
+                      onClick={() => setShowMap((v) => !v)}
+                    >
+                      {showMap ? t('authority.createDossier.step2.map.hide') : t('authority.createDossier.step2.map.show')}
+                    </button>
+                  </div>
+
+                  {dossierData.latitude_disparition && dossierData.longitude_disparition && (
+                    <p className={styles.coordsInfo}>
+                      {t('authority.createDossier.step2.map.coords')}: {dossierData.latitude_disparition.toFixed(6)},{' '}
+                      {dossierData.longitude_disparition.toFixed(6)}
+                    </p>
+                  )}
+
+                  {showMap && (
+                    <div className={styles.mapContainer}>
+                      <div className={styles.mapSearch}>
+                        <MapSearch
+                          placeholder={t('authority.createDossier.step2.map.searchPlaceholder')}
+                          onSearch={handleGeoSearch}
+                          onLocationSelect={handleGeoSelect}
+                          results={geoResults}
+                          isLoading={isGeoSearching}
+                        />
+                      </div>
+
+                      <MapTilerView
+                        height="320px"
+                        center={
+                          dossierData.latitude_disparition && dossierData.longitude_disparition
+                            ? [dossierData.latitude_disparition, dossierData.longitude_disparition]
+                            : [3.848, 11.5021]
+                        }
+                        zoom={dossierData.latitude_disparition ? 12 : 7}
+                        onMapClick={handleMapClick}
+                        markers={
+                          dossierData.latitude_disparition && dossierData.longitude_disparition
+                            ? [
+                                {
+                                  id: 'selected-location',
+                                  lat: dossierData.latitude_disparition,
+                                  lng: dossierData.longitude_disparition,
+                                  label: t('authority.createDossier.step2.map.markerLabel'),
+                                  type: 'missing',
+                                },
+                              ]
+                            : []
+                        }
+                        showControls={true}
+                        interactive={true}
+                      />
+
+                      {!mapConfig.maptiler.apiKey && (
+                        <p className={styles.mapHint}>{t('authority.createDossier.step2.map.apiKeyMissing')}</p>
+                      )}
+                      <p className={styles.mapHint}>{t('authority.createDossier.step2.map.hint')}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.formGroupFull}>
@@ -678,6 +890,12 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           {step === 3 && (
             <div className={styles.formSection}>
               <h2>✓ {t('authority.createDossier.step3.title')}</h2>
+
+              {submitError && (
+                <div className={styles.submitError}>
+                  {submitError}
+                </div>
+              )}
               
               <div className={styles.summary}>
                 <div className={styles.summarySection}>
@@ -695,6 +913,9 @@ export const CreateDossierAuthorityPage: React.FC = () => {
                   <p><strong>{t('authority.createDossier.step3.date')}:</strong> {new Date(dossierData.date_disparition).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
                   <p><strong>{t('authority.createDossier.step3.location')}:</strong> {dossierData.lieu_disparition}</p>
                   <p><strong>{t('authority.createDossier.step3.city')}:</strong> {dossierData.ville_disparition || t('authority.createDossier.step3.notProvided')}</p>
+                  {dossierData.latitude_disparition && dossierData.longitude_disparition && (
+                    <p><strong>{t('authority.createDossier.step2.map.coords')}:</strong> {dossierData.latitude_disparition.toFixed(6)}, {dossierData.longitude_disparition.toFixed(6)}</p>
+                  )}
                   {dossierData.circonstances && (
                     <p><strong>{t('authority.createDossier.step3.circumstances')}:</strong> {dossierData.circonstances.substring(0, 100)}...</p>
                   )}

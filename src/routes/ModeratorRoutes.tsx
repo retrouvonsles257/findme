@@ -17,6 +17,7 @@ import {
   MapViewPage,
   NotificationsPage,
   ActivityHistoryPage,
+  ModeratorDonationsPage,
 } from '../pages/moderator';
 
 import PrivateRoute from './PrivateRoutes';
@@ -30,6 +31,7 @@ import { NomRole } from '../@types/enums.types';
  * - Photos Moderation
  * - Signalements Validation
  * - Reports
+ * - Donations
  */
 const ModeratorRoutes: React.FC = () => {
   const moderatorRoles = [NomRole.MODERATEUR];
@@ -123,6 +125,16 @@ const ModeratorRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={moderatorRoles}>
               <ActivityHistoryPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Donations */}
+        <Route
+          path="/donations"
+          element={
+            <RoleBasedRoute requiredRoles={moderatorRoles}>
+              <ModeratorDonationsPage />
             </RoleBasedRoute>
           }
         />

@@ -19,6 +19,7 @@ export interface PaymentInitiation {
   email?: string;
   telephone?: string;
   description?: string;
+  mobileMoneyOperator?: 'mtn_momo' | 'orange_money';
 }
 
 export interface PaymentVerification {
@@ -187,6 +188,9 @@ export const validatePaymentData = (data: PaymentInitiation): string[] => {
 
   if (data.methode === 'mobile_money' && !data.telephone) {
     errors.push('Le numéro de téléphone est requis pour Mobile Money');
+  }
+  if (data.methode === 'mobile_money' && !data.mobileMoneyOperator) {
+    errors.push('Veuillez choisir MTN MoMo ou Orange Money');
   }
 
   return errors;

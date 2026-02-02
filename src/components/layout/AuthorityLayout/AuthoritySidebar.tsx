@@ -17,6 +17,7 @@ import {
   Search,
   Brain,
   Users,
+  Image,
   BarChart3,
   ChevronLeft,
   ChevronRight,
@@ -33,6 +34,7 @@ import {
 import { useAuth } from '../../../contexts';
 import { useI18n } from '../../../hooks';
 import { supabase } from '../../../config';
+import { AUTH_ROUTES } from '../../../routes/routes.config';
 import styles from './AuthoritySidebar.module.css';
 
 interface NavItem {
@@ -112,7 +114,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   const handleLogout = async () => {
     setShowProfileMenu(false);
     await signOut();
-    navigate('/login');
+    navigate(AUTH_ROUTES.LOGIN);
   };
 
   const handleProfileClick = () => {
@@ -157,6 +159,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
     { path: '/authority/dossiers', label: t('authority.menu.dossiers'), icon: <FolderOpen size={20} /> },
     { path: '/authority/alertes', label: t('authority.menu.alertes'), icon: <Bell size={20} /> },
     { path: '/authority/signalements', label: t('authority.menu.signalements'), icon: <FileSearch size={20} /> },
+    { path: '/authority/photos-moderation', label: t('authority.menu.photosModeration'), icon: <Image size={20} /> },
     { path: '/authority/map-view', label: t('authority.menu.mapView'), icon: <Map size={20} /> },
     { path: '/authority/investigation', label: t('authority.menu.investigation'), icon: <Search size={20} /> },
     { path: '/authority/ia-analysis', label: t('authority.menu.analysis'), icon: <Brain size={20} /> },

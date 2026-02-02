@@ -11,13 +11,15 @@ import {
   NGODashboardPage,
   NGOCasesPage,
   NGOCampagnesPage,
+  NGOCreateCasePage,
+  NGOCreateCampagnePage,
   NGOResourcesPage,
-  NGOPartnershipsPage
+  NGOPartnershipsPage,
+  NGOIAAnalysisPage,
 } from '../pages/ngo';
 
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
-import { NGO_ROUTES } from './routes.config';
 import { NomRole } from '../@types/enums.types';
 
 /**
@@ -54,6 +56,14 @@ const NGORoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+        <Route
+          path="/cases/create"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOCreateCasePage />
+            </RoleBasedRoute>
+          }
+        />
 
         {/* Campagnes */}
         <Route
@@ -61,6 +71,24 @@ const NGORoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCampagnesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/campagnes/create"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOCreateCampagnePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* IA */}
+        <Route
+          path="/ia"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOIAAnalysisPage />
             </RoleBasedRoute>
           }
         />

@@ -37,14 +37,38 @@ export const ReportsPage: React.FC = () => {
 
   // Calculer les statistiques
   const calculateStats = () => {
-    const nouveau = filteredSignalements.filter((s) => s.etat === 'nouveau').length;
-    const en_cours = filteredSignalements.filter((s) => s.etat === 'en_cours').length;
-    const valide = filteredSignalements.filter((s) => s.etat === 'valide').length;
-    const rejete = filteredSignalements.filter((s) => s.etat === 'rejete').length;
-    const ferme = filteredSignalements.filter((s) => s.etat === 'ferme').length;
+    // Source de vérité: statut_validation (schéma SQL). Fallback: etat (legacy UI)
+    const getStatut = (s: any) => s.statut_validation || s.etat;
+
+    const nouveau = filteredSignalements.filter((s: any) => {
+      const st = getStatut(s);
+      return st === 'en_attente' || st === 'nouveau';
+    }).length;
+
+    const en_cours = filteredSignalements.filter((s: any) => {
+      const st = getStatut(s);
+      return st === 'en_verification' || st === 'en_cours';
+    }).length;
+
+    const valide = filteredSignalements.filter((s: any) => getStatut(s) === 'valide').length;
+
+    const rejete = filteredSignalements.filter((s: any) => {
+      const st = getStatut(s);
+      return st === 'invalide' || st === 'rejete';
+    }).length;
+
+    const ferme = filteredSignalements.filter((s: any) => {
+      const st = getStatut(s);
+      return st === 'spam' || st === 'doublonne' || st === 'ferme';
+    }).length;
 
     const totalScore =
-      filteredSignalements.reduce((sum, s) => sum + (s.score_correspondance || 0), 0) /
+      filteredSignalements.reduce((sum, s: any) => {
+        // score_pertinence (SQL) est typiquement 0..100. score_correspondance (legacy) est 0..1
+        if (typeof s.score_pertinence === 'number') return sum + s.score_pertinence;
+        if (typeof s.score_correspondance === 'number') return sum + s.score_correspondance * 100;
+        return sum;
+      }, 0) /
       (filteredSignalements.length || 1);
 
     return {

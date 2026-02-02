@@ -134,9 +134,23 @@ export const getDossierById = async (id: string): Promise<DossierDisparition> =>
  */
 export const getDossiers = async (filters?: DossierFilterCriteria) => {
   // Récupérer les dossiers avec les données de la personne
-  let query: any = db.from('dossier_disparition').select('*, personne:id_personne(nom, prenom, nom_complet)');
+  let query: any = db
+    .from('dossier_disparition')
+    .select('*, personne:id_personne(nom, prenom, nom_complet)', { count: 'exact' });
 
   if (filters) {
+    if (filters.organisation_id) {
+      query = query.eq('id_organisation_responsable', filters.organisation_id);
+    }
+
+    if (filters.createur_id) {
+      query = query.eq('id_utilisateur_createur', filters.createur_id);
+    }
+
+    if (filters.personne_id) {
+      query = query.eq('id_personne', filters.personne_id);
+    }
+
     if (filters.statut && filters.statut.length > 0) {
       query = query.in('statut_dossier', filters.statut);
     }

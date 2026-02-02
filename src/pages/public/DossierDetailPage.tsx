@@ -1,33 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../config/supabase.config';
+import { supabase } from '../../config';
+import { StatutDossier } from '../../@types/enums.types';
 import styles from './DossierDetailPage.module.css';
 
 interface Dossier {
   id: string;
-  nom: string;
-  prenom: string;
-  age: number;
-  description: string;
-  localisation: string;
-  photo_url?: string;
-  statut: 'active' | 'resolved' | 'closed';
-  date_creation: string;
   date_disparition: string;
+  lieu_disparition: string;
+  ville_disparition?: string | null;
+  region_disparition?: string | null;
+  pays_disparition?: string | null;
+  circonstances: string;
+  statut_dossier: string;
+  niveau_urgence?: any;
+  numero_dossier?: string | null;
+  personne?: {
+    nom?: string | null;
+    prenom?: string | null;
+    nom_complet?: string | null;
+    date_naissance?: string | null;
+    photo_principale?: string | null;
+  } | null;
 }
 
 interface Signalement {
   id: string;
   description: string;
-  localisation: string;
   date_observation: string;
-}
-
-interface Avis {
-  id: string;
-  contenu: string;
-  date_avis: string;
+  lieu_observation?: string | null;
+  ville_observation?: string | null;
+  region_observation?: string | null;
+  etat_validation?: string | null;
 }
 
 export const DossierDetailPage: React.FC = () => {
@@ -37,7 +42,6 @@ export const DossierDetailPage: React.FC = () => {
 
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [signalements, setSignalements] = useState<Signalement[]>([]);
-  const [avis, setAvis] = useState<Avis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('details');
@@ -53,11 +57,31 @@ export const DossierDetailPage: React.FC = () => {
           return;
         }
 
-        // Load dossier
-        const { data: dossierData, error: dossierErr } = await supabase
-          .from('dossiers')
-          .select('*')
+        // Load dossier (modèle officiel)
+        const { data: dossierData, error: dossierErr } = await (supabase as any)
+          .from('dossier_disparition')
+          .select(`
+            id,
+            numero_dossier,
+            date_disparition,
+            lieu_disparition,
+            ville_disparition,
+            region_disparition,
+            pays_disparition,
+            circonstances,
+            statut_dossier,
+            niveau_urgence,
+            visible_public,
+            personne:id_personne (
+              nom,
+              prenom,
+              nom_complet,
+              date_naissance,
+              photo_principale
+            )
+          `)
           .eq('id', id)
+          .eq('visible_public', true)
           .single();
 
         if (dossierErr) throw dossierErr;
@@ -69,26 +93,16 @@ export const DossierDetailPage: React.FC = () => {
         setDossier(dossierData as Dossier);
 
         // Load signalements
-        const { data: signalData, error: signalErr } = await supabase
+        const { data: signalData, error: signalErr } = await (supabase as any)
           .from('signalement')
-          .select('*')
-          .eq('dossier_id', id)
+          .select('id, description, date_observation, lieu_observation, ville_observation, region_observation, etat_validation')
+          .eq('id_dossier', id)
           .order('date_observation', { ascending: false });
 
         if (!signalErr && signalData) {
           setSignalements(signalData as Signalement[]);
         }
 
-        // Load avis
-        const { data: avisData, error: avisErr } = await supabase
-          .from('avis')
-          .select('*')
-          .eq('dossier_id', id)
-          .order('date_avis', { ascending: false });
-
-        if (!avisErr && avisData) {
-          setAvis(avisData as Avis[]);
-        }
       } catch (err) {
         console.error('Error loading dossier details:', err);
         setError(t('detail.error_loading'));
@@ -102,11 +116,14 @@ export const DossierDetailPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
+      case StatutDossier.EN_COURS:
         return '#e74c3c';
-      case 'resolved':
+      case StatutDossier.RETROUVE_VIVANT:
+      case StatutDossier.RETROUVE_DECEDE:
         return '#27ae60';
-      case 'closed':
+      case StatutDossier.CLASSE_SANS_SUITE:
+      case StatutDossier.SUSPENDU:
+      case StatutDossier.TRANSFERE:
         return '#95a5a6';
       default:
         return '#7f8c8d';
@@ -115,11 +132,14 @@ export const DossierDetailPage: React.FC = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active':
+      case StatutDossier.EN_COURS:
         return t('status.active');
-      case 'resolved':
+      case StatutDossier.RETROUVE_VIVANT:
+      case StatutDossier.RETROUVE_DECEDE:
         return t('status.resolved');
-      case 'closed':
+      case StatutDossier.CLASSE_SANS_SUITE:
+      case StatutDossier.SUSPENDU:
+      case StatutDossier.TRANSFERE:
         return t('status.closed');
       default:
         return status;
@@ -169,10 +189,10 @@ export const DossierDetailPage: React.FC = () => {
 
         <div className={styles.detailContent}>
           <div className={styles.photoSection}>
-            {dossier.photo_url && (
+            {dossier.personne?.photo_principale && (
               <img 
-                src={dossier.photo_url} 
-                alt={`${dossier.prenom} ${dossier.nom}`}
+                src={dossier.personne.photo_principale} 
+                alt={dossier.personne?.nom_complet || ''}
                 className={styles.photoImage}
               />
             )}
@@ -181,43 +201,50 @@ export const DossierDetailPage: React.FC = () => {
 
           <div className={styles.infoSection}>
             <div className={styles.header}>
-              <h1>{dossier.prenom} {dossier.nom}</h1>
+              <h1>
+                {dossier.personne?.nom_complet ||
+                  `${dossier.personne?.prenom || ''} ${dossier.personne?.nom || ''}`.trim()}
+              </h1>
               <span 
                 className={styles.statusBadge}
-                style={{ backgroundColor: getStatusColor(dossier.statut) }}
+                style={{ backgroundColor: getStatusColor(dossier.statut_dossier) }}
               >
-                {getStatusLabel(dossier.statut)}
+                {getStatusLabel(dossier.statut_dossier)}
               </span>
             </div>
 
             <div className={styles.basicInfo}>
               <div className={styles.infoRow}>
                 <strong>{t('detail.age')}:</strong>
-                <span>{dossier.age} ans</span>
+                <span>
+                  {dossier.personne?.date_naissance
+                    ? `${Math.max(0, Math.floor((Date.now() - new Date(dossier.personne.date_naissance).getTime()) / 31557600000))} ans`
+                    : '—'}
+                </span>
               </div>
               <div className={styles.infoRow}>
                 <strong>{t('detail.location')}:</strong>
-                <span>{dossier.localisation}</span>
+                <span>
+                  {[dossier.lieu_disparition, dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
+                    .filter(Boolean)
+                    .join(', ')}
+                </span>
               </div>
               <div className={styles.infoRow}>
                 <strong>{t('detail.missing_date')}:</strong>
                 <span>{new Date(dossier.date_disparition).toLocaleDateString()}</span>
               </div>
-              <div className={styles.infoRow}>
-                <strong>{t('detail.reported_date')}:</strong>
-                <span>{new Date(dossier.date_creation).toLocaleDateString()}</span>
-              </div>
             </div>
 
-            {dossier.description && (
+            {dossier.circonstances && (
               <div className={styles.description}>
                 <h3>{t('detail.description')}</h3>
-                <p>{dossier.description}</p>
+                <p>{dossier.circonstances}</p>
               </div>
             )}
 
             <div className={styles.actionButtons}>
-              <button className={styles.reportBtn}>
+              <button className={styles.reportBtn} onClick={() => navigate('/auth/login')}>
                 {t('detail.report_sighting')}
               </button>
               <button className={styles.shareBtn}>
@@ -241,12 +268,6 @@ export const DossierDetailPage: React.FC = () => {
             >
               {t('detail.tabs.signals')} ({signalements.length})
             </button>
-            <button 
-              className={`${styles.tab} ${activeTab === 'opinions' ? styles.active : ''}`}
-              onClick={() => setActiveTab('opinions')}
-            >
-              {t('detail.tabs.opinions')} ({avis.length})
-            </button>
           </div>
 
           <div className={styles.tabContent}>
@@ -259,16 +280,8 @@ export const DossierDetailPage: React.FC = () => {
                     <span>{dossier.id}</span>
                   </div>
                   <div className={styles.detailItem}>
-                    <strong>{t('detail.name')}:</strong>
-                    <span>{dossier.nom}</span>
-                  </div>
-                  <div className={styles.detailItem}>
-                    <strong>{t('detail.firstname')}:</strong>
-                    <span>{dossier.prenom}</span>
-                  </div>
-                  <div className={styles.detailItem}>
                     <strong>{t('detail.status')}:</strong>
-                    <span>{getStatusLabel(dossier.statut)}</span>
+                    <span>{getStatusLabel(dossier.statut_dossier)}</span>
                   </div>
                 </div>
               </div>
@@ -289,32 +302,13 @@ export const DossierDetailPage: React.FC = () => {
                           </p>
                         </div>
                         <p className={styles.signalLocation}>
-                          <strong>{t('detail.location')}:</strong> {signal.localisation}
+                          <strong>{t('detail.location')}:</strong>{' '}
+                          {[signal.lieu_observation, signal.ville_observation, signal.region_observation]
+                            .filter(Boolean)
+                            .join(', ') || '—'}
                         </p>
                         <p className={styles.signalDescription}>
                           {signal.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'opinions' && (
-              <div className={styles.opinionsTab}>
-                <h3>{t('detail.community_observations')} ({avis.length})</h3>
-                {avis.length === 0 ? (
-                  <p className={styles.emptyMessage}>{t('detail.no_opinions')}</p>
-                ) : (
-                  <div className={styles.avisList}>
-                    {avis.map(avis_item => (
-                      <div key={avis_item.id} className={styles.avisItem}>
-                        <p className={styles.avisDate}>
-                          {new Date(avis_item.date_avis).toLocaleDateString()}
-                        </p>
-                        <p className={styles.avisContent}>
-                          {avis_item.contenu}
                         </p>
                       </div>
                     ))}

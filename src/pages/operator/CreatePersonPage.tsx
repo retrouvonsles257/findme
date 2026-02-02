@@ -14,6 +14,8 @@ import { useI18n } from '../../hooks';
 import { OperatorLayout } from './OperatorLayout';
 import { cloudinaryService } from '../../services/cloudinary/cloudinaryService';
 import * as personneAPI from '../../features/personnes/services/personneAPI';
+import { logActivity } from '../../services/audit/auditService';
+import { TypeAction } from '../../@types/enums.types';
 import { 
   User,
   Loader2, 
@@ -258,6 +260,14 @@ export const CreatePersonPage: React.FC = () => {
         personneData as any,
         currentUser?.id || 'anonymous'
       );
+
+      await logActivity({
+        type_action: TypeAction.AUTRE,
+        description: 'Création personne (opérateur)',
+        action_detaillee: 'creation_personne',
+        id_utilisateur: currentUser?.id || null,
+        donnees_apres: { id: createdPersonne.id, nom: createdPersonne.nom, prenom: createdPersonne.prenom },
+      });
       
       // Insérer les photos dans la table photo
       if (photoUrl && createdPersonne?.id) {
@@ -269,7 +279,17 @@ export const CreatePersonPage: React.FC = () => {
             id_personne: createdPersonne.id,
             est_principale: true,
             visible_public: false,
+            approuvee: false,
+            uploadee_par: currentUser?.id || null,
             qualite_image: 'moyenne',
+          });
+
+          await logActivity({
+            type_action: TypeAction.UPLOAD_PHOTO,
+            description: 'Upload photo personne (opérateur)',
+            action_detaillee: 'upload_photo_personne',
+            id_utilisateur: currentUser?.id || null,
+            donnees_apres: { est_principale: true, id_personne: createdPersonne.id },
           });
           
           // Uploader les photos supplémentaires
@@ -287,6 +307,8 @@ export const CreatePersonPage: React.FC = () => {
                 id_personne: createdPersonne.id,
                 est_principale: false,
                 visible_public: false,
+                approuvee: false,
+                uploadee_par: currentUser?.id || null,
                 qualite_image: 'moyenne',
               });
             }
@@ -297,7 +319,7 @@ export const CreatePersonPage: React.FC = () => {
       }
       
       setSuccessMessage('Fiche de personne créée avec succès!');
-      setTimeout(() => navigate('/operator/my-dossiers'), 2000);
+      setTimeout(() => navigate(`/operator/personnes/${createdPersonne.id}`), 2000);
       
     } catch (err: any) {
       console.error('Error creating person:', err);
@@ -388,7 +410,7 @@ export const CreatePersonPage: React.FC = () => {
                 <div className={styles.createPerson__photoGrid}>
                   {photoPreviews.map((preview, index) => (
                     <div key={index} className={styles.createPerson__photoItem}>
-                      <img src={preview} alt={`Photo ${index + 1}`} />
+                      <img src={preview} alt={`Aperçu ${index + 1}`} />
                       <button type="button" className={styles.createPerson__photoRemove} onClick={() => removePhoto(index)}>
                         <X size={14} />
                       </button>

@@ -235,7 +235,9 @@
       "en_cours": "In Progress",
       "suspendu": "Suspended",
       "retrouve_vivant": "Found Alive",
-      "retrouve_decede": "Found Deceased"
+      "retrouve_decede": "Found Deceased",
+      "classe_sans_suite": "Closed (no further action)",
+      "transfere": "Transferred"
     },
     "urgency": {
       "critical": "CRITICAL",
@@ -276,6 +278,8 @@
       "photos": "Photos",
       "reports": "Reports",
       "locations": "Locations",
+      "documents": "Documents",
+      "filiation": "Filiation",
       "history": "History",
       "ia": "AI Analysis"
     },
@@ -323,6 +327,177 @@
     "author": "Author",
     "location": "Location",
     "date": "Date"
+  },
+  "documents": {
+    "type": "Type",
+    "file": "File",
+    "description": "Description",
+    "descriptionPlaceholder": "Document details (optional)...",
+    "confidential": "Confidential (authorities only)",
+    "upload": "Upload",
+    "uploading": "Uploading...",
+    "open": "Open",
+    "empty": "No documents",
+    "dateUpload": "Upload date",
+    "badges": {
+      "confidential": "Confidential",
+      "public": "Public"
+    },
+    "types": {
+      "plainte_officielle": "Official complaint",
+      "rapport_police": "Police report",
+      "temoignage_ecrit": "Written testimony",
+      "certificat_medical": "Medical certificate",
+      "piece_identite": "Identity document",
+      "acte_naissance": "Birth certificate",
+      "photo_document": "Photo / document",
+      "carte_geographique": "Map",
+      "autre": "Other"
+    }
+  },
+  "filiation": {
+    "subtitle": "Family links associated with the person in this file",
+    "add": "Add link",
+    "empty": "No filiation links",
+    "delete": "Delete",
+    "unknownPerson": "Unknown person",
+    "labels": {
+      "missingIs": "The missing person is {{relation}} of:",
+      "relativeIs": "{{relation}} of the missing person:"
+    },
+    "fields": {
+      "precision": "Details",
+      "comment": "Comment"
+    },
+    "form": {
+      "type": "Link type",
+      "relative": "Related person",
+      "selectRelative": "Select a person",
+      "precision": "Details (optional)",
+      "comment": "Comment (optional)",
+      "confidential": "Confidential",
+      "public": "Visible to the public",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "loadError": "Failed to load links",
+      "missingPerson": "No person is associated with this file",
+      "selectRelative": "Please select a person",
+      "created": "Link created",
+      "createError": "Failed to create link",
+      "confirmDelete": "Delete this filiation link?",
+      "deleteError": "Failed to delete link"
+    },
+    "types": {
+      "pere_biologique": "Biological father",
+      "mere_biologique": "Biological mother",
+      "frere_biologique": "Biological brother",
+      "soeur_biologique": "Biological sister",
+      "conjoint": "Spouse",
+      "enfant_biologique": "Biological child",
+      "tuteur_legal": "Legal guardian",
+      "autre": "Other"
+    }
+  },
+  "photosModeration": {
+    "title": "Photo moderation",
+    "subtitle": "Approve or reject pending photos",
+    "refresh": "Refresh",
+    "empty": "No pending photos",
+    "moderationFormTitle": "Moderation",
+    "approve": "Approve",
+    "reject": "Reject",
+    "open": "Open",
+    "uploadedAt": "Uploaded at",
+    "observationPlace": "Observation place",
+    "photoAlt": "Moderation preview",
+    "unknownPerson": "Unknown person",
+    "qualityLabel": "Quality",
+    "qualities": {
+      "excellente": "Excellent",
+      "bonne": "Good",
+      "moyenne": "Average",
+      "faible": "Low"
+    },
+    "types": {
+      "portrait": "Portrait",
+      "corps_entier": "Full body",
+      "signalement": "Report",
+      "lieu_disparition": "Disappearance place",
+      "objet_personnel": "Personal item",
+      "document": "Document",
+      "autre": "Other"
+    },
+    "messages": {
+      "loadError": "Unable to load photos",
+      "updateError": "Update failed"
+    }
+  },
+  "location": {
+    "coordinates": "Coordinates",
+    "description": "Description"
+  },
+  "map": {
+    "title": "Map view",
+    "subtitle": "Geolocated reports, files and alerts",
+    "viewMap": "Map",
+    "viewList": "List",
+    "filters": "Filters",
+    "filterLayer": "Layer",
+    "layerAll": "All",
+    "layerSignalements": "Reports",
+    "layerDossiers": "Files",
+    "layerAlertes": "Alerts",
+    "filterStatus": "Status",
+    "statusAll": "All",
+    "statusPending": "Pending",
+    "statusInProgress": "In review",
+    "statusOngoing": "Ongoing",
+    "statusValidated": "Validated",
+    "filterPeriod": "Period",
+    "periodAll": "All time",
+    "period7days": "7 days",
+    "period30days": "30 days",
+    "period90days": "90 days",
+    "filterUrgency": "Urgency",
+    "urgencyAll": "All",
+    "urgencyCritical": "Critical",
+    "urgencyUrgent": "Urgent",
+    "urgencyNormal": "Normal",
+    "totalItems": "items",
+    "signalements": "Reports",
+    "dossiers": "Files",
+    "alertes": "Alerts",
+    "loading": "Loading...",
+    "onMap": "On map",
+    "moreItems": "more",
+    "view": "View",
+    "noItems": "No items",
+    "signalement": "Report",
+    "dossier": "File",
+    "alerte": "Alert",
+    "labels": {
+      "coordinates": "Coordinates",
+      "date": "Date",
+      "status": "Status",
+      "description": "Description",
+      "circumstances": "Circumstances",
+      "message": "Message"
+    },
+    "status": {
+      "pending": "Pending",
+      "new": "New",
+      "inProgress": "In review",
+      "validated": "Validated",
+      "rejected": "Rejected",
+      "ongoing": "Ongoing",
+      "foundAlive": "Found alive",
+      "foundDeceased": "Found deceased",
+      "suspended": "Suspended",
+      "active": "Active"
+    }
   },
   "createDossier": {
     "title": "Create New File",
@@ -374,6 +549,16 @@
       "city": "City",
       "cityPlaceholder": "e.g. Yaoundé",
       "country": "Country",
+      "map": {
+        "title": "Map location",
+        "show": "Show map",
+        "hide": "Hide map",
+        "searchPlaceholder": "Search a place (e.g. Bonanjo, Douala)",
+        "coords": "Coordinates",
+        "markerLabel": "Disappearance location",
+        "hint": "Tip: search a place then click on the map to fine-tune the position.",
+        "apiKeyMissing": "Missing MapTiler key: set REACT_APP_MAPTILER_API_KEY to enable the map."
+      },
       "circumstances": "Circumstances",
       "circumstancesPlaceholder": "Describe the circumstances of the disappearance...",
       "clothing": "Clothing worn",
@@ -437,6 +622,8 @@
       "dateLocationRequired": "Disappearance date and location are required",
       "error": "Error",
       "mustBeLoggedIn": "You must be logged in",
+      "profileMissing": "User profile not found. Please complete your profile and try again.",
+      "profileEmailMissing": "Missing email in session. Please log in again.",
       "dossierCreated": "File created",
       "dossierCreatedSuccess": "File {{numero}} created successfully",
       "creationError": "Error during file creation"
@@ -516,6 +703,7 @@
     "analysis": "AI Analysis",
     "investigation": "Investigation",
     "signalements": "Reports",
+    "photosModeration": "Photo moderation",
     "donations": "Donations & Campaigns",
     "statistiques": "Statistics"
   },
@@ -717,6 +905,10 @@
     "messages": {
       "selectImage": "Please select an image",
       "errorOccurred": "An error occurred. Please try again."
+    },
+    "alt": {
+      "dossierPreview": "File preview",
+      "signalementPreview": "Report preview"
     },
     "tabs": {
       "facialRecognition": "Facial Recognition",
@@ -932,6 +1124,7 @@
       "evidenceAddedSuccess": "Evidence has been successfully recorded",
       "addEvidenceError": "Error adding evidence",
       "fillLocation": "Please fill in the location",
+      "coordinatesRequired": "Please provide latitude and longitude",
       "locationAdded": "Location added",
       "locationAddedSuccess": "Location has been successfully recorded",
       "addLocationError": "Error adding location",

@@ -23,9 +23,7 @@ import {
   ArrowLeft, 
   Phone, 
   Settings, 
-  Clipboard,
-  Circle,
-  AlertCircle as AlertCircleIcon
+  Clipboard
 } from 'lucide-react';
 import styles from './EditDossierPage.module.css';
 
@@ -40,6 +38,7 @@ export const EditDossierPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [dossier, setDossier] = useState<any>(null);
   const [personne, setPersonne] = useState<any>(null);
+  const [initialInternalNotes, setInitialInternalNotes] = useState<string>('');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -55,6 +54,7 @@ export const EditDossierPage: React.FC = () => {
     diffusion_autorisee: true,
     contact_nom: '',
     contact_telephone: '',
+    contact_email: '',
     notes_internes: '',
   });
 
@@ -74,6 +74,20 @@ export const EditDossierPage: React.FC = () => {
 
         setDossier(dossierData);
         setPersonne(dossierData.personne);
+
+        // Charger la dernière note interne (commentaire confidentiel de type note_enquete)
+        const { data: note } = await (supabase as any)
+          .from('commentaire')
+          .select('id, contenu')
+          .eq('id_dossier', id)
+          .eq('type_commentaire', 'note_enquete')
+          .eq('confidentiel', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const loadedNote = (note?.contenu as string | undefined) || '';
+        setInitialInternalNotes(loadedNote);
         
         setFormData({
           niveau_urgence: dossierData.niveau_urgence || 'normal',
@@ -81,14 +95,18 @@ export const EditDossierPage: React.FC = () => {
           lieu_disparition: dossierData.lieu_disparition || '',
           ville_disparition: dossierData.ville_disparition || '',
           circonstances: dossierData.circonstances || '',
-          vetements_portes: dossierData.vetements_portes || '',
-          objets_personnels: dossierData.objets_personnels || '',
+          // Les vêtements / objets sont sur la table personne (schéma SQL)
+          vetements_portes: dossierData.personne?.derniers_vetements_portes || '',
+          objets_personnels: dossierData.personne?.accessoires || '',
           derniere_activite_connue: dossierData.derniere_activite_connue || '',
           visible_public: dossierData.visible_public ?? true,
           diffusion_autorisee: dossierData.diffusion_autorisee ?? true,
-          contact_nom: dossierData.contact_nom || '',
-          contact_telephone: dossierData.contact_telephone || '',
-          notes_internes: dossierData.notes_internes || '',
+          // Schéma SQL: contact_famille_principale / telephone_contact / email_contact
+          contact_nom: dossierData.contact_famille_principale || '',
+          contact_telephone: dossierData.telephone_contact || '',
+          contact_email: dossierData.email_contact || '',
+          // Notes internes via table commentaire
+          notes_internes: loadedNote,
         });
       } catch (err: any) {
         // Erreur gérée par la notification
@@ -104,7 +122,7 @@ export const EditDossierPage: React.FC = () => {
     };
 
     loadDossier();
-  }, [id, addNotification, navigate]);
+  }, [id, addNotification, navigate, t]);
 
   // Sauvegarder les modifications
   const handleSave = useCallback(async () => {
@@ -112,16 +130,65 @@ export const EditDossierPage: React.FC = () => {
 
     setIsSaving(true);
     try {
+      const nowIso = new Date().toISOString();
+      const status = formData.statut_dossier;
+      const shouldSetResolution = status.includes('retrouve') || status === 'classe_sans_suite';
+
+      // 1) Mettre à jour le dossier (champs existants uniquement)
       const { error } = await (supabase as any)
         .from('dossier_disparition')
         .update({
-          ...formData,
-          updated_at: new Date().toISOString(),
-          date_resolution: formData.statut_dossier.includes('retrouve') ? new Date().toISOString() : null,
+          niveau_urgence: formData.niveau_urgence,
+          statut_dossier: formData.statut_dossier,
+          lieu_disparition: formData.lieu_disparition,
+          ville_disparition: formData.ville_disparition,
+          circonstances: formData.circonstances,
+          derniere_activite_connue: formData.derniere_activite_connue,
+          visible_public: formData.visible_public,
+          diffusion_autorisee: formData.diffusion_autorisee,
+          contact_famille_principale: formData.contact_nom,
+          telephone_contact: formData.contact_telephone,
+          email_contact: formData.contact_email,
+          updated_at: nowIso,
+          derniere_activite: nowIso,
+          date_resolution: shouldSetResolution ? (dossier?.date_resolution || nowIso) : null,
         })
         .eq('id', id);
 
       if (error) throw error;
+
+      // 2) Mettre à jour la personne liée (vêtements / accessoires)
+      const personneId = dossier?.id_personne as string | undefined;
+      if (personneId) {
+        const { error: personneError } = await (supabase as any)
+          .from('personne')
+          .update({
+            derniers_vetements_portes: formData.vetements_portes,
+            accessoires: formData.objets_personnels,
+            updated_at: nowIso,
+          })
+          .eq('id', personneId);
+        if (personneError) throw personneError;
+      }
+
+      // 3) Notes internes (commentaire confidentiel) si changé
+      if ((formData.notes_internes || '').trim() !== (initialInternalNotes || '').trim()) {
+        const user = (await supabase.auth.getUser()).data.user;
+        const contenu = (formData.notes_internes || '').trim();
+        if (contenu) {
+          const { error: noteError } = await (supabase as any).from('commentaire').insert({
+            contenu,
+            type_commentaire: 'note_enquete',
+            confidentiel: true,
+            modifie: true,
+            id_dossier: id,
+            id_utilisateur: user?.id,
+            created_at: nowIso,
+            updated_at: nowIso,
+          });
+          if (noteError) throw noteError;
+        }
+      }
 
       addNotification({
         title: t('authority.editDossier.messages.saved'),
@@ -139,7 +206,7 @@ export const EditDossierPage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [id, formData, addNotification, navigate]);
+  }, [id, formData, addNotification, navigate, t, dossier?.id_personne, dossier?.date_resolution, initialInternalNotes]);
 
   if (isLoading) {
     return (
@@ -207,7 +274,8 @@ export const EditDossierPage: React.FC = () => {
                 <option value="suspendu">{t('authority.dossiers.status.suspendu')}</option>
                 <option value="retrouve_vivant">{t('authority.dossiers.status.retrouve_vivant')}</option>
                 <option value="retrouve_decede">{t('authority.dossiers.status.retrouve_decede')}</option>
-                <option value="cloture">{t('authority.editDossier.form.statusClosed')}</option>
+                <option value="classe_sans_suite">{t('authority.dossiers.status.classe_sans_suite')}</option>
+                <option value="transfere">{t('authority.dossiers.status.transfere')}</option>
               </select>
             </div>
 
@@ -300,6 +368,15 @@ export const EditDossierPage: React.FC = () => {
                 type="tel"
                 value={formData.contact_telephone}
                 onChange={(e) => setFormData({ ...formData, contact_telephone: e.target.value })}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>{t('authority.dossierDetail.fields.email')}</label>
+              <input
+                type="email"
+                value={formData.contact_email}
+                onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
               />
             </div>
           </div>

@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { StatistiquesRegionales, TendanceTemporelle, DemographieStats, DistributionType, StatistiquesState } from '../types';
 
 // Helper function to safely access statistique state

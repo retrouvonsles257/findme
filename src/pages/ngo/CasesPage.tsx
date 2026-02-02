@@ -2,24 +2,23 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
-import { supabase } from '../../config/supabase.config';
+import { supabase } from '../../config';
+import { StatutDossier } from '../../@types/enums.types';
 import { NGOLayout } from './NGOLayout';
 import styles from './CasesPage.module.css';
 
-interface Case {
+interface CaseRow {
   id: string;
-  nom: string;
-  prenom: string;
+  nom_complet: string;
   localisation: string;
-  statut: 'active' | 'resolved' | 'closed';
+  statut_dossier: string;
   date_disparition: string;
-  description: string;
 }
 
 export const NGOCasesPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [cases, setCases] = useState<Case[]>([]);
+  const [cases, setCases] = useState<CaseRow[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'resolved' | 'closed'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,20 +32,68 @@ export const NGOCasesPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from('dossiers').select('*');
+      // Modèle officiel: dossier_disparition (+ jointure personne)
+      let query: any = supabase
+        .from('dossier_disparition')
+        .select(`
+          id,
+          numero_dossier,
+          date_disparition,
+          statut_dossier,
+          lieu_disparition,
+          ville_disparition,
+          region_disparition,
+          personne:id_personne (
+            nom,
+            prenom,
+            nom_complet
+          )
+        `)
+        .order('date_disparition', { ascending: false })
+        .limit(500);
 
       if (statusFilter !== 'all') {
-        query = query.eq('statut', statusFilter);
+        if (statusFilter === 'active') {
+          query = query.eq('statut_dossier', StatutDossier.EN_COURS);
+        } else if (statusFilter === 'resolved') {
+          query = query.in('statut_dossier', [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE]);
+        } else if (statusFilter === 'closed') {
+          query = query.in('statut_dossier', [StatutDossier.SUSPENDU, StatutDossier.CLASSE_SANS_SUITE, StatutDossier.TRANSFERE]);
+        }
       }
 
-      if (searchTerm) {
-        query = query.or(`nom.ilike.%${searchTerm}%,prenom.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error: err } = await (query.order('date_creation', { ascending: false }) as any);
+      const { data, error: err } = await query;
 
       if (err) throw err;
-      setCases(data || []);
+      const mapped: CaseRow[] = (data || []).map((d: any) => {
+        const personne = d.personne || {};
+        const nomComplet =
+          personne.nom_complet ||
+          `${personne.prenom || ''} ${personne.nom || ''}`.trim() ||
+          d.numero_dossier ||
+          '—';
+        const localisation = [d.lieu_disparition, d.ville_disparition, d.region_disparition]
+          .filter(Boolean)
+          .join(', ') || '—';
+        return {
+          id: d.id,
+          nom_complet: nomComplet,
+          localisation,
+          statut_dossier: d.statut_dossier,
+          date_disparition: d.date_disparition,
+        };
+      });
+
+      // Recherche côté client (nom/prénom + localisation)
+      const term = searchTerm.trim().toLowerCase();
+      const filtered = term
+        ? mapped.filter((c) =>
+            c.nom_complet.toLowerCase().includes(term) ||
+            c.localisation.toLowerCase().includes(term),
+          )
+        : mapped;
+
+      setCases(filtered);
       setCurrentPage(1);
     } catch (err) {
       console.error('Erreur:', err);
@@ -60,17 +107,9 @@ export const NGOCasesPage: React.FC = () => {
     loadCases();
   }, [loadCases]);
 
-  const filteredCases = cases.filter((c) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      c.nom.toLowerCase().includes(searchLower) ||
-      c.prenom.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredCases.length / itemsPerPage);
+  const totalPages = Math.ceil(cases.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
-  const paginatedCases = filteredCases.slice(startIdx, startIdx + itemsPerPage);
+  const paginatedCases = cases.slice(startIdx, startIdx + itemsPerPage);
 
   if (loading) {
     return (
@@ -92,6 +131,23 @@ export const NGOCasesPage: React.FC = () => {
           ⚠️ {error}
         </div>
       )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button
+          type="button"
+          onClick={() => navigate('/ngo/cases/create')}
+          style={{
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: 'none',
+            background: '#2563eb',
+            color: 'white',
+            cursor: 'pointer',
+          }}
+        >
+          Créer un dossier
+        </button>
+      </div>
 
         <div className={styles['ngo-cases__controls']}>
           <input
@@ -126,17 +182,26 @@ export const NGOCasesPage: React.FC = () => {
               {paginatedCases.length > 0 ? (
                 paginatedCases.map((c) => (
                   <div key={c.id} className={styles['ngo-cases__table-row']}>
-                    <div className={styles['ngo-cases__table-cell']}>{c.nom} {c.prenom}</div>
+                    <div className={styles['ngo-cases__table-cell']}>{c.nom_complet}</div>
                     <div className={styles['ngo-cases__table-cell']}>{c.localisation}</div>
                     <div className={styles['ngo-cases__table-cell']}>{new Date(c.date_disparition).toLocaleDateString('fr-FR')}</div>
                     <div className={styles['ngo-cases__table-cell']}>
                       <span
                         className={styles['ngo-cases__badge']}
                         style={{
-                          backgroundColor: c.statut === 'active' ? '#ef4444' : c.statut === 'resolved' ? '#10b981' : '#9ca3af',
+                          backgroundColor:
+                            c.statut_dossier === StatutDossier.EN_COURS
+                              ? '#ef4444'
+                              : [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE].includes(c.statut_dossier as any)
+                                ? '#10b981'
+                                : '#9ca3af',
                         }}
                       >
-                        {c.statut === 'active' ? t('common.active') : c.statut === 'resolved' ? t('ngo.resolved') : t('ngo.closed')}
+                        {c.statut_dossier === StatutDossier.EN_COURS
+                          ? t('common.active')
+                          : [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE].includes(c.statut_dossier as any)
+                            ? t('ngo.resolved')
+                            : t('ngo.closed')}
                       </span>
                     </div>
                   </div>

@@ -5,10 +5,11 @@
  * =====================================================
  */
 
-import { useState, useCallback } from 'react';
-import { useNotification } from '@/contexts';
+import { useState, useCallback, useRef } from 'react';
+import { useNotification } from '../../../contexts';
 import * as donService from '../services/donService';
 import * as paymentService from '../services/paymentService';
+import * as donationsFunctions from '../services/donationsFunctions';
 import type { Don } from '../../../@types';
 
 // ============================================
@@ -55,6 +56,11 @@ export const useDonationCreate = (): UseDonationCreateReturn => {
   });
 
   const { addNotification } = useNotification();
+  const gatewayContextRef = useRef<{
+    mode: 'mock' | 'live';
+    confirmToken?: string;
+    checkoutUrl?: string | null;
+  } | null>(null);
 
   // ========== FORM MANAGEMENT ==========
 
@@ -100,8 +106,25 @@ export const useDonationCreate = (): UseDonationCreateReturn => {
           error: null,
         }));
 
-        // Créer le don
-        const don = await donService.createDraftDon(data);
+        // Créer le don via Edge Function (Mobile Money), fallback si non déployé
+        let don: Don;
+        if (data.methode_paiement === 'mobile_money') {
+          try {
+            const created = await donationsFunctions.createDonation(data);
+            gatewayContextRef.current = {
+              mode: created.mode,
+              confirmToken: created.payment?.confirmToken,
+              checkoutUrl: created.payment?.checkoutUrl ?? null,
+            };
+            don = created.donation;
+          } catch (e) {
+            gatewayContextRef.current = { mode: 'mock' };
+            don = await donService.createDraftDon(data);
+          }
+        } else {
+          gatewayContextRef.current = null;
+          don = await donService.createDraftDon(data);
+        }
 
         setState((prev) => ({
           ...prev,
@@ -150,6 +173,67 @@ export const useDonationCreate = (): UseDonationCreateReturn => {
         const paymentErrors = paymentService.validatePaymentData(paymentData);
         if (paymentErrors.length > 0) {
           throw new Error(paymentErrors.join(', '));
+        }
+
+        // Mobile Money (dev/mock): confirmer via Edge Function
+        if (paymentData.methode === 'mobile_money') {
+          const ctx = gatewayContextRef.current;
+          if (ctx?.mode === 'mock') {
+            const confirmed = await donationsFunctions.mockConfirmDonation({
+              donId,
+              status: 'reussi',
+              confirmToken: ctx.confirmToken,
+            });
+
+            setState((prev) => ({
+              ...prev,
+              createdDon: confirmed.donation,
+              paymentResult: {
+                success: true,
+                transactionId: (confirmed.donation as any)?.reference_transaction || undefined,
+                message: 'Paiement Mobile Money simulé avec succès',
+              },
+              isPaymentProcessing: false,
+            }));
+
+            addNotification({
+              title: 'Succès',
+              message: 'Paiement Mobile Money (mock) confirmé',
+              type: 'success',
+            });
+
+            return true;
+          }
+
+          // Live mode: le paiement est initié côté gateway et confirmé via webhook.
+          // On redirige vers l'URL de paiement (si disponible), puis la confirmation vient via webhook.
+          if (ctx?.checkoutUrl) {
+            try {
+              window.location.href = ctx.checkoutUrl;
+            } catch {
+              // ignore
+            }
+            setState((prev) => ({
+              ...prev,
+              paymentResult: {
+                success: true,
+                transactionId: undefined,
+                message: 'Redirection vers la page de paiement...',
+              },
+              isPaymentProcessing: false,
+            }));
+            return false;
+          }
+          setState((prev) => ({
+            ...prev,
+            paymentResult: {
+              success: true,
+              transactionId: undefined,
+              message: 'Paiement initié. En attente de confirmation.',
+            },
+            isPaymentProcessing: false,
+          }));
+          return true;
         }
 
         // Initier le paiement

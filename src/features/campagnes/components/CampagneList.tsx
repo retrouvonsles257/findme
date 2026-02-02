@@ -14,7 +14,7 @@ import {
   formatBudget,
   calculateBudgetUtilization,
 } from '../services';
-import type { CampagneSensibilisation, UUID } from '@types';
+import type { CampagneSensibilisation, UUID } from '../../../@types';
 import type { CampagneFilterCriteria, CampagneListProps } from '../types';
 import styles from './CampagneList.module.css';
 

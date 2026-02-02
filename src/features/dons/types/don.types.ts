@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { Don, TypeDon, MethodePaiement, StatutPaiement } from '@types';
+import type { Don, TypeDon, MethodePaiement, StatutPaiement } from '../../../@types';
 
 // ============================================
 // DON DISPLAY & FORM TYPES

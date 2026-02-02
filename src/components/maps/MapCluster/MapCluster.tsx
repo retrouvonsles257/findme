@@ -13,11 +13,11 @@ export interface MapClusterProps {
   points: MapClusterPoint[];
   maxZoom?: number;
   clusterRadius?: number;
-  onClusterClick?: (cluster: MapCluster) => void;
+  onClusterClick?: (cluster: MapClusterData) => void;
   onPointClick?: (point: MapClusterPoint) => void;
 }
 
-export interface MapCluster {
+export interface MapClusterData {
   id: string;
   lat: number;
   lng: number;
@@ -35,7 +35,7 @@ export const MapCluster: React.FC<MapClusterProps> = ({
   onClusterClick,
   onPointClick,
 }) => {
-  const [selectedCluster, setSelectedCluster] = useState<MapCluster | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<MapClusterData | null>(null);
   const [zoom, setZoom] = useState(6);
 
   const clusters = useMemo(() => {
@@ -50,13 +50,13 @@ export const MapCluster: React.FC<MapClusterProps> = ({
       }));
     }
 
-    const clustered: MapCluster[] = [];
+    const clustered: MapClusterData[] = [];
     const processed = new Set<string>();
 
     points.forEach((point) => {
       if (processed.has(point.id)) return;
 
-      const cluster: MapCluster = {
+      const cluster: MapClusterData = {
         id: point.id,
         lat: point.lat,
         lng: point.lng,
@@ -86,7 +86,7 @@ export const MapCluster: React.FC<MapClusterProps> = ({
     return clustered;
   }, [points, zoom, maxZoom, clusterRadius]);
 
-  const handleClusterClick = (cluster: MapCluster) => {
+  const handleClusterClick = (cluster: MapClusterData) => {
     setSelectedCluster(cluster);
     onClusterClick?.(cluster);
   };

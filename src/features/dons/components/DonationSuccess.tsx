@@ -17,6 +17,7 @@ export interface DonationSuccessProps {
   donorName?: string;
   transactionId?: string;
   receiptNumber?: string;
+  status?: string;
   onClose?: () => void;
   onPrintReceipt?: () => void;
   className?: string;
@@ -35,23 +36,26 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
   donorName,
   transactionId,
   receiptNumber,
+  status,
   onClose,
   onPrintReceipt,
   className = '',
 }) => {
+  const isPending = status && status !== 'reussi';
   return (
     <div className={`donation-success ${className}`}>
       <div className="success-container">
         {/* Icône succès */}
-        <div className="success-icon">✓</div>
+        <div className="success-icon">{isPending ? '⏳' : '✓'}</div>
 
         {/* Titre */}
-        <h2>Merci pour votre don!</h2>
+        <h2>{isPending ? 'Paiement en attente' : 'Merci pour votre don!'}</h2>
 
         {/* Message */}
         <p className="success-message">
-          Votre donation a été enregistrée avec succès. Votre générosité nous aide à continuer
-          notre mission de recherche de personnes disparues.
+          {isPending
+            ? 'Votre don a été créé. Le paiement est en attente de confirmation.'
+            : 'Votre donation a été enregistrée avec succès. Votre générosité nous aide à continuer notre mission de recherche de personnes disparues.'}
         </p>
 
         {/* Détails */}
@@ -104,7 +108,9 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
         {/* Message informatif */}
         <div className="info-box">
           <p>
-            Un email de confirmation avec votre reçu fiscal a été envoyé à votre adresse email.
+            {isPending
+              ? 'Vous pouvez revenir plus tard: le statut se mettra à jour après confirmation du paiement.'
+              : 'Un email de confirmation avec votre reçu fiscal a été envoyé à votre adresse email.'}
           </p>
         </div>
       </div>

@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { CampagneSensibilisation, Timestamp, UUID, Json } from '@types';
+import type { CampagneSensibilisation, Timestamp, UUID, Json } from '../../../@types';
 import type { TypeCampagne, StatutCampagne } from '../../../@types/enums.types';
 
 // ============================================

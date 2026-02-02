@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { Alerte, StatutAlerte, TypeAlerte } from '@types';
+import type { Alerte, StatutAlerte, TypeAlerte } from '../../../@types';
 
 // ============================================
 // ALERTE DISPLAY & FORM TYPES

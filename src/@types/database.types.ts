@@ -504,6 +504,13 @@ export interface Don {
   date_remerciement: Timestamp | null;
   recu_fiscal_genere: boolean;
   numero_recu: string | null;
+  // Champs gateway (optionnels selon migration)
+  id_utilisateur: UUID | null;
+  provider: string | null;
+  provider_reference: string | null;
+  checkout_url: string | null;
+  metadata: Json | null;
+  updated_at: Timestamp | null;
 }
 
 export interface CampagneSensibilisation {

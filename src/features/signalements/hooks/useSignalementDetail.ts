@@ -7,7 +7,7 @@
 
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch } from '@/store/types';
+import type { AppDispatch } from '../../../store/types';
 import {
   fetchSignalementById,
   updateSignalementData,

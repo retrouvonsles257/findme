@@ -13,3 +13,4 @@ export { default as IdentityVerificationPage } from './IdentityVerificationPage'
 export { default as MapViewPage } from './MapViewPage';
 export { default as NotificationsPage } from './NotificationsPage';
 export { default as ActivityHistoryPage } from './ActivityHistoryPage';
+export { default as ModeratorDonationsPage } from './DonationsPage';

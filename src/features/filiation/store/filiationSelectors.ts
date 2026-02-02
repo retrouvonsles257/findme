@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { FiliationState } from '../types';
 
 const filiationState = (state: RootState) => (state.filiation as FiliationState) || {};

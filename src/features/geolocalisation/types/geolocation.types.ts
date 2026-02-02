@@ -55,6 +55,10 @@ export interface LocationInput {
   date_localisation: string;
   id_dossier?: string;
   id_signalement?: string;
+  /**
+   * Traçabilité (utile pour RLS): utilisateur qui enregistre la localisation.
+   */
+  enregistree_par?: string;
 }
 
 export interface LocationUpdate {

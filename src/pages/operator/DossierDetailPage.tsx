@@ -9,6 +9,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
+import { useAppSelector } from '../../store/hooks';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { logActivity } from '../../services/audit/auditService';
+import { TypeAction } from '../../@types/enums.types';
 import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail';
 import { useSignalementsForDossier } from '../../features/signalements/hooks/useSignalementsForDossier';
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
@@ -79,6 +83,7 @@ export const OperatorDossierDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const currentUser = useAppSelector(selectCurrentUser);
   const { dossier, isLoading, fetchDossier } = useDossierDetail();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
@@ -202,9 +207,28 @@ export const OperatorDossierDetailPage: React.FC = () => {
         statut_verification: 'declare_famille' as const,
         type_preuve: 'temoignages' as const,
         commentaire: filiationFormData.commentaire || undefined,
+        // Traçabilité / RLS
+        cree_par: currentUser?.id,
+        modifie_par: currentUser?.id,
+        // Par défaut: confidentiel et non public
+        visible_public: false,
+        confidentiel: true,
       };
       
       await filiationAPI.createFiliationLien(filiationData as any);
+
+      await logActivity({
+        type_action: TypeAction.AUTRE,
+        description: 'Création lien filiation (opérateur)',
+        action_detaillee: 'creation_filiation',
+        id_utilisateur: currentUser?.id || null,
+        id_dossier: dossier.id,
+        donnees_apres: {
+          id_personne_source: dossier.id_personne,
+          id_personne_cible: filiationFormData.id_personne_cible,
+          type_lien: filiationFormData.type_lien,
+        },
+      });
       
       setFiliationSuccess('Lien de filiation créé avec succès!');
       setFiliationFormData(initialFiliationForm);
@@ -241,7 +265,7 @@ export const OperatorDossierDetailPage: React.FC = () => {
       
       const createdPerson = await personneAPI.createPersonne(
         personneData as any,
-        'system'
+        currentUser?.id || 'anonymous'
       );
       
       // Ajouter la nouvelle personne à la liste et la sélectionner
@@ -366,13 +390,20 @@ export const OperatorDossierDetailPage: React.FC = () => {
                     {dossier.statut_dossier}
                   </span>
                 </div>
-                <button 
-                  className={styles.dossierDetail__editBtn} 
-                  onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}
-                >
-                  <Edit3 size={18} />
-                  <span>Éditer</span>
-                </button>
+                {(() => {
+                  const isCreator = Boolean(currentUser?.id) && dossier.id_utilisateur_createur === currentUser?.id;
+                  const isAdmin =
+                    currentUser?.role === 'admin_organisation' || currentUser?.role === 'super_admin';
+                  return isCreator || isAdmin;
+                })() && (
+                  <button 
+                    className={styles.dossierDetail__editBtn} 
+                    onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}
+                  >
+                    <Edit3 size={18} />
+                    <span>Éditer</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

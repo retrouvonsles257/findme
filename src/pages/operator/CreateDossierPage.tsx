@@ -6,8 +6,8 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { useAppSelector } from '../../store/hooks';
 import { useI18n } from '../../hooks';
@@ -15,6 +15,14 @@ import { OperatorLayout } from './OperatorLayout';
 import { cloudinaryService } from '../../services/cloudinary/cloudinaryService';
 import * as dossierAPI from '../../features/dossiers/services/dossierAPI';
 import * as personneAPI from '../../features/personnes/services/personneAPI';
+import { logActivity } from '../../services/audit/auditService';
+import { TypeAction } from '../../@types/enums.types';
+import { FiabiliteSource, SourceLocalisation, TypeLocalisation } from '../../@types/enums.types';
+import { createLocation } from '../../features/geolocalisation/services/geolocationAPI';
+import { mapConfig } from '../../config/map.config';
+import type { Personne } from '../../features/personnes/types';
+import { MapSearch } from '../../components/maps';
+import type { MapSearchLocation } from '../../components/maps';
 import { 
   FolderPlus,
   Loader2, 
@@ -86,6 +94,7 @@ const initialFormData: DossierFormData = {
 
 export const CreateDossierPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
   
@@ -102,11 +111,171 @@ export const CreateDossierPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showMap, setShowMap] = useState(false);
 
+  // Person: nouvelle vs existante
+  const [personMode, setPersonMode] = useState<'new' | 'existing'>('new');
+  const [selectedPerson, setSelectedPerson] = useState<Personne | null>(null);
+  const [personSearch, setPersonSearch] = useState('');
+  const [personResults, setPersonResults] = useState<Personne[]>([]);
+  const [isPersonSearching, setIsPersonSearching] = useState(false);
+
+  // Map search (geocoding)
+  const [geoResults, setGeoResults] = useState<MapSearchLocation[]>([]);
+  const [isGeoSearching, setIsGeoSearching] = useState(false);
+  const geoTimerRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (currentUser && !['operateur_saisie', 'admin_organisation'].includes(currentUser.role)) {
       navigate('/auth/login');
     }
   }, [currentUser, navigate]);
+
+  // Preselect person from URL (?personneId=...)
+  useEffect(() => {
+    const personneId = searchParams.get('personneId');
+    if (!personneId) return;
+
+    (async () => {
+      try {
+        setPersonMode('existing');
+        const p = await personneAPI.getPersonneById(personneId);
+        if (!p) return;
+        setSelectedPerson(p);
+        setPersonSearch(p.nom_complet || `${p.prenom || ''} ${p.nom || ''}`.trim());
+        setFormData((prev) => ({
+          ...prev,
+          prenom: p.prenom || '',
+          nom: p.nom || '',
+          sexe: (p.sexe as any) || 'non_precise',
+          age_estime_min: p.age_estime_min ? String(p.age_estime_min) : '',
+          age_estime_max: p.age_estime_max ? String(p.age_estime_max) : '',
+          description_physique: p.description_physique || '',
+        }));
+      } catch (e) {
+        console.warn('Impossible de précharger la personne:', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Search persons (debounced)
+  useEffect(() => {
+    if (personMode !== 'existing') return;
+    if (!personSearch.trim() || personSearch.trim().length < 2) {
+      setPersonResults([]);
+      setIsPersonSearching(false);
+      return;
+    }
+
+    const handle = window.setTimeout(async () => {
+      try {
+        setIsPersonSearching(true);
+        const { data } = await personneAPI.getPersonnes(
+          { search: personSearch.trim() },
+          1,
+          10,
+        );
+        setPersonResults(data);
+      } catch (e) {
+        console.warn('Recherche personnes échouée:', e);
+        setPersonResults([]);
+      } finally {
+        setIsPersonSearching(false);
+      }
+    }, 250);
+
+    return () => window.clearTimeout(handle);
+  }, [personMode, personSearch]);
+
+  const handleSelectExistingPerson = (p: Personne) => {
+    setSelectedPerson(p);
+    setPersonSearch(p.nom_complet || `${p.prenom || ''} ${p.nom || ''}`.trim());
+    setFormData((prev) => ({
+      ...prev,
+      prenom: p.prenom || '',
+      nom: p.nom || '',
+      sexe: (p.sexe as any) || 'non_precise',
+      age_estime_min: p.age_estime_min ? String(p.age_estime_min) : '',
+      age_estime_max: p.age_estime_max ? String(p.age_estime_max) : '',
+      description_physique: p.description_physique || '',
+    }));
+  };
+
+  const handleSwitchPersonMode = (mode: 'new' | 'existing') => {
+    setPersonMode(mode);
+    setErrors({});
+    setErrorMessage('');
+    if (mode === 'new') {
+      setSelectedPerson(null);
+      setPersonSearch('');
+      setPersonResults([]);
+    }
+  };
+
+  const geocodeMapTiler = async (query: string): Promise<MapSearchLocation[]> => {
+    if (!mapConfig.maptiler.apiKey) return [];
+    const url =
+      `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json` +
+      `?key=${encodeURIComponent(mapConfig.maptiler.apiKey)}` +
+      `&limit=6&language=fr&country=cm`;
+
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const json = await res.json();
+    const features = json?.features || [];
+    return features
+      .map((f: any) => {
+        const [lng, lat] = f?.center || [];
+        if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+        return {
+          id: String(f.id || `${lat},${lng}`),
+          name: String(f.place_name || f.text || 'Lieu'),
+          lat,
+          lng,
+          type: 'organization' as const,
+          region: f?.context?.map?.((c: any) => c?.text).filter(Boolean).join(', '),
+        } as MapSearchLocation;
+      })
+      .filter(Boolean);
+  };
+
+  const handleGeoSearch = useCallback((query: string) => {
+    if (!query || query.trim().length < 2) {
+      setGeoResults([]);
+      setIsGeoSearching(false);
+      if (geoTimerRef.current) {
+        window.clearTimeout(geoTimerRef.current);
+        geoTimerRef.current = null;
+      }
+      return;
+    }
+    const q = query.trim();
+    setIsGeoSearching(true);
+    if (geoTimerRef.current) {
+      window.clearTimeout(geoTimerRef.current);
+      geoTimerRef.current = null;
+    }
+    geoTimerRef.current = window.setTimeout(async () => {
+      try {
+        const results = await geocodeMapTiler(q);
+        setGeoResults(results);
+      } catch {
+        setGeoResults([]);
+      } finally {
+        setIsGeoSearching(false);
+        geoTimerRef.current = null;
+      }
+    }, 250);
+  }, []);
+
+  const handleGeoSelect = (loc: MapSearchLocation) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: loc.lat,
+      longitude: loc.lng,
+      // Aide UX: si lieu_disparition est vide, remplir avec le résultat
+      lieu_disparition: prev.lieu_disparition?.trim() ? prev.lieu_disparition : loc.name,
+    }));
+  };
 
   const handleInputChange = (field: keyof DossierFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -169,8 +338,12 @@ export const CreateDossierPage: React.FC = () => {
     const newErrors: Record<string, string> = {};
     
     if (step === 1) {
-      if (!formData.prenom.trim()) newErrors.prenom = 'Le prénom est requis';
-      if (!formData.nom.trim()) newErrors.nom = 'Le nom est requis';
+      if (personMode === 'new') {
+        if (!formData.prenom.trim()) newErrors.prenom = 'Le prénom est requis';
+        if (!formData.nom.trim()) newErrors.nom = 'Le nom est requis';
+      } else {
+        if (!selectedPerson?.id) newErrors.personne = 'Veuillez sélectionner une personne existante';
+      }
     }
     
     if (step === 2) {
@@ -227,25 +400,31 @@ export const CreateDossierPage: React.FC = () => {
         }
       }
       
-      // Créer d'abord la personne
-      const personneData = {
-        nom: formData.nom,
-        prenom: formData.prenom,
-        nom_complet: `${formData.prenom} ${formData.nom}`.trim(),
-        sexe: formData.sexe as 'masculin' | 'feminin' | 'inconnu' | 'non_precise',
-        age_estime_min: formData.age_estime_min ? parseInt(formData.age_estime_min) : undefined,
-        age_estime_max: formData.age_estime_max ? parseInt(formData.age_estime_max) : undefined,
-        description_physique: formData.description_physique || undefined,
-        photo_principale: photoUrl || undefined,
-        statut_identite: 'identifie' as const,
-        fiabilite_informations: 'probable' as const,
-        nationalite: 'Camerounaise',
-      };
-      
-      const createdPersonne = await personneAPI.createPersonne(
-        personneData,
-        currentUser?.id || 'anonymous'
-      );
+      // Personne: soit nouvelle, soit existante
+      let linkedPersonne: Personne;
+      if (personMode === 'new') {
+        const personneData = {
+          nom: formData.nom,
+          prenom: formData.prenom,
+          nom_complet: `${formData.prenom} ${formData.nom}`.trim(),
+          sexe: formData.sexe as 'masculin' | 'feminin' | 'inconnu' | 'non_precise',
+          age_estime_min: formData.age_estime_min ? parseInt(formData.age_estime_min) : undefined,
+          age_estime_max: formData.age_estime_max ? parseInt(formData.age_estime_max) : undefined,
+          description_physique: formData.description_physique || undefined,
+          photo_principale: photoUrl || undefined,
+          statut_identite: 'identifie' as const,
+          fiabilite_informations: 'probable' as const,
+          nationalite: 'Camerounaise',
+        };
+
+        linkedPersonne = await personneAPI.createPersonne(
+          personneData as any,
+          currentUser?.id || 'anonymous',
+        );
+      } else {
+        if (!selectedPerson) throw new Error('Aucune personne sélectionnée');
+        linkedPersonne = selectedPerson;
+      }
       
       // Créer le dossier avec la personne
       const dossierData = {
@@ -268,13 +447,45 @@ export const CreateDossierPage: React.FC = () => {
         diffusion_medias: false,
         diffusion_reseaux_sociaux: false,
         rayon_diffusion_km: 10,
-        id_personne: createdPersonne.id,
+        id_personne: linkedPersonne.id,
         id_utilisateur_createur: currentUser?.id,
         id_organisation_responsable: currentUser?.organisation_id || undefined,
       };
       
       const createdDossier = await dossierAPI.createDossier(dossierData as any);
+
+      await logActivity({
+        type_action: TypeAction.CREATION_DOSSIER,
+        description: 'Création dossier (opérateur)',
+        action_detaillee: 'create_dossier',
+        id_utilisateur: currentUser?.id || null,
+        id_dossier: createdDossier.id,
+        donnees_apres: { id: createdDossier.id, numero_dossier: createdDossier.numero_dossier },
+      });
       
+      // Insérer une localisation initiale (si coords fournies) pour que l'onglet "Localisations" ne soit pas vide
+      if (formData.latitude && formData.longitude) {
+        try {
+          await createLocation({
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+            source_localisation: SourceLocalisation.AUTRE,
+            type_localisation: TypeLocalisation.DISPARITION,
+            fiabilite_source: FiabiliteSource.MOYENNE,
+            adresse: formData.lieu_disparition || undefined,
+            ville: formData.ville_disparition || undefined,
+            region: formData.region_disparition || undefined,
+            pays: formData.pays_disparition || undefined,
+            description: 'Point initial (lieu de disparition)',
+            date_localisation: new Date(formData.date_disparition).toISOString(),
+            id_dossier: createdDossier.id,
+            enregistree_par: currentUser?.id || undefined,
+          });
+        } catch (locErr) {
+          console.warn('Création localisation initiale échouée (non bloquant):', locErr);
+        }
+      }
+
       // Insérer les photos dans la table photo (pour qu'elles soient visibles dans les détails)
       if (photoUrl) {
         try {
@@ -282,10 +493,21 @@ export const CreateDossierPage: React.FC = () => {
           await (supabase as any).from('photo').insert({
             url_cloudinary: photoUrl,
             type_photo: 'portrait',
-            id_personne: createdPersonne.id,
-            est_principale: true,
+            id_personne: linkedPersonne.id,
+            est_principale: personMode === 'new',
             visible_public: false,
+            approuvee: false,
+            uploadee_par: currentUser?.id || null,
             qualite_image: 'moyenne',
+          });
+
+          await logActivity({
+            type_action: TypeAction.UPLOAD_PHOTO,
+            description: 'Upload photo dossier (opérateur)',
+            action_detaillee: 'upload_photo_dossier',
+            id_utilisateur: currentUser?.id || null,
+            id_dossier: createdDossier.id,
+            donnees_apres: { est_principale: true, id_personne: linkedPersonne.id },
           });
           
           // Uploader les photos supplémentaires
@@ -300,9 +522,11 @@ export const CreateDossierPage: React.FC = () => {
               await (supabase as any).from('photo').insert({
                 url_cloudinary: additionalUpload.secureUrl,
                 type_photo: 'portrait',
-                id_personne: createdPersonne.id,
+                id_personne: linkedPersonne.id,
                 est_principale: false,
                 visible_public: false,
+                approuvee: false,
+                uploadee_par: currentUser?.id || null,
                 qualite_image: 'moyenne',
               });
             }
@@ -414,6 +638,85 @@ export const CreateDossierPage: React.FC = () => {
                   <p className={styles.createDossier__sectionSubtitle}>Identité et caractéristiques physiques</p>
                 </div>
               </div>
+
+              {/* Mode personne: nouvelle vs existante */}
+              <div className={styles.createDossier__personMode}>
+                <button
+                  type="button"
+                  className={`${styles.createDossier__personModeBtn} ${
+                    personMode === 'new' ? styles['createDossier__personModeBtn--active'] : ''
+                  }`}
+                  onClick={() => handleSwitchPersonMode('new')}
+                >
+                  Nouvelle personne
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.createDossier__personModeBtn} ${
+                    personMode === 'existing' ? styles['createDossier__personModeBtn--active'] : ''
+                  }`}
+                  onClick={() => handleSwitchPersonMode('existing')}
+                >
+                  Personne existante
+                </button>
+              </div>
+
+              {personMode === 'existing' && (
+                <div className={styles.createDossier__personPicker}>
+                  <label className={styles.createDossier__label}>Rechercher une personne</label>
+                  <input
+                    type="text"
+                    className={`${styles.createDossier__input} ${
+                      errors.personne ? styles['createDossier__input--error'] : ''
+                    }`}
+                    placeholder="Nom, prénom, description..."
+                    value={personSearch}
+                    onChange={(e) => setPersonSearch(e.target.value)}
+                  />
+                  {errors.personne && <span className={styles.createDossier__error}>{errors.personne}</span>}
+
+                  {isPersonSearching && (
+                    <div className={styles.createDossier__personSearchHint}>Recherche…</div>
+                  )}
+
+                  {!isPersonSearching && personResults.length > 0 && (
+                    <div className={styles.createDossier__personResults}>
+                      {personResults.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className={`${styles.createDossier__personResultItem} ${
+                            selectedPerson?.id === p.id ? styles['createDossier__personResultItem--active'] : ''
+                          }`}
+                          onClick={() => handleSelectExistingPerson(p)}
+                        >
+                          <div className={styles.createDossier__personResultName}>
+                            {p.nom_complet || `${p.prenom || ''} ${p.nom || ''}`.trim() || 'Sans nom'}
+                          </div>
+                          <div className={styles.createDossier__personResultMeta}>
+                            {p.sexe || '—'} {p.age_estime_min ? `• ~${p.age_estime_min} ans` : ''}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedPerson && (
+                    <div className={styles.createDossier__personSelected}>
+                      <span>
+                        Sélectionnée: <strong>{selectedPerson.nom_complet || `${selectedPerson.prenom || ''} ${selectedPerson.nom || ''}`.trim()}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        className={styles.createDossier__personViewBtn}
+                        onClick={() => navigate(`/operator/personnes/${selectedPerson.id}`)}
+                      >
+                        Voir la fiche →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Upload photos simplifié */}
               <div className={styles.createDossier__photoUpload}>
@@ -425,7 +728,7 @@ export const CreateDossierPage: React.FC = () => {
                 <div className={styles.createDossier__photoGrid}>
                   {photoPreviews.map((preview, index) => (
                     <div key={index} className={styles.createDossier__photoItem}>
-                      <img src={preview} alt={`Photo ${index + 1}`} />
+                      <img src={preview} alt={`Aperçu ${index + 1}`} />
                       <button
                         type="button"
                         className={styles.createDossier__photoRemove}
@@ -468,6 +771,7 @@ export const CreateDossierPage: React.FC = () => {
                       placeholder="Prénom de la personne"
                       value={formData.prenom}
                       onChange={(e) => handleInputChange('prenom', e.target.value)}
+                        disabled={personMode === 'existing'}
                     />
                     {errors.prenom && <span className={styles.createDossier__error}>{errors.prenom}</span>}
                   </div>
@@ -482,6 +786,7 @@ export const CreateDossierPage: React.FC = () => {
                       placeholder="Nom de famille"
                       value={formData.nom}
                       onChange={(e) => handleInputChange('nom', e.target.value)}
+                        disabled={personMode === 'existing'}
                     />
                     {errors.nom && <span className={styles.createDossier__error}>{errors.nom}</span>}
                   </div>
@@ -494,6 +799,7 @@ export const CreateDossierPage: React.FC = () => {
                       className={styles.createDossier__select}
                       value={formData.sexe}
                       onChange={(e) => handleInputChange('sexe', e.target.value)}
+                        disabled={personMode === 'existing'}
                     >
                       <option value="non_precise">Non précisé</option>
                       <option value="masculin">Masculin</option>
@@ -513,6 +819,7 @@ export const CreateDossierPage: React.FC = () => {
                         onChange={(e) => handleInputChange('age_estime_min', e.target.value)}
                         min="0"
                         max="150"
+                        disabled={personMode === 'existing'}
                       />
                       <span className={styles.createDossier__ageSeparator}>à</span>
                       <input
@@ -523,6 +830,7 @@ export const CreateDossierPage: React.FC = () => {
                         onChange={(e) => handleInputChange('age_estime_max', e.target.value)}
                         min="0"
                         max="150"
+                        disabled={personMode === 'existing'}
                       />
                       <span className={styles.createDossier__ageUnit}>ans</span>
                     </div>
@@ -537,6 +845,7 @@ export const CreateDossierPage: React.FC = () => {
                     value={formData.description_physique}
                     onChange={(e) => handleInputChange('description_physique', e.target.value)}
                     rows={4}
+                    disabled={personMode === 'existing'}
                   />
                 </div>
               </div>
@@ -658,13 +967,25 @@ export const CreateDossierPage: React.FC = () => {
                   
                   {showMap && (
                     <div className={styles.createDossier__mapContainer}>
+                      <div className={styles.createDossier__mapSearch}>
+                        <MapSearch
+                          placeholder="Rechercher un lieu (ex: Bonanjo, Douala)"
+                          onSearch={(q) => {
+                            // Debounce handled in MapSearch UI; we debounce again here.
+                            handleGeoSearch(q);
+                          }}
+                          onLocationSelect={handleGeoSelect}
+                          results={geoResults}
+                          isLoading={isGeoSearching}
+                        />
+                      </div>
                       <MapTilerView
                         height="300px"
                         center={formData.latitude && formData.longitude 
                           ? [formData.latitude, formData.longitude] 
                           : [3.848, 11.5021]
                         }
-                        zoom={formData.latitude ? 12 : 6}
+                        zoom={formData.latitude ? 12 : 7}
                         onMapClick={handleMapClick}
                         markers={formData.latitude && formData.longitude ? [{
                           id: 'selected-location',
@@ -677,7 +998,7 @@ export const CreateDossierPage: React.FC = () => {
                         interactive={true}
                       />
                       <p className={styles.createDossier__mapHint}>
-                        Cliquez sur la carte pour marquer le lieu de disparition
+                        Astuce: recherchez un lieu puis cliquez sur la carte pour ajuster précisément.
                       </p>
                     </div>
                   )}

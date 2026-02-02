@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { Menu, X, LogOut, Globe, LayoutDashboard, FolderPlus, FolderOpen, UserPlus, AlertCircle, Image } from 'lucide-react';
+import { useLogout } from '../../features/auth/hooks';
+import { Menu, X, LogOut, Globe, LayoutDashboard, FolderPlus, FolderOpen, UserPlus, Users, HeartHandshake, AlertCircle, Image } from 'lucide-react';
 import styles from './OperatorLayout.module.css';
 
 interface OperatorLayoutProps {
@@ -17,8 +18,10 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout } = useLogout();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     navigate('/auth/login');
   };
 
@@ -40,7 +43,9 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
     { path: '/operator/dashboard', label: t('common.dashboard') || 'Tableau de bord', icon: LayoutDashboard },
     { path: '/operator/create-dossier', label: t('operator.createDossier') || 'Créer un dossier', icon: FolderPlus },
     { path: '/operator/create-person', label: t('operator.createPerson') || 'Créer une personne', icon: UserPlus },
+    { path: '/operator/personnes', label: 'Personnes', icon: Users },
     { path: '/operator/my-dossiers', label: t('operator.myDossiers') || 'Mes dossiers', icon: FolderOpen },
+    { path: '/operator/donations', label: 'Dons', icon: HeartHandshake },
     { path: '/operator/signalements-en-attente', label: 'Signalements en attente', icon: AlertCircle },
     { path: '/operator/photos-en-attente', label: 'Photos en attente', icon: Image },
   ];

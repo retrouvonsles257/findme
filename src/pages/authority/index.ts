@@ -27,6 +27,9 @@ export { SignalementDetailPage } from './SignalementDetailPage';
 export { InvestigationPage } from './InvestigationPage';
 export { IAAnalysisPage } from './IAAnalysisPage';
 
+// Photos moderation
+export { PhotosModerationPage } from './PhotosModerationPage';
+
 // Coordination
 export { CoordinationPage } from './CoordinationPage';
 

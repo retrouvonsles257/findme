@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { LocationDisplay } from '../types';
 
 export const selectCurrentLocation = (state: RootState) => state.geolocation?.currentLocation || null;

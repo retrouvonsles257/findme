@@ -48,7 +48,8 @@ const db = () => supabase as any;
 // Types pour les filtres étendus
 interface ExtendedFilters {
   status: 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide' | 'spam' | 'doublonne';
-  priority: 'all' | 'basse' | 'moyenne' | 'haute' | 'urgente';
+  // Aligné avec l'ENUM SQL priorite_traitement: ('haute'|'moyenne'|'basse')
+  priority: 'all' | 'basse' | 'moyenne' | 'haute';
   dateRange: 'all' | '7days' | '30days' | '90days';
   search: string;
 }
@@ -90,7 +91,7 @@ export const SignalementsValidationPage: React.FC = () => {
     raison: '',
     score_confiance: 0.8,
     avis: '',
-    priorite: 'moyenne' as 'basse' | 'moyenne' | 'haute' | 'urgente',
+    priorite: 'moyenne' as 'basse' | 'moyenne' | 'haute',
     transferer_autorites: false,
     autorite_destinataire: '',
   });
@@ -147,10 +148,11 @@ export const SignalementsValidationPage: React.FC = () => {
   const loadDossierInfo = async (dossierId: string) => {
     setLoadingDossier(true);
     try {
-      // Charger le dossier avec les infos de la personne disparue et les photos
+      // Charger le dossier réel (schéma: dossier_disparition -> id_personne)
       const { data: dossier, error } = await db()
-        .from('dossier')
-        .select(`
+        .from('dossier_disparition')
+        .select(
+          `
           id,
           numero_dossier,
           statut_dossier,
@@ -159,12 +161,11 @@ export const SignalementsValidationPage: React.FC = () => {
           ville_disparition,
           region_disparition,
           circonstances,
-          description_physique,
-          vetements_derniere_fois,
-          signes_distinctifs,
-          urgence_niveau,
+          type_disparition,
+          niveau_urgence,
+          id_personne,
           created_at,
-          personne_disparue:id_personne_disparue(
+          personne:id_personne(
             id,
             nom,
             prenom,
@@ -174,24 +175,33 @@ export const SignalementsValidationPage: React.FC = () => {
             taille_cm,
             poids_kg,
             couleur_yeux,
-            couleur_cheveux
+            couleur_cheveux,
+            description_physique,
+            signes_distinctifs,
+            derniers_vetements_portes
           )
-        `)
+        `
+        )
         .eq('id', dossierId)
         .single();
 
       if (!error && dossier) {
-        // Charger les photos associées au dossier
-        const { data: photos } = await db()
-          .from('photo')
-          .select('id, url_cloudinary, url_thumbnail, type_photo, approuvee')
-          .eq('id_dossier', dossierId)
-          .eq('approuvee', true)
-          .order('date_prise', { ascending: false })
-          .limit(4);
+        const personneId = (dossier as any).id_personne as string | null | undefined;
+
+        // Charger quelques photos (portraits) de la personne disparue
+        const { data: photos } = personneId
+          ? await db()
+              .from('photo')
+              .select('id, url_cloudinary, url_thumbnail, type_photo, approuvee')
+              .eq('id_personne', personneId)
+              .eq('type_photo', 'portrait')
+              .eq('approuvee', true)
+              .order('created_at', { ascending: false })
+              .limit(4)
+          : { data: [] };
 
         setDossierInfo({
-          ...dossier,
+          ...(dossier as any),
           photos: photos || [],
         });
       }
@@ -436,7 +446,6 @@ export const SignalementsValidationPage: React.FC = () => {
                   onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value as any }))}
                 >
                   <option value="all">Toutes</option>
-                  <option value="urgente">Urgente</option>
                   <option value="haute">Haute</option>
                   <option value="moyenne">Moyenne</option>
                   <option value="basse">Basse</option>
@@ -701,27 +710,30 @@ export const SignalementsValidationPage: React.FC = () => {
                               
                               <div className={styles['validation__dossier-info']}>
                                 <h4>
-                                  {dossierInfo.personne_disparue?.prenom} {dossierInfo.personne_disparue?.nom}
+                                  {dossierInfo.personne?.prenom} {dossierInfo.personne?.nom}
                                 </h4>
                                 <p className={styles['validation__dossier-number']}>
                                   Dossier: {dossierInfo.numero_dossier}
                                 </p>
                                 <div className={styles['validation__dossier-details']}>
-                                  {dossierInfo.personne_disparue?.date_naissance && (
+                                  {dossierInfo.personne?.date_naissance && (
                                     <span>
                                       <Calendar size={12} />
-                                      {new Date(dossierInfo.personne_disparue.date_naissance).toLocaleDateString('fr-FR')}
+                                      {new Date(dossierInfo.personne.date_naissance).toLocaleDateString('fr-FR')}
                                     </span>
                                   )}
-                                  {dossierInfo.personne_disparue?.sexe && (
+                                  {dossierInfo.personne?.sexe && (
                                     <span>
                                       <User size={12} />
-                                      {dossierInfo.personne_disparue.sexe === 'masculin' ? 'Homme' : 
-                                       dossierInfo.personne_disparue.sexe === 'feminin' ? 'Femme' : 'Non spécifié'}
+                                      {dossierInfo.personne.sexe === 'masculin'
+                                        ? 'Homme'
+                                        : dossierInfo.personne.sexe === 'feminin'
+                                          ? 'Femme'
+                                          : 'Non spécifié'}
                                     </span>
                                   )}
-                                  {dossierInfo.personne_disparue?.taille_cm && (
-                                    <span>{dossierInfo.personne_disparue.taille_cm} cm</span>
+                                  {dossierInfo.personne?.taille_cm && (
+                                    <span>{dossierInfo.personne.taille_cm} cm</span>
                                   )}
                                 </div>
                               </div>
@@ -749,16 +761,16 @@ export const SignalementsValidationPage: React.FC = () => {
                                   <span>{dossierInfo.circonstances.substring(0, 150)}...</span>
                                 </div>
                               )}
-                              {dossierInfo.vetements_derniere_fois && (
+                              {dossierInfo.personne?.derniers_vetements_portes && (
                                 <div className={styles['validation__dossier-row']}>
                                   <label>Vêtements</label>
-                                  <span>{dossierInfo.vetements_derniere_fois}</span>
+                                  <span>{dossierInfo.personne.derniers_vetements_portes}</span>
                                 </div>
                               )}
-                              {dossierInfo.signes_distinctifs && (
+                              {dossierInfo.personne?.signes_distinctifs && (
                                 <div className={styles['validation__dossier-row']}>
                                   <label>Signes distinctifs</label>
-                                  <span>{dossierInfo.signes_distinctifs}</span>
+                                  <span>{dossierInfo.personne.signes_distinctifs}</span>
                                 </div>
                               )}
                             </div>
@@ -769,17 +781,24 @@ export const SignalementsValidationPage: React.FC = () => {
                                 className={styles['validation__dossier-badge']}
                                 data-status={dossierInfo.statut_dossier}
                               >
-                                {dossierInfo.statut_dossier === 'actif' ? 'Recherches en cours' :
-                                 dossierInfo.statut_dossier === 'retrouve' ? 'Personne retrouvée' :
-                                 dossierInfo.statut_dossier === 'archive' ? 'Archivé' :
-                                 dossierInfo.statut_dossier}
+                                {dossierInfo.statut_dossier === 'en_cours'
+                                  ? 'Recherches en cours'
+                                  : dossierInfo.statut_dossier === 'retrouve_vivant'
+                                    ? 'Retrouvé vivant'
+                                    : dossierInfo.statut_dossier === 'retrouve_decede'
+                                      ? 'Retrouvé décédé'
+                                      : dossierInfo.statut_dossier === 'suspendu'
+                                        ? 'Suspendu'
+                                        : dossierInfo.statut_dossier === 'classe_sans_suite'
+                                          ? 'Classé sans suite'
+                                          : dossierInfo.statut_dossier}
                               </span>
-                              {dossierInfo.urgence_niveau && (
+                              {dossierInfo.niveau_urgence && (
                                 <span 
                                   className={styles['validation__dossier-urgency']}
-                                  data-urgency={dossierInfo.urgence_niveau}
+                                  data-urgency={dossierInfo.niveau_urgence}
                                 >
-                                  Urgence: {dossierInfo.urgence_niveau}
+                                  Urgence: {dossierInfo.niveau_urgence}
                                 </span>
                               )}
                             </div>
@@ -830,7 +849,13 @@ export const SignalementsValidationPage: React.FC = () => {
                       </div>
                       <div className={styles['validation__detail-row']}>
                         <label>Score de pertinence</label>
-                        <span>{Math.round((selectedSignalement.score_correspondance || selectedSignalement.score_pertinence || 0) * 100)}%</span>
+                        <span>
+                          {(() => {
+                            const raw = selectedSignalement.score_pertinence ?? selectedSignalement.score_correspondance ?? 0;
+                            const percent = typeof raw === 'number' && raw > 1 ? raw : raw * 100;
+                            return `${Math.round(percent)}%`;
+                          })()}
+                        </span>
                       </div>
                       {selectedSignalement.contexte_observation && (
                         <div className={styles['validation__detail-row']}>
@@ -948,7 +973,6 @@ export const SignalementsValidationPage: React.FC = () => {
                         <option value="basse">Basse</option>
                         <option value="moyenne">Moyenne</option>
                         <option value="haute">Haute</option>
-                        <option value="urgente">Urgente</option>
                       </select>
                     </div>
 

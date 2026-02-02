@@ -39,7 +39,7 @@ interface MapMarker {
   title: string;
   description?: string;
   statut?: string;
-  urgence?: number;
+  urgence?: number | string;
   photo?: string;
 }
 
@@ -63,6 +63,11 @@ export const CitizenMapPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'actif' | 'resolu' | 'archive'>('all');
   const [regionFilter, setRegionFilter] = useState('');
   const [mapError, setMapError] = useState<string | null>(null);
+
+  // Charger les signalements (le hook dossiers se charge déjà au montage)
+  useEffect(() => {
+    fetchSignalements();
+  }, [fetchSignalements]);
 
   // Initialiser la carte
   useEffect(() => {
@@ -160,28 +165,43 @@ export const CitizenMapPage: React.FC = () => {
     // Ajouter les dossiers
     if (showDossiers && dossiers) {
       dossiers.forEach((dossier: any) => {
+        const statutDossier = dossier.statut_dossier || dossier.statut;
+        const dossierRegion = (dossier.region_disparition || '').toLowerCase();
+        const passesRegion =
+          regionFilter.trim() === '' || dossierRegion.includes(regionFilter.trim().toLowerCase());
+
+        const passesStatus =
+          statusFilter === 'all' ||
+          (statusFilter === 'actif' && statutDossier === 'en_cours') ||
+          (statusFilter === 'resolu' &&
+            (statutDossier === 'retrouve_vivant' || statutDossier === 'retrouve_decede')) ||
+          (statusFilter === 'archive' &&
+            (statutDossier === 'suspendu' ||
+              statutDossier === 'classe_sans_suite' ||
+              statutDossier === 'transfere'));
+
+        const personne = dossier.personne || {};
+        const dossierName =
+          personne.nom_complet ||
+          `${personne.prenom || ''} ${personne.nom || ''}`.trim() ||
+          t('citizen.dossier');
+
         if (
           dossier.latitude_disparition &&
           dossier.longitude_disparition &&
-          (statusFilter === 'all' ||
-            (statusFilter === 'actif' && (dossier.statut === 'actif' || dossier.statut === 'en_cours')) ||
-            (statusFilter === 'resolu' && (dossier.statut === 'resolu' || dossier.statut === 'retrouve')) ||
-            (statusFilter === 'archive' && dossier.statut === 'archive')) &&
-          (regionFilter.trim() === '' ||
-            (dossier.region_disparition || '')
-              .toLowerCase()
-              .includes(regionFilter.trim().toLowerCase()))
+          passesStatus &&
+          passesRegion
         ) {
           newMarkers.push({
             id: dossier.id,
             type: 'dossier',
             lat: dossier.latitude_disparition,
             lng: dossier.longitude_disparition,
-            title: `${dossier.prenom || ''} ${dossier.nom || ''}`.trim() || t('citizen.dossier'),
-            description: dossier.lieu_disparition,
-            statut: dossier.statut,
+            title: dossierName,
+            description: dossier.lieu_disparition || dossier.ville_disparition || dossier.region_disparition,
+            statut: statutDossier,
             urgence: dossier.niveau_urgence,
-            photo: dossier.photo_principale,
+            photo: personne.photo_principale || dossier.photo_principale,
           });
         }
       });
@@ -190,15 +210,28 @@ export const CitizenMapPage: React.FC = () => {
     // Ajouter les signalements
     if (showSignalements && signalements) {
       signalements.forEach((signalement: any) => {
-        if (signalement.latitude && signalement.longitude) {
+        const lat = signalement.latitude_observation ?? signalement.latitude;
+        const lng = signalement.longitude_observation ?? signalement.longitude;
+        const statut = signalement.statut_validation ?? signalement.etat ?? signalement.statut;
+
+        // Par défaut, n'afficher que les signalements validés (évite d'exposer des brouillons/en_attente sur la carte)
+        if (statut && statut !== 'valide') return;
+
+        if (lat && lng) {
           newMarkers.push({
             id: signalement.id,
             type: 'signalement',
-            lat: signalement.latitude,
-            lng: signalement.longitude,
-            title: signalement.titre || t('citizen.report'),
-            description: signalement.lieu || signalement.ville,
-            statut: signalement.statut,
+            lat,
+            lng,
+            title:
+              signalement.numero_signalement ||
+              `${t('citizen.report')} #${String(signalement.id).slice(0, 8)}`,
+            description:
+              signalement.lieu_observation ||
+              signalement.ville_observation ||
+              signalement.region_observation ||
+              '',
+            statut,
           });
         }
       });
@@ -266,7 +299,15 @@ export const CitizenMapPage: React.FC = () => {
           <div style="padding: 8px;">
             <strong>${marker.title}</strong>
             ${marker.description ? `<p style="margin: 4px 0 0; font-size: 12px; color: #666;">${marker.description}</p>` : ''}
-            ${marker.type !== 'user' ? `<button onclick="window.location.href='/citizen/${marker.type === 'dossier' ? 'dossier' : 'signalements'}/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
+            ${
+              marker.type !== 'user'
+                ? `<button onclick="window.location.href='/citizen/${
+                    marker.type === 'dossier' ? 'dossier' : 'signalement'
+                  }/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">${t(
+                    'common.viewDetails',
+                  )}</button>`
+                : ''
+            }
           </div>
         `);
 
@@ -278,7 +319,7 @@ export const CitizenMapPage: React.FC = () => {
 
       markersRef.current.push(mapMarker);
     });
-  }, [filteredMarkers]);
+  }, [filteredMarkers, t]);
 
   // Centrer sur la position utilisateur
   const handleCenterOnUser = useCallback(() => {
@@ -303,7 +344,7 @@ export const CitizenMapPage: React.FC = () => {
     if (selectedMarker.type === 'dossier') {
       navigate(`/citizen/dossier/${selectedMarker.id}`);
     } else if (selectedMarker.type === 'signalement') {
-      navigate(`/citizen/signalements/${selectedMarker.id}`);
+      navigate(`/citizen/signalement/${selectedMarker.id}`);
     }
     setSelectedMarker(null);
   };
@@ -312,8 +353,15 @@ export const CitizenMapPage: React.FC = () => {
   const getMarkerColor = (marker: MapMarker) => {
     if (marker.type === 'user') return '#16a34a';
     if (marker.type === 'dossier') {
-      if (marker.urgence && marker.urgence >= 8) return '#dc2626';
-      if (marker.urgence && marker.urgence >= 5) return '#f59e0b';
+      // Supporte à la fois les anciens niveaux numériques et les ENUM (critique/urgent/normal/faible)
+      const u = marker.urgence;
+      if (typeof u === 'number') {
+        if (u >= 8) return '#dc2626';
+        if (u >= 5) return '#f59e0b';
+        return '#1d4ed8';
+      }
+      if (u === 'critique') return '#dc2626';
+      if (u === 'urgent') return '#f59e0b';
       return '#1d4ed8';
     }
     return '#8b5cf6';

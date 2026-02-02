@@ -19,6 +19,7 @@ import {
   EditDossierPage,
   SignalementsPage,
   SignalementDetailPage,
+  PhotosModerationPage,
   InvestigationPage,
   IAAnalysisPage,
   CoordinationPage,
@@ -41,8 +42,6 @@ const AuthorityRoutes: React.FC = () => {
   const authorityRoles = [
     NomRole.OFFICIER_POLICE,
     NomRole.AGENT_GENDARMERIE,
-    NomRole.OPERATEUR_SAISIE,
-    NomRole.ADMIN_ORGANISATION,
   ];
 
   return (
@@ -156,6 +155,16 @@ const AuthorityRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={authorityRoles}>
               <SignalementDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* ==================== PHOTOS MODERATION ==================== */}
+        <Route
+          path="/photos-moderation"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <PhotosModerationPage />
             </RoleBasedRoute>
           }
         />

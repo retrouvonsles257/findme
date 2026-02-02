@@ -35,7 +35,8 @@ export const SidebarNGO: React.FC<SidebarNGOProps> = ({
   const defaultItems: NavigationItem[] = [
     { label: t('common.dashboard'), href: '/ngo/dashboard', icon: '📊' },
     { label: t('ngo.cases'), href: '/ngo/cases', icon: '📁' },
-    { label: t('ngo.campaigns'), href: '/ngo/campaigns', icon: '📢' },
+    { label: t('ngo.campaigns'), href: '/ngo/campagnes', icon: '📢' },
+    { label: 'IA', href: '/ngo/ia', icon: '🧠' },
     { label: t('ngo.resources'), href: '/ngo/resources', icon: '📚' },
     { label: t('ngo.partnerships'), href: '/ngo/partnerships', icon: '🤝' },
   ];

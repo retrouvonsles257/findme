@@ -25,7 +25,8 @@ export interface Signalement {
   contexte_observation?: string;
   etat_personne_observee?: string;
   statut_validation: 'en_attente' | 'en_verification' | 'valide' | 'invalide' | 'doublonne' | 'spam';
-  priorite_traitement?: 'basse' | 'moyenne' | 'haute' | 'urgente';
+  // Aligné avec le modèle SQL: priorite_traitement = ('haute' | 'moyenne' | 'basse')
+  priorite_traitement?: 'basse' | 'moyenne' | 'haute';
   score_pertinence?: number;
   temoin_anonyme?: boolean;
   nom_temoin?: string;
@@ -104,6 +105,7 @@ export interface SignalementCreatePayload {
   longitude_observation?: number;
   date_observation: string;
   niveau_certitude?: 'certain' | 'tres_probable' | 'probable' | 'incertain' | 'doute';
+  priorite_traitement?: 'basse' | 'moyenne' | 'haute';
   contexte_observation?: string;
   direction_deplacement?: string;
   source_signalement?: 'application_web' | 'application_mobile' | 'site_web' | 'telephone' | 'email' | 'autre';

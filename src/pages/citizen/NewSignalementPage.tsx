@@ -6,8 +6,8 @@
  * =====================================================
  */
 
-import React, { useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
@@ -21,6 +21,8 @@ import {
   Navigation, FileText 
 } from 'lucide-react';
 import styles from './NewSignalementPage.module.css';
+import { NomRole } from '../../@types/enums.types';
+import type { SignalementCreatePayload } from '../../features/signalements/types';
 
 interface UploadedFile {
   file: File;
@@ -32,10 +34,19 @@ interface UploadedFile {
 
 export const CitizenNewSignalementPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const dossierId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('dossierId') || undefined;
+  }, [location.search]);
+
+  const isVerified = (currentUser as any)?.role === NomRole.CITOYEN_VERIFIE;
+  const maxPhotos = isVerified ? 5 : 1;
 
   // Hooks
   const { createSignalement, isLoading, error: submitError, success } = useSignalementCreate();
@@ -64,6 +75,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [step, setStep] = useState<'form' | 'uploading' | 'success'>('form');
+  const [localError, setLocalError] = useState<string | null>(null);
 
   // Gérer les changements de formulaire
   const handleInputChange = (
@@ -93,7 +105,21 @@ export const CitizenNewSignalementPage: React.FC = () => {
       preview: URL.createObjectURL(file),
       uploading: false,
     }));
-    setFiles((prev) => [...prev, ...newFiles]);
+    setFiles((prev) => {
+      const combined = [...prev, ...newFiles];
+      // Appliquer la limite (niveau 0: 1 photo, niveau 1: jusqu'à 5 photos)
+      const limited = combined.slice(0, maxPhotos);
+      // Révoquer les previews des fichiers ignorés pour éviter les fuites mémoire
+      const ignored = combined.slice(maxPhotos);
+      ignored.forEach((f) => {
+        try {
+          URL.revokeObjectURL(f.preview);
+        } catch {
+          // ignore
+        }
+      });
+      return limited;
+    });
   };
 
   // Supprimer un fichier
@@ -117,6 +143,12 @@ export const CitizenNewSignalementPage: React.FC = () => {
     
     if (!userId) {
       console.error('User not authenticated');
+      return;
+    }
+
+    // Conformément aux docs + modèle: un signalement citoyen est lié à un dossier
+    if (!dossierId) {
+      setLocalError(t('citizen.selectDossier') || 'Veuillez sélectionner un dossier avant de soumettre un signalement.');
       return;
     }
 
@@ -145,7 +177,11 @@ export const CitizenNewSignalementPage: React.FC = () => {
         `${formData.date_observation}T${formData.heure_observation}`
       );
 
-      const payload = {
+      const prioriteTraitement: SignalementCreatePayload['priorite_traitement'] =
+        isVerified ? 'moyenne' : 'basse';
+
+      const payload: SignalementCreatePayload = {
+        id_dossier: dossierId,
         description: formData.description,
         lieu_observation: formData.lieu_observation,
         ville_observation: formData.ville_observation,
@@ -154,6 +190,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
         latitude_observation: formData.latitude || currentLocation?.latitude || 0,
         longitude_observation: formData.longitude || currentLocation?.longitude || 0,
         niveau_certitude: formData.niveau_certitude,
+        priorite_traitement: prioriteTraitement,
         contexte_observation: formData.contexte_observation,
         direction_deplacement: formData.direction_deplacement,
         source_signalement: 'application_web' as const,
@@ -229,10 +266,32 @@ export const CitizenNewSignalementPage: React.FC = () => {
       <div className={styles['new-signalement']}>
         <div className={styles['new-signalement__form-container']}>
           {/* Erreurs */}
-          {(submitError || geoError) && (
+          {(localError || submitError || geoError) && (
             <div className={styles['new-signalement__error']}>
               <AlertCircle size={20} />
-              <span>{submitError || geoError}</span>
+              <span>{localError || submitError || geoError}</span>
+            </div>
+          )}
+
+          {!dossierId && (
+            <div style={{ padding: 12, borderRadius: 12, background: 'rgba(29,78,216,0.08)', border: '1px solid rgba(29,78,216,0.2)', marginBottom: 12 }}>
+              <strong>{t('citizen.selectDossier') || 'Sélectionner un dossier'}</strong>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className={styles['new-signalement__cancel-button']}
+                  onClick={() => navigate('/citizen/dossiers?mode=report')}
+                >
+                  {t('citizen.dossiers') || 'Dossiers'}
+                </button>
+                <button
+                  type="button"
+                  className={styles['new-signalement__submit-button']}
+                  onClick={() => navigate('/citizen/map')}
+                >
+                  {t('citizen.map') || 'Carte'}
+                </button>
+              </div>
             </div>
           )}
 

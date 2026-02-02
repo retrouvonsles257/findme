@@ -66,12 +66,10 @@ export const DashboardPage: React.FC = () => {
 
   // Verify user is an authority
   useEffect(() => {
-    if (currentUser && ![
-      'officier_police' as NomRole,
-      'agent_gendarmerie' as NomRole,
-      'operateur_saisie' as NomRole,
-      'admin_organisation' as NomRole,
-    ].includes(currentUser.role as NomRole)) {
+    if (
+      currentUser &&
+      !(['officier_police' as NomRole, 'agent_gendarmerie' as NomRole].includes(currentUser.role as NomRole))
+    ) {
       navigate('/');
     }
   }, [currentUser, navigate]);
@@ -121,8 +119,6 @@ export const DashboardPage: React.FC = () => {
     switch (role) {
       case 'officier_police': return t('authority.roles.officier_police');
       case 'agent_gendarmerie': return t('authority.roles.agent_gendarmerie');
-      case 'operateur_saisie': return t('authority.roles.operateur_saisie');
-      case 'admin_organisation': return t('authority.roles.admin_organisation');
       default: return t('authority.roles.default');
     }
   };

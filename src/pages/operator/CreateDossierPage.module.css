@@ -444,10 +444,20 @@
 }
 
 .createDossier__mapContainer {
+  position: relative;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
   margin-top: 0.5rem;
+}
+
+.createDossier__mapSearch {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  /* Leave space for MapTiler controls on the right */
+  width: min(420px, calc(100% - 140px));
+  z-index: 5;
 }
 
 .createDossier__mapHint {
@@ -458,6 +468,112 @@
   background: #f8fafc;
   margin: 0;
   border-top: 1px solid #e2e8f0;
+}
+
+/* Person mode (new vs existing) */
+.createDossier__personMode {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.createDossier__personModeBtn {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.createDossier__personModeBtn:hover {
+  background: #f1f5f9;
+}
+
+.createDossier__personModeBtn--active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.createDossier__personPicker {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.createDossier__personSearchHint {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.createDossier__personResults {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.createDossier__personResultItem {
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.createDossier__personResultItem:hover {
+  background: #f1f5f9;
+}
+
+.createDossier__personResultItem--active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.createDossier__personResultName {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.15rem;
+}
+
+.createDossier__personResultMeta {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.createDossier__personSelected {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e2e8f0;
+  color: #334155;
+}
+
+.createDossier__personViewBtn {
+  border: 1px solid #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.createDossier__personViewBtn:hover {
+  background: #dbeafe;
 }
 
 /* Summary */

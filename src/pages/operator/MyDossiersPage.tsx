@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { useAppSelector } from '../../store/hooks';
@@ -22,7 +22,6 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  FileText,
   MapPin,
   Calendar,
   AlertTriangle,
@@ -34,7 +33,7 @@ export const OperatorMyDossiersPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
-  const { dossiers, isLoading } = useDossiers();
+  const { dossiers, isLoading, fetchDossiers, setPageSize } = useDossiers();
 
   // Filtres
   const [statusFilter, setStatusFilter] = useState('all');
@@ -42,16 +41,24 @@ export const OperatorMyDossiersPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('recent');
   const [ownershipFilter, setOwnershipFilter] = useState<'mine' | 'organisation'>('mine');
 
-  // Filtrer les dossiers selon le filtre de propriété
-  const myDossiers = dossiers.filter((d: any) => {
+  // Charger côté DB pour éviter les fuites si RLS est off
+  useEffect(() => {
+    // Cette page n'a pas (encore) de pagination propre, on prend une page plus large.
+    setPageSize(200);
+  }, [setPageSize]);
+
+  useEffect(() => {
+    if (!currentUser) return;
     if (ownershipFilter === 'mine') {
-      // Mes dossiers uniquement
-      return d.id_utilisateur_createur === currentUser?.id || d.enregistre_par === currentUser?.id;
+      fetchDossiers({ createur_id: currentUser.id });
+    } else if (currentUser.organisation_id) {
+      fetchDossiers({ organisation_id: currentUser.organisation_id });
     } else {
-      // Dossiers de mon organisation
-      return d.id_organisation_responsable === currentUser?.organisation_id;
+      fetchDossiers();
     }
-  });
+  }, [currentUser, ownershipFilter, fetchDossiers]);
+
+  const myDossiers = dossiers;
 
   // Appliquer les filtres
   let filteredDossiers = [...myDossiers];
@@ -245,13 +252,17 @@ export const OperatorMyDossiersPage: React.FC = () => {
                         <Eye size={16} />
                         Voir
                       </button>
-                      <button
-                        className={styles['operator-my-dossiers__edit-btn']}
-                        onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}
-                      >
-                        <Edit3 size={16} />
-                        Modifier
-                      </button>
+                      {(dossier.id_utilisateur_createur === currentUser?.id ||
+                        currentUser?.role === 'admin_organisation' ||
+                        currentUser?.role === 'super_admin') && (
+                        <button
+                          className={styles['operator-my-dossiers__edit-btn']}
+                          onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}
+                        >
+                          <Edit3 size={16} />
+                          Modifier
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

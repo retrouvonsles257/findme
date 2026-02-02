@@ -6,9 +6,9 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useNotification } from '@/contexts';
+import { useNotification } from '../../../contexts';
 import { campagneService } from '../services';
-import type { CampagneSensibilisation } from '@types';
+import type { CampagneSensibilisation } from '../../../@types';
 import type { CampagneCreatePayload, CampagneFormValues } from '../types';
 
 export interface UseCampagneCreateReturn {

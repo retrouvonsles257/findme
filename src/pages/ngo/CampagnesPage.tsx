@@ -2,26 +2,28 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
-import { supabase } from '../../config/supabase.config';
+import { getCampagnes } from '../../features/campagnes/services/campagneAPI';
 import { NGOLayout } from './NGOLayout';
 import styles from './CampagnesPage.module.css';
 
-interface Campaign {
+interface CampaignRow {
   id: string;
   titre: string;
-  description: string;
-  statut: 'active' | 'completed' | 'paused';
+  description: string | null;
+  statut_campagne: 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
   date_debut: string;
-  date_fin: string;
-  objectif: number;
+  date_fin: string | null;
+  objectif: string | null;
+  type_campagne?: string;
+  budget_alloue?: number | null;
 }
 
 export const NGOCampagnesPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'paused'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'planifiee' | 'en_cours' | 'terminee' | 'annulee'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,20 +35,12 @@ export const NGOCampagnesPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from('campagnes').select('*');
+      const res = await getCampagnes(1, 200, {
+        statut: statusFilter === 'all' ? undefined : [statusFilter as any],
+        search: searchTerm || undefined,
+      } as any, 'date_debut', 'desc');
 
-      if (statusFilter !== 'all') {
-        query = query.eq('statut', statusFilter);
-      }
-
-      if (searchTerm) {
-        query = query.or(`titre.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error: err } = await (query.order('date_debut', { ascending: false }) as any);
-
-      if (err) throw err;
-      setCampaigns(data || []);
+      setCampaigns((res.data || []) as any);
       setCurrentPage(1);
     } catch (err) {
       console.error('Erreur:', err);
@@ -60,17 +54,9 @@ export const NGOCampagnesPage: React.FC = () => {
     loadCampaigns();
   }, [loadCampaigns]);
 
-  const filteredCampaigns = campaigns.filter((c) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      c.titre.toLowerCase().includes(searchLower) ||
-      c.description.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+  const totalPages = Math.ceil(campaigns.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
-  const paginatedCampaigns = filteredCampaigns.slice(startIdx, startIdx + itemsPerPage);
+  const paginatedCampaigns = campaigns.slice(startIdx, startIdx + itemsPerPage);
 
   if (loading) {
     return (
@@ -93,6 +79,23 @@ export const NGOCampagnesPage: React.FC = () => {
         </div>
       )}
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button
+          type="button"
+          onClick={() => navigate('/ngo/campagnes/create')}
+          style={{
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: 'none',
+            background: '#2563eb',
+            color: 'white',
+            cursor: 'pointer',
+          }}
+        >
+          Créer une campagne
+        </button>
+      </div>
+
         <div className={styles['ngo-campagnes__controls']}>
           <input
             type="text"
@@ -107,9 +110,10 @@ export const NGOCampagnesPage: React.FC = () => {
             className={styles['ngo-campagnes__filter-select']}
           >
             <option value="all">{t('common.allStatuses')}</option>
-            <option value="active">{t('common.active')}</option>
-            <option value="completed">{t('ngo.completed')}</option>
-            <option value="paused">{t('ngo.paused')}</option>
+            <option value="planifiee">Planifiée</option>
+            <option value="en_cours">{t('common.active')}</option>
+            <option value="terminee">Terminée</option>
+            <option value="annulee">Annulée</option>
           </select>
         </div>
 
@@ -124,18 +128,36 @@ export const NGOCampagnesPage: React.FC = () => {
                       <span
                         className={styles['ngo-campagnes__badge']}
                         style={{
-                          backgroundColor: campaign.statut === 'active' ? '#10b981' : campaign.statut === 'completed' ? '#667eea' : '#f59e0b',
+                          backgroundColor:
+                            campaign.statut_campagne === 'en_cours'
+                              ? '#10b981'
+                              : campaign.statut_campagne === 'terminee'
+                                ? '#667eea'
+                                : campaign.statut_campagne === 'planifiee'
+                                  ? '#f59e0b'
+                                  : '#ef4444',
                         }}
                       >
-                        {campaign.statut === 'active' ? t('common.active') : campaign.statut === 'completed' ? t('ngo.completed') : t('ngo.paused')}
+                        {campaign.statut_campagne === 'en_cours'
+                          ? t('common.active')
+                          : campaign.statut_campagne === 'terminee'
+                            ? 'Terminée'
+                            : campaign.statut_campagne === 'planifiee'
+                              ? 'Planifiée'
+                              : 'Annulée'}
                       </span>
                     </div>
-                    <p className={styles['ngo-campagnes__description']}>{campaign.description}</p>
+                    <p className={styles['ngo-campagnes__description']}>{campaign.description || '—'}</p>
                     <div className={styles['ngo-campagnes__dates']}>
-                      <small>{new Date(campaign.date_debut).toLocaleDateString('fr-FR')} - {new Date(campaign.date_fin).toLocaleDateString('fr-FR')}</small>
+                      <small>
+                        {new Date(campaign.date_debut).toLocaleDateString('fr-FR')}
+                        {campaign.date_fin ? ` - ${new Date(campaign.date_fin).toLocaleDateString('fr-FR')}` : ''}
+                      </small>
                     </div>
                     <div className={styles['ngo-campagnes__objective']}>
-                      <p>{t('ngo.objective')}: <strong>{campaign.objectif}</strong></p>
+                      <p>
+                        {t('ngo.objective')}: <strong>{campaign.objectif || '—'}</strong>
+                      </p>
                     </div>
                   </div>
                 </CardBody>

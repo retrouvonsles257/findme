@@ -114,6 +114,20 @@ export const getDonById = async (id: string): Promise<Don> => {
 };
 
 /**
+ * Récupérer un don par référence transaction (ex: retour gateway)
+ */
+export const getDonByReferenceTransaction = async (reference: string): Promise<Don> => {
+  const { data, error } = await supabase
+    .from('don')
+    .select('*')
+    .eq('reference_transaction', reference)
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+/**
  * Récupérer tous les dons avec filtres
  */
 export const getDons = async (filters?: DonFilters): Promise<Don[]> => {

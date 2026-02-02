@@ -74,6 +74,12 @@ export interface FiliationLienInput {
   commentaire?: string;
   confidentiel?: boolean;
   visible_public?: boolean;
+  /**
+   * Traçabilité (RLS): qui a créé/modifié le lien.
+   * Le schéma SQL contient ces colonnes (`cree_par`, `modifie_par`).
+   */
+  cree_par?: string;
+  modifie_par?: string;
 }
 
 export interface FiliationLienUpdate extends Partial<FiliationLienInput> {

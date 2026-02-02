@@ -58,14 +58,27 @@ export const HeatMapLayer: React.FC<HeatMapLayerProps> = ({
 
       // Draw gradient circle
       const canvasGradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-      const colorIdx = Math.floor(intensity * (gradient.length - 1));
+      const safeGradient = gradient.length > 0 ? gradient : ['#ef4444'];
+      const colorIdx = Math.min(
+        safeGradient.length - 1,
+        Math.max(0, Math.floor(intensity * (safeGradient.length - 1))),
+      );
+      canvasGradient.addColorStop(0, safeGradient[colorIdx]);
+      canvasGradient.addColorStop(1, 'rgba(0,0,0,0)');
 
-      ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
+      // A small blur-ish effect (cheap): use shadow
+      ctx.shadowBlur = blur;
+      ctx.shadowColor = safeGradient[colorIdx];
+
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = canvasGradient;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fill();
     });
-  }, [data, radius, blur, minOpacity]);
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }, [data, radius, blur, minOpacity, gradient]);
 
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />;
 };

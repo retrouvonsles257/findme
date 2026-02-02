@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useNotification } from '@/contexts';
+import { useNotification } from '../../../contexts';
 import * as donService from '../services/donService';
 import * as donAPI from '../services/donAPI';
 import type { Don } from '../../../@types';

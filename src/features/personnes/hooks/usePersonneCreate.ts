@@ -7,7 +7,7 @@
 
 import { useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '@/store/types';
+import type { AppDispatch } from '../../../store/types';
 import { createNewPersonne } from '../store/personneSlice';
 import type { PersonneCreatePayload, Personne } from '../types';
 

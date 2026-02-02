@@ -28,7 +28,9 @@ import {
   Globe,
   ChevronLeft,
   ChevronRight,
-  User
+  User,
+  Users,
+  Heart
 } from 'lucide-react';
 import styles from './CitizenLayout.module.css';
 
@@ -157,6 +159,12 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
       path: '/citizen/dashboard',
     },
     {
+      id: 'dossiers',
+      label: t('citizen.dossiers'),
+      icon: Users,
+      path: '/citizen/dossiers',
+    },
+    {
       id: 'map',
       label: t('citizen.map'),
       icon: Map,
@@ -178,7 +186,15 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
       id: 'new-signalement',
       label: t('citizen.newReport'),
       icon: Plus,
-      path: '/citizen/new-signalement',
+      // Selon le modèle: un signalement citoyen est lié à un dossier.
+      // On envoie donc vers la liste des dossiers publics pour choisir le dossier concerné.
+      path: '/citizen/dossiers?mode=report',
+    },
+    {
+      id: 'donations',
+      label: t('citizen.donations') || 'Dons',
+      icon: Heart,
+      path: '/citizen/donations',
     },
     {
       id: 'settings',

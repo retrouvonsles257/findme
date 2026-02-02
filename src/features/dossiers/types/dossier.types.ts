@@ -154,6 +154,13 @@ export interface DossierFilterCriteria {
   is_urgent?: boolean;
   resolved?: boolean;
   search?: string;
+  /**
+   * Filtrage "métier" (utile côté opérateur / org).
+   * Ces champs existent dans le modèle SQL (`id_organisation_responsable`, `id_utilisateur_createur`).
+   */
+  organisation_id?: string;
+  createur_id?: string;
+  personne_id?: string;
   limit?: number;
   offset?: number;
   sortBy?: 'date' | 'urgence' | 'signalements' | 'vues';

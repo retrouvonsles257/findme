@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { UserProfile, UserActivity, UserStats, UserState } from '../types';
 
 // Helper function to safely access users state

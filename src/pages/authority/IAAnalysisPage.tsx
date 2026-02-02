@@ -41,15 +41,12 @@ import {
   Bell,
   Shield,
   Settings,
-  FileText,
   AlertTriangle,
   PieChart,
-  Download,
-  Filter,
   Sliders,
 } from 'lucide-react';
 import { useFacialRecognition, useIAAnalysis, confirmIAResult, rejectIAResult, markNeedsVerification } from '../../features/ia-analysis';
-import { checkIAServiceStatus, ResultatIA, getResultatsIA } from '../../features/ia-analysis/services/iaAPI';
+import { ResultatIA, getResultatsIA } from '../../features/ia-analysis/services/iaAPI';
 import { useAuth } from '../../features/auth';
 import { useDispatch } from 'react-redux';
 import { 
@@ -99,17 +96,6 @@ export const IAAnalysisPage: React.FC = () => {
   // Auth pour obtenir l'ID utilisateur
   const { user } = useAuth();
   
-  // Vérifier le statut du service IA
-  const [iaStatus, setIaStatus] = useState<{
-    huggingFaceConfigured: boolean;
-    modelsAvailable: Record<string, string>;
-    version: string;
-  } | null>(null);
-
-  useEffect(() => {
-    setIaStatus(checkIAServiceStatus());
-  }, []);
-  
   // Hooks IA
   const { 
     results: facialResults, 
@@ -117,7 +103,6 @@ export const IAAnalysisPage: React.FC = () => {
     isLoading: facialLoading, 
     error: facialError, 
     analyzeFacial,
-    getFacialHistory,
     isHuggingFaceConfigured,
   } = useFacialRecognition();
   
@@ -184,36 +169,55 @@ export const IAAnalysisPage: React.FC = () => {
   // Charger les photos pour la comparaison côte à côte
   const loadComparisonPhotos = async (result: ResultatIA) => {
     try {
-      // Photo du dossier
+      // Schéma réel: photo est liée à personne (id_personne) ou signalement (id_signalement)
+
+      // Photo du dossier (via dossier_disparition.id_personne)
       if (result.id_dossier) {
-        const { data: dossierPhotos } = await (supabase as any)
-          .from('photo')
-          .select('url_photo')
-          .eq('id_dossier', result.id_dossier)
-          .eq('type_photo', 'principale')
-          .limit(1);
-        
-        if (dossierPhotos && dossierPhotos.length > 0) {
-          setDossierPhoto(dossierPhotos[0].url_photo);
+        const { data: dossier } = await (supabase as any)
+          .from('dossier_disparition')
+          .select('id_personne')
+          .eq('id', result.id_dossier)
+          .single();
+
+        const personneId = dossier?.id_personne as string | undefined;
+        if (personneId) {
+          const { data: photos } = await (supabase as any)
+            .from('photo')
+            .select('url_cloudinary, url_thumbnail, est_principale, type_photo, approuvee, created_at')
+            .eq('id_personne', personneId)
+            .eq('approuvee', true)
+            .order('est_principale', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          const p = (photos || [])[0];
+          if (p?.url_thumbnail || p?.url_cloudinary) {
+            setDossierPhoto(p.url_thumbnail || p.url_cloudinary);
+          }
         }
       }
-      
+
       // Photo du signalement
+      let signalementPhotoUrl: string | null = null;
       if (result.id_signalement) {
-        const { data: signalementPhotos } = await (supabase as any)
+        const { data: photos } = await (supabase as any)
           .from('photo')
-          .select('url_photo')
+          .select('url_cloudinary, url_thumbnail, created_at')
           .eq('id_signalement', result.id_signalement)
+          .order('created_at', { ascending: false })
           .limit(1);
-        
-        if (signalementPhotos && signalementPhotos.length > 0) {
-          setSignalementPhoto(signalementPhotos[0].url_photo);
-        }
+
+        const p = (photos || [])[0];
+        signalementPhotoUrl = (p?.url_thumbnail || p?.url_cloudinary) ?? null;
       }
-      
-      // Si pas de photo signalement, utiliser l'image analysée
-      if (!signalementPhoto && result.donnees_brutes?.image_url) {
-        setSignalementPhoto(result.donnees_brutes.image_url);
+
+      // Si pas de photo signalement, utiliser l'image analysée (si fournie par le moteur IA)
+      if (!signalementPhotoUrl && (result as any).donnees_brutes?.image_url) {
+        signalementPhotoUrl = (result as any).donnees_brutes.image_url as string;
+      }
+
+      if (signalementPhotoUrl) {
+        setSignalementPhoto(signalementPhotoUrl);
       }
     } catch (err) {
       console.error('[IAPage] Erreur chargement photos:', err);
@@ -336,7 +340,7 @@ export const IAAnalysisPage: React.FC = () => {
   // Actions automatiques après confirmation
   const executePostConfirmationActions = async (result: ResultatIA) => {
     try {
-      // 1. Mettre à jour le dossier avec nouvelle localisation
+      // 1. Enregistrer une localisation associée au dossier (si coordonnées disponibles)
       if (result.id_dossier && result.id_signalement) {
         const { data: signalement } = await (supabase as any)
           .from('signalement')
@@ -344,15 +348,34 @@ export const IAAnalysisPage: React.FC = () => {
           .eq('id', result.id_signalement)
           .single();
         
-        if (signalement) {
-          await (supabase as any)
-            .from('dossier_disparition')
-            .update({
-              derniere_localisation_connue: signalement.lieu_observation,
-              derniere_activite: new Date().toISOString(),
-            })
-            .eq('id', result.id_dossier);
+        const lat = signalement?.latitude_observation as number | null | undefined;
+        const lng = signalement?.longitude_observation as number | null | undefined;
+        const lieu = (signalement?.lieu_observation as string | null | undefined) || null;
+
+        if (typeof lat === 'number' && typeof lng === 'number') {
+          await (supabase as any).from('localisation').insert({
+            latitude: lat,
+            longitude: lng,
+            source_localisation: 'prediction_ia',
+            fiabilite_source: 'moyenne',
+            type_localisation: 'signalement',
+            adresse: lieu,
+            description: 'Localisation ajoutée suite à confirmation IA',
+            date_localisation: new Date().toISOString(),
+            id_dossier: result.id_dossier,
+            id_signalement: result.id_signalement,
+            enregistree_par: user?.id,
+            created_at: new Date().toISOString(),
+          });
         }
+
+        // Mettre à jour la dernière activité du dossier
+        await (supabase as any)
+          .from('dossier_disparition')
+          .update({
+            derniere_activite: new Date().toISOString(),
+          })
+          .eq('id', result.id_dossier);
       }
       
       // 2. Enregistrer dans journal_activite
@@ -378,7 +401,7 @@ export const IAAnalysisPage: React.FC = () => {
     try {
       // Créer une entrée dans le journal comme action d'investigation
       await (supabase as any).from('journal_activite').insert({
-        type_action: 'creation_enquete',
+        type_action: 'autre',
         action_detaillee: 'Enquête lancée suite à correspondance IA',
         description: `Investigation ouverte pour résultat IA #${selectedResult.id.substring(0, 8)}`,
         id_utilisateur: user.id,
@@ -1194,7 +1217,11 @@ export const IAAnalysisPage: React.FC = () => {
                       <div className={styles.photoBox}>
                         <span className={styles.photoLabel}>{t('authority.iaAnalysis.modal.dossierPhoto')}</span>
                         {dossierPhoto ? (
-                          <img src={dossierPhoto} alt="Photo dossier" className={styles.comparisonPhoto} />
+                          <img
+                            src={dossierPhoto}
+                            alt={t('authority.iaAnalysis.alt.dossierPreview')}
+                            className={styles.comparisonPhoto}
+                          />
                         ) : (
                           <div className={styles.noPhoto}>
                             <User size={48} />
@@ -1213,7 +1240,11 @@ export const IAAnalysisPage: React.FC = () => {
                       <div className={styles.photoBox}>
                         <span className={styles.photoLabel}>{t('authority.iaAnalysis.modal.signalementPhoto')}</span>
                         {signalementPhoto ? (
-                          <img src={signalementPhoto} alt="Photo signalement" className={styles.comparisonPhoto} />
+                          <img
+                            src={signalementPhoto}
+                            alt={t('authority.iaAnalysis.alt.signalementPreview')}
+                            className={styles.comparisonPhoto}
+                          />
                         ) : (
                           <div className={styles.noPhoto}>
                             <Camera size={48} />

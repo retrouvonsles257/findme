@@ -73,10 +73,9 @@ export const PhotosEnAttentePage: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch photos that are not approved yet
-      const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-      
-      const { data, error: fetchError, count } = await (supabase as any)
+      // Récupérer toutes les photos en attente (puis filtrer/paginer côté UI pour avoir un comptage correct).
+      // Avec RLS activé, Supabase renverra déjà uniquement les lignes autorisées.
+      const { data, error: fetchError } = await (supabase as any)
         .from('photo')
         .select(`
           *,
@@ -86,10 +85,9 @@ export const PhotosEnAttentePage: React.FC = () => {
             id_dossier,
             dossier:id_dossier(id, numero_dossier, id_organisation_responsable)
           )
-        `, { count: 'exact' })
+        `)
         .eq('approuvee', false)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + ITEMS_PER_PAGE - 1);
+        .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
@@ -103,8 +101,12 @@ export const PhotosEnAttentePage: React.FC = () => {
         });
       }
 
-      setPhotos(filteredPhotos);
-      setTotalCount(count || 0);
+      const total = filteredPhotos.length;
+      const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+      const pageItems = filteredPhotos.slice(offset, offset + ITEMS_PER_PAGE);
+
+      setPhotos(pageItems);
+      setTotalCount(total);
     } catch (err: any) {
       console.error('Error loading photos:', err);
       setError(err.message || 'Erreur lors du chargement des photos');

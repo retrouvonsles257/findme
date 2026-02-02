@@ -60,7 +60,9 @@
       "en_cours": "En Cours",
       "suspendu": "Suspendu",
       "retrouve_vivant": "Retrouvé Vivant",
-      "retrouve_decede": "Retrouvé Décédé"
+      "retrouve_decede": "Retrouvé Décédé",
+      "classe_sans_suite": "Classé sans suite",
+      "transfere": "Transféré"
     },
     "urgency": {
       "critical": "CRITIQUE",
@@ -101,6 +103,8 @@
       "photos": "Photos",
       "reports": "Signalements",
       "locations": "Localisations",
+      "documents": "Documents",
+      "filiation": "Filiation",
       "history": "Historique",
       "ia": "Analyse IA"
     },
@@ -148,6 +152,177 @@
     "author": "Auteur",
     "location": "Lieu",
     "date": "Date"
+  },
+  "documents": {
+    "type": "Type",
+    "file": "Fichier",
+    "description": "Description",
+    "descriptionPlaceholder": "Détails du document (optionnel)...",
+    "confidential": "Confidentiel (réservé aux autorités)",
+    "upload": "Uploader",
+    "uploading": "Upload...",
+    "open": "Ouvrir",
+    "empty": "Aucun document",
+    "dateUpload": "Date d'upload",
+    "badges": {
+      "confidential": "Confidentiel",
+      "public": "Public"
+    },
+    "types": {
+      "plainte_officielle": "Plainte officielle",
+      "rapport_police": "Rapport de police",
+      "temoignage_ecrit": "Témoignage écrit",
+      "certificat_medical": "Certificat médical",
+      "piece_identite": "Pièce d'identité",
+      "acte_naissance": "Acte de naissance",
+      "photo_document": "Photo / document",
+      "carte_geographique": "Carte géographique",
+      "autre": "Autre"
+    }
+  },
+  "filiation": {
+    "subtitle": "Liens familiaux associés à la personne du dossier",
+    "add": "Ajouter un lien",
+    "empty": "Aucun lien de filiation",
+    "delete": "Supprimer",
+    "unknownPerson": "Personne inconnue",
+    "labels": {
+      "missingIs": "La personne disparue est {{relation}} de :",
+      "relativeIs": "{{relation}} de la personne disparue :"
+    },
+    "fields": {
+      "precision": "Précision",
+      "comment": "Commentaire"
+    },
+    "form": {
+      "type": "Type de lien",
+      "relative": "Personne liée",
+      "selectRelative": "Choisir une personne",
+      "precision": "Précision (optionnel)",
+      "comment": "Commentaire (optionnel)",
+      "confidential": "Confidentiel",
+      "public": "Visible au public",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saving": "Enregistrement..."
+    },
+    "messages": {
+      "loadError": "Erreur lors du chargement des liens",
+      "missingPerson": "Aucune personne associée à ce dossier",
+      "selectRelative": "Veuillez choisir une personne",
+      "created": "Lien créé",
+      "createError": "Erreur lors de la création du lien",
+      "confirmDelete": "Supprimer ce lien de filiation ?",
+      "deleteError": "Erreur lors de la suppression du lien"
+    },
+    "types": {
+      "pere_biologique": "Père biologique",
+      "mere_biologique": "Mère biologique",
+      "frere_biologique": "Frère biologique",
+      "soeur_biologique": "Sœur biologique",
+      "conjoint": "Conjoint(e)",
+      "enfant_biologique": "Enfant biologique",
+      "tuteur_legal": "Tuteur légal",
+      "autre": "Autre"
+    }
+  },
+  "photosModeration": {
+    "title": "Modération des photos",
+    "subtitle": "Approuvez ou rejetez les photos en attente",
+    "refresh": "Actualiser",
+    "empty": "Aucune photo en attente",
+    "moderationFormTitle": "Modération",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "open": "Ouvrir",
+    "uploadedAt": "Uploadée le",
+    "observationPlace": "Lieu d'observation",
+    "photoAlt": "Aperçu à modérer",
+    "unknownPerson": "Personne inconnue",
+    "qualityLabel": "Qualité",
+    "qualities": {
+      "excellente": "Excellente",
+      "bonne": "Bonne",
+      "moyenne": "Moyenne",
+      "faible": "Faible"
+    },
+    "types": {
+      "portrait": "Portrait",
+      "corps_entier": "Corps entier",
+      "signalement": "Signalement",
+      "lieu_disparition": "Lieu de disparition",
+      "objet_personnel": "Objet personnel",
+      "document": "Document",
+      "autre": "Autre"
+    },
+    "messages": {
+      "loadError": "Impossible de charger les photos",
+      "updateError": "Erreur lors de la mise à jour"
+    }
+  },
+  "location": {
+    "coordinates": "Coordonnées",
+    "description": "Description"
+  },
+  "map": {
+    "title": "Vue carte",
+    "subtitle": "Signalements, dossiers et alertes géolocalisés",
+    "viewMap": "Carte",
+    "viewList": "Liste",
+    "filters": "Filtres",
+    "filterLayer": "Couche",
+    "layerAll": "Tout",
+    "layerSignalements": "Signalements",
+    "layerDossiers": "Dossiers",
+    "layerAlertes": "Alertes",
+    "filterStatus": "Statut",
+    "statusAll": "Tous",
+    "statusPending": "En attente",
+    "statusInProgress": "En vérification",
+    "statusOngoing": "En cours",
+    "statusValidated": "Validé",
+    "filterPeriod": "Période",
+    "periodAll": "Toute période",
+    "period7days": "7 jours",
+    "period30days": "30 jours",
+    "period90days": "90 jours",
+    "filterUrgency": "Urgence",
+    "urgencyAll": "Toutes",
+    "urgencyCritical": "Critique",
+    "urgencyUrgent": "Urgent",
+    "urgencyNormal": "Normal",
+    "totalItems": "éléments",
+    "signalements": "Signalements",
+    "dossiers": "Dossiers",
+    "alertes": "Alertes",
+    "loading": "Chargement...",
+    "onMap": "Sur la carte",
+    "moreItems": "autres",
+    "view": "Voir",
+    "noItems": "Aucun élément",
+    "signalement": "Signalement",
+    "dossier": "Dossier",
+    "alerte": "Alerte",
+    "labels": {
+      "coordinates": "Coordonnées",
+      "date": "Date",
+      "status": "Statut",
+      "description": "Description",
+      "circumstances": "Circonstances",
+      "message": "Message"
+    },
+    "status": {
+      "pending": "En attente",
+      "new": "Nouveau",
+      "inProgress": "En vérification",
+      "validated": "Validé",
+      "rejected": "Rejeté",
+      "ongoing": "En cours",
+      "foundAlive": "Retrouvé vivant",
+      "foundDeceased": "Retrouvé décédé",
+      "suspended": "Suspendu",
+      "active": "Actif"
+    }
   },
   "createDossier": {
     "title": "Créer un Nouveau Dossier",
@@ -207,6 +382,16 @@
       "personalItemsPlaceholder": "Téléphone, sac, bijoux...",
       "lastKnownActivity": "Dernière activité connue",
       "lastActivityPlaceholder": "Qu'était en train de faire la personne avant sa disparition...",
+      "map": {
+        "title": "Localisation sur la carte",
+        "show": "Afficher la carte",
+        "hide": "Masquer la carte",
+        "searchPlaceholder": "Rechercher un lieu (ex: Bonanjo, Douala)",
+        "coords": "Coordonnées",
+        "markerLabel": "Lieu de disparition",
+        "hint": "Astuce: recherchez un lieu puis cliquez sur la carte pour ajuster précisément.",
+        "apiKeyMissing": "Clé MapTiler manquante: configurez REACT_APP_MAPTILER_API_KEY pour activer la carte."
+      },
       "familyContact": "Contact de la Famille",
       "contactName": "Nom du contact",
       "contactNamePlaceholder": "Nom complet",
@@ -262,6 +447,8 @@
       "dateLocationRequired": "La date et le lieu de disparition sont obligatoires",
       "error": "Erreur",
       "mustBeLoggedIn": "Vous devez être connecté",
+      "profileMissing": "Profil utilisateur introuvable. Veuillez compléter votre profil puis réessayer.",
+      "profileEmailMissing": "Email introuvable dans la session. Veuillez vous reconnecter.",
       "dossierCreated": "Dossier créé",
       "dossierCreatedSuccess": "Dossier {{numero}} créé avec succès",
       "creationError": "Erreur lors de la création du dossier"
@@ -341,6 +528,7 @@
     "analysis": "Analyse IA",
     "investigation": "Investigation",
     "signalements": "Signalements",
+    "photosModeration": "Modération photos",
     "donations": "Dons & Campagnes",
     "statistiques": "Statistiques"
   },
@@ -719,6 +907,10 @@
       "selectImage": "Veuillez sélectionner une image",
       "errorOccurred": "Une erreur est survenue. Veuillez réessayer."
     },
+    "alt": {
+      "dossierPreview": "Aperçu dossier",
+      "signalementPreview": "Aperçu signalement"
+    },
     "tabs": {
       "facialRecognition": "Reconnaissance Faciale",
       "similarities": "Similarités",
@@ -933,6 +1125,7 @@
       "evidenceAddedSuccess": "La preuve a été enregistrée avec succès",
       "addEvidenceError": "Erreur lors de l'ajout de la preuve",
       "fillLocation": "Veuillez remplir le lieu",
+      "coordinatesRequired": "Veuillez renseigner la latitude et la longitude",
       "locationAdded": "Localisation ajoutée",
       "locationAddedSuccess": "Le lieu a été enregistré avec succès",
       "addLocationError": "Erreur lors de l'ajout de la localisation",

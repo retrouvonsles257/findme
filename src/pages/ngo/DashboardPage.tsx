@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatCard } from '../../components/cards/StatCard';
 import { useI18n } from '../../hooks';
-import { supabase } from '../../config/supabase.config';
+import { supabase } from '../../config';
+import { useAppSelector } from '../../store/types';
+import { selectUser } from '../../features/auth/store/authSelectors';
+import { StatutDossier } from '../../@types/enums.types';
 import { NGOLayout } from './NGOLayout';
 import styles from './DashboardPage.module.css';
 
@@ -26,6 +29,8 @@ interface RecentActivity {
 export const NGODashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
+  const currentUser = useAppSelector(selectUser);
+  const userId = (currentUser as any)?.id as string | undefined;
   
   const [stats, setStats] = useState<NGOStats>({
     totalCases: 0,
@@ -42,29 +47,46 @@ export const NGODashboardPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [casesRes, campaignsRes, logsRes] = await Promise.all([
-        (supabase.from('dossiers').select('*') as any),
-        (supabase.from('campagnes').select('id', { count: 'exact', head: true }) as any),
-        (supabase.from('audit_logs').select('*').eq('entity_type', 'ngo').limit(5) as any),
+      const [
+        totalCasesRes,
+        activeCasesRes,
+        resolvedCasesRes,
+        campaignsRes,
+        logsRes,
+      ] = await Promise.all([
+        // Dossiers (modèle officiel)
+        (supabase.from('dossier_disparition').select('id', { count: 'exact', head: true }) as any),
+        (supabase.from('dossier_disparition').select('id', { count: 'exact', head: true }).eq('statut_dossier', StatutDossier.EN_COURS) as any),
+        (supabase
+          .from('dossier_disparition')
+          .select('id', { count: 'exact', head: true })
+          .in('statut_dossier', [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE]) as any),
+        // Campagnes (modèle officiel)
+        (supabase.from('campagne_sensibilisation').select('id', { count: 'exact', head: true }) as any),
+        // Activité récente (modèle officiel)
+        userId
+          ? ((supabase as any)
+              .from('journal_activite')
+              .select('id, type_action, description, date_action')
+              .eq('id_utilisateur', userId)
+              .order('date_action', { ascending: false })
+              .limit(5) as any)
+          : Promise.resolve({ data: [] }),
       ]);
 
-      const casesData = casesRes.data || [];
-      const activeCases = casesData.filter((c: any) => c.statut === 'active').length;
-      const resolvedCases = casesData.filter((c: any) => c.statut === 'resolved').length;
-
       setStats({
-        totalCases: casesData.length,
-        activeCases,
-        resolvedCases,
+        totalCases: totalCasesRes.count || 0,
+        activeCases: activeCasesRes.count || 0,
+        resolvedCases: resolvedCasesRes.count || 0,
         totalCampaigns: campaignsRes.count || 0,
       });
 
       const activities: RecentActivity[] = (logsRes.data || []).map((log: any) => ({
-        id: log.id,
-        type: log.action_type,
-        title: log.action_type,
+        id: String(log.id),
+        type: log.type_action,
+        title: log.type_action,
         description: log.description || '',
-        timestamp: new Date(log.timestamp).toLocaleString('fr-FR'),
+        timestamp: new Date(log.date_action).toLocaleString('fr-FR'),
         icon: '📋',
       }));
 
@@ -75,7 +97,7 @@ export const NGODashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, userId]);
 
   useEffect(() => {
     loadDashboardData();
@@ -93,7 +115,7 @@ export const NGODashboardPage: React.FC = () => {
       title: t('ngo.viewCampaigns'),
       description: t('ngo.manageCampaigns'),
       icon: '📢',
-      action: () => navigate('/ngo/campaigns'),
+      action: () => navigate('/ngo/campagnes'),
       color: '#764ba2',
     },
     {

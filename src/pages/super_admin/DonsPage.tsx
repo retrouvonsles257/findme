@@ -39,8 +39,8 @@ interface Don {
   numero_recu?: string;
 }
 
-// Types de statut de paiement: 'en_attente' | 'complete' | 'echoue' | 'rembourse'
-// Types de mode de paiement: 'carte' | 'mobile_money' | 'virement' | 'especes' | 'autre'
+// Types de statut de paiement (modèle officiel): 'en_attente' | 'reussi' | 'echoue' | 'rembourse' | 'annule'
+// Types de mode de paiement (modèle officiel): 'carte_bancaire' | 'mobile_money' | 'virement' | 'paypal' | 'autre'
 
 const ITEMS_PER_PAGE = 15;
 
@@ -70,9 +70,9 @@ export const SuperAdminDonsPage: React.FC = () => {
       // Stats globales
       const [totalResult, completedResult, pendingResult, sumResult] = await Promise.all([
         (supabase as any).from('don').select('id', { count: 'exact', head: true }),
-        (supabase as any).from('don').select('id', { count: 'exact', head: true }).eq('statut_paiement', 'complete'),
+        (supabase as any).from('don').select('id', { count: 'exact', head: true }).eq('statut_paiement', 'reussi'),
         (supabase as any).from('don').select('id', { count: 'exact', head: true }).eq('statut_paiement', 'en_attente'),
-        (supabase as any).from('don').select('montant').eq('statut_paiement', 'complete'),
+        (supabase as any).from('don').select('montant').eq('statut_paiement', 'reussi'),
       ]);
 
       const completedDons = sumResult.data || [];
@@ -201,9 +201,10 @@ export const SuperAdminDonsPage: React.FC = () => {
   const getStatutColor = (statut: string) => {
     const colors: Record<string, string> = {
       en_attente: 'warning',
-      complete: 'success',
+      reussi: 'success',
       echoue: 'danger',
       rembourse: 'info',
+      annule: 'default',
     };
     return colors[statut] || 'default';
   };
@@ -211,19 +212,20 @@ export const SuperAdminDonsPage: React.FC = () => {
   const getStatutLabel = (statut: string) => {
     const labels: Record<string, string> = {
       en_attente: 'En attente',
-      complete: 'Complété',
+      reussi: 'Réussi',
       echoue: 'Échoué',
       rembourse: 'Remboursé',
+      annule: 'Annulé',
     };
     return labels[statut] || statut;
   };
 
   const getModeLabel = (mode: string) => {
     const labels: Record<string, string> = {
-      carte: 'Carte bancaire',
+      carte_bancaire: 'Carte bancaire',
       mobile_money: 'Mobile Money',
       virement: 'Virement',
-      especes: 'Espèces',
+      paypal: 'PayPal',
       autre: 'Autre',
     };
     return labels[mode] || mode;
@@ -295,19 +297,21 @@ export const SuperAdminDonsPage: React.FC = () => {
             <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
               <option value="">Tous statuts</option>
               <option value="en_attente">En attente</option>
-              <option value="complete">Complété</option>
+              <option value="reussi">Réussi</option>
               <option value="echoue">Échoué</option>
               <option value="rembourse">Remboursé</option>
+              <option value="annule">Annulé</option>
             </select>
           </div>
           <div className={styles['sa-dons__filter-group']}>
             <CreditCard size={16} />
             <select value={filterMode} onChange={(e) => { setFilterMode(e.target.value); setCurrentPage(1); }}>
               <option value="">Tous modes</option>
-              <option value="carte">Carte</option>
+              <option value="carte_bancaire">Carte bancaire</option>
               <option value="mobile_money">Mobile Money</option>
               <option value="virement">Virement</option>
-              <option value="especes">Espèces</option>
+              <option value="paypal">PayPal</option>
+              <option value="autre">Autre</option>
             </select>
           </div>
         </div>

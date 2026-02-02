@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import type { RootState } from '@/store/types';
+import type { RootState } from '../../../store/types';
 import type { ResultatIA } from '../services/iaAPI';
 
 // ============================================

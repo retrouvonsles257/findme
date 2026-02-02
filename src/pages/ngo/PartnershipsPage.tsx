@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
-import { supabase } from '../../config/supabase.config';
 import { NGOLayout } from './NGOLayout';
 import styles from './PartnershipsPage.module.css';
 
@@ -17,7 +15,6 @@ interface Partnership {
 }
 
 export const NGOPartnershipsPage: React.FC = () => {
-  const navigate = useNavigate();
   const { t } = useI18n();
   const [partnerships, setPartnerships] = useState<Partnership[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,20 +30,9 @@ export const NGOPartnershipsPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from('partenariats_ngo').select('*');
-
-      if (statusFilter !== 'all') {
-        query = query.eq('statut', statusFilter);
-      }
-
-      if (searchTerm) {
-        query = query.or(`organisation_name.ilike.%${searchTerm}%,contact_person.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error: err } = await (query.order('date_partnership', { ascending: false }) as any);
-
-      if (err) throw err;
-      setPartnerships(data || []);
+      // NOTE: le modèle SQL officiel ne contient pas de table `partenariats_ngo`.
+      // On désactive la requête pour éviter un écran cassé et on affiche un placeholder.
+      setPartnerships([]);
       setCurrentPage(1);
     } catch (err) {
       console.error('Erreur:', err);
@@ -54,7 +40,7 @@ export const NGOPartnershipsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, statusFilter, t]);
+  }, [t]);
 
   useEffect(() => {
     loadPartnerships();
@@ -86,6 +72,10 @@ export const NGOPartnershipsPage: React.FC = () => {
   return (
     <NGOLayout title={t('ngo.partnershipsTitle')}>
       <p className={styles['ngo-partnerships__subtitle']}>{t('ngo.partnershipsSubtitle')}</p>
+
+      <div className={styles['ngo-partnerships__error-message']}>
+        ℹ️ Cette page n’est pas encore branchée côté base (table `partenariats_ngo` absente du modèle SQL).
+      </div>
 
       {error && (
         <div className={styles['ngo-partnerships__error-message']}>

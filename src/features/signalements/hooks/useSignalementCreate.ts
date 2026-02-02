@@ -7,7 +7,7 @@
 
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch } from '@/store/types';
+import type { AppDispatch } from '../../../store/types';
 import { createNewSignalement } from '../store/signalementSlice';
 import { selectIsLoading, selectError } from '../store/signalementSelectors';
 import type { SignalementCreatePayload, Signalement } from '../types';

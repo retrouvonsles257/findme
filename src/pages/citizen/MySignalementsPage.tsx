@@ -153,7 +153,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
           </div>
           <button
             className={styles['signalements__new-button']}
-            onClick={() => navigate('/citizen/new-signalement')}
+            onClick={() => navigate('/citizen/dossiers?mode=report')}
           >
             <Plus size={18} />
             {t('citizen.newReport')}
@@ -286,7 +286,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
                 </p>
                 <button
                   className={styles['signalements__empty-button']}
-                  onClick={() => navigate('/citizen/new-signalement')}
+                  onClick={() => navigate('/citizen/dossiers?mode=report')}
                 >
                   <Plus size={18} />
                   {t('citizen.createFirstReport')}

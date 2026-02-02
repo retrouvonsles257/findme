@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
-import { supabase } from '../../config/supabase.config';
 import { NGOLayout } from './NGOLayout';
 import styles from './ResourcesPage.module.css';
 
@@ -16,7 +14,6 @@ interface Resource {
 }
 
 export const NGOResourcesPage: React.FC = () => {
-  const navigate = useNavigate();
   const { t } = useI18n();
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,20 +29,9 @@ export const NGOResourcesPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from('ressources_ngo').select('*');
-
-      if (typeFilter !== 'all') {
-        query = query.eq('type', typeFilter);
-      }
-
-      if (searchTerm) {
-        query = query.or(`titre.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error: err } = await (query.order('date_creation', { ascending: false }) as any);
-
-      if (err) throw err;
-      setResources(data || []);
+      // NOTE: le modèle SQL officiel ne contient pas de table `ressources_ngo`.
+      // On désactive la requête pour éviter un écran cassé et on affiche un placeholder.
+      setResources([]);
       setCurrentPage(1);
     } catch (err) {
       console.error('Erreur:', err);
@@ -53,7 +39,7 @@ export const NGOResourcesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, typeFilter, t]);
+  }, [t]);
 
   useEffect(() => {
     loadResources();
@@ -95,6 +81,10 @@ export const NGOResourcesPage: React.FC = () => {
   return (
     <NGOLayout title={t('ngo.resourcesTitle')}>
       <p className={styles['ngo-resources__subtitle']}>{t('ngo.resourcesSubtitle')}</p>
+
+      <div className={styles['ngo-resources__error-message']}>
+        ℹ️ Cette page n’est pas encore branchée côté base (table `ressources_ngo` absente du modèle SQL).
+      </div>
 
       {error && (
         <div className={styles['ngo-resources__error-message']}>

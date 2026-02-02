@@ -7,8 +7,6 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { ModerationLayout } from './ModerationLayout';
@@ -80,8 +78,6 @@ interface VerificationFilters {
 }
 
 export const IdentityVerificationPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
   // State

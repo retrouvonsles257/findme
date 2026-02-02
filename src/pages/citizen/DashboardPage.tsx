@@ -116,7 +116,7 @@ export const CitizenDashboardPage: React.FC = () => {
       title: t('citizen.newReport'),
       description: isVerified ? t('citizen.unlimitedReports') : t('citizen.reportsModerationNoticeShort'),
       icon: Plus,
-      onClick: () => navigate('/citizen/new-signalement'),
+      onClick: () => navigate('/citizen/dossiers?mode=report'),
       primary: true,
     },
     {

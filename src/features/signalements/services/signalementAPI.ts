@@ -253,6 +253,16 @@ export async function addSignalementVerification(
     .from('signalement')
     .update({
       statut_validation: newStatut,
+      verifie_par: verificateurId,
+      date_verification: new Date().toISOString(),
+      commentaire_verification: [
+        `Décision: ${payload.decision}`,
+        payload.raison ? `Raison: ${payload.raison}` : null,
+        typeof payload.score_confiance === 'number' ? `Score: ${payload.score_confiance}` : null,
+        payload.avis ? `Avis: ${payload.avis}` : null,
+      ]
+        .filter(Boolean)
+        .join(' | '),
       updated_at: new Date().toISOString(),
     })
     .eq('id', signalementId);
@@ -344,41 +354,69 @@ export async function getSignalementsEnAttente(
   page: number = 1,
   pageSize: number = 20
 ): Promise<{ data: Signalement[]; total: number }> {
-  // Récupérer TOUS les signalements en attente d'abord (pour un comptage correct)
-  const { data: allData, error: fetchError } = await supabase
-    .from('signalement')
-    .select(`
-      *,
-      dossier:id_dossier(numero_dossier, id_organisation_responsable)
-    `)
-    .eq('statut_validation', 'en_attente')
-    .order('created_at', { ascending: false });
-
-  if (fetchError) throw fetchError;
-
-  let allSignalements = allData || [];
-  
-  // Filtrer par organisation si fournie
-  if (organisationId) {
-    allSignalements = allSignalements.filter(
-      (s: any) => s.dossier?.id_organisation_responsable === organisationId
-    );
-  }
-
-  // Calculer le total APRÈS filtrage
-  const total = allSignalements.length;
-  
-  // Appliquer la pagination
+  // Tentative optimisée (pagination DB). Si le filtrage relationnel échoue selon la config PostgREST,
+  // fallback sur l’ancienne logique (fetch all + filter).
   const start = (page - 1) * pageSize;
-  const paginatedData = allSignalements.slice(start, start + pageSize);
+  const end = start + pageSize - 1;
 
-  return {
-    data: paginatedData.map((s: any) => ({
-      ...s,
-      numero_dossier: s.dossier?.numero_dossier || 'N/A',
-    })),
-    total,
-  };
+  try {
+    let query = supabase
+      .from('signalement')
+      .select(
+        `
+        *,
+        dossier:id_dossier!inner(numero_dossier, id_organisation_responsable)
+      `,
+        { count: 'exact' },
+      )
+      .eq('statut_validation', 'en_attente')
+      .order('created_at', { ascending: false });
+
+    if (organisationId) {
+      query = query.eq('dossier.id_organisation_responsable', organisationId) as any;
+    }
+
+    const { data, error, count } = await (query as any).range(start, end);
+    if (error) throw error;
+
+    return {
+      data: (data || []).map((s: any) => ({
+        ...s,
+        numero_dossier: s.dossier?.numero_dossier || 'N/A',
+      })),
+      total: count || 0,
+    };
+  } catch {
+    // Fallback (robuste, mais plus lourd)
+    const { data: allData, error: fetchError } = await supabase
+      .from('signalement')
+      .select(`
+        *,
+        dossier:id_dossier(numero_dossier, id_organisation_responsable)
+      `)
+      .eq('statut_validation', 'en_attente')
+      .order('created_at', { ascending: false });
+
+    if (fetchError) throw fetchError;
+
+    let allSignalements = allData || [];
+    if (organisationId) {
+      allSignalements = allSignalements.filter(
+        (s: any) => s.dossier?.id_organisation_responsable === organisationId,
+      );
+    }
+
+    const total = allSignalements.length;
+    const paginatedData = allSignalements.slice(start, start + pageSize);
+
+    return {
+      data: paginatedData.map((s: any) => ({
+        ...s,
+        numero_dossier: s.dossier?.numero_dossier || 'N/A',
+      })),
+      total,
+    };
+  }
 }
 
 /**

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { DonationForm, DonationSuccess } from '../../features/dons/components';
+import * as donService from '../../features/dons/services/donService';
 import styles from './DonatePage.module.css';
 
 interface DonationPackage {
@@ -14,10 +16,15 @@ interface DonationPackage {
 export const DonatePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [donationType, setDonationType] = useState('once');
+  const [createdDonId, setCreatedDonId] = useState<string | null>(null);
+  const [createdDon, setCreatedDon] = useState<any | null>(null);
+  const [loadingDon, setLoadingDon] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const donationPackages: DonationPackage[] = [
     {
@@ -50,21 +57,54 @@ export const DonatePage: React.FC = () => {
     },
   ];
 
-  const handleDonate = () => {
-    const amount = selectedAmount || parseInt(customAmount);
-    if (!amount || amount <= 0) {
-      alert(t('donate.error_amount'));
-      return;
+  const computedAmount = useMemo(() => {
+    const parsed = parseInt(customAmount || '', 10);
+    const amount = selectedAmount ?? (Number.isFinite(parsed) ? parsed : null);
+    return amount && amount > 0 ? amount : null;
+  }, [customAmount, selectedAmount]);
+
+  const prefilledType = useMemo(() => {
+    // Aligné avec l'ENUM SQL: type_don ('ponctuel','mensuel','annuel',...)
+    return donationType === 'monthly' ? 'mensuel' : 'ponctuel';
+  }, [donationType]);
+
+  const loadCreatedDon = useCallback(async (donId: string) => {
+    try {
+      setLoadingDon(true);
+      setLoadError(null);
+      const don = await donService.getDonWithDetails(donId);
+      setCreatedDon(don);
+    } catch (e: any) {
+      setLoadError(e?.message || 'Erreur lors du chargement du don');
+    } finally {
+      setLoadingDon(false);
     }
+  }, []);
 
-    // Simulate payment gateway integration
-    console.log('Processing donation:', {
-      amount,
-      type: donationType,
-    });
+  useEffect(() => {
+    if (createdDonId) {
+      loadCreatedDon(createdDonId);
+    }
+  }, [createdDonId, loadCreatedDon]);
 
-    alert(t('donate.payment_redirect'));
-  };
+  // Retour gateway (ex: CinetPay) : /donate?transaction_id=XXXX
+  useEffect(() => {
+    const trx = searchParams.get('transaction_id');
+    if (!trx || createdDonId) return;
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const don = await donService.getDonByReferenceTransaction(trx);
+        if (!cancelled) setCreatedDonId(don.id);
+      } catch {
+        // ignore
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, createdDonId]);
 
   return (
     <div className={styles.donatePage}>
@@ -94,6 +134,35 @@ export const DonatePage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Success */}
+        {createdDonId && (
+          <div className={styles.donationSection}>
+            {loadError && (
+              <div style={{ padding: 12, borderRadius: 8, background: '#fff3cd', color: '#664d03' }}>
+                {loadError}
+              </div>
+            )}
+            {!loadingDon && (
+              <DonationSuccess
+                donationAmount={createdDon?.montant}
+                donationCurrency={createdDon?.devise || 'XAF'}
+                donorName={
+                  createdDon?.donateur_anonyme
+                    ? 'Anonyme'
+                    : createdDon?.nom_donateur || createdDon?.organisation_donatrice || undefined
+                }
+                transactionId={createdDon?.reference_transaction || undefined}
+                receiptNumber={createdDon?.numero_recu || undefined}
+                status={createdDon?.statut_paiement || undefined}
+                onClose={() => {
+                  setCreatedDonId(null);
+                  setCreatedDon(null);
+                }}
+              />
+            )}
+          </div>
+        )}
 
         <div className={styles.donationSection}>
           <div className={styles.typeSelection}>
@@ -156,12 +225,11 @@ export const DonatePage: React.FC = () => {
             <div className={styles.infoNote}>
               <p>{t('donate.info_optional')}</p>
             </div>
-            <button 
-              className={styles.donateBtn}
-              onClick={handleDonate}
-            >
-              {t('donate.proceed_payment')}
-            </button>
+            <DonationForm
+              prefilledAmount={computedAmount || undefined}
+              prefilledType={prefilledType}
+              onSuccess={(donId) => setCreatedDonId(donId)}
+            />
           </div>
         </div>
 
