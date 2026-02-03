@@ -19,13 +19,11 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
-import { Card, CardBody, CardHeader } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
-import { Badge } from '../../components/common/Badge';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole, StatutDossier, NiveauUrgence } from '../../@types/enums.types';
+import { getAdminOrganisationDossiers } from '../../features/admin-organisation/services';
 
 import styles from './DossiersPage.module.css';
 
@@ -45,34 +43,43 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
   const { t } = useI18n();
   
   const currentUser = useAppSelector(selectCurrentUser);
-  const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [filteredDossiers, setFilteredDossiers] = useState<Dossier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterUrgence, setFilterUrgence] = useState<string>('all');
 
-  const filterDossiersFunc = useCallback(() => {
-    let filtered = dossiers;
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        d =>
-          d.nom_personne.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          d.numero.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const loadDossiers = useCallback(async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    try {
+      setLoading(true);
+      const rows = await getAdminOrganisationDossiers(orgId, {
+        search: searchTerm || undefined,
+        statut: filterStatus !== 'all' ? filterStatus : undefined,
+        urgence: filterUrgence !== 'all' ? filterUrgence : undefined,
+      });
+      const mapped: Dossier[] = rows.map((r) => ({
+        id: r.id,
+        numero: r.numero_dossier || `#${r.id.slice(0, 8)}`,
+        nom_personne:
+          (r.personne as any)?.nom_complet ||
+          [((r.personne as any)?.nom ?? ''), ((r.personne as any)?.prenom ?? '')].filter(Boolean).join(' ').trim() ||
+          '—',
+        date_disparition: r.date_disparition ? r.date_disparition.split('T')[0] : '',
+        statut: (r.statut_dossier as StatutDossier) || StatutDossier.EN_COURS,
+        urgence: (r.niveau_urgence as NiveauUrgence) || NiveauUrgence.NORMAL,
+        localisation: r.ville_disparition || r.lieu_disparition || '—',
+        date_creation: r.created_at ? r.created_at.split('T')[0] : '',
+      }));
+      setFilteredDossiers(mapped);
+    } catch (error) {
+      console.error('Erreur lors du chargement des dossiers:', error);
+      setFilteredDossiers([]);
+    } finally {
+      setLoading(false);
     }
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(d => d.statut === filterStatus);
-    }
-
-    if (filterUrgence !== 'all') {
-      filtered = filtered.filter(d => d.urgence === filterUrgence);
-    }
-
-    setFilteredDossiers(filtered);
-  }, [searchTerm, filterStatus, filterUrgence, dossiers]);
+  }, [currentUser?.organisation_id, searchTerm, filterStatus, filterUrgence]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -80,93 +87,17 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
       return;
     }
     loadDossiers();
-  }, [currentUser, navigate]);
-
-  useEffect(() => {
-    filterDossiersFunc();
-  }, [searchTerm, filterStatus, filterUrgence, dossiers, filterDossiersFunc]);
-
-  const loadDossiers = async () => {
-    try {
-      setLoading(true);
-      const mockDossiers: Dossier[] = [
-        {
-          id: '1',
-          numero: '#2024-001',
-          nom_personne: 'Jean Dupont',
-          date_disparition: '2024-01-10',
-          statut: StatutDossier.EN_COURS,
-          urgence: NiveauUrgence.URGENT,
-          localisation: 'Dakar',
-          date_creation: '2024-01-11',
-        },
-        {
-          id: '2',
-          numero: '#2024-002',
-          nom_personne: 'Mariam Traoré',
-          date_disparition: '2024-01-12',
-          statut: StatutDossier.EN_COURS,
-          urgence: NiveauUrgence.CRITIQUE,
-          localisation: 'Thiès',
-          date_creation: '2024-01-13',
-        },
-        {
-          id: '3',
-          numero: '#2024-003',
-          nom_personne: 'Amara Diallo',
-          date_disparition: '2023-12-20',
-          statut: StatutDossier.RETROUVE_VIVANT,
-          urgence: NiveauUrgence.NORMAL,
-          localisation: 'Kaolack',
-          date_creation: '2023-12-21',
-        },
-      ];
-      setDossiers(mockDossiers);
-      setFilteredDossiers(mockDossiers);
-    } catch (error) {
-      console.error('Erreur lors du chargement des dossiers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: '📊' },
-    {
-      label: t('admin.dossiers'),
-      href: '/admin/dossiers',
-      icon: '📁',
-      isActive: true,
-    },
-    { label: t('admin.rapports'), href: '/admin/rapports', icon: '📋' },
-    { label: t('admin.utilisateurs'), href: '/admin/utilisateurs', icon: '👥' },
-    { label: t('admin.statistiques'), href: '/admin/statistiques', icon: '📈' },
-    { label: t('admin.parametres'), href: '/admin/parametres', icon: '⚙️' },
-  ];
+  }, [currentUser, navigate, loadDossiers]);
 
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.dossiers')} activeNav="dossiers">
       <div className={styles.dossiers}>
-        {/* Header */}
         <div className={styles.dossiers__header}>
           <div>
-            <h1 className={styles.dossiers__title}>
+            <h2 className={styles.dossiers__title}>
               <Folder className={styles.dossiers__titleIcon} />
               {t('admin.dossiers')}
-            </h1>
+            </h2>
             <p className={styles.dossiers__subtitle}>
               {t('admin.manageMissingPersonFiles')}
             </p>
@@ -312,7 +243,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 

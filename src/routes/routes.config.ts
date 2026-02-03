@@ -104,11 +104,11 @@ export const NGO_ROUTES = {
 export const ADMIN_ROUTES = {
   BASE: '/admin',
   DASHBOARD: '/admin/dashboard',
-  USERS: '/admin/users',
+  USERS: '/admin/utilisateurs',
   DOSSIERS: '/admin/dossiers',
   RAPPORTS: '/admin/rapports',
   STATISTIQUES: '/admin/statistiques',
-  SETTINGS: '/admin/settings',
+  SETTINGS: '/admin/parametres',
   ROLES: '/admin/roles',
   AUDIT_LOGS: '/admin/audit-logs'
 } as const;

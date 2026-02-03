@@ -5,16 +5,23 @@
  * =====================================================
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { StatCard } from '../../components/cards/StatCard';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
+import {
+  getAdminDashboardStats,
+  getAdminOrganisationUrgencyCounts,
+  getAdminStatsExtended,
+  getAdminMonthlyActivity,
+  type AdminMonthlyActivityRow,
+} from '../../features/admin-organisation/services';
 import {
   BarChart3,
   TrendingUp,
@@ -24,7 +31,6 @@ import {
   Clock,
   Loader2,
   Calendar,
-  AlertCircle
 } from 'lucide-react';
 import styles from './StatistiquesPage.module.css';
 
@@ -35,6 +41,56 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
+  const [statsData, setStatsData] = useState({
+    totalDossiers: 0,
+    dossiersResolus: 0,
+    personnesRetrouvees: 0,
+    utilisateurs: 0,
+    rapportsRecents: 0,
+    avgResolutionDays: 0,
+  });
+  const [urgencyCounts, setUrgencyCounts] = useState({
+    critique: 0,
+    urgent: 0,
+    normal: 0,
+    faible: 0,
+  });
+  const [extended, setExtended] = useState({
+    avgResolutionDays: 0,
+    newDossiersThisMonth: 0,
+    resolvedThisMonth: 0,
+    foundThisMonth: 0,
+  });
+  const [monthlyActivity, setMonthlyActivity] = useState<AdminMonthlyActivityRow[]>([]);
+
+  const loadStatistics = useCallback(async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    try {
+      setLoading(true);
+      const [data, urgency, ext, monthly] = await Promise.all([
+        getAdminDashboardStats(orgId),
+        getAdminOrganisationUrgencyCounts(orgId),
+        getAdminStatsExtended(orgId),
+        getAdminMonthlyActivity(orgId, 6),
+      ]);
+      setStatsData({
+        totalDossiers: data.totalDossiers,
+        dossiersResolus: data.dossiersResolus,
+        personnesRetrouvees: data.personnesRetrouvees,
+        utilisateurs: data.utilisateurs,
+        rapportsRecents: data.rapportsRecents,
+        avgResolutionDays: ext.avgResolutionDays,
+      });
+      setUrgencyCounts(urgency);
+      setExtended(ext);
+      setMonthlyActivity(monthly);
+    } catch (error) {
+      console.error('Erreur lors du chargement des statistiques:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser?.organisation_id]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -42,80 +98,49 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
       return;
     }
     loadStatistics();
-  }, [currentUser, navigate, period]);
-
-  const loadStatistics = async () => {
-    try {
-      setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: 'LayoutDashboard' },
-    { label: t('admin.dossiers'), href: '/admin/dossiers', icon: 'FolderOpen' },
-    { label: t('admin.rapports'), href: '/admin/rapports', icon: 'FileText' },
-    { label: t('admin.utilisateurs'), href: '/admin/utilisateurs', icon: 'Users' },
-    {
-      label: t('admin.statistiques'),
-      href: '/admin/statistiques',
-      icon: 'BarChart3',
-      isActive: true,
-    },
-    { label: t('admin.parametres'), href: '/admin/parametres', icon: 'Settings' },
-  ];
+  }, [currentUser, navigate, period, loadStatistics]);
 
   const stats = [
     {
       icon: <FolderOpen />,
       title: t('admin.totalDossiers'),
-      value: '142',
-      trend: { value: 8, isPositive: true },
+      value: String(statsData.totalDossiers),
+      trend: { value: extended.newDossiersThisMonth, isPositive: true },
       period: 'month',
     },
     {
       icon: <CheckCircle2 />,
       title: t('admin.resolvedDossiers'),
-      value: '35',
-      trend: { value: 5, isPositive: true },
+      value: String(statsData.dossiersResolus),
+      trend: { value: extended.resolvedThisMonth, isPositive: true },
       period: 'month',
     },
     {
       icon: <Users />,
       title: t('admin.foundPersons'),
-      value: '32',
-      trend: { value: 4, isPositive: true },
+      value: String(statsData.personnesRetrouvees),
+      trend: { value: extended.foundThisMonth, isPositive: true },
       period: 'month',
     },
     {
       icon: <Clock />,
       title: t('admin.avgResolutionTime'),
-      value: '18 jours',
-      trend: { value: 3, isPositive: false },
+      value: `${statsData.avgResolutionDays} ${t('admin.days')}`,
+      trend: { value: 0, isPositive: true },
       period: 'month',
     },
   ];
 
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.statistiques')} activeNav="statistiques">
       <div className={styles.statistiques__container}>
+        {loading ? (
+          <div className={styles.statistiques__loading}>
+            <Loader2 size={32} className={styles.statistiques__loadingSpin} />
+            <p>{t('common.loading')}</p>
+          </div>
+        ) : (
+          <>
         {/* Header */}
         <div className={styles.statistiques__header}>
           <div className={styles.statistiques__headerContent}>
@@ -176,7 +201,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
 
         {/* Analytics Grid */}
         <div className={styles.statistiques__analyticsGrid}>
-          {/* Distribution by type */}
+          {/* Distribution by urgency (bar chart) */}
           <Card>
             <CardHeader>
               <div className={styles.statistiques__cardHeader}>
@@ -185,9 +210,25 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
               </div>
             </CardHeader>
             <CardBody>
-              <div className={styles.statistiques__chartPlaceholder}>
-                <BarChart3 size={48} />
-                <p>{t('admin.chartWillBeDisplayedHere')}</p>
+              <div className={styles.statistiques__barChart}>
+                {(['critique', 'urgent', 'normal', 'faible'] as const).map(key => {
+                  const value = urgencyCounts[key] ?? 0;
+                  const max = Math.max(1, urgencyCounts.critique + urgencyCounts.urgent + urgencyCounts.normal + urgencyCounts.faible);
+                  const pct = max ? Math.round((value / max) * 100) : 0;
+                  const colors: Record<string, string> = { critique: '#dc2626', urgent: '#ea580c', normal: '#1d4ed8', faible: '#10b981' };
+                  return (
+                    <div key={key} className={styles.statistiques__barRow}>
+                      <span className={styles.statistiques__barLabel}>{t(`admin.urgence.${key}`)}</span>
+                      <div className={styles.statistiques__barTrack}>
+                        <div
+                          className={styles.statistiques__barFill}
+                          style={{ width: `${pct}%`, backgroundColor: colors[key] }}
+                        />
+                      </div>
+                      <span className={styles.statistiques__barValue}>{value}</span>
+                    </div>
+                  );
+                })}
               </div>
             </CardBody>
           </Card>
@@ -203,18 +244,34 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
             <CardBody>
               <div className={styles.statistiques__progressContainer}>
                 <div className={styles.statistiques__progressBar}>
-                  <div className={styles.statistiques__progress} style={{ width: '65%' }}>
-                    65%
+                  <div
+                    className={styles.statistiques__progress}
+                    style={{
+                      width: `${
+                        statsData.totalDossiers > 0
+                          ? Math.round(
+                              (statsData.dossiersResolus / statsData.totalDossiers) * 100
+                            )
+                          : 0
+                      }%`,
+                    }}
+                  >
+                    {statsData.totalDossiers > 0
+                      ? Math.round(
+                          (statsData.dossiersResolus / statsData.totalDossiers) * 100
+                        )
+                      : 0}
+                    %
                   </div>
                 </div>
                 <p className={styles.statistiques__progressText}>
-                  {t('admin.casesResolved')}: 65 / 100
+                  {t('admin.casesResolved')}: {statsData.dossiersResolus} / {statsData.totalDossiers}
                 </p>
               </div>
             </CardBody>
           </Card>
 
-          {/* Monthly Activity */}
+          {/* Monthly Activity (bar chart) */}
           <Card>
             <CardHeader>
               <div className={styles.statistiques__cardHeader}>
@@ -223,54 +280,37 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
               </div>
             </CardHeader>
             <CardBody>
-              <div className={styles.statistiques__chartPlaceholder}>
-                <Calendar size={48} />
-                <p>{t('admin.chartWillBeDisplayedHere')}</p>
+              <div className={styles.statistiques__monthlyChart}>
+                {monthlyActivity.length === 0 ? (
+                  <p className={styles.statistiques__chartEmpty}>{t('admin.chartWillBeDisplayedHere')}</p>
+                ) : (
+                  <>
+                    <div className={styles.statistiques__monthlyBars}>
+                      {monthlyActivity.map(row => {
+                        const maxVal = Math.max(1, ...monthlyActivity.map(r => r.newDossiers + r.resolved));
+                        const newH = (row.newDossiers / maxVal) * 100;
+                        const resH = (row.resolved / maxVal) * 100;
+                        return (
+                          <div key={row.month} className={styles.statistiques__monthlyBarGroup}>
+                            <div className={styles.statistiques__monthlyBarStack}>
+                              <div title={`${row.newDossiers} nouveaux`} style={{ height: `${newH}%`, backgroundColor: '#1d4ed8' }} />
+                              <div title={`${row.resolved} résolus`} style={{ height: `${resH}%`, backgroundColor: '#10b981' }} />
+                            </div>
+                            <span className={styles.statistiques__monthlyLabel}>{row.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className={styles.statistiques__monthlyLegend}>
+                      <span><span className={styles.statistiques__legendDot} style={{ background: '#1d4ed8' }} /> {t('admin.newDossier')}</span>
+                      <span><span className={styles.statistiques__legendDot} style={{ background: '#10b981' }} /> {t('admin.resolvedDossiers')}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </CardBody>
           </Card>
 
-          {/* Urgency Breakdown */}
-          <Card>
-            <CardHeader>
-              <div className={styles.statistiques__cardHeader}>
-                <AlertCircle className={styles.statistiques__cardIcon} />
-                <h3 className={styles.statistiques__cardTitle}>{t('admin.urgencyBreakdown')}</h3>
-              </div>
-            </CardHeader>
-            <CardBody>
-              <div className={styles.statistiques__urgencyList}>
-                <div className={styles.statistiques__urgencyItem}>
-                  <span className={styles.statistiques__urgencyLabel} style={{ color: '#dc2626' }}>
-                    <AlertCircle size={16} />
-                    {t('admin.critical')}
-                  </span>
-                  <span className={styles.statistiques__urgencyValue}>8</span>
-                </div>
-                <div className={styles.statistiques__urgencyItem}>
-                  <span className={styles.statistiques__urgencyLabel} style={{ color: '#ea580c' }}>
-                    <AlertCircle size={16} />
-                    {t('admin.urgent')}
-                  </span>
-                  <span className={styles.statistiques__urgencyValue}>24</span>
-                </div>
-                <div className={styles.statistiques__urgencyItem}>
-                  <span className={styles.statistiques__urgencyLabel} style={{ color: '#1d4ed8' }}>
-                    <AlertCircle size={16} />
-                    {t('admin.normal')}
-                  </span>
-                  <span className={styles.statistiques__urgencyValue}>89</span>
-                </div>
-                <div className={styles.statistiques__urgencyItem}>
-                  <span className={styles.statistiques__urgencyLabel} style={{ color: '#10b981' }}>
-                    <AlertCircle size={16} />
-                    {t('admin.low')}
-                  </span>
-                  <span className={styles.statistiques__urgencyValue}>21</span>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
         </div>
 
         {/* Performance Summary */}
@@ -285,25 +325,27 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
             <div className={styles.statistiques__performanceGrid}>
               <div className={styles.statistiques__performanceMetric}>
                 <span className={styles.statistiques__metricLabel}>{t('admin.avgResponseTime')}</span>
-                <span className={styles.statistiques__metricValue}>2.5 heures</span>
+                <span className={styles.statistiques__metricValue}>—</span>
               </div>
               <div className={styles.statistiques__performanceMetric}>
                 <span className={styles.statistiques__metricLabel}>{t('admin.teamProductivity')}</span>
-                <span className={styles.statistiques__metricValue}>92%</span>
+                <span className={styles.statistiques__metricValue}>{statsData.totalDossiers > 0 ? Math.round((statsData.dossiersResolus / statsData.totalDossiers) * 100) : 0}{t('admin.percent')}</span>
               </div>
               <div className={styles.statistiques__performanceMetric}>
                 <span className={styles.statistiques__metricLabel}>{t('admin.caseUptakeRate')}</span>
-                <span className={styles.statistiques__metricValue}>87%</span>
+                <span className={styles.statistiques__metricValue}>{statsData.totalDossiers > 0 ? Math.round((Math.max(0, statsData.totalDossiers - statsData.dossiersResolus) / statsData.totalDossiers) * 100) : 0}{t('admin.percent')}</span>
               </div>
               <div className={styles.statistiques__performanceMetric}>
                 <span className={styles.statistiques__metricLabel}>{t('admin.publicReports')}</span>
-                <span className={styles.statistiques__metricValue}>156</span>
+                <span className={styles.statistiques__metricValue}>{statsData.rapportsRecents}</span>
               </div>
             </div>
           </CardBody>
         </Card>
+          </>
+        )}
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 

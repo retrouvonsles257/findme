@@ -18,13 +18,14 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
-import { Card, CardBody, CardHeader } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
-import { Badge } from '../../components/common/Badge';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
+import {
+  getAdminOrganisationSignalements,
+  updateSignalementValidation,
+} from '../../features/admin-organisation/services';
 
 import styles from './RapportsPage.module.css';
 
@@ -44,30 +45,48 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
   const { t } = useI18n();
   
   const currentUser = useAppSelector(selectCurrentUser);
-  const [rapports, setRapports] = useState<Rapport[]>([]);
   const [filteredRapports, setFilteredRapports] = useState<Rapport[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  const filterRapportsFunc = useCallback(() => {
-    let filtered = rapports;
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        r =>
-          r.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.dossier.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.auteur.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const loadRapports = useCallback(async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    try {
+      setLoading(true);
+      const rows = await getAdminOrganisationSignalements(orgId, {
+        search: searchTerm || undefined,
+        statut: filterStatus !== 'all' ? filterStatus : undefined,
+      });
+      const mapped: Rapport[] = rows.map((r) => {
+        const statutMap: Record<string, 'approuve' | 'en_attente' | 'rejete'> = {
+          valide: 'approuve',
+          en_attente: 'en_attente',
+          invalide: 'rejete',
+          spam: 'rejete',
+          doublonne: 'rejete',
+        };
+        const u = (r as any).utilisateur;
+        return {
+          id: r.id,
+          numero: (r as any).numero_signalement || `R-${r.id.slice(0, 8)}`,
+          dossier: (r as any).dossier?.numero_dossier || (r as any).id_dossier || '—',
+          auteur: u ? `${u.nom || ''} ${u.prenom || ''}`.trim() : '—',
+          type: (r.description || '').slice(0, 40) + (r.description && r.description.length > 40 ? '…' : ''),
+          date: r.date_observation ? r.date_observation.split('T')[0] : '',
+          statut: statutMap[(r as any).statut_validation] || 'en_attente',
+          priorite: ((r as any).priorite_traitement as 'haute' | 'normale' | 'basse') || 'normale',
+        };
+      });
+      setFilteredRapports(mapped);
+    } catch (error) {
+      console.error('Erreur lors du chargement des rapports:', error);
+      setFilteredRapports([]);
+    } finally {
+      setLoading(false);
     }
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(r => r.statut === filterStatus);
-    }
-
-    setFilteredRapports(filtered);
-  }, [searchTerm, filterStatus, rapports]);
+  }, [currentUser?.organisation_id, searchTerm, filterStatus]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -75,53 +94,25 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
       return;
     }
     loadRapports();
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, loadRapports]);
 
-  useEffect(() => {
-    filterRapportsFunc();
-  }, [searchTerm, filterStatus, rapports, filterRapportsFunc]);
-
-  const loadRapports = async () => {
+  const handleApprove = async (rapportId: string) => {
+    if (!currentUser?.id) return;
     try {
-      setLoading(true);
-      const mockRapports: Rapport[] = [
-        {
-          id: '1',
-          numero: 'R-2024-001',
-          dossier: 'Dossier #2024-001',
-          auteur: 'Ahmed Diallo',
-          type: 'Recherche initiale',
-          date: '2024-01-11',
-          statut: 'approuve',
-          priorite: 'haute',
-        },
-        {
-          id: '2',
-          numero: 'R-2024-002',
-          dossier: 'Dossier #2024-002',
-          auteur: 'Mariam Sow',
-          type: 'Suivi de recherche',
-          date: '2024-01-12',
-          statut: 'en_attente',
-          priorite: 'haute',
-        },
-        {
-          id: '3',
-          numero: 'R-2024-003',
-          dossier: 'Dossier #2024-003',
-          auteur: 'Youssef Ahmed',
-          type: 'Rapport de clôture',
-          date: '2024-01-13',
-          statut: 'approuve',
-          priorite: 'normale',
-        },
-      ];
-      setRapports(mockRapports);
-      setFilteredRapports(mockRapports);
-    } catch (error) {
-      console.error('Erreur lors du chargement des rapports:', error);
-    } finally {
-      setLoading(false);
+      await updateSignalementValidation(rapportId, 'valide', currentUser.id);
+      loadRapports();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleReject = async (rapportId: string) => {
+    if (!currentUser?.id) return;
+    try {
+      await updateSignalementValidation(rapportId, 'invalide', currentUser.id);
+      loadRapports();
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -143,35 +134,8 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
     return configs[status as keyof typeof configs] || configs.approuve;
   };
 
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: '📊' },
-    { label: t('admin.dossiers'), href: '/admin/dossiers', icon: '📁' },
-    {
-      label: t('admin.rapports'),
-      href: '/admin/rapports',
-      icon: '📋',
-      isActive: true,
-    },
-    { label: t('admin.utilisateurs'), href: '/admin/utilisateurs', icon: '👥' },
-    { label: t('admin.statistiques'), href: '/admin/statistiques', icon: '📈' },
-    { label: t('admin.parametres'), href: '/admin/parametres', icon: '⚙️' },
-  ];
-
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.rapports')} activeNav="rapports">
       <div className={styles.rapports}>
         {/* Header */}
         <div className={styles.rapports__header}>
@@ -269,10 +233,18 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
                             </button>
                             {rapport.statut === 'en_attente' && (
                               <>
-                                <button className={`${styles.rapports__btn} ${styles['rapports__btn--approve']}`}>
+                                <button
+                                  className={`${styles.rapports__btn} ${styles['rapports__btn--approve']}`}
+                                  onClick={() => handleApprove(rapport.id)}
+                                  title={t('admin.approveReport')}
+                                >
                                   <CheckCircle className={styles.rapports__btnIcon} />
                                 </button>
-                                <button className={`${styles.rapports__btn} ${styles['rapports__btn--reject']}`}>
+                                <button
+                                  className={`${styles.rapports__btn} ${styles['rapports__btn--reject']}`}
+                                  onClick={() => handleReject(rapport.id)}
+                                  title={t('admin.rejectReport')}
+                                >
                                   <XCircle className={styles.rapports__btnIcon} />
                                 </button>
                               </>
@@ -288,7 +260,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 

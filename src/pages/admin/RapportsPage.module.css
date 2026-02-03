@@ -1,39 +1,168 @@
-/* ====================================================
-   ADMIN RAPPORTS - Modern Responsive Design
-   ==================================================== */
+/* =====================================================
+   RETROUVONSLES - Admin Rapports (aligné super_admin)
+   ===================================================== */
 
 .rapports {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
   max-width: 1800px;
   margin: 0 auto;
-  animation: fade-in 0.5s ease;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  animation: rapports-fade-in 0.5s ease;
 }
 
-@keyframes fade-in {
+@keyframes rapports-fade-in {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header */
 .rapports__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .rapports__title {
-  font-size: 2.25rem;
-  font-weight: 800;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rapports__titleIcon {
+  width: 28px;
+  height: 28px;
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.rapports__subtitle {
   margin: 0;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e90ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.rapports__filterCard {
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.rapports__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.rapports__searchWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.rapports__searchIcon {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.rapports__searchInput {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.rapports__searchInput:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.rapports__filterWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rapports__filterIcon {
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+}
+
+.rapports__filterSelect {
+  padding: 0.65rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  min-width: 140px;
+}
+
+.rapports__filterSelect:focus {
+  outline: none;
+  border-color: #1d4ed8;
+}
+
+.rapports__contentCard {
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.rapports__contentHeader {
+  margin: 0 0 1rem 0;
+}
+
+.rapports__contentTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.rapports__loading {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.rapports__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.rapports__emptyIcon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
 }
 
 .rapports__actions {
@@ -133,17 +262,14 @@
   box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.1);
 }
 
-/* Table Container */
+/* Table - aligné super_admin */
 .rapports__tableContainer {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(248, 250, 252, 0.95) 100%
-  );
-  border-radius: 14px;
   padding: 0;
-  border: 2px solid rgba(30, 144, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(30, 144, 255, 0.08);
-  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: auto;
 }
 
 .rapports__table {
@@ -151,44 +277,108 @@
   border-collapse: collapse;
 }
 
+.rapports__tableHeader,
 .rapports__thead {
-  background: linear-gradient(135deg, 
-    rgba(30, 144, 255, 0.08) 0%, 
-    rgba(25, 118, 210, 0.12) 100%
-  );
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
+.rapports__tableHeader th,
 .rapports__th {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   text-align: left;
-  font-size: 0.875rem;
-  font-weight: 800;
-  color: #1e293b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid rgba(30, 144, 255, 0.15);
+  letter-spacing: 0.025em;
 }
 
+.rapports__tableBody,
 .rapports__tbody {
   background: white;
 }
 
+.rapports__tableBody tr,
 .rapports__tr {
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(30, 144, 255, 0.08);
+  transition: background 0.15s ease;
+  border-bottom: 1px solid #e2e8f0;
 }
 
+.rapports__tableBody tr:hover,
 .rapports__tr:hover {
-  background: linear-gradient(135deg, 
-    rgba(30, 144, 255, 0.03) 0%, 
-    rgba(25, 118, 210, 0.05) 100%
-  );
+  background: #f8fafc;
 }
 
+.rapports__tableBody td,
 .rapports__td {
-  padding: 1.25rem 1.5rem;
-  font-size: 0.95rem;
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
   color: #1e293b;
+}
+
+.rapports__numero {
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.rapports__statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.rapports__statusBadge--approuve { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.rapports__statusBadge--en_attente { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.rapports__statusBadge--rejete { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+
+.rapports__statusIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.rapports__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rapports__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.rapports__btn:hover {
+  border-color: #1d4ed8;
+  background: rgba(29, 78, 216, 0.06);
+}
+
+.rapports__btn--view { color: #1d4ed8; }
+.rapports__btn--approve { color: #059669; }
+.rapports__btn--approve:hover { border-color: #059669; background: rgba(16, 185, 129, 0.08); }
+.rapports__btn--reject { color: #dc2626; }
+.rapports__btn--reject:hover { border-color: #dc2626; background: rgba(239, 68, 68, 0.08); }
+
+.rapports__btnIcon {
+  width: 16px;
+  height: 16px;
 }
 
 .rapports__rapportId {

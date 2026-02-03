@@ -5,16 +5,17 @@
  * =====================================================
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
+import { getAdminRoles } from '../../features/admin-organisation/services';
 import {
   Shield,
   Plus,
@@ -52,106 +53,62 @@ export const AdminOrganisationRolesPage: React.FC = () => {
     permissions: [] as string[],
   });
 
+  const loadRoles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const rows = await getAdminRoles();
+      const mapped: Role[] = rows.map((r) => ({
+        id: r.id,
+        nom: t(`admin.role.${r.nom_role}`),
+        description: r.description || '',
+        utilisateurs: 0,
+        permissions: r.permissions ? Object.keys(r.permissions as Record<string, unknown>) : [],
+        createdAt: '',
+      }));
+      setRoles(mapped);
+    } catch (error) {
+      console.error('Erreur lors du chargement des rôles:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
       navigate('/auth/login');
       return;
     }
     loadRoles();
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, loadRoles]);
 
-  const loadRoles = async () => {
-    try {
-      setLoading(true);
-      const mockRoles: Role[] = [
-        {
-          id: '1',
-          nom: 'Officier de Police',
-          description: 'Gère les dossiers et les investigations',
-          utilisateurs: 12,
-          permissions: [
-            'view_dossiers',
-            'create_dossiers',
-            'edit_dossiers',
-            'view_rapports',
-            'create_rapports',
-            'assign_dossiers',
-          ],
-          createdAt: '2024-01-15',
-        },
-        {
-          id: '2',
-          nom: 'Opérateur de Saisie',
-          description: 'Entre et met à jour les données',
-          utilisateurs: 8,
-          permissions: [
-            'view_dossiers',
-            'create_dossiers',
-            'view_rapports',
-            'create_rapports',
-          ],
-          createdAt: '2024-01-15',
-        },
-        {
-          id: '3',
-          nom: 'Modérateur',
-          description: 'Modère les rapports et commentaires',
-          utilisateurs: 3,
-          permissions: [
-            'view_dossiers',
-            'view_rapports',
-            'approve_rapports',
-            'reject_rapports',
-          ],
-          createdAt: '2024-01-15',
-        },
-      ];
-      setRoles(mockRoles);
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error) {
-      console.error('Erreur lors du chargement des rôles:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: 'LayoutDashboard' },
-    { label: t('admin.dossiers'), href: '/admin/dossiers', icon: 'FolderOpen' },
-    { label: t('admin.rapports'), href: '/admin/rapports', icon: 'FileText' },
-    { label: t('admin.utilisateurs'), href: '/admin/utilisateurs', icon: 'Users' },
-    { label: t('admin.statistiques'), href: '/admin/statistiques', icon: 'BarChart3' },
-    {
-      label: t('admin.parametres'),
-      href: '/admin/parametres',
-      icon: 'Settings',
-    },
-  ];
+  /** Rôles système (table role globale) : lecture seule, pas de création/édition/suppression */
+  const isReadOnly = true;
 
   const allPermissions = [
-    { key: 'view_dossiers', label: 'Consulter les dossiers' },
-    { key: 'create_dossiers', label: 'Créer des dossiers' },
-    { key: 'edit_dossiers', label: 'Modifier les dossiers' },
-    { key: 'delete_dossiers', label: 'Supprimer les dossiers' },
-    { key: 'view_rapports', label: 'Consulter les rapports' },
-    { key: 'create_rapports', label: 'Créer des rapports' },
-    { key: 'approve_rapports', label: 'Approuver les rapports' },
-    { key: 'reject_rapports', label: 'Rejeter les rapports' },
-    { key: 'assign_dossiers', label: 'Assigner les dossiers' },
-    { key: 'manage_users', label: 'Gérer les utilisateurs' },
-    { key: 'view_statistics', label: 'Voir les statistiques' },
-    { key: 'manage_roles', label: 'Gérer les rôles' },
+    { key: 'view_dossiers', label: t('admin.permission_view_dossiers') },
+    { key: 'create_dossiers', label: t('admin.permission_create_dossiers') },
+    { key: 'edit_dossiers', label: t('admin.permission_edit_dossiers') },
+    { key: 'delete_dossiers', label: t('admin.permission_delete_dossiers') },
+    { key: 'view_rapports', label: t('admin.permission_view_rapports') },
+    { key: 'create_rapports', label: t('admin.permission_create_rapports') },
+    { key: 'approve_rapports', label: t('admin.permission_approve_rapports') },
+    { key: 'reject_rapports', label: t('admin.permission_reject_rapports') },
+    { key: 'assign_dossiers', label: t('admin.permission_assign_dossiers') },
+    { key: 'manage_users', label: t('admin.permission_manage_users') },
+    { key: 'view_statistics', label: t('admin.permission_view_statistics') },
+    { key: 'manage_roles', label: t('admin.permission_manage_roles') },
   ];
 
   const handleCreateRole = async () => {
     if (!newRole.nom) {
-      alert('Veuillez entrer un nom de rôle');
+      alert(t('admin.roleName'));
       return;
     }
     try {
       setLoading(true);
-      alert('Rôle créé avec succès');
+      alert(t('admin.successSaved'));
       setShowModal(false);
+      setNewRole({ nom: '', description: '', permissions: [] });
       loadRoles();
     } finally {
       setLoading(false);
@@ -159,20 +116,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
   };
 
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.rolesManagement')} activeNav="roles">
       <div className={styles.rolesManagement__container}>
         {/* Header */}
         <div className={styles.rolesManagement__header}>
@@ -185,13 +129,15 @@ export const AdminOrganisationRolesPage: React.FC = () => {
               <p className={styles.rolesManagement__subtitle}>{t('admin.defineRolesAndPermissions')}</p>
             </div>
           </div>
-          <Button
-            variant="primary"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus size={18} />
-            {t('admin.newRole')}
-          </Button>
+          {!isReadOnly && (
+            <Button
+              variant="primary"
+              onClick={() => setShowModal(true)}
+            >
+              <Plus size={18} />
+              {t('admin.newRole')}
+            </Button>
+          )}
         </div>
 
         {/* Roles Grid */}
@@ -230,28 +176,36 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                <div className={styles.rolesManagement__roleActions}>
-                  <button
-                    className={styles.rolesManagement__actionBtn}
-                    onClick={e => {
-                      e.stopPropagation();
-                      alert('Édition non implémentée');
-                    }}
-                  >
-                    <Edit3 size={16} />
-                    {t('admin.edit')}
-                  </button>
-                  <button
-                    className={`${styles.rolesManagement__actionBtn} ${styles['rolesManagement__actionBtn--danger']}`}
-                    onClick={e => {
-                      e.stopPropagation();
-                      alert('Suppression non implémentée');
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    {t('admin.delete')}
-                  </button>
-                </div>
+                {!isReadOnly && (
+                  <div className={styles.rolesManagement__roleActions}>
+                    <button
+                      className={styles.rolesManagement__actionBtn}
+                      onClick={e => {
+                        e.stopPropagation();
+                        alert(t('admin.editUser'));
+                      }}
+                    >
+                      <Edit3 size={16} />
+                      {t('admin.edit')}
+                    </button>
+                    <button
+                      className={`${styles.rolesManagement__actionBtn} ${styles['rolesManagement__actionBtn--danger']}`}
+                      onClick={e => {
+                        e.stopPropagation();
+                        alert(t('admin.confirmDeleteRole'));
+                      }}
+                    >
+                      <Trash2 size={16} />
+                      {t('admin.delete')}
+                    </button>
+                  </div>
+                )}
+                {isReadOnly && (
+                  <p className={styles.rolesManagement__readOnlyHint}>
+                    <Lock size={14} />
+                    {t('admin.rolesReadOnly')}
+                  </p>
+                )}
               </CardBody>
             </Card>
           ))}
@@ -294,14 +248,18 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                           )}
                         </td>
                         <td>
-                          <button
-                            className={styles.rolesManagement__toggleBtn}
-                            onClick={() => alert('Non implémenté')}
-                          >
-                            {selectedRole.permissions.includes(perm.key)
-                              ? t('admin.revoke')
-                              : t('admin.grant')}
-                          </button>
+                          {!isReadOnly ? (
+                            <button
+                              className={styles.rolesManagement__toggleBtn}
+                              onClick={() => alert(t('admin.permissions'))}
+                            >
+                              {selectedRole.permissions.includes(perm.key)
+                                ? t('admin.revoke')
+                                : t('admin.grant')}
+                            </button>
+                          ) : (
+                            <span className={styles.rolesManagement__readOnlyCell}>—</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -333,7 +291,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                     className={styles.rolesManagement__input}
                     value={newRole.nom}
                     onChange={e => setNewRole({ ...newRole, nom: e.target.value })}
-                    placeholder="Ex: Enquêteur Senior"
+                    placeholder={t('admin.roleNamePlaceholder')}
                   />
                 </div>
 
@@ -345,7 +303,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                     onChange={e =>
                       setNewRole({ ...newRole, description: e.target.value })
                     }
-                    placeholder="Description du rôle..."
+                    placeholder={t('admin.roleDescriptionPlaceholder')}
                     rows={3}
                   />
                 </div>
@@ -398,7 +356,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 

@@ -6,21 +6,28 @@
  */
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   AdminOrganisationDashboardPage,
   AdminOrganisationUsersPage,
+  AdminOrganisationUserDetailPage,
+  AdminOrganisationUserNewPage,
   AdminOrganisationDossiersPage,
+  AdminOrganisationDossierDetailPage,
+  AdminOrganisationDossierEditPage,
+  AdminOrganisationDossierNewPage,
   AdminOrganisationRapportsPage,
+  AdminOrganisationRapportDetailPage,
   AdminOrganisationStatistiquesPage,
   AdminOrganisationSettingsPage,
   AdminOrganisationRolesPage,
-  AdminOrganisationAuditLogsPage
+  AdminOrganisationAuditLogsPage,
+  AdminOrganisationProfilePage,
+  AdminOrganisationApiKeysPage,
 } from '../pages/admin';
 
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
-import { ADMIN_ROUTES } from './routes.config';
 import { NomRole } from '../@types/enums.types';
 
 /**
@@ -41,6 +48,7 @@ const AdminRoutes: React.FC = () => {
   return (
     <PrivateRoute>
       <Routes>
+        <Route path="" element={<Navigate to="/admin/dashboard" replace />} />
         {/* Dashboard */}
         <Route
           path="/dashboard"
@@ -51,12 +59,28 @@ const AdminRoutes: React.FC = () => {
           }
         />
 
-        {/* Users */}
+        {/* Users - /admin/utilisateurs */}
         <Route
-          path="/users"
+          path="/utilisateurs"
           element={
             <RoleBasedRoute requiredRoles={adminRoles}>
               <AdminOrganisationUsersPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/utilisateurs/new"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationUserNewPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/utilisateurs/:id"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationUserDetailPage />
             </RoleBasedRoute>
           }
         />
@@ -70,6 +94,30 @@ const AdminRoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+        <Route
+          path="/dossiers/new"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationDossierNewPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/dossiers/:id"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationDossierDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/dossiers/:id/edit"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationDossierEditPage />
+            </RoleBasedRoute>
+          }
+        />
 
         {/* Rapports */}
         <Route
@@ -77,6 +125,14 @@ const AdminRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={adminRoles}>
               <AdminOrganisationRapportsPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/rapports/:id"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationRapportDetailPage />
             </RoleBasedRoute>
           }
         />
@@ -91,9 +147,29 @@ const AdminRoutes: React.FC = () => {
           }
         />
 
-        {/* Settings */}
+        {/* Profile - /admin/profile */}
         <Route
-          path="/settings"
+          path="/profile"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationProfilePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* API Keys - /admin/api-keys */}
+        <Route
+          path="/api-keys"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationApiKeysPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Settings - /admin/parametres */}
+        <Route
+          path="/parametres"
           element={
             <RoleBasedRoute requiredRoles={adminRoles}>
               <AdminOrganisationSettingsPage />

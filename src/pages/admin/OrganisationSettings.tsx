@@ -20,12 +20,14 @@ import {
   Save
 } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
-import { Card, CardBody, CardHeader } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
+import {
+  getAdminOrganisation,
+  updateAdminOrganisation,
+} from '../../features/admin-organisation/services';
 
 import styles from './OrganisationSettings.module.css';
 
@@ -37,12 +39,12 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'team' | 'notifications' | 'security'>('general');
   const [formData, setFormData] = useState({
-    organisationName: 'Police Nationale Senegal',
-    email: 'admin@pns.sn',
-    phone: '+221 33 824 21 00',
-    address: 'Plateau, Dakar, Senegal',
-    website: 'https://www.police.sn',
-    description: 'Police Nationale du Senegal',
+    organisationName: '',
+    email: '',
+    phone: '',
+    address: '',
+    website: '',
+    description: '',
   });
   const [notificationSettings, setNotificationSettings] = useState({
     emailNewDossier: true,
@@ -51,33 +53,80 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
     smsUrgent: true,
     slackNotifications: false,
   });
+  const [teamSettings, setTeamSettings] = useState({
+    maxMembers: 50,
+    autoAssign: true,
+    requireApproval: true,
+  });
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
       navigate('/auth/login');
       return;
     }
+    const orgId = currentUser.organisation_id;
+    if (orgId) {
+      getAdminOrganisation(orgId).then((org) => {
+        if (org) {
+          setFormData({
+            organisationName: org.nom || '',
+            email: org.email || '',
+            phone: org.telephone || '',
+            address: org.adresse || '',
+            website: org.site_web || '',
+            description: '',
+          });
+          const p = (org as { parametres_organisation?: { team?: { maxMembers?: number; autoAssign?: boolean; requireApproval?: boolean }; notifications?: Record<string, boolean> } }).parametres_organisation;
+          if (p?.team) {
+            setTeamSettings(prev => ({
+              maxMembers: p.team?.maxMembers ?? prev.maxMembers,
+              autoAssign: p.team?.autoAssign ?? prev.autoAssign,
+              requireApproval: p.team?.requireApproval ?? prev.requireApproval,
+            }));
+          }
+          if (p?.notifications) {
+            setNotificationSettings(prev => ({
+              ...prev,
+              ...p.notifications,
+            }));
+          }
+        }
+      }).catch(console.error);
+    }
   }, [currentUser, navigate]);
 
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: '📊' },
-    { label: t('admin.dossiers'), href: '/admin/dossiers', icon: '📁' },
-    { label: t('admin.rapports'), href: '/admin/rapports', icon: '📋' },
-    { label: t('admin.utilisateurs'), href: '/admin/utilisateurs', icon: '👥' },
-    { label: t('admin.statistiques'), href: '/admin/statistiques', icon: '📈' },
-    {
-      label: t('admin.parametres'),
-      href: '/admin/parametres',
-      icon: '⚙️',
-      isActive: true,
-    },
-  ];
-
   const handleSaveChanges = async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
     try {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Paramètres sauvegardés avec succès');
+      await updateAdminOrganisation(orgId, {
+        nom: formData.organisationName,
+        email: formData.email,
+        telephone: formData.phone,
+        adresse: formData.address,
+        site_web: formData.website,
+      });
+      alert(t('admin.successSaved'));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveTeamAndNotifications = async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    try {
+      setLoading(true);
+      await updateAdminOrganisation(orgId, {
+        parametres_organisation: {
+          team: teamSettings,
+          notifications: notificationSettings,
+        },
+      });
+      alert(t('admin.successSaved'));
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
     } finally {
@@ -93,6 +142,10 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
     setNotificationSettings(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleTeamChange = (field: 'maxMembers' | 'autoAssign' | 'requireApproval', value: number | boolean) => {
+    setTeamSettings(prev => ({ ...prev, [field]: value }));
+  };
+
   const tabs = [
     { id: 'general', label: t('admin.general'), icon: Building },
     { id: 'team', label: t('admin.team'), icon: Users },
@@ -101,20 +154,7 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
   ];
 
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.organisationSettings')} activeNav="parametres">
       <div className={styles.settings}>
         {/* Header */}
         <div className={styles.settings__header}>
@@ -252,8 +292,9 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
                 <input
                   type="number"
                   className={styles.settings__numberInput}
-                  defaultValue="50"
-                  min="1"
+                  value={teamSettings.maxMembers}
+                  onChange={e => handleTeamChange('maxMembers', parseInt(e.target.value, 10) || 1)}
+                  min={1}
                 />
               </div>
 
@@ -264,7 +305,12 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
                     {t('admin.autoAssignDossiersDescription')}
                   </p>
                 </div>
-                <input type="checkbox" defaultChecked className={styles.settings__checkbox} />
+                <input
+                  type="checkbox"
+                  checked={teamSettings.autoAssign}
+                  onChange={e => handleTeamChange('autoAssign', e.target.checked)}
+                  className={styles.settings__checkbox}
+                />
               </div>
 
               <div className={styles.settings__settingItem}>
@@ -274,13 +320,18 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
                     {t('admin.requireApprovalDescription')}
                   </p>
                 </div>
-                <input type="checkbox" defaultChecked className={styles.settings__checkbox} />
+                <input
+                  type="checkbox"
+                  checked={teamSettings.requireApproval}
+                  onChange={e => handleTeamChange('requireApproval', e.target.checked)}
+                  className={styles.settings__checkbox}
+                />
               </div>
 
               <div className={styles.settings__actions}>
                 <button
                   className={styles.settings__btnPrimary}
-                  onClick={handleSaveChanges}
+                  onClick={handleSaveTeamAndNotifications}
                   disabled={loading}
                 >
                   <Save className={styles.settings__btnIcon} />
@@ -452,7 +503,7 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
                   </div>
                   <button
                     className={styles.settings__btnDanger}
-                    onClick={() => alert('Confirmation requise')}
+                    onClick={() => alert(t('admin.confirmDeleteOrganisation'))}
                   >
                     <Trash2 className={styles.settings__btnIcon} />
                     {t('admin.delete')}
@@ -463,7 +514,7 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 

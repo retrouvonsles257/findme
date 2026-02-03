@@ -22,13 +22,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
-import { Card, CardBody, CardHeader } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
-import { Badge } from '../../components/common/Badge';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
+import { getAdminAuditLogs, formatAuditLogsAsCsv } from '../../features/admin-organisation/services';
+import type { AdminAuditLogRow } from '../../features/admin-organisation/services';
 
 import styles from './AuditLogs.module.css';
 
@@ -53,11 +52,84 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [rawLogs, setRawLogs] = useState<AdminAuditLogRow[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterUser, setFilterUser] = useState('all');
   const [filterAction, setFilterAction] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
+
+  const loadAuditLogs = useCallback(async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    try {
+      setLoading(true);
+      const actionToTypeMap: Record<string, string> = {
+        CREATE: 'creation_dossier',
+        UPDATE: 'modification_dossier',
+        DELETE: 'modification_dossier',
+        APPROVE: 'validation_signalement',
+        REJECT: 'validation_signalement',
+        READ: 'connexion',
+      };
+      const rows = await getAdminAuditLogs(orgId, {
+        user: filterUser !== 'all' ? filterUser : undefined,
+        action: filterAction !== 'all' ? actionToTypeMap[filterAction] || undefined : undefined,
+        dateFilter: filterDate !== 'all' ? filterDate : undefined,
+      });
+      const actionTypeMap: Record<string, AuditLog['actionType']> = {
+        creation_dossier: 'CREATE',
+        modification_dossier: 'UPDATE',
+        creation_signalement: 'CREATE',
+        validation_signalement: 'APPROVE',
+        diffusion_alerte: 'CREATE',
+        connexion: 'READ',
+        deconnexion: 'READ',
+        modification_profil: 'UPDATE',
+        upload_photo: 'CREATE',
+        analyse_ia: 'READ',
+        validation_ia: 'APPROVE',
+        changement_statut: 'UPDATE',
+        attribution_role: 'UPDATE',
+        autre: 'UPDATE',
+      };
+      const entityTypeMap: Record<string, AuditLog['entityType']> = {
+        creation_dossier: 'DOSSIER',
+        modification_dossier: 'DOSSIER',
+        creation_signalement: 'RAPPORT',
+        validation_signalement: 'RAPPORT',
+        diffusion_alerte: 'DOSSIER',
+        attribution_role: 'USER',
+        modification_profil: 'USER',
+        autre: 'RAPPORT',
+      };
+      const mapped: AuditLog[] = rows.map((r: any) => {
+        const u = r.utilisateur;
+        const userName = u ? `${u.nom || ''} ${u.prenom || ''}`.trim() : '—';
+        return {
+          id: String(r.id),
+          userId: r.id_utilisateur || '',
+          userName,
+          action: r.action_detaillee || r.description || r.type_action,
+          actionType: actionTypeMap[r.type_action] || 'UPDATE',
+          entityType: entityTypeMap[r.type_action] || 'RAPPORT',
+          entityId: r.id_dossier || r.id_signalement || r.id_alerte || '',
+          entityName: r.action_detaillee || r.type_action,
+          details: r.description || '',
+          ipAddress: r.ip_utilisateur || '—',
+          timestamp: r.date_action,
+        };
+      });
+      setLogs(mapped);
+      setRawLogs(rows);
+    } catch (error) {
+      console.error('Erreur lors du chargement des logs:', error);
+      setLogs([]);
+      setRawLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser?.organisation_id, filterUser, filterAction, filterDate]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -65,115 +137,21 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
       return;
     }
     loadAuditLogs();
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, loadAuditLogs]);
 
   useEffect(() => {
-    filterLogs();
-  }, [searchTerm, filterUser, filterAction, filterDate, logs]);
-
-  const loadAuditLogs = async () => {
-    try {
-      setLoading(true);
-      const mockLogs: AuditLog[] = [
-        {
-          id: '1',
-          userId: 'user-1',
-          userName: 'Ahmed Diallo',
-          action: 'Création d\'un dossier',
-          actionType: 'CREATE',
-          entityType: 'DOSSIER',
-          entityId: 'dos-001',
-          entityName: 'Dossier Jean Dupont',
-          details: 'Nouveau dossier créé avec urgence critique',
-          ipAddress: '192.168.1.100',
-          timestamp: '2024-01-20T14:30:00Z',
-        },
-        {
-          id: '2',
-          userId: 'user-2',
-          userName: 'Mariam Sow',
-          action: 'Approuvé un rapport',
-          actionType: 'APPROVE',
-          entityType: 'RAPPORT',
-          entityId: 'rap-001',
-          entityName: 'Rapport de sighting',
-          details: 'Rapport approuvé après vérification',
-          ipAddress: '192.168.1.101',
-          timestamp: '2024-01-20T13:15:00Z',
-        },
-        {
-          id: '3',
-          userId: 'user-3',
-          userName: 'Youssef Ahmed',
-          action: 'Modification d\'un dossier',
-          actionType: 'UPDATE',
-          entityType: 'DOSSIER',
-          entityId: 'dos-002',
-          entityName: 'Dossier Mariam Traoré',
-          details: 'Statut mis à jour en "retrouve_vivant"',
-          ipAddress: '192.168.1.102',
-          timestamp: '2024-01-20T12:45:00Z',
-        },
-      ];
-      setLogs(mockLogs);
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error) {
-      console.error('Erreur lors du chargement des logs:', error);
-    } finally {
-      setLoading(false);
+    if (!searchTerm) {
+      setFilteredLogs(logs);
+      return;
     }
-  };
-
-  const filterLogs = () => {
-    let result = logs;
-
-    if (searchTerm) {
-      result = result.filter(
-        log =>
-          log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          log.entityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          log.action.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filterUser !== 'all') {
-      result = result.filter(log => log.userId === filterUser);
-    }
-
-    if (filterAction !== 'all') {
-      result = result.filter(log => log.actionType === filterAction);
-    }
-
-    if (filterDate !== 'all') {
-      const now = new Date();
-      const logDate = new Date();
-      
-      if (filterDate === 'today') {
-        logDate.setHours(0, 0, 0, 0);
-      } else if (filterDate === 'week') {
-        logDate.setDate(now.getDate() - 7);
-      } else if (filterDate === 'month') {
-        logDate.setDate(now.getDate() - 30);
-      }
-      
-      result = result.filter(log => new Date(log.timestamp) >= logDate);
-    }
-
-    setFilteredLogs(result);
-  };
-
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: '📊' },
-    { label: t('admin.dossiers'), href: '/admin/dossiers', icon: '📁' },
-    { label: t('admin.rapports'), href: '/admin/rapports', icon: '📋' },
-    { label: t('admin.utilisateurs'), href: '/admin/utilisateurs', icon: '👥' },
-    { label: t('admin.statistiques'), href: '/admin/statistiques', icon: '📈' },
-    {
-      label: t('admin.parametres'),
-      href: '/admin/parametres',
-      icon: '⚙️',
-    },
-  ];
+    const term = searchTerm.toLowerCase();
+    setFilteredLogs(logs.filter(
+      log =>
+        log.userName.toLowerCase().includes(term) ||
+        (log.entityName && log.entityName.toLowerCase().includes(term)) ||
+        log.action.toLowerCase().includes(term)
+    ));
+  }, [searchTerm, logs]);
 
   const getActionIcon = (actionType: string) => {
     const icons = {
@@ -192,32 +170,31 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
     name: logs.find(log => log.userId === userId)?.userName || 'Unknown',
   }));
 
+  const handleExportCsv = () => {
+    const ids = new Set(filteredLogs.map(l => l.id));
+    const toExport = ids.size ? rawLogs.filter(r => ids.has(String(r.id))) : rawLogs;
+    const csv = formatAuditLogsAsCsv(toExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.auditLogs')} activeNav="audit-logs">
       <div className={styles.auditLogs}>
-        {/* Header */}
         <div className={styles.auditLogs__header}>
           <div>
-            <h1 className={styles.auditLogs__title}>
+            <h2 className={styles.auditLogs__title}>
               <ScrollText className={styles.auditLogs__titleIcon} />
               {t('admin.auditLogs')}
-            </h1>
+            </h2>
             <p className={styles.auditLogs__subtitle}>{t('admin.viewActivityLog')}</p>
           </div>
-          <button className={styles.auditLogs__btnExport}>
+          <button type="button" className={styles.auditLogs__btnExport} onClick={handleExportCsv} disabled={rawLogs.length === 0}>
             <Download className={styles.auditLogs__btnIcon} />
             {t('admin.export')}
           </button>
@@ -335,7 +312,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
                         <span className={styles.auditLogs__entity}>{log.entityName}</span>
                       </div>
                       <p className={styles.auditLogs__description}>{log.details}</p>
-                      <p className={styles.auditLogs__meta}>IP: {log.ipAddress}</p>
+                      <p className={styles.auditLogs__meta}>{t('admin.ipAddress')}: {log.ipAddress}</p>
                     </div>
                   </div>
                 );
@@ -366,7 +343,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 

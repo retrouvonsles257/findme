@@ -1,84 +1,204 @@
-/* ====================================================
-   ADMIN DOSSIERS - Modern Responsive Design
-   ==================================================== */
+/* =====================================================
+   RETROUVONSLES - Admin Dossiers (aligné super_admin)
+   ===================================================== */
 
 .dossiers {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  animation: fade-in 0.5s ease;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  animation: dossiers-fade-in 0.5s ease;
 }
 
-@keyframes fade-in {
+@keyframes dossiers-fade-in {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header */
 .dossiers__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .dossiers__title {
-  font-size: 2.25rem;
-  font-weight: 800;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dossiers__titleIcon {
+  width: 28px;
+  height: 28px;
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.dossiers__subtitle {
   margin: 0;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e90ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
 }
 
 .dossiers__btnCreate {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.75rem;
-  background: linear-gradient(135deg, #1e90ff 0%, #1976d2 100%);
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: #1d4ed8;
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 0.975rem;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.9rem;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .dossiers__btnCreate:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(30, 144, 255, 0.4);
-  background: linear-gradient(135deg, #1976d2 0%, #1e90ff 100%);
+  background: #1e40af;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+  transform: translateY(-1px);
 }
 
-/* Filters */
+.dossiers__btnIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Filters - aligné super_admin */
+.dossiers__filterCard {
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 .dossiers__filters {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(248, 250, 252, 0.95) 100%
-  );
-  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.dossiers__searchWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.dossiers__searchIcon {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.dossiers__searchInput {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.dossiers__searchInput:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.dossiers__filterWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dossiers__filterIcon {
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+}
+
+.dossiers__filterSelect {
+  padding: 0.65rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  min-width: 140px;
+}
+
+.dossiers__filterSelect:focus {
+  outline: none;
+  border-color: #1d4ed8;
+}
+
+/* Content card */
+.dossiers__contentCard {
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.dossiers__contentHeader {
+  margin: 0 0 1rem 0;
+}
+
+.dossiers__contentTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dossiers__loading {
   padding: 2rem;
-  margin-bottom: 2rem;
-  border: 2px solid rgba(30, 144, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(30, 144, 255, 0.08);
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.dossiers__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.dossiers__emptyIcon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
 }
 
 .dossiers__filtersRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 .dossiers__filterGroup {
@@ -190,56 +310,131 @@
   color: white;
 }
 
-/* Grid */
+/* Grid - aligné super_admin */
 .dossiers__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .dossiers__card {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(248, 250, 252, 0.95) 100%
-  );
-  border-radius: 14px;
-  padding: 2rem;
-  border: 2px solid rgba(30, 144, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(30, 144, 255, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
   cursor: pointer;
 }
 
-.dossiers__card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #1e90ff 0%, #1976d2 100%);
-}
-
 .dossiers__card:hover {
-  border-color: rgba(30, 144, 255, 0.3);
-  box-shadow: 0 10px 40px rgba(30, 144, 255, 0.2);
-  transform: translateY(-6px);
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+  transform: translateY(-2px);
 }
 
 .dossiers__cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.dossiers__cardNumber {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.dossiers__cardBadges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dossiers__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.dossiers__badge--en_cours { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+.dossiers__badge--retrouve_vivant { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.dossiers__badge--retrouve_decede { background: rgba(107, 114, 128, 0.12); color: #4b5563; }
+.dossiers__badge--urgence-critique { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.dossiers__badge--urgence-urgent { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.dossiers__badge--urgence-normal { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+.dossiers__badge--urgence-faible { background: rgba(16, 185, 129, 0.12); color: #059669; }
+
+.dossiers__cardBody {
+  margin-bottom: 1rem;
 }
 
 .dossiers__cardTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: #1e293b;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
+}
+
+.dossiers__cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dossiers__infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.dossiers__infoIcon {
+  width: 16px;
+  height: 16px;
+  color: #1d4ed8;
+  flex-shrink: 0;
+}
+
+.dossiers__cardFooter {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dossiers__btnView,
+.dossiers__btnEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.dossiers__btnView:hover,
+.dossiers__btnEdit:hover {
+  border-color: #1d4ed8;
+  background: rgba(29, 78, 216, 0.06);
+}
+
+.dossiers__btnIcon {
+  width: 16px;
+  height: 16px;
 }
 
 .dossiers__cardId {

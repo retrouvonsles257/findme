@@ -8,7 +8,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/types';
-import { DashboardLayout, HeaderAdminOrganisation, SidebarAdminOrganisation } from '../../components/layout';
+import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -16,6 +16,12 @@ import { Avatar } from '../../components/common/Avatar';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole, StatutCompte } from '../../@types/enums.types';
+import {
+  getAdminOrganisationUsers,
+  suspendAdminUser,
+  activateAdminUser,
+  desactivateAdminUser,
+} from '../../features/admin-organisation/services';
 import {
   Users,
   UserPlus,
@@ -49,34 +55,41 @@ export const AdminOrganisationUsersPage: React.FC = () => {
   const { t } = useI18n();
   
   const currentUser = useAppSelector(selectCurrentUser);
-  const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [actionUserId, setActionUserId] = useState<string | null>(null);
 
-  const filterUsers = useCallback(() => {
-    let filtered = users;
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        u =>
-          u.nom_complet.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          u.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const loadUsers = useCallback(async () => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    try {
+      setLoading(true);
+      const rows = await getAdminOrganisationUsers(orgId, {
+        search: searchTerm || undefined,
+        role: filterRole !== 'all' ? filterRole : undefined,
+        statut: filterStatus !== 'all' ? filterStatus : undefined,
+      });
+      const mapped: User[] = rows.map((r) => ({
+        id: r.id,
+        nom_complet: [r.nom, r.prenom].filter(Boolean).join(' ').trim() || r.email,
+        email: r.email,
+        role: (r.role?.nom_role as NomRole) || NomRole.CITOYEN_STANDARD,
+        statut: (r.statut_compte as StatutCompte) || StatutCompte.ACTIF,
+        date_creation: r.created_at ? r.created_at.split('T')[0] : '',
+        dernier_acces: r.derniere_connexion ? r.derniere_connexion.split('T')[0] : undefined,
+        actif: r.statut_compte === 'actif',
+      }));
+      setFilteredUsers(mapped);
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error);
+      setFilteredUsers([]);
+    } finally {
+      setLoading(false);
     }
-
-    if (filterRole !== 'all') {
-      filtered = filtered.filter(u => u.role === filterRole);
-    }
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(u => u.statut === filterStatus);
-    }
-
-    setFilteredUsers(filtered);
-  }, [searchTerm, filterRole, filterStatus, users]);
+  }, [currentUser?.organisation_id, searchTerm, filterRole, filterStatus]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -84,55 +97,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
       return;
     }
     loadUsers();
-  }, [currentUser, navigate]);
-
-  useEffect(() => {
-    filterUsers();
-  }, [searchTerm, filterRole, filterStatus, users, filterUsers]);
-
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          nom_complet: 'Ahmed Diallo',
-          email: 'ahmed.diallo@org.com',
-          role: NomRole.OFFICIER_POLICE,
-          statut: StatutCompte.ACTIF,
-          date_creation: '2024-01-15',
-          dernier_acces: '2024-01-17',
-          actif: true,
-        },
-        {
-          id: '2',
-          nom_complet: 'Mariam Sow',
-          email: 'mariam.sow@org.com',
-          role: NomRole.OPERATEUR_SAISIE,
-          statut: StatutCompte.ACTIF,
-          date_creation: '2024-01-10',
-          dernier_acces: '2024-01-16',
-          actif: true,
-        },
-        {
-          id: '3',
-          nom_complet: 'Youssef Ahmed',
-          email: 'youssef.ahmed@org.com',
-          role: NomRole.MODERATEUR,
-          statut: StatutCompte.SUSPENDU,
-          date_creation: '2024-01-05',
-          dernier_acces: '2024-01-14',
-          actif: false,
-        },
-      ];
-      setUsers(mockUsers);
-      setFilteredUsers(mockUsers);
-    } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [currentUser, navigate, loadUsers]);
 
   const getRoleBadgeColor = (role: NomRole) => {
     const colors: Record<NomRole, string> = {
@@ -155,35 +120,51 @@ export const AdminOrganisationUsersPage: React.FC = () => {
     return <XCircle size={14} />;
   };
 
-  const navigationItems = [
-    { label: t('common.dashboard'), href: '/admin/dashboard', icon: 'LayoutDashboard' },
-    { label: t('admin.dossiers'), href: '/admin/dossiers', icon: 'FolderOpen' },
-    { label: t('admin.rapports'), href: '/admin/rapports', icon: 'FileText' },
-    {
-      label: t('admin.utilisateurs'),
-      href: '/admin/utilisateurs',
-      icon: 'Users',
-      isActive: true,
-    },
-    { label: t('admin.statistiques'), href: '/admin/statistiques', icon: 'BarChart3' },
-    { label: t('admin.parametres'), href: '/admin/parametres', icon: 'Settings' },
-  ];
+  const handleSuspend = async (userId: string) => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    setActionUserId(userId);
+    try {
+      await suspendAdminUser(orgId, userId);
+      await loadUsers();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionUserId(null);
+    }
+  };
+
+  const handleActivate = async (userId: string) => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    setActionUserId(userId);
+    try {
+      await activateAdminUser(orgId, userId);
+      await loadUsers();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionUserId(null);
+    }
+  };
+
+  const handleDesactivate = async (userId: string) => {
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    if (!window.confirm(t('admin.confirmDisableUser'))) return;
+    setActionUserId(userId);
+    try {
+      await desactivateAdminUser(orgId, userId);
+      await loadUsers();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionUserId(null);
+    }
+  };
 
   return (
-    <DashboardLayout
-      sidebar={
-        <SidebarAdminOrganisation
-          navigationItems={navigationItems}
-          currentUser={currentUser}
-        />
-      }
-      header={
-        <HeaderAdminOrganisation
-          currentUser={currentUser}
-          onLogout={() => navigate('/auth/login')}
-        />
-      }
-    >
+    <AdminOrganisationLayout title={t('admin.utilisateurs')} activeNav="utilisateurs">
       <div className={styles.usersManagement__container}>
         {/* Header */}
         <div className={styles.usersManagement__header}>
@@ -330,16 +311,36 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                           <button
                             className={styles.usersManagement__actionBtn}
                             onClick={() => navigate(`/admin/utilisateurs/${user.id}`)}
-                            title="Éditer"
+                            title={t('admin.editUser')}
                           >
                             <Edit3 size={16} />
                           </button>
+                          {user.statut === 'actif' ? (
+                            <button
+                              className={styles.usersManagement__actionBtn}
+                              onClick={() => handleSuspend(user.id)}
+                              disabled={actionUserId === user.id}
+                              title={t('admin.suspendUser')}
+                            >
+                              {actionUserId === user.id ? <Loader2 size={16} /> : <Clock size={16} />}
+                            </button>
+                          ) : user.statut === 'suspendu' ? (
+                            <button
+                              className={styles.usersManagement__actionBtn}
+                              onClick={() => handleActivate(user.id)}
+                              disabled={actionUserId === user.id}
+                              title={t('admin.activateUser')}
+                            >
+                              {actionUserId === user.id ? <Loader2 size={16} /> : <CheckCircle2 size={16} />}
+                            </button>
+                          ) : null}
                           <button
                             className={`${styles.usersManagement__actionBtn} ${styles['usersManagement__actionBtn--danger']}`}
-                            onClick={() => console.log('Supprimer utilisateur:', user.id)}
-                            title="Supprimer"
+                            onClick={() => handleDesactivate(user.id)}
+                            disabled={actionUserId === user.id}
+                            title={t('admin.disableUser')}
                           >
-                            <Trash2 size={16} />
+                            {actionUserId === user.id ? <Loader2 size={16} /> : <Trash2 size={16} />}
                           </button>
                         </div>
                       </div>
@@ -351,7 +352,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
           </CardBody>
         </Card>
       </div>
-    </DashboardLayout>
+    </AdminOrganisationLayout>
   );
 };
 
