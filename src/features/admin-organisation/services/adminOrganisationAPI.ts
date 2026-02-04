@@ -55,6 +55,8 @@ export interface AdminUserRow {
   derniere_connexion?: string;
   id_organisation?: string;
   role?: { nom_role: string; id: string };
+  /** Date d'expiration du rôle (utilisateur_role.date_expiration) */
+  date_expiration?: string | null;
 }
 
 export interface AdminDossierRow {
@@ -105,7 +107,7 @@ export interface AdminOrganisationRow {
   email?: string;
   site_web?: string;
   statut_actif?: boolean;
-  /** Préférences équipe + notifications (JSON) */
+  /** Préférences équipe + notifications + zones de compétence (JSON) */
   parametres_organisation?: {
     team?: { maxMembers?: number; autoAssign?: boolean; requireApproval?: boolean };
     notifications?: {
@@ -115,7 +117,34 @@ export interface AdminOrganisationRow {
       smsUrgent?: boolean;
       slackNotifications?: boolean;
     };
+    /** Zones géographiques de compétence (régions, départements, codes postaux) */
+    zones_competence?: ZoneCompetence[];
+    /** Certifications / accréditations de l'organisation */
+    certifications?: CertificationAccreditation[];
+    /** Paramètres IA pour l'organisation (surcharges optionnelles) */
+    ia_config?: IAConfigOrganisation;
   };
+}
+
+export interface ZoneCompetence {
+  id: string;
+  nom: string;
+  region?: string;
+  departement?: string;
+  codes_postaux?: string;
+}
+
+export interface CertificationAccreditation {
+  id: string;
+  nom: string;
+  reference?: string;
+  date_expiration?: string;
+}
+
+export interface IAConfigOrganisation {
+  seuil_reconnaissance_faciale?: number;
+  analyse_auto_activee?: boolean;
+  priorite_analyse?: 'haute' | 'normale' | 'basse';
 }
 
 export interface AdminAuditLogRow {
@@ -727,11 +756,13 @@ export async function getAdminUserById(
   if (!data) return null;
 
   const { data: ur } = await db('utilisateur_role')
-    .select('role:role(nom_role, id)')
+    .select('role:role(nom_role, id), date_expiration')
     .eq('id_utilisateur', userId)
     .limit(1)
     .maybeSingle();
-  return { ...data, role: ur?.role };
+  const role = ur?.role;
+  const date_expiration = (ur as { date_expiration?: string | null })?.date_expiration;
+  return { ...data, role, date_expiration };
 }
 
 /**
@@ -774,6 +805,55 @@ export async function desactivateAdminUser(organisationId: string, userId: strin
  */
 export async function activateAdminUser(organisationId: string, userId: string): Promise<void> {
   return updateAdminUser(organisationId, userId, { statut_compte: 'actif' });
+}
+
+/**
+ * Attribuer ou modifier le rôle d'un utilisateur de l'organisation (rôles 2-5 uniquement).
+ * Remplace les rôles de niveau 2-5 existants par le nouveau rôle.
+ */
+export async function updateAdminUserRole(
+  organisationId: string,
+  userId: string,
+  nom_role: string,
+  options?: { date_expiration?: string | null; attribue_par?: string }
+): Promise<void> {
+  const { data: userRow } = await db('utilisateur')
+    .select('id')
+    .eq('id', userId)
+    .eq('id_organisation', organisationId)
+    .single();
+  if (!userRow) throw new Error('User not in organisation');
+
+  const { data: roleRow, error: roleError } = await db('role')
+    .select('id')
+    .eq('nom_role', nom_role)
+    .gte('niveau_accreditation', 2)
+    .lte('niveau_accreditation', 5)
+    .single();
+  if (roleError || !roleRow) throw new Error('Invalid role for organisation admin');
+
+  const { data: roles2to5 } = await db('role')
+    .select('id')
+    .gte('niveau_accreditation', 2)
+    .lte('niveau_accreditation', 5);
+  const ids2to5 = (roles2to5 || []).map((r: { id: string }) => r.id);
+  if (ids2to5.length === 0) throw new Error('No roles 2-5 found');
+
+  await db('utilisateur_role')
+    .delete()
+    .eq('id_utilisateur', userId)
+    .in('id_role', ids2to5);
+
+  const insertRow: Record<string, unknown> = {
+    id_utilisateur: userId,
+    id_role: roleRow.id,
+    date_attribution: new Date().toISOString(),
+    attribue_par: options?.attribue_par || null,
+  };
+  if (options?.date_expiration !== undefined) insertRow.date_expiration = options.date_expiration || null;
+
+  const { error: insertError } = await db('utilisateur_role').insert(insertRow);
+  if (insertError) throw insertError;
 }
 
 /**

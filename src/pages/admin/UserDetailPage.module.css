@@ -1,12 +1,22 @@
-/* Aligné super_admin */
+/* Aligné 100% super_admin - UserDetail / Profile */
+:root {
+  --userdetail-primary: #1d4ed8;
+  --userdetail-border: #e2e8f0;
+  --userdetail-muted: #64748b;
+  --userdetail-card: #ffffff;
+  --userdetail-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 2rem;
+  gap: 1.25rem;
+  padding: 1.5rem 2rem 2rem;
   max-width: 900px;
   margin: 0 auto;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: #f8fafc;
+  min-height: 100%;
+  font-family: var(--userdetail-font);
 }
 
 .header {

@@ -274,7 +274,27 @@ export async function exportStatistics(
     return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   }
 
-  // For CSV, PDF, XLSX - return JSON for now
+  if (format === 'csv') {
+    const rows: string[] = [];
+    const escape = (v: unknown) => {
+      const s = String(v ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    rows.push('Section,Indicateur,Valeur');
+    const g = data.globales as unknown as Record<string, unknown>;
+    Object.entries(g).forEach(([k, v]) => rows.push(['globales', k, v].map(escape).join(',')));
+    if (Array.isArray(data.regionales) && data.regionales.length) {
+      const head = ['region', 'nombre_cas', 'nombre_retrouves', 'nombre_decedes', 'temps_moyen_resolution'].join(',');
+      rows.push('regionales,' + head);
+      (data.regionales as unknown as Record<string, unknown>[]).forEach((r) =>
+        rows.push('regionales,' + [r.region, r.nombre_cas, r.nombre_retrouves, r.nombre_decedes, r.temps_moyen_resolution].map(escape).join(','))
+      );
+    }
+    const csv = '\uFEFF' + rows.join('\n');
+    return new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  }
+
+  // PDF, XLSX - return JSON for now
   return new Blob([JSON.stringify(data, null, 2)], { type: 'text/plain' });
 }
 

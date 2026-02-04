@@ -6,7 +6,10 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useAppSelector } from '../../store/hooks';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { useStatisticsHistory } from '../../features/statistiques/hooks/useStatisticsHistory';
 import { usePerformanceMetrics } from '../../features/statistiques/hooks/usePerformanceMetrics';
@@ -41,7 +44,14 @@ type StatsPeriod = '7j' | '30j' | '90j' | 'tout';
 
 export const StatistiquesPage: React.FC = () => {
   const { t } = useI18n();
-  const { dossiers, isLoading: dossiersLoading } = useDossiers();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const initialCriteria = useMemo(() => {
+    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
+      return { organisation_id: currentUser.organisation_id };
+    }
+    return undefined;
+  }, [currentUser?.role, currentUser?.organisation_id]);
+  const { dossiers, isLoading: dossiersLoading } = useDossiers({ initialCriteria });
   const { trendData, fetchTrendData, isLoading: trendLoading } = useStatisticsHistory();
   const { metrics, isLoading: metricsLoading, fetchMetrics } = usePerformanceMetrics();
   const [period, setPeriod] = useState<StatsPeriod>('30j');
@@ -126,15 +136,16 @@ export const StatistiquesPage: React.FC = () => {
     },
   ];
 
-  // Export handler
-  const handleExport = useCallback(async () => {
+  // Export handler (JSON ou CSV)
+  const handleExport = useCallback(async (format: 'json' | 'csv' = 'json') => {
     setIsExporting(true);
     try {
-      const blob = await exportStatistics('json');
+      const blob = await exportStatistics(format);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `statistiques_${new Date().toISOString().split('T')[0]}.json`;
+      const ext = format === 'csv' ? 'csv' : 'json';
+      a.download = `statistiques_${new Date().toISOString().split('T')[0]}.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -460,8 +471,9 @@ export const StatistiquesPage: React.FC = () => {
             <div className={styles.footer}>
               <button 
                 className={styles.exportBtn} 
-                onClick={handleExport}
+                onClick={() => handleExport('csv')}
                 disabled={isExporting}
+                title={t('authority.statistiques.export.exportCsv')}
               >
                 {isExporting ? (
                   <>
@@ -471,9 +483,18 @@ export const StatistiquesPage: React.FC = () => {
                 ) : (
                   <>
                     <Download size={18} />
-                    <span>{t('authority.statistiques.export.exportReport')}</span>
+                    <span>{t('authority.statistiques.export.exportCsv')}</span>
                   </>
                 )}
+              </button>
+              <button 
+                className={styles.refreshBtn}
+                onClick={() => handleExport('json')}
+                disabled={isExporting}
+                title={t('authority.statistiques.export.exportReport')}
+              >
+                <Download size={18} />
+                <span>{t('authority.statistiques.export.exportReport')}</span>
               </button>
               <button 
                 className={styles.refreshBtn}

@@ -1,16 +1,27 @@
 /* =====================================================
-   RETROUVONSLES - Admin Organisation Settings (aligné super_admin)
+   RETROUVONSLES - Admin Organisation Settings
+   Aligné 100% super_admin (primary #1d4ed8, cards, tabs)
    ===================================================== */
+
+:root {
+  --settings-primary: #1d4ed8;
+  --settings-border: #e2e8f0;
+  --settings-muted: #64748b;
+  --settings-card: #ffffff;
+  --settings-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
 .settings {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  padding: 1.5rem 2rem 2rem;
+  background: #f8fafc;
+  min-height: 100%;
+  font-family: var(--settings-font);
   animation: settings-fade-in 0.5s ease;
 }
 

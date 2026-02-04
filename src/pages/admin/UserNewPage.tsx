@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserPlus, Mail, Loader2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Mail, Loader2, Shield } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
@@ -77,7 +77,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
               <div className={styles.success}>
                 <UserPlus size={48} className={styles.successIcon} />
                 <h2>{t('admin.inviteSent')}</h2>
-                <p>{t('admin.inviteSentTo')}: {email}</p>
+                <p>{t('admin.inviteSentTo')}{t('common.colon')} {email}</p>
                 <Button variant="primary" onClick={() => navigate('/admin/utilisateurs')}>
                   {t('admin.utilisateurs')}
                 </Button>
@@ -93,17 +93,18 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
     <AdminOrganisationLayout title={t('admin.inviteUser')} activeNav="utilisateurs">
       <div className={styles.page}>
         <div className={styles.header}>
-          <button type="button" className={styles.backBtn} onClick={() => navigate('/admin/utilisateurs')}>
+          <button type="button" className={styles.backBtn} onClick={() => navigate('/admin/utilisateurs')} title={t('common.back')} aria-label={t('common.back')}>
             <ArrowLeft size={20} />
             {t('common.back')}
           </button>
         </div>
-        <Card>
+        <Card className={styles.card}>
           <CardHeader>
             <h1 className={styles.title}>
-              <UserPlus size={24} />
+              <UserPlus size={24} className={styles.titleIcon} />
               {t('admin.inviteUser')}
             </h1>
+            <p className={styles.subtitle}>{t('admin.inviteUserDescription')}</p>
           </CardHeader>
           <CardBody>
             <form onSubmit={handleSubmit} className={styles.form}>
@@ -113,7 +114,10 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                 </div>
               )}
               <div className={styles.field}>
-                <label htmlFor="email">{t('admin.fieldEmail')}</label>
+                <label htmlFor="email">
+                  <Mail size={16} className={styles.labelIcon} />
+                  {t('admin.fieldEmail')}
+                </label>
                 <input
                   id="email"
                   type="email"
@@ -125,7 +129,10 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor="role">{t('common.role')}</label>
+                <label htmlFor="role">
+                  <Shield size={16} className={styles.labelIcon} />
+                  {t('common.role')}
+                </label>
                 <select
                   id="role"
                   value={role}
@@ -133,7 +140,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                   className={styles.select}
                 >
                   {ROLE_OPTIONS.map(r => (
-                    <option key={r} value={r}>{t(`admin.role.${r}`)}</option>
+                    <option key={r} value={r}>{t(`admin.role.${r}`, t('common.unknown'))}</option>
                   ))}
                 </select>
               </div>

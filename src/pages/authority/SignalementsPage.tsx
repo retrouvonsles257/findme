@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileSearch,
@@ -24,6 +24,9 @@ import {
   ThumbsUp,
   ThumbsDown,
 } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { useSignalementValidation } from '../../features/signalements/hooks/useSignalementValidation';
 import { useAuth } from '../../contexts';
@@ -37,8 +40,19 @@ type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalid
 export const SignalementsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { signalements, isLoading, fetchSignalements } = useSignalements();
+  const orgFilter = useMemo(() => {
+    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
+      return { organisation_id: currentUser.organisation_id };
+    }
+    return undefined;
+  }, [currentUser?.role, currentUser?.organisation_id]);
+
+  useEffect(() => {
+    fetchSignalements(orgFilter, 1);
+  }, [orgFilter, fetchSignalements]);
   const { t, language } = useI18n();
   const { 
     validateSignalement, 
@@ -110,7 +124,7 @@ export const SignalementsPage: React.FC = () => {
         type: 'success',
       });
 
-      fetchSignalements();
+      fetchSignalements(orgFilter, 1);
       closeValidationModal();
     } catch (err: any) {
       addNotification({
@@ -119,7 +133,7 @@ export const SignalementsPage: React.FC = () => {
         type: 'error',
       });
     }
-  }, [selectedSignalement, pendingDecision, user?.id, validationComment, validateSignalement, addNotification, fetchSignalements, closeValidationModal]);
+  }, [selectedSignalement, pendingDecision, user?.id, validationComment, validateSignalement, addNotification, fetchSignalements, closeValidationModal, orgFilter]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleQuickValidate = useCallback(async (signalementId: string, approved: boolean) => {
@@ -149,7 +163,7 @@ export const SignalementsPage: React.FC = () => {
         type: 'success',
       });
 
-      fetchSignalements();
+      fetchSignalements(orgFilter, 1);
     } catch (err: any) {
       addNotification({
         title: t('authority.signalements.messages.error'),
@@ -157,7 +171,7 @@ export const SignalementsPage: React.FC = () => {
         type: 'error',
       });
     }
-  }, [user?.id, validateSignalement, addNotification, fetchSignalements, t]);
+  }, [user?.id, validateSignalement, addNotification, fetchSignalements, t, orgFilter]);
 
   const getCertitudeColor = (certitude?: string) => {
     switch (certitude) {
@@ -188,7 +202,7 @@ export const SignalementsPage: React.FC = () => {
             </div>
             <button 
               className={styles.refreshButton}
-              onClick={() => fetchSignalements()}
+              onClick={() => fetchSignalements(orgFilter, 1)}
               disabled={isLoading}
             >
               <RefreshCw size={18} className={isLoading ? styles.spinning : ''} />

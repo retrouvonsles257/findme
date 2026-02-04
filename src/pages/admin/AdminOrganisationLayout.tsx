@@ -21,6 +21,7 @@ import {
   ScrollText,
   Settings,
   User,
+  Key,
   Search,
   ChevronRight,
   ChevronLeft,
@@ -29,6 +30,7 @@ import {
   Menu,
   X,
   Globe,
+  GitBranch,
 } from 'lucide-react';
 import styles from './AdminOrganisationLayout.module.css';
 
@@ -41,8 +43,29 @@ type ActiveNavType =
   | 'roles'
   | 'audit-logs'
   | 'parametres'
+  | 'workflows'
   | 'profile'
   | 'api-keys';
+
+/** Structure de navigation stable (icônes hors rendu) pour éviter la disparition d’icône au changement de langue */
+const ADMIN_NAV_CONFIG: {
+  id: ActiveNavType;
+  labelKey: string;
+  path: string;
+  icon: typeof LayoutDashboard;
+}[] = [
+  { id: 'dashboard', labelKey: 'common.dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+  { id: 'dossiers', labelKey: 'admin.dossiers', path: '/admin/dossiers', icon: Folder },
+  { id: 'rapports', labelKey: 'admin.rapports', path: '/admin/rapports', icon: FileText },
+  { id: 'utilisateurs', labelKey: 'admin.utilisateurs', path: '/admin/utilisateurs', icon: Users },
+  { id: 'statistiques', labelKey: 'admin.statistiques', path: '/admin/statistiques', icon: BarChart3 },
+  { id: 'roles', labelKey: 'admin.rolesManagement', path: '/admin/roles', icon: Shield },
+  { id: 'audit-logs', labelKey: 'admin.auditLogs', path: '/admin/audit-logs', icon: ScrollText },
+  { id: 'parametres', labelKey: 'admin.parametres', path: '/admin/parametres', icon: Settings },
+  { id: 'workflows', labelKey: 'admin.workflows', path: '/admin/workflows', icon: GitBranch },
+  { id: 'api-keys', labelKey: 'admin.apiKeys', path: '/admin/api-keys', icon: Key },
+  { id: 'profile', labelKey: 'admin.profile', path: '/admin/profile', icon: User },
+];
 
 interface AdminOrganisationLayoutProps {
   children: React.ReactNode;
@@ -103,17 +126,10 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const navItems = [
-    { id: 'dashboard' as const, label: t('common.dashboard'), path: '/admin/dashboard', icon: LayoutDashboard },
-    { id: 'dossiers' as const, label: t('admin.dossiers'), path: '/admin/dossiers', icon: Folder },
-    { id: 'rapports' as const, label: t('admin.rapports'), path: '/admin/rapports', icon: FileText },
-    { id: 'utilisateurs' as const, label: t('admin.utilisateurs'), path: '/admin/utilisateurs', icon: Users },
-    { id: 'statistiques' as const, label: t('admin.statistiques'), path: '/admin/statistiques', icon: BarChart3 },
-    { id: 'roles' as const, label: t('admin.rolesManagement'), path: '/admin/roles', icon: Shield },
-    { id: 'audit-logs' as const, label: t('admin.auditLogs'), path: '/admin/audit-logs', icon: ScrollText },
-    { id: 'parametres' as const, label: t('admin.parametres'), path: '/admin/parametres', icon: Settings },
-    { id: 'profile' as const, label: t('admin.profile'), path: '/admin/profile', icon: User },
-  ];
+  const navItems = ADMIN_NAV_CONFIG.map((item) => ({
+    ...item,
+    label: t(item.labelKey),
+  }));
 
   const handleLogout = () => {
     navigate('/auth/login');
@@ -127,9 +143,9 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
   const getInitials = () => {
     const user = currentUser as any;
     const name = user?.first_name || user?.last_name || user?.email;
-    if (!name) return 'AO';
+    if (!name) return t('admin.initialsDefault');
     const parts = String(name).split(' ').filter(Boolean);
-    if (parts.length === 0) return 'AO';
+    if (parts.length === 0) return t('admin.initialsDefault');
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
@@ -178,18 +194,26 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
           {!isCollapsed && (
             <div className={styles.logoContainer}>
               <div className={styles.logoIcon}>
-                <span>RetrouvonsLes</span>
+                <span>{t('common.appName')}</span>
               </div>
             </div>
           )}
           <button
+            type="button"
             className={styles.toggleBtn}
             onClick={() => setIsCollapsed(!isCollapsed)}
-            title={isCollapsed ? 'Ouvrir le menu' : 'Réduire le menu'}
+            title={isCollapsed ? t('admin.openMenu') : t('admin.closeMenu')}
+            aria-label={isCollapsed ? t('admin.openMenu') : t('admin.closeMenu')}
           >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
-          <button className={styles.closeMobileBtn} onClick={() => setMobileOpen(false)}>
+          <button
+            type="button"
+            className={styles.closeMobileBtn}
+            onClick={() => setMobileOpen(false)}
+            title={t('common.close')}
+            aria-label={t('common.close')}
+          >
             <X size={24} />
           </button>
         </div>
@@ -243,9 +267,9 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
                 <User size={18} />
                 <span>{t('common.profile')}</span>
               </button>
-              <button className={styles.userMenuItem} onClick={toggleLanguage}>
+              <button type="button" className={styles.userMenuItem} onClick={toggleLanguage} title={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')} aria-label={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')}>
                 <Globe size={18} />
-                <span>{language === 'fr' ? 'English' : 'Français'}</span>
+                <span>{language === 'fr' ? t('common.langCodeEn') : t('common.langCodeFr')}</span>
               </button>
               <div className={styles.userMenuDivider} />
               <button
@@ -266,7 +290,7 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
             <Search size={18} className={styles.topHeaderSearchIcon} />
             <input
               type="text"
-              placeholder={t('common.search') || 'Rechercher...'}
+              placeholder={t('common.search')}
               value={headerSearch}
               onChange={(e) => setHeaderSearch(e.target.value)}
               className={styles.topHeaderSearchInput}
@@ -281,9 +305,9 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
             >
               <Bell size={18} />
             </button>
-            <button type="button" className={styles.topHeaderIconBtn} onClick={toggleLanguage} title={t('common.language')}>
+            <button type="button" className={styles.topHeaderIconBtn} onClick={toggleLanguage} title={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')} aria-label={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')}>
               <Globe size={18} />
-              <span>{language.toUpperCase()}</span>
+              <span>{language === 'fr' ? t('common.langCodeEn') : t('common.langCodeFr')}</span>
             </button>
             <button
               type="button"
@@ -304,10 +328,16 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
         </header>
 
         <header className={styles.mobileHeader}>
-          <button className={styles.menuBtn} onClick={() => setMobileOpen(true)}>
+          <button
+            type="button"
+            className={styles.menuBtn}
+            onClick={() => setMobileOpen(true)}
+            title={t('common.menu')}
+            aria-label={t('common.menu')}
+          >
             <Menu size={24} />
           </button>
-          <span className={styles.appName}>RetrouvonsLes</span>
+          <span className={styles.appName}>{t('common.appName')}</span>
           <div className={styles.mobileHeaderRight}>
             <button
               type="button"
@@ -317,10 +347,17 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
             >
               <Bell size={18} />
             </button>
-            <button type="button" className={styles.mobileHeaderIconBtn} onClick={toggleLanguage} title={t('common.language')}>
+            <button type="button" className={styles.mobileHeaderIconBtn} onClick={toggleLanguage} title={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')} aria-label={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')}>
               <Globe size={18} />
+              <span>{language === 'fr' ? t('common.langCodeEn') : t('common.langCodeFr')}</span>
             </button>
-            <button type="button" className={styles.mobileAvatarBtn} onClick={() => setMobileOpen(true)}>
+            <button
+              type="button"
+              className={styles.mobileAvatarBtn}
+              onClick={() => setMobileOpen(true)}
+              title={getUserLabel()}
+              aria-label={t('common.profile')}
+            >
               <div className={styles.mobileAvatarPlaceholder}>
                 {photoProfil ? (
                   <img src={photoProfil} alt="" className={styles.userAvatarImg} />

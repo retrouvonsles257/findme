@@ -57,24 +57,35 @@ interface LocationPredictionInput {
 // car File ne peut pas être sérialisé dans Redux
 // ============================================
 
-export const fetchFacialRecognitionResults = createAsyncThunk<ResultatIA[], string | undefined>(
+export interface FetchIAResultsArg {
+  dossierId?: string;
+  organisationId?: string;
+}
+
+export const fetchFacialRecognitionResults = createAsyncThunk<ResultatIA[], FetchIAResultsArg | string | undefined>(
   'ia/fetchFacialRecognitionResults',
-  async (dossierId?: string) => {
-    return getFacialRecognitionResults(dossierId);
+  async (arg) => {
+    const dossierId = typeof arg === 'object' && arg?.dossierId !== undefined ? arg.dossierId : typeof arg === 'string' ? arg : undefined;
+    const organisationId = typeof arg === 'object' && arg?.organisationId !== undefined ? arg.organisationId : undefined;
+    return getFacialRecognitionResults(dossierId, organisationId);
   },
 );
 
-export const fetchImageComparisonResults = createAsyncThunk<ResultatIA[], string | undefined>(
+export const fetchImageComparisonResults = createAsyncThunk<ResultatIA[], FetchIAResultsArg | string | undefined>(
   'ia/fetchImageComparisonResults',
-  async (dossierId?: string) => {
-    return getImageComparisonResults(dossierId);
+  async (arg) => {
+    const dossierId = typeof arg === 'object' && arg?.dossierId !== undefined ? arg.dossierId : typeof arg === 'string' ? arg : undefined;
+    const organisationId = typeof arg === 'object' && arg?.organisationId !== undefined ? arg.organisationId : undefined;
+    return getImageComparisonResults(dossierId, organisationId);
   },
 );
 
-export const fetchLocationPredictions = createAsyncThunk<ResultatIA[], string | undefined>(
+export const fetchLocationPredictions = createAsyncThunk<ResultatIA[], FetchIAResultsArg | string | undefined>(
   'ia/fetchLocationPredictions',
-  async (dossierId?: string) => {
-    return getLocationPredictions(dossierId);
+  async (arg) => {
+    const dossierId = typeof arg === 'object' && arg?.dossierId !== undefined ? arg.dossierId : typeof arg === 'string' ? arg : undefined;
+    const organisationId = typeof arg === 'object' && arg?.organisationId !== undefined ? arg.organisationId : undefined;
+    return getLocationPredictions(dossierId, organisationId);
   },
 );
 
@@ -85,10 +96,12 @@ export const performLocationPrediction = createAsyncThunk<ResultatIA, LocationPr
   },
 );
 
-export const fetchSimilaritiesResults = createAsyncThunk<ResultatIA[], string | undefined>(
+export const fetchSimilaritiesResults = createAsyncThunk<ResultatIA[], FetchIAResultsArg | string | undefined>(
   'ia/fetchSimilaritiesResults',
-  async (dossierId?: string) => {
-    return getSimilaritiesResults(dossierId);
+  async (arg) => {
+    const dossierId = typeof arg === 'object' && arg?.dossierId !== undefined ? arg.dossierId : typeof arg === 'string' ? arg : undefined;
+    const organisationId = typeof arg === 'object' && arg?.organisationId !== undefined ? arg.organisationId : undefined;
+    return getSimilaritiesResults(dossierId, organisationId);
   },
 );
 

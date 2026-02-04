@@ -2,7 +2,6 @@ import React from 'react';
 import { SidebarPublic } from './SidebarPublic';
 import { SidebarCitizen } from './SidebarCitizen';
 import { SidebarAuthority } from './SidebarAuthority';
-import styles from './Sidebar.module.css';
 
 export type SidebarType = 'public' | 'citizen' | 'authority';
 

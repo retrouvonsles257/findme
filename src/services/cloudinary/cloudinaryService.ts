@@ -9,7 +9,6 @@ import {
   cloudinaryConfig,
   isCloudinaryConfigured,
   getUploadConfig,
-  getTransformationPreset,
   validateFile,
   formatFileSize,
   getFileIcon,

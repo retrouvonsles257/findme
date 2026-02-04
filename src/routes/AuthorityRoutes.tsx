@@ -36,12 +36,13 @@ import { NomRole } from '../@types/enums.types';
 
 /**
  * AuthorityRoutes Component
- * Routes protégées pour les autorités
+ * Routes protégées pour les autorités (niveau 4) et admin d'organisation (niveau 6, héritage création dossiers, alertes, IA)
  */
 const AuthorityRoutes: React.FC = () => {
   const authorityRoles = [
     NomRole.OFFICIER_POLICE,
     NomRole.AGENT_GENDARMERIE,
+    NomRole.ADMIN_ORGANISATION,
   ];
 
   return (

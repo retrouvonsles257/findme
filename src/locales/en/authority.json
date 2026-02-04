@@ -1267,7 +1267,8 @@
     },
     "export": {
       "exporting": "Exporting...",
-      "exportReport": "Export report"
+      "exportReport": "Export report (JSON)",
+      "exportCsv": "Export as CSV"
     },
     "units": {
       "days": "days",

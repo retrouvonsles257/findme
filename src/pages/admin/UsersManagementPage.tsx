@@ -180,6 +180,8 @@ export const AdminOrganisationUsersPage: React.FC = () => {
           <Button
             variant="primary"
             onClick={() => navigate('/admin/utilisateurs/new')}
+            title={t('admin.addUser')}
+            aria-label={t('admin.addUser')}
           >
             <UserPlus size={18} />
             {t('admin.addUser')}
@@ -233,7 +235,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
         <Card>
           <CardHeader>
             <h2 className={styles.usersManagement__cardTitle}>
-              {t('admin.totalUsers')}: <strong>{filteredUsers.length}</strong>
+              {t('admin.totalUsers')}{t('common.colon')} <strong>{filteredUsers.length}</strong>
             </h2>
           </CardHeader>
           <CardBody>
@@ -288,7 +290,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                       </div>
                       <div className={styles.usersManagement__tableCell}>
                         <Badge variant={getRoleBadgeColor(user.role) as any}>
-                          {t(`admin.role.${user.role}`)}
+                          {t(`admin.role.${user.role}`, t('common.unknown'))}
                         </Badge>
                       </div>
                       <div className={styles.usersManagement__tableCell}>
@@ -300,7 +302,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                               : styles['usersManagement__statusBadge--disabled']
                         }`}>
                           {getStatusIcon(user.statut)}
-                          <span>{t(`admin.status.${user.statut}`)}</span>
+                          <span>{t(`admin.status.${user.statut}`, t('common.unknown'))}</span>
                         </div>
                       </div>
                       <div className={styles.usersManagement__tableCell}>
@@ -309,36 +311,44 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                       <div className={styles.usersManagement__tableCell}>
                         <div className={styles.usersManagement__actions}>
                           <button
+                            type="button"
                             className={styles.usersManagement__actionBtn}
                             onClick={() => navigate(`/admin/utilisateurs/${user.id}`)}
                             title={t('admin.editUser')}
+                            aria-label={t('admin.editUser')}
                           >
                             <Edit3 size={16} />
                           </button>
                           {user.statut === 'actif' ? (
                             <button
+                              type="button"
                               className={styles.usersManagement__actionBtn}
                               onClick={() => handleSuspend(user.id)}
                               disabled={actionUserId === user.id}
                               title={t('admin.suspendUser')}
+                              aria-label={t('admin.suspendUser')}
                             >
                               {actionUserId === user.id ? <Loader2 size={16} /> : <Clock size={16} />}
                             </button>
                           ) : user.statut === 'suspendu' ? (
                             <button
+                              type="button"
                               className={styles.usersManagement__actionBtn}
                               onClick={() => handleActivate(user.id)}
                               disabled={actionUserId === user.id}
                               title={t('admin.activateUser')}
+                              aria-label={t('admin.activateUser')}
                             >
                               {actionUserId === user.id ? <Loader2 size={16} /> : <CheckCircle2 size={16} />}
                             </button>
                           ) : null}
                           <button
+                            type="button"
                             className={`${styles.usersManagement__actionBtn} ${styles['usersManagement__actionBtn--danger']}`}
                             onClick={() => handleDesactivate(user.id)}
                             disabled={actionUserId === user.id}
                             title={t('admin.disableUser')}
+                            aria-label={t('admin.disableUser')}
                           >
                             {actionUserId === user.id ? <Loader2 size={16} /> : <Trash2 size={16} />}
                           </button>

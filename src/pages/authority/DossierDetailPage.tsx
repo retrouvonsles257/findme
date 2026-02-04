@@ -43,12 +43,28 @@ import { analyzeFacialImage, getResultatsIA, ResultatIA } from '../../features/i
 import { isHuggingFaceConfigured } from '../../services/huggingFaceService';
 import styles from './DossierDetailPage.module.css';
 
-export const DossierDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Corrigé : utiliser 'id' au lieu de 'dossierId'
+export interface DossierDetailPageProps {
+  /** Ne pas envelopper dans AuthorityLayout (pour usage dans espace admin) */
+  noLayout?: boolean;
+  /** URL du bouton Retour (ex: /admin/dossiers) */
+  backTo?: string;
+  /** Préfixe des routes pour éditer / alertes / IA (ex: /admin ou /authority) */
+  basePath?: string;
+}
+
+const DEFAULT_BASE_PATH = '/authority';
+
+export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
+  noLayout = false,
+  backTo,
+  basePath = DEFAULT_BASE_PATH,
+}) => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { dossier, isLoading, error, fetchDossier } = useDossierDetail();
   const { t, language } = useI18n();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
+  const bp = basePath || DEFAULT_BASE_PATH;
 
   // Fonction pour traduire le statut
   const getStatusLabel = (statut: string) => {
@@ -493,9 +509,8 @@ export const DossierDetailPage: React.FC = () => {
     }
   }, [id, fetchDossier, fetchSignalements, fetchLocalisations, fetchHistorique]);
 
-  return (
-    <AuthorityLayout>
-      <div className={styles.container}>
+  const content = (
+    <div className={styles.container}>
         {isLoading ? (
           <div className={styles.loading}>{t('authority.dossierDetail.loading')}</div>
         ) : error ? (
@@ -509,7 +524,7 @@ export const DossierDetailPage: React.FC = () => {
             {/* Header */}
             <div className={styles.header}>
               <div className={styles.headerLeft}>
-                <button className={styles.backButton} onClick={() => navigate(-1)}>
+                <button className={styles.backButton} onClick={() => (backTo != null ? navigate(backTo) : navigate(-1))}>
                   <ArrowLeft size={18} /> {t('authority.commonActions.back')}
                 </button>
                 <div className={styles.titleSection}>
@@ -667,18 +682,18 @@ export const DossierDetailPage: React.FC = () => {
                   </div>
 
                   <div className={styles.actions}>
-                    <button className={styles.btn} onClick={() => navigate(`/authority/dossiers/${id}/edit`)}>
+                    <button className={styles.btn} onClick={() => navigate(`${bp}/dossiers/${id}/edit`)}>
                       <Edit size={16} /> {t('authority.commonActions.edit')}
                     </button>
                     <button 
                       className={styles.btn}
-                      onClick={() => navigate(`/authority/alertes/new?dossierId=${id}`)}
+                      onClick={() => navigate(`${bp}/alertes/new?dossierId=${id}`)}
                     >
                       <Bell size={16} /> {t('authority.dossierDetail.createAlert')}
                     </button>
                     <button 
                       className={styles.btn}
-                      onClick={() => navigate(`/authority/ia-analysis?dossierId=${id}`)}
+                      onClick={() => navigate(`${bp}/ia-analysis?dossierId=${id}`)}
                     >
                       <Brain size={16} /> {t('authority.dossierDetail.iaAnalysis')}
                     </button>
@@ -1226,7 +1241,7 @@ export const DossierDetailPage: React.FC = () => {
                             </div>
                             <button
                               className={styles.viewResultBtn}
-                              onClick={() => navigate(`/authority/ia-analysis?resultId=${result.id}`)}
+                              onClick={() => navigate(`${bp}/ia-analysis?resultId=${result.id}`)}
                             >
                               <Eye size={14} /> {t('authority.iaAnalysis.actions.viewDetails')}
                             </button>
@@ -1248,8 +1263,10 @@ export const DossierDetailPage: React.FC = () => {
           <div className={styles.notFound}>{t('authority.dossierDetail.notFound')}</div>
         )}
       </div>
-    </AuthorityLayout>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default DossierDetailPage;

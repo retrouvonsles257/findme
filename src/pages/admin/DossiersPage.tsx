@@ -61,15 +61,15 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
       });
       const mapped: Dossier[] = rows.map((r) => ({
         id: r.id,
-        numero: r.numero_dossier || `#${r.id.slice(0, 8)}`,
+        numero: r.numero_dossier || `${t('admin.dossierNumberPrefix')}${r.id.slice(0, 8)}`,
         nom_personne:
           (r.personne as any)?.nom_complet ||
           [((r.personne as any)?.nom ?? ''), ((r.personne as any)?.prenom ?? '')].filter(Boolean).join(' ').trim() ||
-          '—',
+          t('common.notAvailable'),
         date_disparition: r.date_disparition ? r.date_disparition.split('T')[0] : '',
         statut: (r.statut_dossier as StatutDossier) || StatutDossier.EN_COURS,
         urgence: (r.niveau_urgence as NiveauUrgence) || NiveauUrgence.NORMAL,
-        localisation: r.ville_disparition || r.lieu_disparition || '—',
+        localisation: r.ville_disparition || r.lieu_disparition || t('common.notAvailable'),
         date_creation: r.created_at ? r.created_at.split('T')[0] : '',
       }));
       setFilteredDossiers(mapped);
@@ -79,7 +79,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.organisation_id, searchTerm, filterStatus, filterUrgence]);
+  }, [currentUser?.organisation_id, searchTerm, filterStatus, filterUrgence, t]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -103,8 +103,11 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
             </p>
           </div>
           <button
+            type="button"
             className={styles.dossiers__btnCreate}
             onClick={() => navigate('/admin/dossiers/new')}
+            title={t('admin.newDossier')}
+            aria-label={t('admin.newDossier')}
           >
             <Plus className={styles.dossiers__btnIcon} />
             {t('admin.newDossier')}
@@ -161,7 +164,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
         <div className={styles.dossiers__contentCard}>
           <div className={styles.dossiers__contentHeader}>
             <h2 className={styles.dossiers__contentTitle}>
-              {t('admin.totalDossiers')}: <strong>{filteredDossiers.length}</strong>
+              {t('admin.totalDossiers')}{t('common.colon')} <strong>{filteredDossiers.length}</strong>
             </h2>
           </div>
 
@@ -186,7 +189,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
                       <span
                         className={`${styles.dossiers__badge} ${styles[`dossiers__badge--${dossier.statut}`]}`}
                       >
-                        {t(`admin.status.${dossier.statut}`)}
+                        {t(`admin.status.${dossier.statut}`, t('common.unknown'))}
                       </span>
                     </div>
                   </div>
@@ -211,28 +214,34 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
                       <span
                         className={`${styles.dossiers__badge} ${styles[`dossiers__badge--urgence-${dossier.urgence}`]}`}
                       >
-                        {t(`admin.urgence.${dossier.urgence}`)}
+                        {t(`admin.urgence.${dossier.urgence}`, t('common.unknown'))}
                       </span>
                     </div>
                   </div>
 
                   <div className={styles.dossiers__cardFooter}>
                     <button
+                      type="button"
                       className={styles.dossiers__btnView}
                       onClick={e => {
                         e.stopPropagation();
                         navigate(`/admin/dossiers/${dossier.id}`);
                       }}
+                      title={t('common.view')}
+                      aria-label={t('common.view')}
                     >
                       <Eye className={styles.dossiers__btnIcon} />
                       {t('common.view')}
                     </button>
                     <button
+                      type="button"
                       className={styles.dossiers__btnEdit}
                       onClick={e => {
                         e.stopPropagation();
                         navigate(`/admin/dossiers/${dossier.id}/edit`);
                       }}
+                      title={t('admin.edit')}
+                      aria-label={t('admin.edit')}
                     >
                       <Edit className={styles.dossiers__btnIcon} />
                     </button>

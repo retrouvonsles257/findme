@@ -49,6 +49,9 @@ import { useFacialRecognition, useIAAnalysis, confirmIAResult, rejectIAResult, m
 import { ResultatIA, getResultatsIA } from '../../features/ia-analysis/services/iaAPI';
 import { useAuth } from '../../features/auth';
 import { useDispatch } from 'react-redux';
+import { useAppSelector } from '../../store/types';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { 
   fetchFacialRecognitionResults, 
   fetchImageComparisonResults, 
@@ -95,6 +98,7 @@ export const IAAnalysisPage: React.FC = () => {
   
   // Auth pour obtenir l'ID utilisateur
   const { user } = useAuth();
+  const currentUser = useAppSelector(selectCurrentUser);
   
   // Hooks IA
   const { 
@@ -116,16 +120,21 @@ export const IAAnalysisPage: React.FC = () => {
 
   const dispatch = useDispatch();
 
+  const organisationIdForIA =
+    currentUser?.role === NomRole.ADMIN_ORGANISATION ? currentUser?.organisation_id : undefined;
+
   // Charger l'historique IA et les statistiques au démarrage
   useEffect(() => {
+    const arg =
+      organisationIdForIA != null ? { organisationId: organisationIdForIA } : undefined;
     const loadData = async () => {
       try {
-        // Charger tous les types de résultats IA
+        // Charger tous les types de résultats IA (filtrés par org si admin org)
         await Promise.all([
-          dispatch(fetchFacialRecognitionResults() as any).unwrap().catch(() => []),
-          dispatch(fetchImageComparisonResults() as any).unwrap().catch(() => []),
-          dispatch(fetchLocationPredictions() as any).unwrap().catch(() => []),
-          dispatch(fetchSimilaritiesResults() as any).unwrap().catch(() => []),
+          dispatch(fetchFacialRecognitionResults(arg) as any).unwrap().catch(() => []),
+          dispatch(fetchImageComparisonResults(arg) as any).unwrap().catch(() => []),
+          dispatch(fetchLocationPredictions(arg) as any).unwrap().catch(() => []),
+          dispatch(fetchSimilaritiesResults(arg) as any).unwrap().catch(() => []),
         ]);
         
         // Charger les statistiques
@@ -135,12 +144,13 @@ export const IAAnalysisPage: React.FC = () => {
       }
     };
     loadData();
-  }, [dispatch]);
+  }, [dispatch, organisationIdForIA]);
 
-  // Charger les statistiques IA
+  // Charger les statistiques IA (filtrées par org si admin org)
   const loadStatistics = async () => {
     try {
-      const allResults = await getResultatsIA();
+      const orgId = currentUser?.role === NomRole.ADMIN_ORGANISATION ? currentUser?.organisation_id : undefined;
+      const allResults = await getResultatsIA(undefined, undefined, orgId);
       
       const confirmed = allResults.filter(r => r.statut_validation === 'confirme').length;
       const falsePos = allResults.filter(r => r.faux_positif === true).length;

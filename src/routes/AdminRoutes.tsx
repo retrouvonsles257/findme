@@ -20,6 +20,7 @@ import {
   AdminOrganisationRapportDetailPage,
   AdminOrganisationStatistiquesPage,
   AdminOrganisationSettingsPage,
+  AdminOrganisationWorkflowsPage,
   AdminOrganisationRolesPage,
   AdminOrganisationAuditLogsPage,
   AdminOrganisationProfilePage,
@@ -173,6 +174,16 @@ const AdminRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={adminRoles}>
               <AdminOrganisationSettingsPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Workflows - /admin/workflows (placeholder) */}
+        <Route
+          path="/workflows"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationWorkflowsPage />
             </RoleBasedRoute>
           }
         />

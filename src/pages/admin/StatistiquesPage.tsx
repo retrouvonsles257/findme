@@ -31,6 +31,8 @@ import {
   Clock,
   Loader2,
   Calendar,
+  Download,
+  UsersRound,
 } from 'lucide-react';
 import styles from './StatistiquesPage.module.css';
 
@@ -62,6 +64,38 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
     foundThisMonth: 0,
   });
   const [monthlyActivity, setMonthlyActivity] = useState<AdminMonthlyActivityRow[]>([]);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCsv = useCallback(() => {
+    setExporting(true);
+    try {
+      const rows: string[] = [
+        'Indicateur,Valeur',
+        `Total dossiers,${statsData.totalDossiers}`,
+        `Dossiers résolus,${statsData.dossiersResolus}`,
+        `Personnes retrouvées,${statsData.personnesRetrouvees}`,
+        `Utilisateurs,${statsData.utilisateurs}`,
+        `Rapports récents,${statsData.rapportsRecents}`,
+        `Temps moyen résolution (jours),${statsData.avgResolutionDays}`,
+        `Urgence critique,${urgencyCounts.critique}`,
+        `Urgence urgent,${urgencyCounts.urgent}`,
+        `Urgence normal,${urgencyCounts.normal}`,
+        `Urgence faible,${urgencyCounts.faible}`,
+      ];
+      const csv = '\uFEFF' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `statistiques_organisation_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }, [statsData, urgencyCounts]);
 
   const loadStatistics = useCallback(async () => {
     const orgId = currentUser?.organisation_id;
@@ -154,9 +188,22 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
           </div>
           <div className={styles.statistiques__periodSelector}>
             <Button
+              variant="secondary"
+              onClick={handleExportCsv}
+              disabled={exporting}
+              size="sm"
+              title={t('admin.exportCsv')}
+              aria-label={t('admin.exportCsv')}
+            >
+              {exporting ? <Loader2 size={16} className={styles.statistiques__loadingSpin} /> : <Download size={16} />}
+              <span style={{ marginLeft: 6 }}>{t('admin.exportCsv')}</span>
+            </Button>
+            <Button
               variant={period === 'month' ? 'primary' : 'secondary'}
               onClick={() => setPeriod('month')}
               size="sm"
+              title={t('admin.thisMonth')}
+              aria-label={t('admin.thisMonth')}
             >
               {t('admin.thisMonth')}
             </Button>
@@ -164,6 +211,8 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
               variant={period === 'quarter' ? 'primary' : 'secondary'}
               onClick={() => setPeriod('quarter')}
               size="sm"
+              title={t('admin.thisQuarter')}
+              aria-label={t('admin.thisQuarter')}
             >
               {t('admin.thisQuarter')}
             </Button>
@@ -171,9 +220,35 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
               variant={period === 'year' ? 'primary' : 'secondary'}
               onClick={() => setPeriod('year')}
               size="sm"
+              title={t('admin.thisYear')}
+              aria-label={t('admin.thisYear')}
             >
               {t('admin.thisYear')}
             </Button>
+          </div>
+        </div>
+
+        {/* Lien Coordination (Authority) */}
+        <div className={styles.statistiques__statsGrid} style={{ marginBottom: 16 }}>
+          <div
+            className={styles.statistiques__coordinationCard}
+            onClick={() => navigate('/authority/coordination')}
+            role="button"
+            tabIndex={0}
+          >
+            <Card>
+              <CardBody className={styles.statistiques__coordinationCardBody}>
+                <UsersRound size={28} style={{ color: '#1d4ed8' }} />
+                <div>
+                  <h3 className={styles.statistiques__cardTitle} style={{ margin: 0, fontSize: '1rem' }}>
+                    {t('admin.coordinationLink')}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+                    {t('admin.coordinationLinkDesc')}
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
           </div>
         </div>
 
@@ -218,7 +293,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
                   const colors: Record<string, string> = { critique: '#dc2626', urgent: '#ea580c', normal: '#1d4ed8', faible: '#10b981' };
                   return (
                     <div key={key} className={styles.statistiques__barRow}>
-                      <span className={styles.statistiques__barLabel}>{t(`admin.urgence.${key}`)}</span>
+                      <span className={styles.statistiques__barLabel}>{t(`admin.urgence.${key}`, t('common.unknown'))}</span>
                       <div className={styles.statistiques__barTrack}>
                         <div
                           className={styles.statistiques__barFill}
@@ -261,11 +336,11 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
                           (statsData.dossiersResolus / statsData.totalDossiers) * 100
                         )
                       : 0}
-                    %
+                    {t('admin.percent')}
                   </div>
                 </div>
                 <p className={styles.statistiques__progressText}>
-                  {t('admin.casesResolved')}: {statsData.dossiersResolus} / {statsData.totalDossiers}
+                  {t('admin.casesResolved')}{t('common.colon')} {statsData.dossiersResolus}{t('common.countSeparator')}{statsData.totalDossiers}
                 </p>
               </div>
             </CardBody>
@@ -293,8 +368,8 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
                         return (
                           <div key={row.month} className={styles.statistiques__monthlyBarGroup}>
                             <div className={styles.statistiques__monthlyBarStack}>
-                              <div title={`${row.newDossiers} nouveaux`} style={{ height: `${newH}%`, backgroundColor: '#1d4ed8' }} />
-                              <div title={`${row.resolved} résolus`} style={{ height: `${resH}%`, backgroundColor: '#10b981' }} />
+                              <div title={t('admin.newCountLabel').replace('{{count}}', String(row.newDossiers))} style={{ height: `${newH}%`, backgroundColor: '#1d4ed8' }} />
+                              <div title={t('admin.resolvedCountLabel').replace('{{count}}', String(row.resolved))} style={{ height: `${resH}%`, backgroundColor: '#10b981' }} />
                             </div>
                             <span className={styles.statistiques__monthlyLabel}>{row.label}</span>
                           </div>
@@ -325,7 +400,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
             <div className={styles.statistiques__performanceGrid}>
               <div className={styles.statistiques__performanceMetric}>
                 <span className={styles.statistiques__metricLabel}>{t('admin.avgResponseTime')}</span>
-                <span className={styles.statistiques__metricValue}>—</span>
+                <span className={styles.statistiques__metricValue}>{t('common.notAvailable')}</span>
               </div>
               <div className={styles.statistiques__performanceMetric}>
                 <span className={styles.statistiques__metricLabel}>{t('admin.teamProductivity')}</span>

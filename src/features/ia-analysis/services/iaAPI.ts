@@ -147,15 +147,23 @@ export const createResultatIA = async (
 
 /**
  * Récupérer tous les résultats d'analyse IA
+ * Si organisationId est fourni, ne retourne que les résultats des dossiers de cette organisation.
  */
 export const getResultatsIA = async (
   typeAnalyse?: TypeAnalyse,
   dossierId?: string,
+  organisationId?: string,
 ): Promise<ResultatIA[]> => {
-  console.log('[iaAPI] getResultatsIA appelé avec:', { typeAnalyse, dossierId });
-  
   let query = db.from('resultat_ia').select('*');
 
+  if (organisationId) {
+    const { data: dossierIds } = await db.from('dossier_disparition')
+      .select('id')
+      .eq('id_organisation_responsable', organisationId);
+    const ids = (dossierIds || []).map((d: { id: string }) => d.id);
+    if (ids.length === 0) return [];
+    query = query.in('id_dossier', ids);
+  }
   if (typeAnalyse) {
     query = query.eq('type_analyse', typeAnalyse);
   }
@@ -169,8 +177,6 @@ export const getResultatsIA = async (
     console.error('[iaAPI] Erreur getResultatsIA:', error);
     throw error;
   }
-  
-  console.log('[iaAPI] getResultatsIA retourne:', data?.length || 0, 'résultats');
   return data || [];
 };
 
@@ -523,8 +529,9 @@ const analyzeFacialImageSimulated = async (
 
 export const getFacialRecognitionResults = async (
   dossierId?: string,
+  organisationId?: string,
 ): Promise<ResultatIA[]> => {
-  return getResultatsIA('reconnaissance_faciale', dossierId);
+  return getResultatsIA('reconnaissance_faciale', dossierId, organisationId);
 };
 
 // ============================================
@@ -616,8 +623,9 @@ const compareImagesSimulated = async (
 
 export const getImageComparisonResults = async (
   dossierId?: string,
+  organisationId?: string,
 ): Promise<ResultatIA[]> => {
-  return getResultatsIA('comparaison_photos', dossierId);
+  return getResultatsIA('comparaison_photos', dossierId, organisationId);
 };
 
 // ============================================
@@ -710,8 +718,9 @@ export const predictLocation = async (
 
 export const getLocationPredictions = async (
   dossierId?: string,
+  organisationId?: string,
 ): Promise<ResultatIA[]> => {
-  return getResultatsIA('prediction_localisation', dossierId);
+  return getResultatsIA('prediction_localisation', dossierId, organisationId);
 };
 
 // ============================================
@@ -787,8 +796,9 @@ export const detectSimilarities = async (
 
 export const getSimilaritiesResults = async (
   dossierId?: string,
+  organisationId?: string,
 ): Promise<ResultatIA[]> => {
-  return getResultatsIA('detection_similitudes', dossierId);
+  return getResultatsIA('detection_similitudes', dossierId, organisationId);
 };
 
 // ============================================
@@ -809,13 +819,13 @@ export const getAnalysisByDossier = async (dossierId: string) => {
   };
 };
 
-export const getAllAnalysisResults = async () => {
+export const getAllAnalysisResults = async (organisationId?: string) => {
   const [facialResults, comparisonResults, locationPredictions, similaritiesResults] =
     await Promise.all([
-      getResultatsIA('reconnaissance_faciale'),
-      getResultatsIA('comparaison_photos'),
-      getResultatsIA('prediction_localisation'),
-      getResultatsIA('detection_similitudes'),
+      getResultatsIA('reconnaissance_faciale', undefined, organisationId),
+      getResultatsIA('comparaison_photos', undefined, organisationId),
+      getResultatsIA('prediction_localisation', undefined, organisationId),
+      getResultatsIA('detection_similitudes', undefined, organisationId),
     ]);
 
   return {

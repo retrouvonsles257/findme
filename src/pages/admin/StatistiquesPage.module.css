@@ -1,16 +1,27 @@
 /* =====================================================
-   RETROUVONSLES - Admin Statistiques (aligné super_admin)
+   RETROUVONSLES - Admin Statistiques
+   Aligné 100% super_admin (primary #1d4ed8, cards, grids)
    ===================================================== */
+
+:root {
+  --stat-primary: #1d4ed8;
+  --stat-border: #e2e8f0;
+  --stat-muted: #64748b;
+  --stat-card: #ffffff;
+  --stat-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
 .statistiques__container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   width: 100%;
   max-width: 1800px;
   margin: 0 auto;
-  padding: 2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  padding: 1.5rem 2rem 2rem;
+  background: #f8fafc;
+  min-height: 100%;
+  font-family: var(--stat-font);
   animation: statistiques-fade-in 0.5s ease;
 }
 
@@ -77,6 +88,18 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
+}
+
+.statistiques__coordinationCard {
+  cursor: pointer;
+  flex: 1;
+  max-width: 320px;
+}
+
+.statistiques__coordinationCardBody {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .statistiques__analyticsGrid {

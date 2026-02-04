@@ -35,6 +35,9 @@ import {
 } from '../../features/alertes/services/alerteAPI';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
+import { useAppSelector } from '../../store/types';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
 import styles from './AlertesPage.module.css';
@@ -44,6 +47,7 @@ type FilterType = 'all' | 'brouillon' | 'en_cours' | 'terminee' | 'annulee';
 export const AlertesPage: React.FC = () => {
   const navigate = useNavigate();
   const { user: _ } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { alertes, loading, fetchAlertes } = useAlertes();
   const { t, language } = useI18n();
@@ -57,8 +61,11 @@ export const AlertesPage: React.FC = () => {
   const [actionComment, setActionComment] = useState('');
 
   useEffect(() => {
-    fetchAlertes();
-  }, [fetchAlertes]);
+    const filters = currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id
+      ? { id_organisation_responsable: currentUser.organisation_id }
+      : undefined;
+    fetchAlertes(filters);
+  }, [fetchAlertes, currentUser?.role, currentUser?.organisation_id]);
 
   const filteredAlertes = alertes.filter((a: any) => {
     const status = a.statut_alerte || 'brouillon';

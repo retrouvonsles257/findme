@@ -19,6 +19,10 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  Bell,
+  Brain,
+  Megaphone,
+  UsersRound,
 } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
@@ -128,6 +132,10 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
     { title: t('admin.newDossier'), description: t('admin.createNewFile'), icon: Folder, action: () => navigate('/admin/dossiers/new') },
     { title: t('admin.viewReports'), description: t('admin.manageReports'), icon: FileText, action: () => navigate('/admin/rapports') },
     { title: t('admin.manageUsers'), description: t('admin.manageTeam'), icon: Users, action: () => navigate('/admin/utilisateurs') },
+    { title: t('admin.viewAlertes'), description: t('admin.viewAlertesDesc'), icon: Bell, action: () => navigate('/authority/alertes') },
+    { title: t('admin.viewIAResults'), description: t('admin.viewIAResultsDesc'), icon: Brain, action: () => navigate('/authority/ia-analysis') },
+    { title: t('admin.viewCampagnes'), description: t('admin.viewCampagnesDesc'), icon: Megaphone, action: () => navigate('/authority/donations') },
+    { title: t('admin.viewCoordination'), description: t('admin.coordinationLinkDesc'), icon: UsersRound, action: () => navigate('/authority/coordination') },
   ];
 
   const safeStats = stats || {
@@ -159,7 +167,13 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
                 </h2>
                 <p className={styles.dashboard__welcomeDescription}>{t('admin.manageMissingPersonFiles')}</p>
               </div>
-              <button className={styles.dashboard__btnCreate} onClick={() => navigate('/admin/dossiers/new')}>
+              <button
+                type="button"
+                className={styles.dashboard__btnCreate}
+                onClick={() => navigate('/admin/dossiers/new')}
+                title={t('admin.newDossier')}
+                aria-label={t('admin.newDossier')}
+              >
                 <Plus size={18} />
                 {t('admin.newDossier')}
               </button>
@@ -220,7 +234,7 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <h2 className={styles.dashboard__sectionTitle}>⚡ {t('admin.quickActions')}</h2>
+            <h2 className={styles.dashboard__sectionTitle}>{t('admin.sectionQuickActions')}</h2>
             <div className={styles.dashboard__actionsGrid}>
               {quickActions.map((action, idx) => {
                 const IconComponent = action.icon;
@@ -239,7 +253,7 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
 
             <div className={styles.dashboard__overview}>
               <div className={styles.dashboard__overviewLeft}>
-                <h2 className={styles.dashboard__sectionTitle}>📈 {t('admin.recentActivity')}</h2>
+                <h2 className={styles.dashboard__sectionTitle}>{t('admin.sectionRecentActivity')}</h2>
                 <div className={styles.dashboard__activityCard}>
                   {activitiesError ? (
                     <div className={styles.dashboard__empty}>
@@ -273,7 +287,7 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
                 </div>
               </div>
               <div className={styles.dashboard__overviewRight}>
-                <h2 className={styles.dashboard__sectionTitle}>📋 {t('admin.summary')}</h2>
+                <h2 className={styles.dashboard__sectionTitle}>{t('admin.sectionSummary')}</h2>
                 <div className={styles.dashboard__summaryCard}>
                   <div className={styles.dashboard__summaryItem}>
                     <span className={styles.dashboard__summaryLabel}>{t('admin.totalUsers')}</span>
@@ -287,10 +301,16 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
                   <div className={styles.dashboard__summaryDivider} />
                   <div className={styles.dashboard__summaryItem}>
                     <span className={styles.dashboard__summaryLabel}>{t('admin.successRate')}</span>
-                    <span className={styles.dashboard__summaryValue}>{successRate}%</span>
+                    <span className={styles.dashboard__summaryValue}>{successRate}{t('admin.percent')}</span>
                   </div>
                   <div className={styles.dashboard__summaryDivider} />
-                  <button className={styles.dashboard__summaryBtn} onClick={() => navigate('/admin/statistiques')}>
+                  <button
+                    type="button"
+                    className={styles.dashboard__summaryBtn}
+                    onClick={() => navigate('/admin/statistiques')}
+                    title={t('admin.viewDetailedStats')}
+                    aria-label={t('admin.viewDetailedStats')}
+                  >
                     {t('admin.viewDetailedStats')} <ArrowRight size={16} />
                   </button>
                 </div>

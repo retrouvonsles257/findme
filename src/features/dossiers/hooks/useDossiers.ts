@@ -10,7 +10,13 @@ import type { UseDossiersReturn, DossierDisplayData, DossierFilterCriteria } fro
 import * as dossierAPI from '../services/dossierAPI';
 import * as dossierService from '../services/dossierService';
 
-export const useDossiers = (): UseDossiersReturn => {
+export interface UseDossiersOptions {
+  /** Critères initiaux (ex: organisation_id pour Admin Organisation). Fusionnés à chaque appel. */
+  initialCriteria?: DossierFilterCriteria;
+}
+
+export const useDossiers = (options?: UseDossiersOptions): UseDossiersReturn => {
+  const { initialCriteria } = options || {};
   const [dossiers, setDossiers] = useState<DossierDisplayData[]>([]);
   const [selectedDossier, setSelectedDossier] = useState<DossierDisplayData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,11 +32,13 @@ export const useDossiers = (): UseDossiersReturn => {
     setError(null);
 
     try {
-      const { data, count } = await dossierAPI.getDossiers({
+      const merged = {
+        ...initialCriteria,
         ...filters,
         limit: pageSize,
         offset: currentPage,
-      });
+      };
+      const { data, count } = await dossierAPI.getDossiers(merged);
 
       const enrichedData = dossierService.enrichDossiersForDisplay(data);
       setDossiers(enrichedData);
@@ -41,7 +49,7 @@ export const useDossiers = (): UseDossiersReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [pageSize, currentPage]);
+  }, [pageSize, currentPage, initialCriteria]);
 
   const fetchDossierById = useCallback(async (id: string) => {
     setIsLoading(true);

@@ -67,7 +67,7 @@ const resources = {
     validation: validationEn,
     citizen: citizenEn,
     profile: profileEn,
-    admin: adminEn,
+    admin: (adminEn as { admin?: Record<string, unknown> }).admin ?? adminEn,
     operator: operatorEn,
     moderator: moderatorEn,
     authority: authorityEn,
@@ -89,7 +89,7 @@ const resources = {
     validation: validationFr,
     citizen: citizenFr,
     profile: profileFr,
-    admin: adminFr,
+    admin: (adminFr as { admin?: Record<string, unknown> }).admin ?? adminFr,
     operator: operatorFr,
     moderator: moderatorFr,
     authority: authorityFr,
@@ -120,7 +120,7 @@ i18n
     defaultNS: 'common',
     ns: ['common', 'auth', 'navigation', 'forms', 'dossiers', 'signalements', 'alertes', 'users', 'success', 'errors', 'validation', 'citizen', 'profile', 'admin', 'operator', 'moderator', 'authority', 'super_admin', 'ngo', 'public'],
     
-    keySeparator: false,
+    keySeparator: '.',
     nsSeparator: '.',
     
     interpolation: {

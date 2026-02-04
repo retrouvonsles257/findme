@@ -1,5 +1,4 @@
 import React from 'react';
-import { SidebarNav } from './SidebarNav';
 import styles from './Sidebar.module.css';
 
 export interface SidebarPublicProps {

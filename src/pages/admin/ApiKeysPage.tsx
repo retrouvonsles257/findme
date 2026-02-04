@@ -119,6 +119,8 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
             type="button"
             className={styles.backBtn}
             onClick={() => navigate('/admin/parametres')}
+            title={t('common.back')}
+            aria-label={t('common.back')}
           >
             <ArrowLeft size={20} />
             {t('common.back')}
@@ -131,7 +133,7 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
               {t('admin.apiKeys')}
             </h1>
             <p className={styles.subtitle}>{t('admin.manageApiKeys')}</p>
-            <Button variant="primary" onClick={() => setShowModal(true)}>
+            <Button variant="primary" onClick={() => setShowModal(true)} title={t('admin.createApiKey')} aria-label={t('admin.createApiKey')}>
               <Plus size={18} />
               {t('admin.createApiKey')}
             </Button>
@@ -162,6 +164,8 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
                           size="sm"
                           disabled={!!revokingId}
                           onClick={() => handleRevoke(k.id)}
+                          title={t('admin.revoke')}
+                          aria-label={t('admin.revoke')}
                         >
                           {revokingId === k.id ? <Loader2 size={16} className={styles.spinner} /> : <Trash2 size={16} />}
                           {t('admin.revoke')}
@@ -181,7 +185,7 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2>{createdKey ? t('admin.apiKeyCreated') : t('admin.createApiKey')}</h2>
-              <button type="button" className={styles.modalClose} onClick={handleCloseModal}>
+              <button type="button" className={styles.modalClose} onClick={handleCloseModal} title={t('common.close')} aria-label={t('common.close')}>
                 <X size={24} />
               </button>
             </div>
@@ -191,14 +195,16 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
                   <p className={styles.modalWarning}>{t('admin.apiKeyShowOnce')}</p>
                   <div className={styles.keyDisplay}>
                     <code>{createdKey.key}</code>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleCopyKey(createdKey.key)}
-                    >
-                      <Copy size={16} />
-                      {t('common.copy')}
-                    </Button>
+<Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleCopyKey(createdKey.key)}
+                          title={t('common.copy')}
+                          aria-label={t('common.copy')}
+                        >
+                          <Copy size={16} />
+                          {t('common.copy')}
+                        </Button>
                   </div>
                   <p className={styles.keyName}>{createdKey.nom_cle}</p>
                   <Button variant="primary" onClick={handleCloseModal}>

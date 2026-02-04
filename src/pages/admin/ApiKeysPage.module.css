@@ -1,15 +1,26 @@
 /* =====================================================
    RETROUVONSLES - Admin API Keys Page
+   Aligné 100% super_admin (primary #1d4ed8, cards)
    ===================================================== */
+
+:root {
+  --apikeys-primary: #1d4ed8;
+  --apikeys-border: #e2e8f0;
+  --apikeys-muted: #64748b;
+  --apikeys-card: #ffffff;
+  --apikeys-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  padding: 1.5rem 2rem 2rem;
+  background: #f8fafc;
+  min-height: 100%;
+  font-family: var(--apikeys-font);
 }
 
 .header {

@@ -26,6 +26,7 @@
     "no_results": "Aucun résultat trouvé",
     "no_data": "Aucune donnée disponible",
     "back": "Retour",
+    "retry": "Réessayer",
     "next": "Suivant",
     "previous": "Précédent",
     "finish": "Terminer",
@@ -171,5 +172,14 @@
   "time_month": "Il y a 1 mois",
   "time_months": "Il y a {{count}} mois",
   "time_year": "Il y a 1 an",
-  "time_years": "Il y a {{count}} ans"
+  "time_years": "Il y a {{count}} ans",
+  "notAvailable": "N/D",
+  "titleSeparator": " — ",
+  "langCodeFr": "FR",
+  "langCodeEn": "EN",
+  "switchToEnglish": "Passer en anglais",
+  "switchToFrench": "Passer en français",
+  "ellipsis": "…",
+  "colon": " :",
+  "countSeparator": " / "
 }

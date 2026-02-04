@@ -1,79 +1,514 @@
 /**
  * =====================================================
  * RETROUVONSLES - Admin Profile Page
- * Profil de l'utilisateur connecté (admin organisation)
+ * Profil aligné sur celui de l'autorité (édition, photo, adresse, préférences)
  * =====================================================
  */
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Building2, Calendar } from 'lucide-react';
-import { useAppSelector } from '../../store/types';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
-import { Card, CardBody, CardHeader } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
+import { useAuth } from '../../contexts';
+import { useNotification } from '../../contexts';
 import { useI18n } from '../../hooks';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { NomRole } from '../../@types/enums.types';
-import styles from './UserDetailPage.module.css';
+import { supabase } from '../../config';
+import { cloudinaryConfig } from '../../config/cloudinary.config';
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Building,
+  Shield,
+  Camera,
+  Save,
+  X,
+  Edit,
+  Loader2,
+  Calendar,
+  Globe,
+  Bell,
+  Lock,
+  CheckCircle,
+  AlertTriangle,
+} from 'lucide-react';
+import styles from '../authority/ProfilePage.module.css';
+
+interface ProfileData {
+  id: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  date_naissance: string;
+  adresse: string;
+  ville: string;
+  region: string;
+  pays: string;
+  photo_profil: string;
+  numero_badge: string;
+  accepte_notifications: boolean;
+  accepte_geolocalisation: boolean;
+  rayon_notification_km: number;
+  langue_preferee: string;
+  statut_compte: string;
+  score_fiabilite: number;
+  nombre_signalements_valides: number;
+  nombre_signalements_invalides: number;
+  derniere_connexion: string;
+  created_at: string;
+}
+
+const wrapInLayout = (children: React.ReactNode) => (
+  <AdminOrganisationLayout title="" activeNav="profile">
+    {children}
+  </AdminOrganisationLayout>
+);
 
 export const AdminOrganisationProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useI18n();
-  const currentUser = useAppSelector(selectCurrentUser);
+  const { user } = useAuth();
+  const { addNotification } = useNotification();
+  const { t, language } = useI18n();
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
-    navigate('/auth/login');
-    return null;
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const [formData, setFormData] = useState({
+    nom: '',
+    prenom: '',
+    telephone: '',
+    date_naissance: '',
+    adresse: '',
+    ville: '',
+    region: '',
+    pays: 'Cameroun',
+    accepte_notifications: true,
+    accepte_geolocalisation: false,
+    rayon_notification_km: 50,
+    langue_preferee: 'fr',
+  });
+
+  const loadProfile = useCallback(async () => {
+    if (!user?.id) return;
+    setIsLoading(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('utilisateur')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        addNotification({
+          title: t('authority.profilePage.messages.error'),
+          message: t('authority.profilePage.messages.loadError'),
+          type: 'error',
+        });
+        return;
+      }
+      setProfile(data);
+      setFormData({
+        nom: data.nom || '',
+        prenom: data.prenom || '',
+        telephone: data.telephone || '',
+        date_naissance: data.date_naissance || '',
+        adresse: data.adresse || '',
+        ville: data.ville || '',
+        region: data.region || '',
+        pays: data.pays || t('authority.profilePage.defaults.country'),
+        accepte_notifications: data.accepte_notifications ?? true,
+        accepte_geolocalisation: data.accepte_geolocalisation ?? false,
+        rayon_notification_km: data.rayon_notification_km || 50,
+        langue_preferee: data.langue_preferee || 'fr',
+      });
+    } catch {
+      // déjà notifié
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id, addNotification, t]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    setIsSaving(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('utilisateur')
+        .update({
+          nom: formData.nom,
+          prenom: formData.prenom,
+          telephone: formData.telephone,
+          date_naissance: formData.date_naissance || null,
+          adresse: formData.adresse,
+          ville: formData.ville,
+          region: formData.region,
+          pays: formData.pays,
+          accepte_notifications: formData.accepte_notifications,
+          accepte_geolocalisation: formData.accepte_geolocalisation,
+          rayon_notification_km: formData.rayon_notification_km,
+          langue_preferee: formData.langue_preferee,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        addNotification({
+          title: t('authority.profilePage.messages.error'),
+          message: error.message || t('authority.profilePage.messages.saveError'),
+          type: 'error',
+        });
+        return;
+      }
+      addNotification({
+        title: t('authority.profilePage.messages.success'),
+        message: t('authority.profilePage.messages.profileUpdated'),
+        type: 'success',
+      });
+      setIsEditing(false);
+      loadProfile();
+    } catch (err: any) {
+      addNotification({
+        title: t('authority.profilePage.messages.error'),
+        message: err.message || t('authority.profilePage.messages.genericError'),
+        type: 'error',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    setIsUploadingPhoto(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('upload_preset', cloudinaryConfig.uploadPreset);
+      formDataUpload.append('folder', 'retrouvonsles/profiles');
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`,
+        { method: 'POST', body: formDataUpload }
+      );
+      const data = await response.json();
+      if (!data.secure_url) throw new Error(t('authority.profilePage.messages.photoUploadError'));
+
+      const { error } = await (supabase as any)
+        .from('utilisateur')
+        .update({ photo_profil: data.secure_url })
+        .eq('id', user.id);
+      if (error) throw error;
+
+      addNotification({
+        title: t('authority.profilePage.messages.success'),
+        message: t('authority.profilePage.messages.photoUpdated'),
+        type: 'success',
+      });
+      loadProfile();
+    } catch (err: any) {
+      addNotification({
+        title: t('authority.profilePage.messages.error'),
+        message: t('authority.profilePage.messages.photoUploadError'),
+        type: 'error',
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (profile) {
+      setFormData({
+        nom: profile.nom || '',
+        prenom: profile.prenom || '',
+        telephone: profile.telephone || '',
+        date_naissance: profile.date_naissance || '',
+        adresse: profile.adresse || '',
+        ville: profile.ville || '',
+        region: profile.region || '',
+        pays: profile.pays || t('authority.profilePage.defaults.country'),
+        accepte_notifications: profile.accepte_notifications ?? true,
+        accepte_geolocalisation: profile.accepte_geolocalisation ?? false,
+        rayon_notification_km: profile.rayon_notification_km || 50,
+        langue_preferee: profile.langue_preferee || 'fr',
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const getStatutBadge = (statut: string) => {
+    switch (statut) {
+      case 'actif':
+        return { label: t('authority.profilePage.accountStatus.active'), color: '#28a745', icon: <CheckCircle size={14} /> };
+      case 'suspendu':
+        return { label: t('authority.profilePage.accountStatus.suspended'), color: '#dc3545', icon: <AlertTriangle size={14} /> };
+      case 'en_attente_verification':
+        return { label: t('authority.profilePage.accountStatus.pendingVerification'), color: '#ffc107', icon: <Loader2 size={14} /> };
+      default:
+        return { label: statut, color: '#6c757d', icon: <User size={14} /> };
+    }
+  };
+
+  if (isLoading) {
+    return wrapInLayout(
+      <div className={styles.loadingContainer}>
+        <Loader2 size={32} className={styles.spinner} />
+        <p>{t('authority.profilePage.loading')}</p>
+      </div>
+    );
   }
 
-  const fullName = currentUser.nom_complet || currentUser.email || '—';
+  if (!profile) {
+    return wrapInLayout(
+      <div className={styles.errorContainer}>
+        <AlertTriangle size={48} />
+        <h2>{t('authority.profilePage.notFound')}</h2>
+        <p>{t('authority.profilePage.notFoundDescription')}</p>
+        <button onClick={() => navigate('/admin/dashboard')}>
+          {t('authority.profilePage.backToDashboard')}
+        </button>
+      </div>
+    );
+  }
 
-  return (
-    <AdminOrganisationLayout title={t('admin.profile')} activeNav="profile">
-      <div className={styles.page}>
-        <div className={styles.header}>
-          <button type="button" className={styles.backBtn} onClick={() => navigate('/admin/dashboard')}>
-            {t('common.back')}
+  const statutInfo = getStatutBadge(profile.statut_compte);
+
+  return wrapInLayout(
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1><User size={24} /> {t('authority.profilePage.title')}</h1>
+        {!isEditing ? (
+          <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
+            <Edit size={18} /> {t('authority.commonActions.edit')}
+          </button>
+        ) : (
+          <div className={styles.headerActions}>
+            <button className={styles.cancelBtn} onClick={handleCancel} disabled={isSaving}>
+              <X size={18} /> {t('authority.commonActions.cancel')}
+            </button>
+            <button className={styles.saveBtn} onClick={handleSave} disabled={isSaving}>
+              {isSaving ? <><Loader2 size={18} className={styles.spinner} /> {t('authority.profilePage.saving')}</> : <><Save size={18} /> {t('authority.commonActions.save')}</>}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.content}>
+        <div className={styles.profileCard}>
+          <div className={styles.avatarSection}>
+            <div className={styles.avatar}>
+              {profile.photo_profil ? (
+                <img src={profile.photo_profil} alt={profile.prenom} />
+              ) : (
+                <User size={48} />
+              )}
+              <label className={styles.avatarUpload}>
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={isUploadingPhoto} />
+                {isUploadingPhoto ? <Loader2 size={20} className={styles.spinner} /> : <Camera size={20} />}
+              </label>
+            </div>
+            <div className={styles.profileInfo}>
+              <h2>{profile.prenom} {profile.nom}</h2>
+              <p className={styles.email}><Mail size={14} /> {profile.email}</p>
+              <span className={styles.statusBadge} style={{ backgroundColor: statutInfo.color }}>
+                {statutInfo.icon} {statutInfo.label}
+              </span>
+            </div>
+          </div>
+          <div className={styles.statsRow}>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{profile.score_fiabilite?.toFixed(0) || 100}%</span>
+              <span className={styles.statLabel}>{t('authority.profilePage.stats.reliabilityScore')}</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{profile.nombre_signalements_valides || 0}</span>
+              <span className={styles.statLabel}>{t('authority.profilePage.stats.validReports')}</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{profile.nombre_signalements_invalides || 0}</span>
+              <span className={styles.statLabel}>{t('authority.profilePage.stats.invalidReports')}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h3><User size={18} /> {t('authority.profilePage.sections.personalInfo')}</h3>
+          <div className={styles.formGrid}>
+            <div className={styles.formGroup}>
+              <label>{t('authority.profilePage.fields.lastName')}</label>
+              {isEditing ? (
+                <input type="text" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} placeholder={t('authority.profilePage.placeholders.lastName')} />
+              ) : (
+                <p>{profile.nom || '-'}</p>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label>{t('authority.profilePage.fields.firstName')}</label>
+              {isEditing ? (
+                <input type="text" value={formData.prenom} onChange={(e) => setFormData({ ...formData, prenom: e.target.value })} placeholder={t('authority.profilePage.placeholders.firstName')} />
+              ) : (
+                <p>{profile.prenom || '-'}</p>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label><Phone size={14} /> {t('authority.profilePage.fields.phone')}</label>
+              {isEditing ? (
+                <input type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder={t('authority.profilePage.placeholders.phone')} />
+              ) : (
+                <p>{profile.telephone || '-'}</p>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label><Calendar size={14} /> {t('authority.profilePage.fields.birthDate')}</label>
+              {isEditing ? (
+                <input type="date" value={formData.date_naissance} onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })} />
+              ) : (
+                <p>{profile.date_naissance ? new Date(profile.date_naissance).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US') : t('authority.profilePage.values.placeholderDash')}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h3><MapPin size={18} /> {t('authority.profilePage.sections.address')}</h3>
+          <div className={styles.formGrid}>
+            <div className={styles.formGroupFull}>
+              <label>{t('authority.profilePage.fields.fullAddress')}</label>
+              {isEditing ? (
+                <input type="text" value={formData.adresse} onChange={(e) => setFormData({ ...formData, adresse: e.target.value })} placeholder={t('authority.profilePage.placeholders.fullAddress')} />
+              ) : (
+                <p>{profile.adresse || '-'}</p>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label>{t('authority.profilePage.fields.city')}</label>
+              {isEditing ? (
+                <input type="text" value={formData.ville} onChange={(e) => setFormData({ ...formData, ville: e.target.value })} placeholder={t('authority.profilePage.placeholders.city')} />
+              ) : (
+                <p>{profile.ville || '-'}</p>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label>{t('authority.profilePage.fields.region')}</label>
+              {isEditing ? (
+                <select value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })}>
+                  <option value="">{t('authority.profilePage.placeholders.select')}</option>
+                  <option value="Centre">{t('authority.profilePage.regions.centre')}</option>
+                  <option value="Littoral">{t('authority.profilePage.regions.littoral')}</option>
+                  <option value="Ouest">{t('authority.profilePage.regions.ouest')}</option>
+                  <option value="Nord-Ouest">{t('authority.profilePage.regions.nordOuest')}</option>
+                  <option value="Sud-Ouest">{t('authority.profilePage.regions.sudOuest')}</option>
+                  <option value="Sud">{t('authority.profilePage.regions.sud')}</option>
+                  <option value="Est">{t('authority.profilePage.regions.est')}</option>
+                  <option value="Adamaoua">{t('authority.profilePage.regions.adamaoua')}</option>
+                  <option value="Nord">{t('authority.profilePage.regions.nord')}</option>
+                  <option value="Extrême-Nord">{t('authority.profilePage.regions.extremeNord')}</option>
+                </select>
+              ) : (
+                <p>{profile.region || '-'}</p>
+              )}
+            </div>
+            <div className={styles.formGroup}>
+              <label><Globe size={14} /> {t('authority.profilePage.fields.country')}</label>
+              {isEditing ? (
+                <input type="text" value={formData.pays} onChange={(e) => setFormData({ ...formData, pays: e.target.value })} placeholder={t('authority.profilePage.placeholders.country')} />
+              ) : (
+                <p>{profile.pays || t('authority.profilePage.defaults.country')}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h3><Bell size={18} /> {t('authority.profilePage.sections.preferences')}</h3>
+          <div className={styles.preferencesGrid}>
+            <div className={styles.preferenceItem}>
+              <div className={styles.preferenceInfo}>
+                <Bell size={20} />
+                <div>
+                  <h4>{t('authority.profilePage.preferences.notifications.title')}</h4>
+                  <p>{t('authority.profilePage.preferences.notifications.description')}</p>
+                </div>
+              </div>
+              {isEditing ? (
+                <label className={styles.switch}>
+                  <input type="checkbox" checked={formData.accepte_notifications} onChange={(e) => setFormData({ ...formData, accepte_notifications: e.target.checked })} />
+                  <span className={styles.slider}></span>
+                </label>
+              ) : (
+                <span className={`${styles.statusDot} ${profile.accepte_notifications ? styles.active : ''}`}>
+                  {profile.accepte_notifications ? t('authority.profilePage.toggle.enabled') : t('authority.profilePage.toggle.disabled')}
+                </span>
+              )}
+            </div>
+            <div className={styles.preferenceItem}>
+              <div className={styles.preferenceInfo}>
+                <MapPin size={20} />
+                <div>
+                  <h4>{t('authority.profilePage.preferences.geolocation.title')}</h4>
+                  <p>{t('authority.profilePage.preferences.geolocation.description')}</p>
+                </div>
+              </div>
+              {isEditing ? (
+                <label className={styles.switch}>
+                  <input type="checkbox" checked={formData.accepte_geolocalisation} onChange={(e) => setFormData({ ...formData, accepte_geolocalisation: e.target.checked })} />
+                  <span className={styles.slider}></span>
+                </label>
+              ) : (
+                <span className={`${styles.statusDot} ${profile.accepte_geolocalisation ? styles.active : ''}`}>
+                  {profile.accepte_geolocalisation ? t('authority.profilePage.toggle.enabled') : t('authority.profilePage.toggle.disabled')}
+                </span>
+              )}
+            </div>
+            {isEditing && (
+              <div className={styles.preferenceItem}>
+                <div className={styles.preferenceInfo}>
+                  <Globe size={20} />
+                  <div>
+                    <h4>{t('authority.profilePage.preferences.notificationRadius.title')}</h4>
+                    <p>{t('authority.profilePage.preferences.notificationRadius.description')}</p>
+                  </div>
+                </div>
+                <div className={styles.rangeInput}>
+                  <input type="range" min="10" max="200" value={formData.rayon_notification_km} onChange={(e) => setFormData({ ...formData, rayon_notification_km: Number(e.target.value) })} />
+                  <span>{formData.rayon_notification_km} {t('authority.profilePage.units.km')}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h3><Lock size={18} /> {t('authority.profilePage.sections.security')}</h3>
+          <div className={styles.securityInfo}>
+            <div className={styles.infoItem}>
+              <Building size={16} />
+              <span>{t('authority.profilePage.security.badge')}: {profile.numero_badge || t('authority.profilePage.security.notAssigned')}</span>
+            </div>
+            <div className={styles.infoItem}>
+              <Calendar size={16} />
+              <span>{t('authority.profilePage.security.memberSince')}: {new Date(profile.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+            </div>
+            <div className={styles.infoItem}>
+              <Shield size={16} />
+              <span>{t('authority.profilePage.security.lastLogin')}: {profile.derniere_connexion ? new Date(profile.derniere_connexion).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US') : t('authority.profilePage.values.na')}</span>
+            </div>
+          </div>
+          <button className={styles.changePasswordBtn} onClick={() => navigate('/admin/parametres')}>
+            <Lock size={16} /> {t('authority.profilePage.security.changePassword')}
           </button>
         </div>
-        <Card>
-          <CardHeader>
-            <div className={styles.titleRow}>
-              <h1 className={styles.title}>
-                <User size={24} />
-                {t('admin.profile')}
-              </h1>
-            </div>
-          </CardHeader>
-          <CardBody>
-            <div className={styles.grid}>
-              <div className={styles.field}>
-                <label><User size={16} /> {t('common.name')}</label>
-                <span className={styles.value}>{fullName}</span>
-              </div>
-              <div className={styles.field}>
-                <label><Mail size={16} /> {t('admin.fieldEmail')}</label>
-                <span className={styles.value}>{currentUser.email || '—'}</span>
-              </div>
-              <div className={styles.field}>
-                <label><Building2 size={16} /> {t('admin.organisation')}</label>
-                <span className={styles.value}>{currentUser.organisation_id || '—'}</span>
-              </div>
-              <div className={styles.field}>
-                <label><Calendar size={16} /> {t('common.role')}</label>
-                <span className={styles.value}>{t(`admin.role.${currentUser.role || 'admin_organisation'}`)}</span>
-              </div>
-            </div>
-            <div className={styles.footer}>
-              <Button variant="primary" onClick={() => navigate('/admin/parametres')}>
-                {t('admin.settings')}
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
       </div>
-    </AdminOrganisationLayout>
+    </div>
   );
 };
 

@@ -88,6 +88,8 @@ export interface SignalementFilter {
   score_min?: number;
   sortBy?: 'date_observation' | 'score_correspondance' | 'created_at';
   sortOrder?: 'asc' | 'desc';
+  /** Filtre par organisation : ne retourne que les signalements liés à des dossiers de cette organisation. */
+  organisation_id?: string;
 }
 
 /**

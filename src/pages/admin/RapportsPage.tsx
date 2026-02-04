@@ -70,10 +70,10 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
         const u = (r as any).utilisateur;
         return {
           id: r.id,
-          numero: (r as any).numero_signalement || `R-${r.id.slice(0, 8)}`,
-          dossier: (r as any).dossier?.numero_dossier || (r as any).id_dossier || '—',
-          auteur: u ? `${u.nom || ''} ${u.prenom || ''}`.trim() : '—',
-          type: (r.description || '').slice(0, 40) + (r.description && r.description.length > 40 ? '…' : ''),
+          numero: (r as any).numero_signalement || `${t('admin.reportNumberPrefix')}${r.id.slice(0, 8)}`,
+          dossier: (r as any).dossier?.numero_dossier || (r as any).id_dossier || t('common.notAvailable'),
+          auteur: u ? `${u.nom || ''} ${u.prenom || ''}`.trim() || t('common.notAvailable') : t('common.notAvailable'),
+          type: (r.description || '').slice(0, 40) + (r.description && r.description.length > 40 ? t('common.ellipsis') : ''),
           date: r.date_observation ? r.date_observation.split('T')[0] : '',
           statut: statutMap[(r as any).statut_validation] || 'en_attente',
           priorite: ((r as any).priorite_traitement as 'haute' | 'normale' | 'basse') || 'normale',
@@ -86,7 +86,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.organisation_id, searchTerm, filterStatus]);
+  }, [currentUser?.organisation_id, searchTerm, filterStatus, t]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -181,7 +181,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
         <div className={styles.rapports__contentCard}>
           <div className={styles.rapports__contentHeader}>
             <h2 className={styles.rapports__contentTitle}>
-              {t('admin.totalReports')}: <strong>{filteredRapports.length}</strong>
+              {t('admin.totalReports')}{t('common.colon')} <strong>{filteredRapports.length}</strong>
             </h2>
           </div>
 
@@ -224,9 +224,12 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
                         </td>
                         <td>
                           <div className={styles.rapports__actions}>
-                            <button 
+                            <button
+                              type="button"
                               className={`${styles.rapports__btn} ${styles['rapports__btn--view']}`}
                               onClick={() => navigate(`/admin/rapports/${rapport.id}`)}
+                              title={t('common.view')}
+                              aria-label={t('common.view')}
                             >
                               <Eye className={styles.rapports__btnIcon} />
                               {t('common.view')}
@@ -234,16 +237,20 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
                             {rapport.statut === 'en_attente' && (
                               <>
                                 <button
+                                  type="button"
                                   className={`${styles.rapports__btn} ${styles['rapports__btn--approve']}`}
                                   onClick={() => handleApprove(rapport.id)}
                                   title={t('admin.approveReport')}
+                                  aria-label={t('admin.approveReport')}
                                 >
                                   <CheckCircle className={styles.rapports__btnIcon} />
                                 </button>
                                 <button
+                                  type="button"
                                   className={`${styles.rapports__btn} ${styles['rapports__btn--reject']}`}
                                   onClick={() => handleReject(rapport.id)}
                                   title={t('admin.rejectReport')}
+                                  aria-label={t('admin.rejectReport')}
                                 >
                                   <XCircle className={styles.rapports__btnIcon} />
                                 </button>

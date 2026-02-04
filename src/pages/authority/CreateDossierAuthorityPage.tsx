@@ -10,6 +10,9 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
+import { useAppSelector } from '../../store/types';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { supabase } from '../../config';
 import { cloudinaryConfig, cloudinaryUploadConfig } from '../../config/cloudinary.config';
 import { mapConfig } from '../../config/map.config';
@@ -60,9 +63,20 @@ interface DossierFormData {
   contact_email: string;
 }
 
-export const CreateDossierAuthorityPage: React.FC = () => {
+export interface CreateDossierAuthorityPageProps {
+  /** Rendre uniquement le contenu du formulaire (sans AuthorityLayout). Utilisé par l’admin org. */
+  noLayout?: boolean;
+  /** URL de retour pour le bouton Annuler (ex: /admin/dossiers). */
+  cancelTo?: string;
+}
+
+export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProps> = ({
+  noLayout = false,
+  cancelTo = '/authority/dossiers',
+}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
   
@@ -386,6 +400,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           numero_dossier: numeroDossier,
           id_personne: personneCreated.id,
           id_utilisateur_createur: user.id,
+          id_organisation_responsable: currentUser?.organisation_id || null,
           niveau_urgence: dossierData.niveau_urgence,
           statut_dossier: 'en_cours',
           type_disparition: 'inconnue', // Valeur valide de l'enum type_disparition
@@ -439,9 +454,10 @@ export const CreateDossierAuthorityPage: React.FC = () => {
         type: 'success',
       });
 
-      // Rediriger vers le dossier
+      // Rediriger vers le dossier (admin org reste dans l'espace admin)
+      const isAdminOrg = currentUser?.role === NomRole.ADMIN_ORGANISATION;
       setTimeout(() => {
-        navigate(`/authority/dossiers/${dossierCreated.id}`);
+        navigate(isAdminOrg ? `/admin/dossiers/${dossierCreated.id}` : `/authority/dossiers/${dossierCreated.id}`);
       }, 1500);
 
     } catch (err: any) {
@@ -456,11 +472,10 @@ export const CreateDossierAuthorityPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, personneData, dossierData, uploadedPhotos, addNotification, navigate, t, language]);
+  }, [user, currentUser, personneData, dossierData, uploadedPhotos, addNotification, navigate, t, language]);
 
-  return (
-    <AuthorityLayout>
-      <div className={styles.container}>
+  const formContent = (
+    <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
           <h1>{t('authority.createDossier.title')}</h1>
@@ -638,7 +653,7 @@ export const CreateDossierAuthorityPage: React.FC = () => {
               </div>
 
               <div className={styles.formActions}>
-                <button onClick={() => navigate('/authority/dossiers')} className={styles.cancelBtn}>
+                <button type="button" onClick={() => navigate(cancelTo)} className={styles.cancelBtn}>
                   {t('authority.createDossier.actions.cancel')}
                 </button>
                 <button 
@@ -964,8 +979,12 @@ export const CreateDossierAuthorityPage: React.FC = () => {
           )}
         </div>
       </div>
-    </AuthorityLayout>
   );
+
+  if (noLayout) {
+    return <>{formContent}</>;
+  }
+  return <AuthorityLayout>{formContent}</AuthorityLayout>;
 };
 
 export default CreateDossierAuthorityPage;

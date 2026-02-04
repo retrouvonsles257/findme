@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FolderOpen,
@@ -23,6 +23,9 @@ import {
   Clock,
   User,
 } from 'lucide-react';
+import { useAppSelector } from '../../store/hooks';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
@@ -30,7 +33,14 @@ import styles from './DossiersPage.module.css';
 
 export const DossiersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { dossiers, isLoading, fetchDossiers } = useDossiers();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const initialCriteria = useMemo(() => {
+    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
+      return { organisation_id: currentUser.organisation_id };
+    }
+    return undefined;
+  }, [currentUser?.role, currentUser?.organisation_id]);
+  const { dossiers, isLoading, fetchDossiers } = useDossiers({ initialCriteria });
   const { t, language } = useI18n();
   
   const [filter, setFilter] = useState<'all' | 'en_cours' | 'retrouve' | 'suspendu'>('en_cours');

@@ -25,7 +25,8 @@ import {
   XCircle,
   Users,
   Lock,
-  X
+  X,
+  Loader2,
 } from 'lucide-react';
 import styles from './RolesManagement.module.css';
 
@@ -59,7 +60,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
       const rows = await getAdminRoles();
       const mapped: Role[] = rows.map((r) => ({
         id: r.id,
-        nom: t(`admin.role.${r.nom_role}`),
+        nom: t(`admin.role.${r.nom_role}`, t('common.unknown')),
         description: r.description || '',
         utilisateurs: 0,
         permissions: r.permissions ? Object.keys(r.permissions as Record<string, unknown>) : [],
@@ -140,7 +141,32 @@ export const AdminOrganisationRolesPage: React.FC = () => {
           )}
         </div>
 
+        {/* Loading */}
+        {loading && (
+          <div className={styles.rolesManagement__loading}>
+            <Loader2 size={32} className={styles.rolesManagement__spinner} />
+            <p>{t('common.loading')}</p>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && roles.length === 0 && (
+          <Card>
+            <CardBody>
+              <div className={styles.rolesManagement__empty}>
+                <Shield size={48} className={styles.rolesManagement__emptyIcon} />
+                <h3>{t('admin.noRolesLoaded')}</h3>
+                <p>{t('admin.rolesReadOnly')}</p>
+                <Button variant="secondary" onClick={() => loadRoles()}>
+                  {t('common.retry')}
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
         {/* Roles Grid */}
+        {!loading && roles.length > 0 && (
         <div className={styles.rolesManagement__rolesGrid}>
           {roles.map(role => (
             <Card
@@ -165,7 +191,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                 <div className={styles.rolesManagement__permissionsList}>
                   <h4 className={styles.rolesManagement__permissionsTitle}>
                     <Lock size={14} />
-                    {t('admin.permissions')}:
+                    {t('admin.permissions')}{t('common.colon')}
                   </h4>
                   <div className={styles.rolesManagement__permissions}>
                     {role.permissions.map((perm, idx) => (
@@ -210,6 +236,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
             </Card>
           ))}
         </div>
+        )}
 
         {/* Permissions Matrix */}
         {selectedRole && (
@@ -218,7 +245,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
               <div className={styles.rolesManagement__matrixHeader}>
                 <Lock className={styles.rolesManagement__matrixIcon} />
                 <h3 className={styles.rolesManagement__matrixTitle}>
-                  {t('admin.permissionsMatrix')} - {selectedRole.nom}
+                  {t('admin.permissionsMatrix')}{t('common.titleSeparator')}{selectedRole.nom}
                 </h3>
               </div>
             </CardHeader>
@@ -258,7 +285,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                                 : t('admin.grant')}
                             </button>
                           ) : (
-                            <span className={styles.rolesManagement__readOnlyCell}>—</span>
+                            <span className={styles.rolesManagement__readOnlyCell}>{t('common.notAvailable')}</span>
                           )}
                         </td>
                       </tr>
@@ -277,8 +304,11 @@ export const AdminOrganisationRolesPage: React.FC = () => {
               <div className={styles.rolesManagement__modalHeader}>
                 <h2>{t('admin.createNewRole')}</h2>
                 <button
+                  type="button"
                   className={styles.rolesManagement__closeBtn}
                   onClick={() => setShowModal(false)}
+                  title={t('common.close')}
+                  aria-label={t('common.close')}
                 >
                   <X size={20} />
                 </button>

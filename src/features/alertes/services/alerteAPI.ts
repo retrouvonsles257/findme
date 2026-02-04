@@ -53,6 +53,8 @@ export interface AlerteFilters {
   type_alerte?: TypeAlerte[];
   niveau_urgence?: NiveauUrgence[];
   id_dossier?: string;
+  /** Filtre par organisation : uniquement les alertes des dossiers de cette organisation */
+  id_organisation_responsable?: string;
   date_min?: string;
   date_max?: string;
   limit?: number;
@@ -141,12 +143,22 @@ export const getAlerteById = async (id: string): Promise<Alerte> => {
 
 /**
  * Récupérer toutes les alertes avec filtres
+ * Si id_organisation_responsable est fourni, ne retourne que les alertes liées aux dossiers de cette organisation.
  */
 export const getAlertes = async (filters?: AlerteFilters): Promise<Alerte[]> => {
   let query = supabase
     .from('alerte')
     .select('*, dossier_disparition:id_dossier(*)');
 
+  if (filters?.id_organisation_responsable) {
+    const { data: dossierIds } = await supabase
+      .from('dossier_disparition')
+      .select('id')
+      .eq('id_organisation_responsable', filters.id_organisation_responsable);
+    const ids = (dossierIds || []).map((d: { id: string }) => d.id);
+    if (ids.length === 0) return [];
+    query = query.in('id_dossier', ids);
+  }
   if (filters?.statut) {
     query = query.in('statut_alerte', filters.statut);
   }

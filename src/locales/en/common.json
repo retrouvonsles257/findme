@@ -26,6 +26,7 @@
     "no_results": "No results found",
     "no_data": "No data available",
     "back": "Back",
+    "retry": "Retry",
     "next": "Next",
     "previous": "Previous",
     "finish": "Finish",
@@ -171,5 +172,14 @@
   "time_month": "1 month ago",
   "time_months": "{{count}} months ago",
   "time_year": "1 year ago",
-  "time_years": "{{count}} years ago"
+  "time_years": "{{count}} years ago",
+  "notAvailable": "N/A",
+  "titleSeparator": " — ",
+  "langCodeFr": "FR",
+  "langCodeEn": "EN",
+  "switchToEnglish": "Switch to English",
+  "switchToFrench": "Switch to French",
+  "ellipsis": "…",
+  "colon": ": ",
+  "countSeparator": " / "
 }

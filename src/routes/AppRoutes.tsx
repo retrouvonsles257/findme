@@ -7,7 +7,7 @@
  */
 
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 // Import des composants de routes par module
 import PublicRoutes from './PublicRoutes';
@@ -22,7 +22,7 @@ import SuperAdminRoutes from './SuperAdminRoutes';
 import ErrorRoutes from './ErrorRoutes';
 
 // Import des routes config
-import { ROUTES, AUTH_ROUTES } from './routes.config';
+import { ROUTES } from './routes.config';
 
 /**
  * Loading Component

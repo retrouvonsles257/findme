@@ -1,0 +1,193 @@
+Rapport – Administrateur d’organisation (niveau 6)
+1. Ce qu’un administrateur d’organisation peut ou ne peut pas faire (documentations + modèle de données)
+Sources : questions_reponses_inscription.txt, roles_permissions.txt, systeme_donations.txt, documentation/modele_donnee.sql.
+Peut faire (droits attendus)
+Consultation
+Voir tous les dossiers et données de son organisation.
+Accéder aux statistiques, activité, logs d’actions de son équipe.
+Consulter rapports de performance.
+Raison : niveau 6, hérite des niveaux inférieurs ; RLS get_user_niveau_acces(auth.uid()) >= 6 + accès aux données de son organisation.
+Gestion des utilisateurs (son organisation)
+Créer des comptes (niveaux 2 à 5).
+Attribuer des rôles (2 à 5).
+Activer / désactiver / suspendre / révoquer des comptes.
+Définir des dates d’expiration pour les rôles.
+Gérer des permissions par utilisateur.
+Raison : roles_permissions.txt – Gestion utilisateurs (niveau 6).
+Gestion de l’organisation
+Modifier les infos de son organisation (coordonnées, contacts).
+Configurer les préférences.
+Définir les zones géographiques de compétence.
+Gérer certifications / accréditations.
+Raison : même section Gestion organisation.
+Dossiers (héritage niveau 4–5)
+Créer des dossiers de disparition.
+Modifier des dossiers (y compris statut : en_cours → retrouve_vivant, etc.).
+Mettre à jour niveau d’urgence, circonstances, localisations.
+Raison : « Hérite de tous les droits des niveaux inférieurs » ; niveau 4 peut créer/modifier/changer statut.
+Signalements
+Consulter les signalements liés aux dossiers de son organisation.
+Valider / invalider des signalements (niveau 3+).
+Raison : héritage modérateur + officier.
+Alertes
+Créer et diffuser des alertes (amber_alert, disparition_enfant, etc.), configurer rayon, programmation.
+Raison : droits niveau 4.
+IA
+Consulter les résultats IA, valider/invalider les correspondances, déclencher des analyses, configurer paramètres IA pour son organisation, voir rapports de performance IA.
+Raison : questions_reponses_inscription.txt – Admin Org « Tous les droits du niveau 4–5 » + « configurer paramètres IA pour son organisation ».
+Statistiques et rapports
+Générer tous types de rapports pour son organisation, KPIs, comparer périodes, exporter.
+Raison : section Statistiques (niveau 6).
+Configuration
+Configurer workflows internes, modèles de dossiers personnalisés, alertes automatiques, notifications internes.
+Raison : section Configuration.
+Coordination
+Partenariats avec d’autres organisations, échanges inter-organisations, accès partagés.
+Raison : section Coordination.
+Journal d’audit
+Les actions (attribution_role, creation_utilisateur, modification_utilisateur, suspension_compte, configuration_organisation, export_statistiques) sont enregistrées.
+Raison : roles_permissions.txt + modèle journal_activite avec type_action.
+Ne peut pas faire (interdictions)
+Créer ou modifier des utilisateurs d’autres organisations.
+Accéder aux données confidentielles d’autres organisations (sauf partenariat).
+Modifier les paramètres système globaux.
+Gérer les organisations (création, suppression).
+Attribuer le rôle super_admin.
+S’inscrire lui‑même : créé uniquement par Super Admin.
+Raison : roles_permissions.txt – Interdictions ; questions_reponses_inscription.txt – Admin Org créé uniquement par Super Admin.
+Modèle de données (cohérence)
+organisation, utilisateur (id_organisation), utilisateur_role, dossier_disparition (id_organisation_responsable), signalement, alerte, resultat_ia, journal_activite, organisation_cle_api (migration séparée) : cohérents avec des droits limités à l’organisation.
+RLS : get_user_niveau_acces(auth.uid()) >= 6 + politiques par table : aligné avec « accès complet aux données de son organisation ».
+2. Ce que l’administrateur d’organisation peut déjà faire dans le code
+Dashboard
+Stats (dossiers totaux/actifs/résolus, personnes retrouvées, utilisateurs, rapports récents, tendances mois).
+Activité récente (journal_activite).
+Liens rapides (nouveau dossier, rapports, utilisateurs).
+Raison : DashboardPage.tsx + getAdminDashboardStats, getAdminRecentActivities avec id_organisation / id_organisation_responsable.
+Dossiers
+Liste des dossiers de l’organisation (filtres statut, urgence, recherche).
+Détail d’un dossier (lecture).
+Modification d’un dossier (statut, urgence, lieu, ville, région, circonstances, date résolution) via DossierEditPage et updateAdminDossier.
+Raison : getAdminOrganisationDossiers, getAdminDossierById, updateAdminDossier avec vérification id_organisation_responsable.
+Rapports (signalements)
+Liste des signalements des dossiers de l’organisation (filtres, recherche).
+Détail d’un signalement.
+Validation (valide / invalide / spam / doublon) via updateSignalementValidation.
+Raison : RapportsPage.tsx, getAdminOrganisationSignalements, getAdminSignalementById, updateSignalementValidation.
+Utilisateurs
+Liste des utilisateurs de l’organisation (filtres rôle, statut, recherche).
+Détail et édition (nom, prénom, téléphone, statut_compte).
+Suspendre / activer / désactiver (suspendAdminUser, activateAdminUser, desactivateAdminUser).
+Création de compte par invitation email avec attribution de rôle à la création (UserNewPage, inviteUserByEmail + rôle parmi 2–5).
+Raison : getAdminOrganisationUsers, getAdminUserById, updateAdminUser, inviteUserByEmail ; pas de modification du rôle d’un utilisateur existant.
+Rôles
+Consultation des rôles système (niveaux 2–5), lecture seule.
+Raison : RolesManagementPage, getAdminRoles() ; pas de création/suppression de rôles (cohérent avec doc).
+Paramètres organisation
+Modification nom, email, téléphone, adresse, site web.
+Onglets Équipe (maxMembers, autoAssign, requireApproval) et Notifications (emailNewDossier, emailAlerts, etc.) sauvegardés dans parametres_organisation.
+Lien vers Clés API depuis Paramètres.
+Raison : OrganisationSettings.tsx, getAdminOrganisation, updateAdminOrganisation avec champs + JSON parametres_organisation.
+Clés API
+Liste, création, révocation des clés API de l’organisation (organisation_cle_api).
+Raison : ApiKeysPage.tsx, listAdminApiKeys, createAdminApiKey, revokeAdminApiKey ; RLS dans la migration dédiée.
+Journaux d’audit
+Consultation des logs (journal_activite) des utilisateurs de l’organisation (filtres utilisateur, type d’action, date).
+Export CSV.
+Raison : AuditLogsPage.tsx, getAdminAuditLogs, formatAuditLogsAsCsv.
+Statistiques
+Indicateurs (dossiers, résolus, retrouvés, utilisateurs, durée moyenne de résolution, tendances du mois).
+Répartition par urgence, activité mensuelle (graphique).
+Raison : StatistiquesPage.tsx, getAdminDashboardStats, getAdminOrganisationUrgencyCounts, getAdminStatsExtended, getAdminMonthlyActivity.
+Profil
+Affichage profil de l’admin connecté (nom, email, organisation).
+Raison : ProfilePage.tsx, selectCurrentUser.
+Routes et gardes
+Toutes les routes /admin/* sont protégées par RoleBasedRoute avec NomRole.ADMIN_ORGANISATION.
+Raison : AdminRoutes.tsx.
+3. Ce qui existe dans le code mais n’est pas branché pour l’administrateur d’organisation
+Création de dossiers
+La page « Nouveau dossier » admin redirige vers /authority/dossiers/new.
+Les routes /authority/* sont réservées à OFFICIER_POLICE et AGENT_GENDARMERIE (AuthorityRoutes.tsx).
+Un admin org n’a pas le droit d’accéder à l’interface Autorité → la redirection conduit à un accès refusé.
+Raison : DossierNewPage.tsx (admin) ; AuthorityRoutes.tsx (authorityRoles sans ADMIN_ORGANISATION). La fonctionnalité « créer un dossier » existe (CreateDossierAuthorityPage) mais n’est pas utilisable par l’admin org.
+Alertes
+Pages Alertes (liste, détail, création) existent sous /authority/alertes mais réservées aux rôles authority.
+Aucune page admin dédiée aux alertes ni service admin pour alerte (création/diffusion).
+Raison : doc dit que l’admin peut créer/diffuser des alertes ; le code ne propose pas cette capacité dans l’espace admin.
+Résultats IA / validation IA
+Page IAAnalysisPage sous /authority/ia-analysis pour niveau 4.
+Aucune vue admin pour consulter/valider les resultat_ia ou configurer les paramètres IA de l’organisation.
+Raison : doc prévoit consultation, validation et config IA pour l’organisation ; non exposé dans l’admin.
+Coordination inter-services
+Page CoordinationPage sous /authority/coordination.
+Pas d’équivalent ni de lien dans l’admin pour « partenariats / échanges inter-organisations ».
+Raison : doc Coordination pour niveau 6 ; non branché côté admin.
+4. Ce qui est partiellement présent
+Attribution de rôle
+À l’invitation : rôle choisi (2–5) et enregistré via l’edge function.
+Pour un utilisateur déjà existant : aucun champ « rôle » dans la fiche utilisateur, pas d’API pour modifier utilisateur_role (changer de rôle ou date d’expiration).
+Raison : doc « PEUT attribuer des rôles » et « définir des dates d’expiration pour les rôles » ; seule l’attribution à la création est implémentée.
+Création de dossiers
+Bouton « Nouveau dossier » et route /admin/dossiers/new existent, mais la page ne contient pas de formulaire : uniquement un message + redirection vers l’autorité (inopérante pour l’admin).
+Raison : flux « créer un dossier » pour l’admin est intentionnellement délégué à l’autorité mais non réalisé pour le rôle admin.
+Zones géographiques de compétence
+Paramètres organisation : général, équipe, notifications, sécurité ; pas de champ « zones géographiques de compétence ».
+Le modèle organisation a region/ville/adresse mais pas de structure dédiée (ex. GeoJSON) pour des zones.
+Raison : doc « Définir les zones géographiques de compétence » ; non présent dans OrganisationSettings ni dans le schéma lu.
+Clés API dans la sidebar
+Page Clés API accessible (route + lien depuis Paramètres), mais aucun item « Clés API » dans le menu latéral admin.
+Raison : ADMIN_NAV_CONFIG dans AdminOrganisationLayout.tsx ne contient pas d’entrée pour api-keys ; activeNav inclut 'api-keys' pour la page mais pas pour la nav.
+Export de statistiques
+Statistiques détaillées (graphiques, KPIs) présentes ; export CSV des logs d’audit existe ; pas d’export CSV/Excel des statistiques ou rapports synthétiques.
+Raison : doc « PEUT exporter des données de son organisation » ; export limité aux logs, pas aux rapports/statistiques.
+5. Ce qui est totalement absent
+Création de dossiers dans l’espace admin
+Aucun formulaire de création de dossier (personne, disparition, lieu, etc.) sous /admin/*.
+Raison : choix actuel = redirection vers l’autorité ; l’admin n’a pas accès à cette interface → aucune voie de création pour l’admin.
+Gestion des alertes (création, programmation, annulation)
+Aucune page admin pour les alertes ; aucun service admin appelant la table alerte.
+Raison : droits niveau 4 hérités par l’admin ; non implémenté dans l’admin.
+Module IA pour l’admin
+Aucune liste des résultats IA en attente, aucune validation (confirmer/infirmer), aucun réglage des seuils ou priorités IA pour l’organisation.
+Raison : doc Admin Org + niveau 4–5 ; uniquement présent côté authority.
+Dates d’expiration des rôles
+Table utilisateur_role a date_expiration ; aucun écran ni API pour la lire/modifier depuis l’admin.
+Raison : doc « PEUT définir des dates d’expiration pour les rôles ».
+Changement de rôle d’un utilisateur existant
+Pas d’API ni de champ en UI pour modifier utilisateur_role (attribution/révocation de rôle pour un utilisateur déjà créé).
+Raison : doc « PEUT attribuer des rôles aux membres de son organisation ».
+Zones géographiques de compétence
+Ni dans les paramètres organisation ni dans le modèle parcouru (pas de champ dédié type zones/GeoJSON).
+Raison : doc Gestion organisation.
+Workflows internes / modèles de dossiers personnalisés
+Pas de configuration de workflows ni de templates de dossiers dans Paramètres ou ailleurs.
+Raison : doc Configuration.
+Partenariats / accès partagés inter-organisations
+Aucune page ou paramètre pour gérer des partenariats ou accès partagés avec d’autres organisations.
+Raison : doc Coordination.
+Campagnes de sensibilisation
+Table campagne_sensibilisation et feature campagnes existent ; aucune page admin pour créer ou gérer des campagnes.
+Raison : niveau 5 peut créer des campagnes ; l’admin hérite de ces droits mais n’a pas d’UI dédiée (à trancher selon le produit : voulu ou non pour l’admin).
+6. Ce qui est présent mais ne devrait pas l’être (hors périmètre admin org)
+Aucun élément clairement hors périmètre
+Dashboard, dossiers (lecture/édition), rapports/signalements (validation), utilisateurs (liste/détail/invitation/suspendre/activer), rôles (lecture), paramètres organisation, clés API, audit, statistiques, profil : tout est conforme au périmètre « son organisation » et aux droits niveau 6.
+Les clés API sont au niveau organisation (organisation_cle_api, id_organisation) : gérer les clés de son organisation est cohérent avec un admin org (intégrations, API). Le doc mentionne la gestion des clés API pour le Super Admin au niveau système ; la gestion des clés par organisation peut être considérée comme un sous-ensemble légitime pour l’admin org.
+Raison : pas de menu ou page donnant accès à d’autres organisations, au paramétrage système global ou au rôle super_admin.
+Point à clarifier
+Clés API : si la doc considère que « gérer les clés API et tokens » est réservé au Super Admin au sens strict, alors la page Clés API admin (par organisation) serait en trop. Sinon, laisser la gestion des clés de l’organisation à l’admin org est logique.
+Raison : roles_permissions.txt mentionne les clés API dans la section Super Admin ; il n’est pas précisé si les clés par organisation peuvent être gérées par l’admin org.
+Synthèse
+Thème	Conforme / Partiel / Absent	Commentaire
+Consultation dossiers, stats, logs	Conforme	Dashboard, listes, détail, statistiques, audit.
+Modification dossiers (statut, urgence, etc.)	Conforme	DossierEditPage + updateAdminDossier.
+Signalements : liste + validation	Conforme	RapportsPage + updateSignalementValidation.
+Utilisateurs : liste, détail, suspendre/activer, invitation avec rôle	Conforme	Manque changement de rôle et date d’expiration pour existants.
+Paramètres organisation (général, équipe, notifs)	Conforme	Pas de zones géographiques de compétence.
+Clés API organisation	Conforme (ou à clarifier)	Présent ; à valider selon interprétation doc.
+Création de dossiers	Absent / inopérant	Redirect vers authority sans droit d’accès.
+Alertes	Absent	Pas de page ni service admin.
+IA (résultats, validation, config)	Absent	Pas d’UI admin.
+Attribution de rôle (utilisateur existant) + date expiration	Partiel / Absent	Seulement à l’invitation.
+Zones géographiques, workflows, partenariats	Absent	Non implémenté.
+Si tu veux, on peut détailler des recommandations de correction (priorités, ex. : création dossiers admin, attribution de rôle, alertes, IA) ou un plan de tâches ciblé.

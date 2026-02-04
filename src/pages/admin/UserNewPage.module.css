@@ -1,12 +1,22 @@
-/* Aligné super_admin */
+/* Aligné 100% super_admin - UserNew */
+:root {
+  --usernew-primary: #1d4ed8;
+  --usernew-border: #e2e8f0;
+  --usernew-muted: #64748b;
+  --usernew-card: #ffffff;
+  --usernew-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 2rem;
+  gap: 1.25rem;
+  padding: 1.5rem 2rem 2rem;
   max-width: 560px;
   margin: 0 auto;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: #f8fafc;
+  min-height: 100%;
+  font-family: var(--usernew-font);
 }
 
 .header {
@@ -32,6 +42,10 @@
   text-decoration: underline;
 }
 
+.card {
+  max-width: 520px;
+}
+
 .title {
   display: flex;
   align-items: center;
@@ -40,6 +54,26 @@
   font-weight: 700;
   margin: 0;
   color: #1e293b;
+}
+
+.titleIcon {
+  width: 28px;
+  height: 28px;
+  color: var(--usernew-primary);
+  flex-shrink: 0;
+}
+
+.subtitle {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.labelIcon {
+  vertical-align: middle;
+  margin-right: 0.35rem;
+  color: var(--usernew-muted);
 }
 
 .form {
@@ -104,21 +138,48 @@
 
 .success {
   text-align: center;
-  padding: 2rem;
+  padding: 1.5rem 0;
+}
+
+.successIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  margin-bottom: 1.25rem;
 }
 
 .successIcon {
-  color: #10b981;
-  margin-bottom: 1rem;
+  color: #059669;
 }
 
-.success h2 {
+.successTitle {
   font-size: 1.25rem;
+  font-weight: 700;
   margin: 0 0 0.5rem 0;
   color: #1e293b;
 }
 
-.success p {
+.successMessage {
+  font-size: 0.9375rem;
   color: #64748b;
+  line-height: 1.6;
   margin: 0 0 1.5rem 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.successMessage strong {
+  color: #1e293b;
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
 }

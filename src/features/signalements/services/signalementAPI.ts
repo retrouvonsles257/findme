@@ -14,26 +14,45 @@ import type {
   SignalementContact,
   SignalementVerification,
   SignalementStats,
+  SignalementFilter,
 } from '../types';
 
 // Helper to bypass Supabase typing issues
 const db = () => (supabase as any);
 
 /**
- * Get all signalements with pagination
+ * Get all signalements with pagination.
+ * Si filter.organisation_id est fourni, ne retourne que les signalements dont le dossier appartient à cette organisation.
  */
-export async function getSignalements(page: number = 1, pageSize: number = 20): Promise<{
+export async function getSignalements(
+  page: number = 1,
+  pageSize: number = 20,
+  filter?: SignalementFilter
+): Promise<{
   data: Signalement[];
   total: number;
 }> {
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
 
-  const { data, count, error } = await supabase
+  let query = supabase
     .from('signalement')
     .select('*', { count: 'exact' })
-    .order('date_observation', { ascending: false })
-    .range(start, end - 1);
+    .order('date_observation', { ascending: false });
+
+  if (filter?.organisation_id) {
+    const { data: dossierIds } = await supabase
+      .from('dossier_disparition')
+      .select('id')
+      .eq('id_organisation_responsable', filter.organisation_id);
+    const ids = (dossierIds || []).map((d: { id: string }) => d.id);
+    if (ids.length === 0) {
+      return { data: [], total: 0 };
+    }
+    query = query.in('id_dossier', ids);
+  }
+
+  const { data, count, error } = await query.range(start, end - 1);
 
   if (error) throw error;
 

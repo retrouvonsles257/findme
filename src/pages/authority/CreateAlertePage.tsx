@@ -6,8 +6,11 @@
  * =====================================================
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAppSelector } from '../../store/hooks';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
@@ -37,8 +40,15 @@ export const CreateAlertePage: React.FC = () => {
   const preselectedDossierId = searchParams.get('dossier');
   
   useAuth(); // Hook call for auth context
+  const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
-  const { dossiers } = useDossiers();
+  const initialCriteria = useMemo(() => {
+    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
+      return { organisation_id: currentUser.organisation_id };
+    }
+    return undefined;
+  }, [currentUser?.role, currentUser?.organisation_id]);
+  const { dossiers } = useDossiers({ initialCriteria });
   const { t, language } = useI18n();
   
   const [isSubmitting, setIsSubmitting] = useState(false);

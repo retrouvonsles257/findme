@@ -119,6 +119,8 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
             type="button"
             className={styles.backBtn}
             onClick={() => navigate(`/admin/dossiers/${id}`)}
+            title={t('common.back')}
+            aria-label={t('common.back')}
           >
             <ArrowLeft size={20} />
             {t('common.back')}
@@ -144,7 +146,7 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
             <CardHeader>
               <h1 className={styles.title}>
                 <Folder size={24} />
-                {dossier.numero_dossier || `#${dossier.id.slice(0, 8)}`} — {t('admin.editDossier')}
+                {dossier.numero_dossier || `${t('admin.dossierNumberPrefix')}${dossier.id.slice(0, 8)}`}{t('common.titleSeparator')}{t('admin.editDossier')}
               </h1>
             </CardHeader>
             <CardBody>
@@ -172,7 +174,7 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
                   >
                     {STATUT_OPTIONS.map(s => (
                       <option key={s} value={s}>
-                        {t(`admin.status.${s}`)}
+                        {t(`admin.status.${s}`, t('common.unknown'))}
                       </option>
                     ))}
                   </select>
@@ -186,7 +188,7 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
                   >
                     {URGENCE_OPTIONS.map(u => (
                       <option key={u} value={u}>
-                        {t(`admin.urgence.${u}`)}
+                        {t(`admin.urgence.${u}`, t('common.unknown'))}
                       </option>
                     ))}
                   </select>

@@ -1,16 +1,27 @@
 /* =====================================================
-   RETROUVONSLES - Admin Audit Logs (aligné super_admin)
+   RETROUVONSLES - Admin Audit Logs
+   Aligné 100% super_admin (primary #1d4ed8, cards, filters)
    ===================================================== */
+
+:root {
+  --audit-primary: #1d4ed8;
+  --audit-border: #e2e8f0;
+  --audit-muted: #64748b;
+  --audit-card: #ffffff;
+  --audit-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
 .auditLogs {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  padding: 1.5rem 2rem 2rem;
+  background: #f8fafc;
+  min-height: 100%;
+  font-family: var(--audit-font);
   animation: auditLogs-fade-in 0.5s ease;
 }
 

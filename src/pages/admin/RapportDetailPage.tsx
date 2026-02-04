@@ -105,14 +105,14 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
   const dossier = (rapport as any)?.dossier;
   const utilisateur = (rapport as any)?.utilisateur;
   const auteur = utilisateur
-    ? `${utilisateur.nom || ''} ${utilisateur.prenom || ''}`.trim() || utilisateur.email || '—'
-    : '—';
+    ? `${utilisateur.nom || ''} ${utilisateur.prenom || ''}`.trim() || utilisateur.email || t('common.notAvailable')
+    : t('common.notAvailable');
 
   return (
     <AdminOrganisationLayout title={t('admin.rapports')} activeNav="rapports">
       <div className={styles.page}>
         <div className={styles.header}>
-          <button type="button" className={styles.backBtn} onClick={() => navigate('/admin/rapports')}>
+          <button type="button" className={styles.backBtn} onClick={() => navigate('/admin/rapports')} title={t('common.back')} aria-label={t('common.back')}>
             <ArrowLeft size={20} />
             {t('common.back')}
           </button>
@@ -158,7 +158,7 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
                 <div className={styles.field}>
                   <label><Folder size={16} /> {t('admin.dossier')}</label>
                   <span className={styles.value}>
-                    {dossier?.numero_dossier || (rapport as any).id_dossier || '—'}
+                    {dossier?.numero_dossier || (rapport as any).id_dossier || t('common.notAvailable')}
                   </span>
                 </div>
                 <div className={styles.field}>
@@ -170,12 +170,12 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
                   <span className={styles.value}>
                     {(rapport as any).date_observation
                       ? new Date((rapport as any).date_observation).toLocaleString()
-                      : '—'}
+                      : t('common.notAvailable')}
                   </span>
                 </div>
                 <div className={styles.fieldFull}>
                   <label>{t('admin.description')}</label>
-                  <p className={styles.description}>{rapport.description || '—'}</p>
+                  <p className={styles.description}>{rapport.description || t('common.notAvailable')}</p>
                 </div>
               </div>
 
@@ -185,6 +185,8 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
                     variant="primary"
                     onClick={handleApprove}
                     disabled={!!actioning}
+                    title={t('admin.approveReport')}
+                    aria-label={t('admin.approveReport')}
                   >
                     {actioning === 'approve' ? (
                       <Loader2 size={18} className={styles.spinner} />
@@ -197,6 +199,8 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
                     variant="danger"
                     onClick={handleReject}
                     disabled={!!actioning}
+                    title={t('admin.rejectReport')}
+                    aria-label={t('admin.rejectReport')}
                   >
                     {actioning === 'reject' ? (
                       <Loader2 size={18} className={styles.spinner} />

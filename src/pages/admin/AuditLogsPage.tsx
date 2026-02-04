@@ -47,7 +47,7 @@ interface AuditLog {
 
 export const AdminOrganisationAuditLogsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
@@ -105,7 +105,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
       };
       const mapped: AuditLog[] = rows.map((r: any) => {
         const u = r.utilisateur;
-        const userName = u ? `${u.nom || ''} ${u.prenom || ''}`.trim() : '—';
+        const userName = u ? `${u.nom || ''} ${u.prenom || ''}`.trim() || t('common.notAvailable') : t('common.notAvailable');
         return {
           id: String(r.id),
           userId: r.id_utilisateur || '',
@@ -116,7 +116,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
           entityId: r.id_dossier || r.id_signalement || r.id_alerte || '',
           entityName: r.action_detaillee || r.type_action,
           details: r.description || '',
-          ipAddress: r.ip_utilisateur || '—',
+          ipAddress: r.ip_utilisateur || t('common.notAvailable'),
           timestamp: r.date_action,
         };
       });
@@ -129,7 +129,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.organisation_id, filterUser, filterAction, filterDate]);
+  }, [currentUser?.organisation_id, filterUser, filterAction, filterDate, t]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
@@ -165,9 +165,31 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
     return icons[actionType as keyof typeof icons] || Plus;
   };
 
+  const getActionTypeLabel = (actionType: string) => {
+    const keyMap: Record<string, string> = {
+      CREATE: 'create',
+      READ: 'read',
+      UPDATE: 'update',
+      DELETE: 'delete',
+      APPROVE: 'approve',
+      REJECT: 'reject',
+    };
+    return t(`admin.${keyMap[actionType] || 'update'}`);
+  };
+
+  const getEntityTypeLabel = (entityType: string) => {
+    const keyMap: Record<string, string> = {
+      DOSSIER: 'entityDossier',
+      USER: 'entityUser',
+      RAPPORT: 'entityRapport',
+      SETTING: 'entitySetting',
+    };
+    return t(`admin.${keyMap[entityType] || 'entityRapport'}`);
+  };
+
   const uniqueUsers = Array.from(new Set(logs.map(log => log.userId))).map(userId => ({
     id: userId,
-    name: logs.find(log => log.userId === userId)?.userName || 'Unknown',
+    name: logs.find(log => log.userId === userId)?.userName || t('common.unknown'),
   }));
 
   const handleExportCsv = () => {
@@ -178,7 +200,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `${t('admin.exportFilenameAuditLogs')}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -194,7 +216,14 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
             </h2>
             <p className={styles.auditLogs__subtitle}>{t('admin.viewActivityLog')}</p>
           </div>
-          <button type="button" className={styles.auditLogs__btnExport} onClick={handleExportCsv} disabled={rawLogs.length === 0}>
+          <button
+            type="button"
+            className={styles.auditLogs__btnExport}
+            onClick={handleExportCsv}
+            disabled={rawLogs.length === 0}
+            title={t('admin.export')}
+            aria-label={t('admin.export')}
+          >
             <Download className={styles.auditLogs__btnIcon} />
             {t('admin.export')}
           </button>
@@ -291,19 +320,19 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
                       <div className={styles.auditLogs__itemHeader}>
                         <h4 className={styles.auditLogs__action}>{log.action}</h4>
                         <span className={styles.auditLogs__time}>
-                          {new Date(log.timestamp).toLocaleString('fr-FR')}
+                          {new Date(log.timestamp).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}
                         </span>
                       </div>
                       <div className={styles.auditLogs__badges}>
                         <span
                           className={`${styles.auditLogs__badge} ${styles[`auditLogs__badge--${log.actionType.toLowerCase()}`]}`}
                         >
-                          {log.actionType}
+                          {getActionTypeLabel(log.actionType)}
                         </span>
                         <span
                           className={`${styles.auditLogs__badge} ${styles[`auditLogs__badge--${log.entityType.toLowerCase()}`]}`}
                         >
-                          {log.entityType}
+                          {getEntityTypeLabel(log.entityType)}
                         </span>
                         <span className={styles.auditLogs__user}>
                           <User className={styles.auditLogs__userIcon} />

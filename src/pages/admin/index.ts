@@ -11,6 +11,7 @@ export { AdminOrganisationRapportsPage } from './RapportsPage';
 export { AdminOrganisationRapportDetailPage } from './RapportDetailPage';
 export { AdminOrganisationStatistiquesPage } from './StatistiquesPage';
 export { AdminOrganisationSettingsPage } from './OrganisationSettings';
+export { AdminOrganisationWorkflowsPage } from './WorkflowsPage';
 export { AdminOrganisationRolesPage } from './RolesManagementPage';
 export { AdminOrganisationAuditLogsPage } from './AuditLogsPage';
 export { AdminOrganisationProfilePage } from './ProfilePage';

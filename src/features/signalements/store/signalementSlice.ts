@@ -28,8 +28,8 @@ import {
 
 export const fetchSignalements = createAsyncThunk(
   'signalements/fetchAll',
-  async ({ page }: { filter?: SignalementFilter; page?: number } = {}) => {
-    return getSignalements(page || 1);
+  async ({ filter, page }: { filter?: SignalementFilter; page?: number } = {}) => {
+    return getSignalements(page || 1, 20, filter);
   }
 );
 

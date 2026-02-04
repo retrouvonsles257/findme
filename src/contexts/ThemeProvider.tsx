@@ -34,6 +34,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }, []);
 
+  // Appliquer le thème (déclaré avant les useEffect qui l'utilisent)
+  const applyTheme = useCallback((dark: boolean) => {
+    if (typeof document === 'undefined') return;
+
+    const htmlElement = document.documentElement;
+    if (dark) {
+      htmlElement.classList.add('dark');
+      htmlElement.classList.remove('light');
+    } else {
+      htmlElement.classList.add('light');
+      htmlElement.classList.remove('dark');
+    }
+
+    // Mettre à jour la variable CSS
+    htmlElement.style.colorScheme = dark ? 'dark' : 'light';
+  }, []);
+
   // Initialiser le thème
   useEffect(() => {
     // Charger le mode depuis localStorage
@@ -66,7 +83,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       return () => mediaQuery.removeListener(handleChange);
     }
     return undefined;
-  }, [mode]);
+  }, [mode, applyTheme]);
 
   // Mettre à jour le mode
   const setMode = useCallback((newMode: ThemeMode) => {
@@ -91,23 +108,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const toggleMode = useCallback(() => {
     setMode(isDark ? 'light' : 'dark');
   }, [isDark, setMode]);
-
-  // Appliquer le thème
-  const applyTheme = useCallback((dark: boolean) => {
-    if (typeof document === 'undefined') return;
-
-    const htmlElement = document.documentElement;
-    if (dark) {
-      htmlElement.classList.add('dark');
-      htmlElement.classList.remove('light');
-    } else {
-      htmlElement.classList.add('light');
-      htmlElement.classList.remove('dark');
-    }
-
-    // Mettre à jour la variable CSS
-    htmlElement.style.colorScheme = dark ? 'dark' : 'light';
-  }, []);
 
   // Mettre à jour la configuration
   const setConfig = useCallback((newConfig: Partial<ThemeConfig>) => {
