@@ -206,11 +206,11 @@ export const MapPage: React.FC = () => {
             <span>RETROUVONSLES</span>
           </Link>
 
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`}>
-            <Link to="/" className={styles.navLink}>{t('public.navbar.home')}</Link>
-            <Link to="/map" className={`${styles.navLink} ${styles.active}`}>{t('public.navbar.map')}</Link>
-            <Link to="/disparitions" className={styles.navLink}>{t('public.navbar.search')}</Link>
-            <Link to="/signaler" className={styles.navLink}>{t('public.navbar.report')}</Link>
+          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
+            <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.home')}</Link>
+            <Link to="/map" className={`${styles.navLink} ${styles.active}`} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.map')}</Link>
+            <Link to="/disparitions" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.search')}</Link>
+            <Link to="/signaler" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.report')}</Link>
           </div>
 
           <div className={styles.navActions}>
@@ -221,8 +221,11 @@ export const MapPage: React.FC = () => {
               {t('public.navbar.login')}
             </button>
             <button
+              type="button"
               className={styles.mobileMenuBtn}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

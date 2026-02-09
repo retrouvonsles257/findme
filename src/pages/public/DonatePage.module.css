@@ -6,6 +6,7 @@
   min-height: 100vh;
   background: linear-gradient(to bottom, #f8f9fa 0%, #eef2f7 100%);
   padding: 2rem 0;
+  overflow-x: hidden;
 }
 
 .container {
@@ -400,8 +401,8 @@
     padding: 1rem;
   }
 
-  .impactItem h3 {
-    font-size: 0.95rem;
+  .impactItem strong {
+    font-size: 1.1rem;
   }
 
   .impactItem p {
@@ -416,6 +417,7 @@
   .typeBtn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
+    min-height: 44px;
   }
 
   .packagesGrid {
@@ -423,36 +425,27 @@
     gap: 1rem;
   }
 
-  .packageCard {
+  .package {
     padding: 1rem;
   }
 
-  .packageCard h3 {
+  .package h3 {
     font-size: 1rem;
   }
 
-  .packageCard p {
+  .package p {
     font-size: 0.8rem;
   }
 
-  .selectBtn {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-
-  .customAmountSection {
+  .donationSection {
     padding: 1rem;
-  }
-
-  .customAmountSection input {
-    padding: 0.5rem;
-    font-size: 0.85rem;
   }
 
   .donateBtn {
     width: 100%;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    min-height: 44px;
   }
 
   .benefitsGrid {
@@ -460,29 +453,31 @@
     gap: 1rem;
   }
 
-  .benefitItem {
+  .benefit {
     padding: 1rem;
   }
 
-  .benefitItem h4 {
+  .benefit h3 {
     font-size: 0.95rem;
   }
 
-  .benefitItem p {
+  .benefit p {
     font-size: 0.8rem;
   }
 
-  .faqItem {
-    margin-bottom: 0.75rem;
+  .faqSection {
+    padding: 1rem;
   }
 
-  .faqQuestion {
+  .faqItem {
     padding: 0.75rem;
+  }
+
+  .faqItem summary {
     font-size: 0.9rem;
   }
 
-  .faqAnswer {
-    padding: 0.75rem;
+  .faqItem p {
     font-size: 0.8rem;
   }
 }

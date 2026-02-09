@@ -10,6 +10,7 @@
   flex-direction: column;
   font-family: 'Inter', system-ui, sans-serif;
   background: #fff;
+  overflow-x: hidden;
 }
 
 /* Navigation */
@@ -29,6 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .logo {
@@ -377,6 +379,10 @@
 }
 
 @media (max-width: 768px) {
+  .navContainer {
+    padding: 0 1rem;
+  }
+
   .navLinks {
     display: none;
   }
@@ -394,10 +400,17 @@
     align-items: center;
     gap: 2rem;
     z-index: 200;
+    overflow-y: auto;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
   }
 
   .mobileMenuBtn {
     display: block;
+    z-index: 201;
+  }
+
+  .container {
+    padding: 0 1rem;
   }
 
   .hero {
@@ -408,12 +421,109 @@
     font-size: 1.75rem;
   }
 
+  .missionSection,
+  .valuesSection,
+  .stepsSection {
+    padding: 3rem 0;
+  }
+
+  .missionCard {
+    padding: 2rem 1.5rem;
+  }
+
   .valuesGrid,
   .stepsGrid {
     grid-template-columns: 1fr;
   }
 
+  .sectionTitle {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .ctaSection {
+    padding: 3rem 0;
+  }
+
   .ctaButtons {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navContainer {
+    padding: 0 0.75rem;
+  }
+
+  .logo span {
+    font-size: 0.9375rem;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .hero {
+    padding: 2rem 0.75rem;
+  }
+
+  .heroContent h1 {
+    font-size: 1.5rem;
+  }
+
+  .heroContent p {
+    font-size: 0.9375rem;
+  }
+
+  .missionSection,
+  .valuesSection,
+  .stepsSection {
+    padding: 2rem 0;
+  }
+
+  .missionCard {
+    padding: 1.5rem 1rem;
+  }
+
+  .missionCard h2 {
+    font-size: 1.125rem;
+  }
+
+  .valueCard,
+  .stepCard {
+    padding: 1.5rem 1rem;
+  }
+
+  .valueCard h3,
+  .stepCard h3 {
+    font-size: 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.35rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ctaSection {
+    padding: 2rem 0;
+  }
+
+  .ctaContent h2 {
+    font-size: 1.5rem;
+  }
+
+  .ctaContent > p {
+    font-size: 0.9375rem;
   }
 }

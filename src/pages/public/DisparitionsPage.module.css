@@ -10,6 +10,7 @@
   flex-direction: column;
   font-family: 'Inter', system-ui, sans-serif;
   background: #f9fafb;
+  overflow-x: hidden;
 }
 
 /* Navigation */
@@ -29,6 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .logo {
@@ -441,6 +443,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .navContainer {
+    padding: 0 1rem;
+  }
+
   .navLinks {
     display: none;
   }
@@ -458,29 +464,117 @@
     align-items: center;
     gap: 2rem;
     z-index: 200;
+    overflow-y: auto;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
   }
 
   .mobileMenuBtn {
     display: block;
+    z-index: 201;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .mainContent {
+    padding: 1.5rem 0;
   }
 
   .pageHeader h1 {
     font-size: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pageHeader p {
+    font-size: 0.9375rem;
   }
 
   .filtersSection {
     flex-direction: column;
+    padding: 1rem;
   }
 
   .searchBox {
     min-width: 100%;
   }
 
+  .filterBox {
+    min-width: 100%;
+  }
+
+  .filterBox input,
+  .filterBox select {
+    min-width: 0;
+  }
+
+  .resultsInfo {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+
   .resultsGrid {
     grid-template-columns: 1fr;
   }
 
+  .detailBtn {
+    min-height: 44px;
+  }
+
   .pagination {
     flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .pagination button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navContainer {
+    padding: 0 0.75rem;
+  }
+
+  .logo span {
+    font-size: 0.9375rem;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .pageHeader h1 {
+    font-size: 1.35rem;
+  }
+
+  .pageHeader h1 svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .filtersSection {
+    padding: 0.75rem;
+  }
+
+  .resultCard .cardContent {
+    padding: 1rem;
+  }
+
+  .cardContent h3 {
+    font-size: 1rem;
+  }
+
+  .pageNumbers button {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8125rem;
   }
 }

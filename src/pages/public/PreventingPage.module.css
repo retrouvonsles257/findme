@@ -6,6 +6,7 @@
   min-height: 100vh;
   background: linear-gradient(to bottom, #f8f9fa 0%, #eef2f7 100%);
   padding: 2rem 0;
+  overflow-x: hidden;
 }
 
 .container {
@@ -418,26 +419,34 @@
     font-size: 0.8rem;
   }
 
+  .introducation {
+    padding: 1rem;
+  }
+
+  .introducation p {
+    font-size: 0.9rem;
+  }
+
   .actionSteps {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
 
-  .actionCard {
+  .actionStep {
     padding: 1rem;
   }
 
-  .actionNumber {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1rem;
+  .stepNumber {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
   }
 
-  .actionCard h3 {
+  .actionStep h3 {
     font-size: 0.95rem;
   }
 
-  .actionCard p {
+  .actionStep p {
     font-size: 0.8rem;
   }
 
@@ -446,16 +455,32 @@
     gap: 1rem;
   }
 
-  .resourceCategory {
+  .resourceCard {
     padding: 1rem;
   }
 
-  .resourceCategory h3 {
+  .resourceCard h3 {
     font-size: 0.95rem;
   }
 
-  .resourceList li {
+  .resourceCard p {
     font-size: 0.8rem;
-    padding: 0.3rem 0;
+  }
+
+  .cta {
+    padding: 2rem 1rem;
+  }
+
+  .cta h2 {
+    font-size: 1.5rem;
+  }
+
+  .cta p {
+    font-size: 0.95rem;
+  }
+
+  .shareBtn {
+    width: 100%;
+    min-height: 44px;
   }
 }

@@ -257,28 +257,28 @@ export const DisparitionsPage: React.FC = () => {
             <span>RETROUVONSLES</span>
           </Link>
 
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`}>
-            <Link to="/" className={styles.navLink}>
+          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
+            <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
               <Search size={16} />
               {t('public.navbar.home')}
             </Link>
-            <Link to="/map" className={styles.navLink}>
+            <Link to="/map" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
               <Map size={16} />
               {t('public.navbar.map')}
             </Link>
-            <Link to="/disparitions" className={`${styles.navLink} ${styles.active}`}>
+            <Link to="/disparitions" className={`${styles.navLink} ${styles.active}`} onClick={() => setMobileMenuOpen(false)}>
               <Users size={16} />
               {t('public.navbar.search')}
             </Link>
-            <Link to="/signaler" className={styles.navLink}>
+            <Link to="/signaler" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
               <AlertTriangle size={16} />
               {t('public.navbar.report')}
             </Link>
-            <Link to="/about" className={styles.navLink}>
+            <Link to="/about" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
               <Heart size={16} />
               {t('public.navbar.about')}
             </Link>
-            <Link to="/contact" className={styles.navLink}>
+            <Link to="/contact" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
               <Mail size={16} />
               {t('public.navbar.contact')}
             </Link>
@@ -292,8 +292,11 @@ export const DisparitionsPage: React.FC = () => {
               {t('public.navbar.login')}
             </button>
             <button
+              type="button"
               className={styles.mobileMenuBtn}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

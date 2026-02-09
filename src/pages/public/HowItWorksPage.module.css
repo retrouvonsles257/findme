@@ -6,6 +6,7 @@
   min-height: 100vh;
   background: linear-gradient(to bottom, #f8f9fa 0%, #eef2f7 100%);
   padding: 2rem 0;
+  overflow-x: hidden;
 }
 
 .container {
@@ -359,24 +360,11 @@
     font-size: 1.2rem;
   }
 
-  .step {
+  .stepCard {
     padding: 1rem;
   }
 
-  .stepNumber {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 0.95rem;
-  }
-
-  .step h3 {
-    font-size: 0.95rem;
-  }
-
-  .step p {
-    font-size: 0.8rem;
-  }
-
+  .stepsSection h2,
   .featuresSection h2,
   .technologySection h2,
   .statsSection h2 {
@@ -396,16 +384,28 @@
     padding: 1rem;
   }
 
-  .featureCard h4,
-  .techCard h4,
-  .statCard h3 {
+  .featureCard h3,
+  .techCard h3,
+  .statCard strong {
     font-size: 0.95rem;
+  }
+
+  .statCard strong {
+    font-size: 1.75rem;
   }
 
   .featureCard p,
   .techCard p,
   .statCard p {
     font-size: 0.8rem;
+  }
+
+  .cta {
+    padding: 2rem 1rem;
+  }
+
+  .cta h2 {
+    font-size: 1.5rem;
   }
 
   .ctaButtons {
@@ -416,7 +416,8 @@
   .btnPrimary,
   .btnSecondary {
     width: 100%;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    min-height: 44px;
   }
 }

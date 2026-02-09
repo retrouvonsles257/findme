@@ -40,7 +40,10 @@
   color: var(--color-text);
   background: var(--color-bg);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* ============================================
@@ -54,6 +57,7 @@
   z-index: 100;
   background: transparent;
   padding: 1rem 0;
+  padding-top: max(1rem, env(safe-area-inset-top));
   transition: var(--transition);
 }
 
@@ -71,7 +75,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .logo {
@@ -80,7 +85,8 @@
   gap: 0.5rem;
   text-decoration: none;
   color: #ffffff !important;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .logoIcon {
@@ -94,6 +100,8 @@
   letter-spacing: -0.025em;
   color: #ffffff !important;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .navLinks {
@@ -204,6 +212,7 @@
    ============================================ */
 .heroSection {
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow: hidden;
 }
@@ -366,7 +375,7 @@
 
 .searchInputWrapper {
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
   position: relative;
 }
 
@@ -1053,6 +1062,12 @@
 /* ============================================
    Responsive Styles
    ============================================ */
+@media (min-width: 769px) {
+  .searchInputWrapper {
+    min-width: 200px;
+  }
+}
+
 @media (max-width: 1024px) {
   .navContainer {
     padding: 0 1.5rem;
@@ -1126,6 +1141,8 @@
     align-items: center;
     gap: 2rem;
     z-index: 99;
+    overflow-y: auto;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)) 1rem;
   }
 
   .navLinksOpen {
@@ -1150,6 +1167,9 @@
 
   .heroOverlay {
     padding: 5rem 1rem 3rem;
+    min-height: auto;
+    padding-top: max(5rem, calc(env(safe-area-inset-top) + 4rem));
+    padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 2rem));
   }
 
   .heroTitle {
@@ -1288,8 +1308,17 @@
 }
 
 @media (max-width: 480px) {
+  .navContainer {
+    padding: 0 0.75rem;
+  }
+
   .logoText {
     font-size: 0.875rem;
+    max-width: 140px;
+  }
+
+  .navActions {
+    gap: 0.5rem;
   }
 
   .langBtn {
@@ -1301,6 +1330,10 @@
   .loginBtn {
     padding: 0.375rem 0.875rem;
     font-size: 0.75rem;
+  }
+
+  .heroOverlay {
+    padding: 4rem 0.75rem 2.5rem;
   }
 
   .heroTitle {
@@ -1315,14 +1348,33 @@
     font-size: 0.875rem;
   }
 
+  .searchBox {
+    padding: 0.75rem;
+  }
+
+  .searchInput {
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    font-size: 0.875rem;
+  }
+
   .btnPrimary,
   .btnSecondary {
     padding: 0.75rem 1.25rem;
     font-size: 0.9375rem;
+    min-height: 44px;
+  }
+
+  .statsSection {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .statCard {
+    padding: 1.5rem 1rem;
   }
 
   .sectionTitle {
     font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .statNumber {
@@ -1333,12 +1385,46 @@
     font-size: 0.9375rem;
   }
 
+  .statSubtext {
+    font-size: 0.8125rem;
+  }
+
+  .synergySection {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .synergyCard {
+    padding: 1.75rem 1rem;
+  }
+
+  .synergyStep {
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
   .synergyCard h3 {
     font-size: 1.125rem;
   }
 
   .synergyCard p {
     font-size: 0.875rem;
+  }
+
+  .mapSection {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .mapContainer {
+    gap: 2rem;
+  }
+
+  .mapIcon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
   }
 
   .mapTitle {
@@ -1349,20 +1435,133 @@
     font-size: 0.9375rem;
   }
 
+  .mapPlaceholder {
+    min-height: 200px;
+    font-size: 1rem;
+  }
+
+  .testimoniesSection {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .testimoniesSubtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .testimonyCard {
+    padding: 1.25rem;
+  }
+
+  .testimonyHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .testimonyBadge {
+    align-self: flex-start;
+  }
+
+  .partnersSection {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .partnersList {
+    gap: 1rem;
+  }
+
+  .partnerLogo {
+    font-size: 0.8125rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .partnerLogo svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ctaSection {
+    padding: 2.5rem 0.75rem;
+  }
+
   .ctaContent h2 {
     font-size: 1.5rem;
   }
 
   .ctaContent p {
     font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
   }
 
-  .partnerLogo {
+  .donateBtn,
+  .volunteerBtn {
+    min-height: 44px;
+  }
+
+  .footer {
+    padding: 2.5rem 0.75rem 1.5rem;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  .footerContent {
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .footerBottom {
+    padding-top: 1.5rem;
+    gap: 0.75rem;
+  }
+
+  .footerLinks {
+    gap: 1rem;
+  }
+}
+
+/* Très petits écrans (< 380px) */
+@media (max-width: 380px) {
+  .navContainer {
+    padding: 0 0.5rem;
+  }
+
+  .logoText {
     font-size: 0.8125rem;
+    max-width: 110px;
   }
 
-  .partnerLogo svg {
-    width: 20px;
-    height: 20px;
+  .heroOverlay {
+    padding: 3.5rem 0.5rem 2rem;
+  }
+
+  .heroTitle {
+    font-size: 1.35rem;
+  }
+
+  .heroDescription {
+    font-size: 0.875rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.35rem;
+  }
+
+  .statsSection,
+  .synergySection,
+  .mapSection,
+  .testimoniesSection,
+  .partnersSection {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .ctaContent h2 {
+    font-size: 1.35rem;
+  }
+
+  .footer {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
