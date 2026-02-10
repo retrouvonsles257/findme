@@ -18,7 +18,13 @@ interface CampaignRow {
   budget_alloue?: number | null;
 }
 
-export const NGOCampagnesPage: React.FC = () => {
+export interface NGOCampagnesPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /ngo */
+  basePath?: string;
+}
+
+export const NGOCampagnesPage: React.FC<NGOCampagnesPageProps> = ({ noLayout, basePath = '/ngo' }) => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
@@ -58,19 +64,19 @@ export const NGOCampagnesPage: React.FC = () => {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedCampaigns = campaigns.slice(startIdx, startIdx + itemsPerPage);
 
+  const loadingContent = (
+    <div className={styles['ngo-campagnes__loading-container']}>
+      <div className={styles['ngo-campagnes__spinner']}></div>
+      <p>{t('common.loading')}</p>
+    </div>
+  );
   if (loading) {
-    return (
-      <NGOLayout title={t('ngo.campaignsTitle')}>
-        <div className={styles['ngo-campagnes__loading-container']}>
-          <div className={styles['ngo-campagnes__spinner']}></div>
-          <p>{t('common.loading')}</p>
-        </div>
-      </NGOLayout>
-    );
+    if (noLayout) return loadingContent;
+    return <NGOLayout title={t('ngo.campaignsTitle')}>{loadingContent}</NGOLayout>;
   }
 
-  return (
-    <NGOLayout title={t('ngo.campaignsTitle')}>
+  const content = (
+    <div>
       <p className={styles['ngo-campagnes__subtitle']}>{t('ngo.campaignsSubtitle')}</p>
 
       {error && (
@@ -82,7 +88,7 @@ export const NGOCampagnesPage: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button
           type="button"
-          onClick={() => navigate('/ngo/campagnes/create')}
+          onClick={() => navigate(`${basePath}/campagnes/create`)}
           style={{
             padding: '10px 12px',
             borderRadius: 10,
@@ -191,6 +197,8 @@ export const NGOCampagnesPage: React.FC = () => {
             </button>
           </div>
         )}
-    </NGOLayout>
+    </div>
   );
+  if (noLayout) return content;
+  return <NGOLayout title={t('ngo.campaignsTitle')}>{content}</NGOLayout>;
 };

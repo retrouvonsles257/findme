@@ -5,17 +5,15 @@
  * - Créer un don et initier un paiement Mobile Money (Orange / MTN) via gateway.
  * - En dev, fonctionner en mode MOCK si les clés gateway ne sont pas définies.
  *
- * Déploiement:
- *   supabase functions deploy donations-create
+ * Auth: JWT vérifié en interne (jose + JWKS) si présent ; sinon don anonyme.
+ * Déploiement: verify_jwt = false au gateway (voir config.toml / README_JWT_GATEWAY.md).
  *
- * Secrets recommandés:
- * - DONATIONS_MODE = "mock" | "live" (optionnel, défaut: auto/mock)
- * - DONATIONS_WEBHOOK_SECRET (optionnel pour sécuriser webhook)
- * - (plus tard) tes clés gateway Orange/MTN (selon le provider choisi)
+ * Secrets: DONATIONS_MODE, DONATIONS_WEBHOOK_SECRET, (optionnel) CINETPAY_*
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import * as jose from 'jsr:@panva/jose@6';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -176,14 +174,8 @@ serve(async (req: Request) => {
       ? body.mobile_money_operator
       : 'mtn_momo';
 
-    // Identify user (if authenticated)
-    let userId: string | null = null;
-    try {
-      const { data } = await supabase.auth.getUser();
-      userId = data?.user?.id ?? null;
-    } catch {
-      userId = null;
-    }
+    // Identify user from JWT (if Bearer token present and valid)
+    const userId = await getUserIdFromJwt(req);
 
     const mode = getMode();
     const nowIso = new Date().toISOString();

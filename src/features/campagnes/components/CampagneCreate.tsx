@@ -136,6 +136,8 @@ const CampagneCreate: React.FC<CampagneCreateProps> = ({
       {error && <div className={styles.error}>{error}</div>}
 
       <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Informations générales</h3>
         {/* Titre */}
         <div className={styles.formGroup}>
           <label>Titre *</label>
@@ -244,7 +246,10 @@ const CampagneCreate: React.FC<CampagneCreateProps> = ({
             <span className={styles.error}>{errors.budget_alloue}</span>
           )}
         </div>
+        </div>
 
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Diffusion</h3>
         {/* Canaux de Diffusion */}
         <div className={styles.formGroup}>
           <label>Canaux de Diffusion</label>
@@ -277,6 +282,7 @@ const CampagneCreate: React.FC<CampagneCreateProps> = ({
               </label>
             ))}
           </div>
+        </div>
         </div>
 
         {/* Actions */}

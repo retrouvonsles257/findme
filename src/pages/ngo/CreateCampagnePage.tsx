@@ -6,15 +6,21 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { supabase } from '../../config';
 
-export const NGOCreateCampagnePage: React.FC = () => {
+export interface NGOCreateCampagnePageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /ngo */
+  basePath?: string;
+}
+
+export const NGOCreateCampagnePage: React.FC<NGOCreateCampagnePageProps> = ({ noLayout = false, basePath = '/ngo' }) => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id as string | undefined;
   const organisationId = (currentUser as any)?.organisation_id as string | undefined;
 
   const onCancel = useCallback(() => {
-    navigate('/ngo/campagnes');
-  }, [navigate]);
+    navigate(`${basePath}/campagnes`);
+  }, [navigate, basePath]);
 
   const onSuccess = useCallback(
     async (campagne: any) => {
@@ -31,15 +37,20 @@ export const NGOCreateCampagnePage: React.FC = () => {
       } catch {
         // best effort
       } finally {
-        navigate('/ngo/campagnes');
+        navigate(`${basePath}/campagnes`);
       }
     },
-    [navigate, userId],
+    [navigate, basePath, userId],
   );
 
+  const pageContent = (
+    <CampagneCreate initialOrganisationId={organisationId as any} onCancel={onCancel} onSuccess={onSuccess} />
+  );
+
+  if (noLayout) return pageContent;
   return (
     <NGOLayout title="Créer une campagne">
-      <CampagneCreate initialOrganisationId={organisationId as any} onCancel={onCancel} onSuccess={onSuccess} />
+      {pageContent}
     </NGOLayout>
   );
 };

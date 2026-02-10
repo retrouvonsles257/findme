@@ -16,7 +16,13 @@ import styles from './PersonsPage.module.css';
 
 const PAGE_SIZE = 20;
 
-export const OperatorPersonsPage: React.FC = () => {
+export interface OperatorPersonsPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /operator */
+  basePath?: string;
+}
+
+export const OperatorPersonsPage: React.FC<OperatorPersonsPageProps> = ({ noLayout = false, basePath = '/operator' }) => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectCurrentUser);
 
@@ -60,9 +66,8 @@ export const OperatorPersonsPage: React.FC = () => {
     return () => window.clearTimeout(handle);
   }, [search, page]);
 
-  return (
-    <OperatorLayout title="Personnes">
-      <div className={styles.operatorPersons}>
+  const content = (
+    <div className={styles.operatorPersons}>
         <div className={styles.operatorPersons__toolbar}>
           <div className={styles.operatorPersons__search}>
             <input
@@ -76,12 +81,14 @@ export const OperatorPersonsPage: React.FC = () => {
             />
           </div>
 
-          <button
-            className={styles.operatorPersons__primaryBtn}
-            onClick={() => navigate('/operator/create-person')}
-          >
-            Créer une personne
-          </button>
+          {basePath === '/operator' && (
+            <button
+              className={styles.operatorPersons__primaryBtn}
+              onClick={() => navigate(`${basePath}/create-person`)}
+            >
+              Créer une personne
+            </button>
+          )}
         </div>
 
         {error && <div className={styles.operatorPersons__state}>{error}</div>}
@@ -99,7 +106,7 @@ export const OperatorPersonsPage: React.FC = () => {
                   <div
                     key={(p as any).id}
                     className={styles.operatorPersons__card}
-                    onClick={() => navigate(`/operator/personnes/${(p as any).id}`)}
+                    onClick={() => navigate(`${basePath}/personnes/${(p as any).id}`)}
                     role="button"
                     tabIndex={0}
                   >
@@ -135,9 +142,11 @@ export const OperatorPersonsPage: React.FC = () => {
             </div>
           </>
         )}
-      </div>
-    </OperatorLayout>
+    </div>
   );
+
+  if (noLayout) return content;
+  return <OperatorLayout title="Personnes">{content}</OperatorLayout>;
 };
 
 export default OperatorPersonsPage;

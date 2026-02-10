@@ -5,27 +5,127 @@
  * =====================================================
  */
 
-import { supabase } from '../../../config';
+import { supabase, envConfig } from '../../../config';
 
 const db = (table: string) => (supabase as any).from(table);
 
 /**
- * Inviter un utilisateur par email (Edge Function admin-invite-user).
- * Envoie un lien d'invitation Supabase Auth et associe organisation + rôle dans user_metadata.
+ * Inviter un utilisateur par email (Edge Function).
+ * Nom par défaut: admin-invite-user. Si sur Supabase la fonction a un autre nom (ex. hyper-responder),
+ * définir REACT_APP_SUPABASE_FUNCTION_INVITE dans .env (ex. hyper-responder).
  */
+const ADMIN_INVITE_FUNCTION_NAME = (typeof process !== 'undefined' && process.env?.REACT_APP_SUPABASE_FUNCTION_INVITE)
+  ? String(process.env.REACT_APP_SUPABASE_FUNCTION_INVITE).trim()
+  : 'admin-invite-user';
+
 export async function inviteUserByEmail(
   organisationId: string,
   email: string,
   role: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { data, error } = await (supabase as any).functions.invoke('admin-invite-user', {
-    body: { email, role, organisationId },
-  });
-  if (error) {
-    return { success: false, error: error.message || 'Invitation failed' };
+  const { data: { session }, error: sessionError } = await (supabase as any).auth.getSession();
+  let token = session?.access_token;
+  if (!token) {
+    const { data: { session: refreshed } } = await (supabase as any).auth.refreshSession();
+    token = refreshed?.access_token;
+  }
+  if (!token) {
+    return { success: false, error: sessionError?.message || 'Session expirée. Veuillez vous reconnecter.' };
+  }
+
+  const url = `${envConfig.REACT_APP_SUPABASE_URL}/functions/v1/${ADMIN_INVITE_FUNCTION_NAME}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+  if (envConfig.REACT_APP_SUPABASE_ANON_KEY) {
+    headers['apikey'] = envConfig.REACT_APP_SUPABASE_ANON_KEY;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ email, role, organisationId }) });
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Réseau indisponible. Vérifiez votre connexion.' };
+  }
+
+  let data: { success?: boolean; error?: string; message?: string; detail?: string } = {};
+  let rawText = '';
+  try {
+    rawText = await res.text();
+    if (rawText) data = JSON.parse(rawText) as typeof data;
+  } catch {
+    // réponse non JSON
+  }
+
+  const errMsg = data?.error || data?.message || (rawText && rawText.length < 200 ? rawText : null) || res.statusText;
+  const withDetail = (data?.detail ? `${errMsg || ''} — ${data.detail}` : errMsg) || 'Invitation impossible';
+  if (!res.ok) {
+    return { success: false, error: withDetail };
   }
   if (data?.error) {
-    return { success: false, error: data.error };
+    return { success: false, error: data.detail ? `${data.error} — ${data.detail}` : data.error };
+  }
+  return { success: true };
+}
+
+/**
+ * Nom de l'Edge Function pour la création manuelle (déployer avec ce nom ou adapter ici).
+ */
+const ADMIN_CREATE_USER_FUNCTION_NAME = 'admin-create-user';
+
+/**
+ * Créer un utilisateur manuellement avec mot de passe temporaire (Edge Function).
+ * Fallback quand l'invitation par email ne convient pas.
+ */
+export async function createUserManually(
+  organisationId: string,
+  email: string,
+  role: string,
+  password: string
+): Promise<{ success: boolean; error?: string }> {
+  const { data: { session }, error: sessionError } = await (supabase as any).auth.getSession();
+  let token = session?.access_token;
+  if (!token) {
+    const { data: { session: refreshed } } = await (supabase as any).auth.refreshSession();
+    token = refreshed?.access_token;
+  }
+  if (!token) {
+    return { success: false, error: sessionError?.message || 'Session expirée. Veuillez vous reconnecter.' };
+  }
+
+  const url = `${envConfig.REACT_APP_SUPABASE_URL}/functions/v1/${ADMIN_CREATE_USER_FUNCTION_NAME}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+  if (envConfig.REACT_APP_SUPABASE_ANON_KEY) {
+    headers['apikey'] = envConfig.REACT_APP_SUPABASE_ANON_KEY;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ email, role, organisationId, password }) });
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Réseau indisponible. Vérifiez votre connexion.' };
+  }
+
+  let data: { success?: boolean; error?: string; message?: string; detail?: string } = {};
+  let rawText = '';
+  try {
+    rawText = await res.text();
+    if (rawText) data = JSON.parse(rawText) as typeof data;
+  } catch {
+    // réponse non JSON
+  }
+
+  const errMsg = data?.error || data?.message || (rawText && rawText.length < 200 ? rawText : null) || res.statusText;
+  const withDetail = (data?.detail ? `${errMsg || ''} — ${data.detail}` : errMsg) || 'Création impossible';
+  if (!res.ok) {
+    return { success: false, error: withDetail };
+  }
+  if (data?.error) {
+    return { success: false, error: data.detail ? `${data.error} — ${data.detail}` : data.error };
   }
   return { success: true };
 }
@@ -547,16 +647,494 @@ export async function getAdminOrganisationSignalements(
 }
 
 /**
- * Rôles (table role) - pour Admin Org on affiche les rôles 2-5
+ * Rôles (table role) - tous les rôles (comme super-admin).
+ * On affiche tout le référentiel ; la page admin peut masquer citoyen/super_admin côté UI si besoin.
  */
 export async function getAdminRoles(): Promise<AdminRoleRow[]> {
   const { data, error } = await db('role')
     .select('id, nom_role, niveau_accreditation, description, permissions')
-    .gte('niveau_accreditation', 2)
-    .lte('niveau_accreditation', 5)
     .order('niveau_accreditation', { ascending: false });
   if (error) throw error;
   return data || [];
+}
+
+/** Rôle avec nombre d'utilisateurs (de l'organisation) */
+export interface AdminRoleWithCountRow extends AdminRoleRow {
+  nombre_utilisateurs: number;
+}
+
+/**
+ * Rôles avec nombre d'utilisateurs ayant ce rôle dans l'organisation (référentiel + stats).
+ */
+export async function getAdminRolesWithCounts(
+  organisationId: string
+): Promise<AdminRoleWithCountRow[]> {
+  const roles = await getAdminRoles();
+  const { data: orgUsers, error: usersError } = await db('utilisateur')
+    .select('id')
+    .eq('id_organisation', organisationId);
+  if (usersError) throw usersError;
+  const orgUserIds = (orgUsers || []).map((u: { id: string }) => u.id);
+
+  if (orgUserIds.length === 0) {
+    return roles.map((r) => ({ ...r, nombre_utilisateurs: 0 }));
+  }
+
+  const withCounts: AdminRoleWithCountRow[] = [];
+  for (const role of roles) {
+    const { count, error: countError } = await db('utilisateur_role')
+      .select('id', { count: 'exact', head: true })
+      .eq('id_role', role.id)
+      .in('id_utilisateur', orgUserIds);
+    if (countError) throw countError;
+    withCounts.push({ ...role, nombre_utilisateurs: count ?? 0 });
+  }
+  return withCounts;
+}
+
+/** Ligne ressource organisation (ressource_organisation) */
+export interface RessourceOrganisationRow {
+  id: string;
+  id_organisation: string;
+  titre: string;
+  type: 'document' | 'tool' | 'guide' | 'training';
+  description: string | null;
+  url: string | null;
+  ordre: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Liste des ressources de l'organisation
+ */
+export async function getRessourcesOrganisation(
+  organisationId: string
+): Promise<RessourceOrganisationRow[]> {
+  const { data, error } = await db('ressource_organisation')
+    .select('id, id_organisation, titre, type, description, url, ordre, created_at, updated_at')
+    .eq('id_organisation', organisationId)
+    .order('ordre', { ascending: true })
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Créer une ressource
+ */
+export async function createRessourceOrganisation(
+  organisationId: string,
+  payload: { titre: string; type: RessourceOrganisationRow['type']; description?: string | null; url?: string | null; ordre?: number | null }
+): Promise<RessourceOrganisationRow> {
+  const { data, error } = await db('ressource_organisation')
+    .insert({
+      id_organisation: organisationId,
+      titre: payload.titre,
+      type: payload.type,
+      description: payload.description ?? null,
+      url: payload.url ?? null,
+      ordre: payload.ordre ?? 0,
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Mettre à jour une ressource
+ */
+export async function updateRessourceOrganisation(
+  organisationId: string,
+  id: string,
+  payload: Partial<Pick<RessourceOrganisationRow, 'titre' | 'type' | 'description' | 'url' | 'ordre'>>
+): Promise<RessourceOrganisationRow> {
+  const { data, error } = await db('ressource_organisation')
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('id_organisation', organisationId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Supprimer une ressource
+ */
+export async function deleteRessourceOrganisation(
+  organisationId: string,
+  id: string
+): Promise<void> {
+  const { error } = await db('ressource_organisation')
+    .delete()
+    .eq('id', id)
+    .eq('id_organisation', organisationId);
+  if (error) throw error;
+}
+
+/** Ligne étape de workflow par organisation (workflow_etape_organisation) */
+export interface WorkflowEtapeOrganisationRow {
+  id: string;
+  id_organisation: string;
+  code: string;
+  libelle: string;
+  ordre: number;
+  actif: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Liste des étapes de workflow de l'organisation (ordre croissant)
+ */
+export async function getWorkflowEtapesOrganisation(
+  organisationId: string
+): Promise<WorkflowEtapeOrganisationRow[]> {
+  const { data, error } = await db('workflow_etape_organisation')
+    .select('id, id_organisation, code, libelle, ordre, actif, created_at, updated_at')
+    .eq('id_organisation', organisationId)
+    .order('ordre', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Créer une étape de workflow
+ */
+export async function createWorkflowEtapeOrganisation(
+  organisationId: string,
+  payload: { code: string; libelle: string; ordre?: number; actif?: boolean }
+): Promise<WorkflowEtapeOrganisationRow> {
+  const { data, error } = await db('workflow_etape_organisation')
+    .insert({
+      id_organisation: organisationId,
+      code: payload.code.trim(),
+      libelle: payload.libelle.trim(),
+      ordre: payload.ordre ?? 0,
+      actif: payload.actif ?? true,
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Mettre à jour une étape de workflow
+ */
+export async function updateWorkflowEtapeOrganisation(
+  organisationId: string,
+  id: string,
+  payload: Partial<Pick<WorkflowEtapeOrganisationRow, 'code' | 'libelle' | 'ordre' | 'actif'>>
+): Promise<WorkflowEtapeOrganisationRow> {
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (payload.code !== undefined) update.code = payload.code.trim();
+  if (payload.libelle !== undefined) update.libelle = payload.libelle.trim();
+  if (payload.ordre !== undefined) update.ordre = payload.ordre;
+  if (payload.actif !== undefined) update.actif = payload.actif;
+  const { data, error } = await db('workflow_etape_organisation')
+    .update(update)
+    .eq('id', id)
+    .eq('id_organisation', organisationId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Supprimer une étape de workflow
+ */
+export async function deleteWorkflowEtapeOrganisation(
+  organisationId: string,
+  id: string
+): Promise<void> {
+  const { error } = await db('workflow_etape_organisation')
+    .delete()
+    .eq('id', id)
+    .eq('id_organisation', organisationId);
+  if (error) throw error;
+}
+
+/** Ligne partenariat organisation (partenariat_organisation) */
+export interface PartenariatOrganisationRow {
+  id: string;
+  id_organisation: string;
+  nom_partenaire: string;
+  personne_contact: string | null;
+  email: string | null;
+  telephone: string | null;
+  statut: 'active' | 'inactive' | 'pending';
+  date_partnership: string | null;
+  commentaire: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Liste des partenariats de l'organisation
+ */
+export async function getPartenariatsOrganisation(
+  organisationId: string
+): Promise<PartenariatOrganisationRow[]> {
+  const { data, error } = await db('partenariat_organisation')
+    .select('id, id_organisation, nom_partenaire, personne_contact, email, telephone, statut, date_partnership, commentaire, created_at, updated_at')
+    .eq('id_organisation', organisationId)
+    .order('nom_partenaire', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Créer un partenariat
+ */
+export async function createPartenariatOrganisation(
+  organisationId: string,
+  payload: {
+    nom_partenaire: string;
+    personne_contact?: string | null;
+    email?: string | null;
+    telephone?: string | null;
+    statut?: PartenariatOrganisationRow['statut'];
+    date_partnership?: string | null;
+    commentaire?: string | null;
+  }
+): Promise<PartenariatOrganisationRow> {
+  const { data, error } = await db('partenariat_organisation')
+    .insert({
+      id_organisation: organisationId,
+      nom_partenaire: payload.nom_partenaire,
+      personne_contact: payload.personne_contact ?? null,
+      email: payload.email ?? null,
+      telephone: payload.telephone ?? null,
+      statut: payload.statut ?? 'pending',
+      date_partnership: payload.date_partnership ?? null,
+      commentaire: payload.commentaire ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Mettre à jour un partenariat
+ */
+export async function updatePartenariatOrganisation(
+  organisationId: string,
+  id: string,
+  payload: Partial<Pick<PartenariatOrganisationRow, 'nom_partenaire' | 'personne_contact' | 'email' | 'telephone' | 'statut' | 'date_partnership' | 'commentaire'>>
+): Promise<PartenariatOrganisationRow> {
+  const { data, error } = await db('partenariat_organisation')
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('id_organisation', organisationId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Supprimer un partenariat
+ */
+export async function deletePartenariatOrganisation(
+  organisationId: string,
+  id: string
+): Promise<void> {
+  const { error } = await db('partenariat_organisation')
+    .delete()
+    .eq('id', id)
+    .eq('id_organisation', organisationId);
+  if (error) throw error;
+}
+
+/** Statuts demande vérification identité */
+export type StatutDemandeVerification = 'en_attente' | 'approuve' | 'refuse' | 'complement_demande';
+
+/** Ligne demande_verification_identite avec infos utilisateur (pour affichage) */
+export interface DemandeVerificationIdentiteRow {
+  id: string;
+  id_utilisateur: string;
+  id_organisation: string | null;
+  statut: StatutDemandeVerification;
+  type_document: string;
+  url_document: string | null;
+  url_selfie: string | null;
+  commentaire_moderateur: string | null;
+  traite_par: string | null;
+  traite_le: string | null;
+  created_at: string;
+  updated_at: string;
+  utilisateur?: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone?: string | null;
+    date_naissance?: string | null;
+    ville?: string | null;
+    region?: string | null;
+    pays?: string | null;
+    created_at: string;
+    score_fiabilite?: number | null;
+    nombre_signalements_valides?: number | null;
+  } | null;
+}
+
+export interface DemandesVerificationFilters {
+  statut?: StatutDemandeVerification | 'all';
+  typeDocument?: 'cni' | 'passeport' | 'autre' | 'all';
+  dateRange?: 'all' | '7days' | '30days';
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Liste des demandes de vérification d'identité.
+ * organisationId = null : demandes globales (id_organisation IS NULL).
+ * organisationId = string : demandes de cette org ou globales selon RLS.
+ */
+export async function getDemandesVerificationIdentite(
+  organisationId: string | null,
+  filters: DemandesVerificationFilters = {}
+): Promise<{ data: DemandeVerificationIdentiteRow[]; count: number }> {
+  const page = filters.page ?? 1;
+  const pageSize = Math.min(filters.pageSize ?? 12, 100);
+  const start = (page - 1) * pageSize;
+
+  let query = db('demande_verification_identite')
+    .select('*, utilisateur:id_utilisateur(nom, prenom, email, telephone, date_naissance, ville, region, pays, created_at, score_fiabilite, nombre_signalements_valides)', { count: 'exact' })
+    .order('created_at', { ascending: false });
+
+  if (organisationId !== null) {
+    query = query.or(`id_organisation.eq.${organisationId},id_organisation.is.null`);
+  } else {
+    query = query.is('id_organisation', null);
+  }
+
+  if (filters.statut && filters.statut !== 'all') {
+    query = query.eq('statut', filters.statut);
+  }
+
+  if (filters.typeDocument && filters.typeDocument !== 'all') {
+    query = query.eq('type_document', filters.typeDocument);
+  }
+
+  if (filters.dateRange && filters.dateRange !== 'all') {
+    const now = new Date();
+    const days = filters.dateRange === '7days' ? 7 : 30;
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - days);
+    query = query.gte('created_at', cutoff.toISOString());
+  }
+
+  if (filters.search && filters.search.trim()) {
+    const term = `%${filters.search.trim()}%`;
+    query = query.or(`commentaire_moderateur.ilike.${term}`);
+    // Filtre par nom/email utilisateur via une requête séparée si besoin ; ici on garde simple
+  }
+
+  const { data, error, count } = await query.range(start, start + pageSize - 1);
+
+  if (error) throw error;
+  return { data: (data || []) as DemandeVerificationIdentiteRow[], count: count ?? 0 };
+}
+
+/**
+ * Récupérer une demande par id (avec infos utilisateur).
+ */
+export async function getDemandeVerificationIdentiteById(
+  id: string
+): Promise<DemandeVerificationIdentiteRow | null> {
+  const { data, error } = await db('demande_verification_identite')
+    .select('*, utilisateur:id_utilisateur(nom, prenom, email, telephone, date_naissance, ville, region, pays, created_at, score_fiabilite, nombre_signalements_valides)')
+    .eq('id', id)
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data as DemandeVerificationIdentiteRow | null;
+}
+
+/**
+ * Traiter une demande (approuver, refuser, demander complément).
+ * Lors d'un approuve : met à jour utilisateur.statut_compte = 'actif' et attribue le rôle citoyen_verifie si possible.
+ */
+export async function traiterDemandeVerificationIdentite(
+  demandeId: string,
+  action: StatutDemandeVerification,
+  commentaire: string | null,
+  traiteParUserId: string
+): Promise<void> {
+  const traiteLe = new Date().toISOString();
+
+  const { error: updateError } = await db('demande_verification_identite')
+    .update({
+      statut: action,
+      commentaire_moderateur: commentaire,
+      traite_par: traiteParUserId,
+      traite_le: traiteLe,
+      updated_at: traiteLe,
+    })
+    .eq('id', demandeId);
+
+  if (updateError) throw updateError;
+
+  if (action === 'approuve') {
+    const { data: demande } = await db('demande_verification_identite')
+      .select('id_utilisateur')
+      .eq('id', demandeId)
+      .single();
+    if (demande?.id_utilisateur) {
+      await db('utilisateur')
+        .update({ statut_compte: 'actif', updated_at: traiteLe })
+        .eq('id', demande.id_utilisateur);
+
+      const { data: roleData } = await db('role')
+        .select('id')
+        .eq('nom_role', 'citoyen_verifie')
+        .single();
+      if (roleData) {
+        await (db('utilisateur_role') as any).upsert({
+          id_utilisateur: demande.id_utilisateur,
+          id_role: roleData.id,
+          date_attribution: traiteLe,
+          attribue_par: traiteParUserId,
+          commentaire: commentaire || 'Identité vérifiée',
+        }, { onConflict: 'id_utilisateur,id_role' });
+      }
+    }
+  }
+}
+
+/**
+ * Stats des demandes (nombre par statut) pour une org ou global.
+ */
+export async function getDemandesVerificationIdentiteStats(
+  organisationId: string | null
+): Promise<{ total: number; enAttente: number; approuves: number; refuse: number; complement_demande: number }> {
+  let query = db('demande_verification_identite').select('statut');
+  if (organisationId !== null) {
+    query = query.or(`id_organisation.eq.${organisationId},id_organisation.is.null`);
+  } else {
+    query = query.is('id_organisation', null);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const rows = (data || []) as { statut: string }[];
+  const total = rows.length;
+  const enAttente = rows.filter((r) => r.statut === 'en_attente').length;
+  const approuves = rows.filter((r) => r.statut === 'approuve').length;
+  const refuse = rows.filter((r) => r.statut === 'refuse').length;
+  const complement_demande = rows.filter((r) => r.statut === 'complement_demande').length;
+
+  return { total, enAttente, approuves, refuse, complement_demande };
 }
 
 /**

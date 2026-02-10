@@ -50,7 +50,11 @@ interface SignalementEnAttente {
   numero_dossier?: string;
 }
 
-export const SignalementsEnAttentePage: React.FC = () => {
+export interface SignalementsEnAttentePageProps {
+  noLayout?: boolean;
+}
+
+export const SignalementsEnAttentePage: React.FC<SignalementsEnAttentePageProps> = ({ noLayout = false }) => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectCurrentUser);
   
@@ -127,9 +131,8 @@ export const SignalementsEnAttentePage: React.FC = () => {
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  return (
-    <OperatorLayout title="Signalements en attente">
-      <div className={styles.signalementsEnAttente}>
+  const content = (
+    <div className={styles.signalementsEnAttente}>
         {/* Info Banner */}
         <div className={styles.signalementsEnAttente__infoBanner}>
           <Info className={styles.signalementsEnAttente__infoBannerIcon} />
@@ -484,7 +487,13 @@ export const SignalementsEnAttentePage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+    </div>
+  );
+
+  if (noLayout) return content;
+  return (
+    <OperatorLayout title="Signalements en attente">
+      {content}
     </OperatorLayout>
   );
 };

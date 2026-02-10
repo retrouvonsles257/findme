@@ -256,6 +256,7 @@ const userSlice = createSlice({
     clearUsers: (state) => {
       state.users = [];
       state.selectedUser = null;
+      state.currentUser = null;
     },
   },
   extraReducers: (builder) => {

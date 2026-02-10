@@ -15,7 +15,13 @@ interface CaseRow {
   date_disparition: string;
 }
 
-export const NGOCasesPage: React.FC = () => {
+export interface NGOCasesPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /ngo. Admin uses segment "cas", NGO "cases". */
+  basePath?: string;
+}
+
+export const NGOCasesPage: React.FC<NGOCasesPageProps> = ({ noLayout, basePath = '/ngo' }) => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [cases, setCases] = useState<CaseRow[]>([]);
@@ -111,19 +117,19 @@ export const NGOCasesPage: React.FC = () => {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedCases = cases.slice(startIdx, startIdx + itemsPerPage);
 
+  const loadingContent = (
+    <div className={styles['ngo-cases__loading-container']}>
+      <div className={styles['ngo-cases__spinner']}></div>
+      <p>{t('common.loading')}</p>
+    </div>
+  );
   if (loading) {
-    return (
-      <NGOLayout title={t('ngo.casesTitle')}>
-        <div className={styles['ngo-cases__loading-container']}>
-          <div className={styles['ngo-cases__spinner']}></div>
-          <p>{t('common.loading')}</p>
-        </div>
-      </NGOLayout>
-    );
+    if (noLayout) return loadingContent;
+    return <NGOLayout title={t('ngo.casesTitle')}>{loadingContent}</NGOLayout>;
   }
 
-  return (
-    <NGOLayout title={t('ngo.casesTitle')}>
+  const content = (
+    <div>
       <p className={styles['ngo-cases__subtitle']}>{t('ngo.casesSubtitle')}</p>
 
       {error && (
@@ -135,7 +141,7 @@ export const NGOCasesPage: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button
           type="button"
-          onClick={() => navigate('/ngo/cases/create')}
+          onClick={() => navigate(basePath === '/admin' ? `${basePath}/cas/create` : `${basePath}/cases/create`)}
           style={{
             padding: '10px 12px',
             borderRadius: 10,
@@ -236,6 +242,8 @@ export const NGOCasesPage: React.FC = () => {
             </button>
           </div>
         )}
-    </NGOLayout>
+    </div>
   );
+  if (noLayout) return content;
+  return <NGOLayout title={t('ngo.casesTitle')}>{content}</NGOLayout>;
 };

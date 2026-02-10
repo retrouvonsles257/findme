@@ -16,7 +16,21 @@ import type { Personne } from '../../features/personnes/types';
 import type { DossierDisparition } from '../../@types/database.types';
 import styles from './PersonDetailPage.module.css';
 
-export const OperatorPersonDetailPage: React.FC = () => {
+/** Format a date value for display; avoids rendering a Date object as React child. */
+function safeFormatDate(value: unknown): string {
+  if (value == null) return '—';
+  if (value instanceof Date) return value.toLocaleDateString('fr-FR');
+  if (typeof value === 'string') return value;
+  return String(value);
+}
+
+export interface OperatorPersonDetailPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /operator */
+  basePath?: string;
+}
+
+export const OperatorPersonDetailPage: React.FC<OperatorPersonDetailPageProps> = ({ noLayout = false, basePath = '/operator' }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const currentUser = useAppSelector(selectCurrentUser);
@@ -68,9 +82,8 @@ export const OperatorPersonDetailPage: React.FC = () => {
     `${(personne as any)?.prenom || ''} ${(personne as any)?.nom || ''}`.trim() ||
     'Personne';
 
-  return (
-    <OperatorLayout title={title}>
-      <div className={styles.operatorPersonDetail}>
+  const content = (
+    <div className={styles.operatorPersonDetail}>
         {error && <div className={styles.operatorPersonDetail__state}>{error}</div>}
         {isLoading && <div className={styles.operatorPersonDetail__state}>Chargement…</div>}
 
@@ -89,13 +102,13 @@ export const OperatorPersonDetailPage: React.FC = () => {
                 <div className={styles.operatorPersonDetail__btnRow}>
                   <button
                     className={`${styles.operatorPersonDetail__btn} ${styles.operatorPersonDetail__btnPrimary}`}
-                    onClick={() => navigate(`/operator/create-dossier?personneId=${(personne as any).id}`)}
+                    onClick={() => navigate(basePath === '/admin' ? `${basePath}/cas/create?personneId=${(personne as any).id}` : `${basePath}/create-dossier?personneId=${(personne as any).id}`)}
                   >
                     Créer un dossier avec cette personne
                   </button>
                   <button
                     className={styles.operatorPersonDetail__btn}
-                    onClick={() => navigate('/operator/personnes')}
+                    onClick={() => navigate(`${basePath}/personnes`)}
                   >
                     Retour liste
                   </button>
@@ -104,27 +117,133 @@ export const OperatorPersonDetailPage: React.FC = () => {
             </div>
 
             <div className={styles.operatorPersonDetail__card}>
-              <h3 className={styles.operatorPersonDetail__sectionTitle}>Informations</h3>
+              <h3 className={styles.operatorPersonDetail__sectionTitle}>Identité</h3>
               <div className={styles.operatorPersonDetail__grid}>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Nom</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nom ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Prénom</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).prenom ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Nom complet</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nom_complet ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Alias</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).alias ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Sexe</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).sexe ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Date de naissance</p>
+                  <p className={styles.operatorPersonDetail__v}>{safeFormatDate((personne as any).date_naissance)}</p>
+                </div>
                 <div className={styles.operatorPersonDetail__kv}>
                   <p className={styles.operatorPersonDetail__k}>Âge estimé</p>
                   <p className={styles.operatorPersonDetail__v}>
-                    {(personne as any).age_estime_min || '—'}
-                    {(personne as any).age_estime_max ? ` - ${(personne as any).age_estime_max}` : ''}
+                    {(personne as any).age_estime_min != null ? (personne as any).age_estime_min : '—'}
+                    {(personne as any).age_estime_max != null ? ` - ${(personne as any).age_estime_max}` : ''}
                   </p>
                 </div>
                 <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Statut identité</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).statut_identite || '—'}</p>
+                  <p className={styles.operatorPersonDetail__k}>Nationalité</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nationalite ?? '—'}</p>
                 </div>
                 <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Fiabilité</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).fiabilite_informations || '—'}</p>
+                  <p className={styles.operatorPersonDetail__k}>Autres nationalités</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).autres_nationalites ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Langue(s) parlée(s)</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).langue_parlee ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>N° identification</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).numero_identification ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Type identification</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).type_identification ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Statut identité</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).statut_identite ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Fiabilité des informations</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).fiabilite_informations ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Situation familiale</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).situation_familiale ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Nombre d'enfants</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nombre_enfants != null ? (personne as any).nombre_enfants : '—'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.operatorPersonDetail__card}>
+              <h3 className={styles.operatorPersonDetail__sectionTitle}>Description physique</h3>
+              <div className={styles.operatorPersonDetail__grid}>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Taille (cm)</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).taille_cm != null ? (personne as any).taille_cm : '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Poids (kg)</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).poids_kg != null ? (personne as any).poids_kg : '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Corpulence</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).corpulence ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Couleur de peau</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).couleur_peau ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Couleur des cheveux</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).couleur_cheveux ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Type de cheveux</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).type_cheveux ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Couleur des yeux</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).couleur_yeux ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Signes distinctifs</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).signes_distinctifs ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Handicaps / maladies</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).handicaps_maladies ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Groupe sanguin</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).groupe_sanguin ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Derniers vêtements portés</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).derniers_vetements_portes ?? '—'}</p>
+                </div>
+                <div className={styles.operatorPersonDetail__kv}>
+                  <p className={styles.operatorPersonDetail__k}>Accessoires</p>
+                  <p className={styles.operatorPersonDetail__v}>{(personne as any).accessoires ?? '—'}</p>
                 </div>
               </div>
               {(personne as any).description_physique && (
                 <div style={{ marginTop: '0.75rem' }}>
-                  <p className={styles.operatorPersonDetail__k}>Description</p>
+                  <p className={styles.operatorPersonDetail__k}>Description physique (texte)</p>
                   <p className={styles.operatorPersonDetail__v}>{(personne as any).description_physique}</p>
                 </div>
               )}
@@ -140,7 +259,7 @@ export const OperatorPersonDetailPage: React.FC = () => {
                     <div
                       key={d.id}
                       className={styles.operatorPersonDetail__listItem}
-                      onClick={() => navigate(`/operator/dossiers/${d.id}`)}
+                      onClick={() => navigate(`${basePath}/dossiers/${d.id}`)}
                       role="button"
                       tabIndex={0}
                     >
@@ -156,8 +275,10 @@ export const OperatorPersonDetailPage: React.FC = () => {
           </>
         )}
       </div>
-    </OperatorLayout>
   );
+
+  if (noLayout) return content;
+  return <OperatorLayout title={title}>{content}</OperatorLayout>;
 };
 
 export default OperatorPersonDetailPage;

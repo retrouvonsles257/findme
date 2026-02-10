@@ -14,7 +14,7 @@ import type { AuthStoreState } from '../types';
 const initialState: AuthStoreState = {
   user: null,
   session: null,
-  isLoading: false,
+  isLoading: true, // true au démarrage jusqu'à la fin de restoreSession (évite redirection flash)
   isAuthenticating: false,
   isLogout: false,
   isPasswordResetting: false,
@@ -476,6 +476,12 @@ export const authReducer = (
         twoFactorPending: false,
       };
 
+    case 'auth/restoreSession/pending':
+      return {
+        ...state,
+        isLoading: true,
+      };
+
     case 'auth/restoreSession/fulfilled':
       if (action.payload) {
         return {
@@ -491,6 +497,14 @@ export const authReducer = (
           error: null,
         };
       }
+      return {
+        ...state,
+        isLoading: false,
+        user: null,
+        session: null,
+      };
+
+    case 'auth/restoreSession/rejected':
       return {
         ...state,
         isLoading: false,

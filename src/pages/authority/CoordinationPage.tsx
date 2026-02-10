@@ -23,7 +23,11 @@ import styles from './CoordinationPage.module.css';
 
 type CoordinationTab = 'messages' | 'ressources' | 'partages' | 'historique';
 
-export const CoordinationPage: React.FC = () => {
+export interface CoordinationPageProps {
+  noLayout?: boolean;
+}
+
+export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = false }) => {
   const navigate = useNavigate();
   const { addNotification } = useNotification();
   const { user } = useAuth();
@@ -163,9 +167,8 @@ export const CoordinationPage: React.FC = () => {
     }
   };
 
-  return (
-    <AuthorityLayout>
-      <div className={styles.container}>
+  const content = (
+    <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
           <h1>Coordination Inter-Agences</h1>
@@ -611,9 +614,11 @@ export const CoordinationPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </AuthorityLayout>
+    </div>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default CoordinationPage;

@@ -5,11 +5,12 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
-import { useAppSelector } from '../../store/types';
+import { useAppSelector, useAppDispatch } from '../../store/types';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { logoutThunk } from '../../features/auth/store/authThunks';
 import { supabase } from '../../config';
 import {
   LayoutDashboard,
@@ -31,6 +32,17 @@ import {
   X,
   Globe,
   GitBranch,
+  FileSearch,
+  Brain,
+  UsersRound,
+  MapPin,
+  Image,
+  UserCheck,
+  UserCircle,
+  Camera,
+  ClipboardList,
+  BookOpen,
+  Handshake,
 } from 'lucide-react';
 import styles from './AdminOrganisationLayout.module.css';
 
@@ -38,6 +50,20 @@ type ActiveNavType =
   | 'dashboard'
   | 'dossiers'
   | 'rapports'
+  | 'alertes'
+  | 'signalements'
+  | 'ia'
+  | 'coordination'
+  | 'carte'
+  | 'photos-moderation'
+  | 'verification-identite'
+  | 'personnes'
+  | 'photos-en-attente'
+  | 'signalements-en-attente'
+  | 'campagnes'
+  | 'cas'
+  | 'ressources'
+  | 'partenariats'
   | 'utilisateurs'
   | 'statistiques'
   | 'roles'
@@ -48,23 +74,64 @@ type ActiveNavType =
   | 'api-keys';
 
 /** Structure de navigation stable (icônes hors rendu) pour éviter la disparition d’icône au changement de langue */
-const ADMIN_NAV_CONFIG: {
+interface AdminNavItem {
   id: ActiveNavType;
   labelKey: string;
   path: string;
   icon: typeof LayoutDashboard;
-}[] = [
-  { id: 'dashboard', labelKey: 'common.dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-  { id: 'dossiers', labelKey: 'admin.dossiers', path: '/admin/dossiers', icon: Folder },
-  { id: 'rapports', labelKey: 'admin.rapports', path: '/admin/rapports', icon: FileText },
-  { id: 'utilisateurs', labelKey: 'admin.utilisateurs', path: '/admin/utilisateurs', icon: Users },
-  { id: 'statistiques', labelKey: 'admin.statistiques', path: '/admin/statistiques', icon: BarChart3 },
-  { id: 'roles', labelKey: 'admin.rolesManagement', path: '/admin/roles', icon: Shield },
-  { id: 'audit-logs', labelKey: 'admin.auditLogs', path: '/admin/audit-logs', icon: ScrollText },
-  { id: 'parametres', labelKey: 'admin.parametres', path: '/admin/parametres', icon: Settings },
-  { id: 'workflows', labelKey: 'admin.workflows', path: '/admin/workflows', icon: GitBranch },
-  { id: 'api-keys', labelKey: 'admin.apiKeys', path: '/admin/api-keys', icon: Key },
-  { id: 'profile', labelKey: 'admin.profile', path: '/admin/profile', icon: User },
+}
+
+interface AdminNavGroup {
+  groupKey: 'operational' | 'organisation' | 'followUp';
+  labelKey: string;
+  items: AdminNavItem[];
+}
+
+/** Navigation structurée par groupes : Opérationnel, Organisation, Suivi */
+const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
+  {
+    groupKey: 'operational',
+    labelKey: 'admin.nav.operational',
+    items: [
+      { id: 'dashboard', labelKey: 'common.dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+      { id: 'dossiers', labelKey: 'admin.dossiers', path: '/admin/dossiers', icon: Folder },
+      { id: 'rapports', labelKey: 'admin.rapports', path: '/admin/rapports', icon: FileText },
+      { id: 'alertes', labelKey: 'admin.alertes', path: '/admin/alertes', icon: Bell },
+      { id: 'signalements', labelKey: 'admin.signalements', path: '/admin/signalements', icon: FileSearch },
+      { id: 'ia', labelKey: 'admin.ia', path: '/admin/ia', icon: Brain },
+      { id: 'coordination', labelKey: 'admin.coordination', path: '/admin/coordination', icon: UsersRound },
+      { id: 'carte', labelKey: 'admin.carte', path: '/admin/carte', icon: MapPin },
+      { id: 'photos-moderation', labelKey: 'admin.photosModeration', path: '/admin/photos-moderation', icon: Image },
+      { id: 'verification-identite', labelKey: 'admin.verificationIdentite', path: '/admin/verification-identite', icon: UserCheck },
+      { id: 'personnes', labelKey: 'admin.personnes', path: '/admin/personnes', icon: UserCircle },
+      { id: 'photos-en-attente', labelKey: 'admin.photosEnAttente', path: '/admin/photos-en-attente', icon: Camera },
+      { id: 'signalements-en-attente', labelKey: 'admin.signalementsEnAttente', path: '/admin/signalements-en-attente', icon: ClipboardList },
+      { id: 'campagnes', labelKey: 'admin.campagnes', path: '/admin/campagnes', icon: Globe },
+      { id: 'cas', labelKey: 'admin.cas', path: '/admin/cas', icon: FileSearch },
+      { id: 'ressources', labelKey: 'admin.ressources', path: '/admin/ressources', icon: BookOpen },
+      { id: 'partenariats', labelKey: 'admin.partenariats', path: '/admin/partenariats', icon: Handshake },
+    ],
+  },
+  {
+    groupKey: 'organisation',
+    labelKey: 'admin.nav.organisation',
+    items: [
+      { id: 'utilisateurs', labelKey: 'admin.utilisateurs', path: '/admin/utilisateurs', icon: Users },
+      { id: 'roles', labelKey: 'admin.rolesManagement', path: '/admin/roles', icon: Shield },
+      { id: 'parametres', labelKey: 'admin.parametres', path: '/admin/parametres', icon: Settings },
+      { id: 'workflows', labelKey: 'admin.workflows', path: '/admin/workflows', icon: GitBranch },
+      { id: 'api-keys', labelKey: 'admin.apiKeys', path: '/admin/api-keys', icon: Key },
+      { id: 'profile', labelKey: 'admin.profile', path: '/admin/profile', icon: User },
+    ],
+  },
+  {
+    groupKey: 'followUp',
+    labelKey: 'admin.nav.followUp',
+    items: [
+      { id: 'statistiques', labelKey: 'admin.statistiques', path: '/admin/statistiques', icon: BarChart3 },
+      { id: 'audit-logs', labelKey: 'admin.auditLogs', path: '/admin/audit-logs', icon: ScrollText },
+    ],
+  },
 ];
 
 interface AdminOrganisationLayoutProps {
@@ -80,6 +147,7 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
 
@@ -90,6 +158,9 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
   });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const SIDEBAR_SCROLL_KEY = 'adminOrgSidebarScrollTop';
+  const savedNavScrollRef = useRef(0);
   const [headerSearch, setHeaderSearch] = useState('');
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
 
@@ -126,12 +197,8 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const navItems = ADMIN_NAV_CONFIG.map((item) => ({
-    ...item,
-    label: t(item.labelKey),
-  }));
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await dispatch(logoutThunk());
     navigate('/auth/login');
   };
 
@@ -171,6 +238,23 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
     if (activeNav) return activeNav === itemId;
     return location.pathname.startsWith(itemPath);
   };
+
+  /* Garder la position de défilement du sidebar après navigation (sessionStorage + useLayoutEffect) */
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    const fromStorage = (() => {
+      try {
+        const v = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+        return v != null ? parseInt(v, 10) : savedNavScrollRef.current;
+      } catch {
+        return savedNavScrollRef.current;
+      }
+    })();
+    const saved = fromStorage > 0 ? fromStorage : savedNavScrollRef.current;
+    if (el && saved > 0) {
+      el.scrollTop = saved;
+    }
+  }, [location.pathname]);
 
   return (
     <div className={styles.layout}>
@@ -218,25 +302,55 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
           </button>
         </div>
 
-        <nav className={styles.nav}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.id, item.path);
-            return (
-              <button
-                key={item.id}
-                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
-                onClick={() => {
-                  navigate(item.path);
-                  setMobileOpen(false);
-                }}
-                title={isCollapsed ? item.label : undefined}
+        <nav ref={navRef} className={styles.nav} aria-label={t('common.menu')}>
+          {ADMIN_NAV_GROUPS.map((group) => (
+            <div key={group.groupKey} className={styles.navGroup}>
+              <div
+                className={styles.navGroupTitle}
+                id={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
+                aria-hidden={isCollapsed}
               >
-                <Icon size={20} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            );
-          })}
+                {t(group.labelKey)}
+              </div>
+              <ul
+                className={styles.navGroupList}
+                aria-labelledby={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
+              >
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.id, item.path);
+                  const label = t(item.labelKey);
+                  return (
+                    <li key={item.id} className={styles.navGroupListItem}>
+                      <button
+                        type="button"
+                        className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                        onClick={() => {
+                          if (navRef.current) {
+                            const top = navRef.current.scrollTop;
+                            savedNavScrollRef.current = top;
+                            try {
+                              sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(top));
+                            } catch {}
+                          }
+                          navigate(item.path);
+                          setMobileOpen(false);
+                        }}
+                        title={isCollapsed ? label : undefined}
+                        aria-current={active ? 'page' : undefined}
+                        aria-label={label}
+                      >
+                        <span className={styles.navItemIcon} aria-hidden>
+                          <Icon size={20} />
+                        </span>
+                        {!isCollapsed && <span>{label}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         <div className={styles.userSection} ref={userMenuRef}>

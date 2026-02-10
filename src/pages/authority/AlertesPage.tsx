@@ -44,7 +44,14 @@ import styles from './AlertesPage.module.css';
 
 type FilterType = 'all' | 'brouillon' | 'en_cours' | 'terminee' | 'annulee';
 
-export const AlertesPage: React.FC = () => {
+export interface AlertesPageProps {
+  /** When true, render only content (no AuthorityLayout). Used by admin org pages. */
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /authority */
+  basePath?: string;
+}
+
+export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, basePath = '/authority' }) => {
   const navigate = useNavigate();
   const { user: _ } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const currentUser = useAppSelector(selectCurrentUser);
@@ -155,9 +162,8 @@ export const AlertesPage: React.FC = () => {
     annulee: alertes.filter((a: any) => a.statut_alerte === 'annulee').length,
   };
 
-  return (
-    <AuthorityLayout>
-      <div className={styles.authorityAlertes}>
+  const content = (
+    <div className={styles.authorityAlertes}>
         {/* Page Header */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
@@ -183,7 +189,7 @@ export const AlertesPage: React.FC = () => {
               </button>
               <button
                 className={styles.primaryButton}
-                onClick={() => navigate('/authority/alertes/new')}
+                onClick={() => navigate(`${basePath}/alertes/new`)}
               >
                 <Plus size={18} />
                 <span>{t('authority.alertes.newAlerte')}</span>
@@ -353,7 +359,7 @@ export const AlertesPage: React.FC = () => {
 
                     <button
                       className={styles.actionBtn}
-                      onClick={() => navigate(`/authority/alertes/${alerte.id}`)}
+                      onClick={() => navigate(`${basePath}/alertes/${alerte.id}`)}
                       title={t('authority.alertes.actions.viewDetails')}
                     >
                       <Eye size={16} />
@@ -362,7 +368,7 @@ export const AlertesPage: React.FC = () => {
                     {isDraft && (
                       <button
                         className={styles.actionBtn}
-                        onClick={() => navigate(`/authority/alertes/${alerte.id}/edit`)}
+                        onClick={() => navigate(`${basePath}/alertes/${alerte.id}/edit`)}
                         title={t('authority.alertes.actions.edit')}
                       >
                         <Edit size={16} />
@@ -393,7 +399,7 @@ export const AlertesPage: React.FC = () => {
               </p>
               <button 
                 className={styles.primaryButton}
-                onClick={() => navigate('/authority/alertes/new')}
+                onClick={() => navigate(`${basePath}/alertes/new`)}
               >
                 <Plus size={18} />
                 {t('authority.alertes.createAlerte')}
@@ -475,9 +481,11 @@ export const AlertesPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </AuthorityLayout>
+    </div>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default AlertesPage;

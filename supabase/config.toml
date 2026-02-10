@@ -16,3 +16,25 @@ port = 54323
 [functions]
 # Path to the functions directory.
 functions_dir = "functions"
+
+# Désactiver la vérification JWT au gateway pour ces fonctions : on vérifie le JWT
+# nous-mêmes dans le code avec jose + JWKS (compatible clés asymétriques ES256).
+# Sans cela, le gateway peut renvoyer "Invalid JWT" avant d'appeler la fonction.
+# Voir supabase/functions/README_JWT_GATEWAY.md pour réactiver le JWT au gateway.
+[functions.admin-invite-user]
+verify_jwt = false
+
+[functions.admin-create-user]
+verify_jwt = false
+
+[functions.donations-create]
+verify_jwt = false
+
+[functions.donations-webhook]
+verify_jwt = false
+
+[functions.donations-mock-confirm]
+verify_jwt = false
+
+[functions.huggingface-proxy]
+verify_jwt = false

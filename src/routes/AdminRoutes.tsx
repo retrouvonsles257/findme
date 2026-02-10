@@ -25,6 +25,26 @@ import {
   AdminOrganisationAuditLogsPage,
   AdminOrganisationProfilePage,
   AdminOrganisationApiKeysPage,
+  AdminOrganisationAlertesPage,
+  AdminOrganisationAlerteDetailPage,
+  AdminOrganisationCreateAlertePage,
+  AdminOrganisationSignalementsPage,
+  AdminOrganisationSignalementDetailPage,
+  AdminOrganisationIAPage,
+  AdminOrganisationCoordinationPage,
+  AdminOrganisationCartePage,
+  AdminOrganisationPhotosModerationPage,
+  AdminOrganisationVerificationIdentitePage,
+  AdminOrganisationPersonnesPage,
+  AdminOrganisationPersonDetailPage,
+  AdminOrganisationPhotosEnAttentePage,
+  AdminOrganisationSignalementsEnAttentePage,
+  AdminOrganisationCampagnesPage,
+  AdminOrganisationCreateCampagnePage,
+  AdminOrganisationCasesPage,
+  AdminOrganisationCreateCasePage,
+  AdminOrganisationRessourcesPage,
+  AdminOrganisationPartenariatsPage,
 } from '../pages/admin';
 
 import PrivateRoute from './PrivateRoutes';
@@ -116,6 +136,174 @@ const AdminRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={adminRoles}>
               <AdminOrganisationDossierEditPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Héritage Autorité: Alertes, Signalements, IA, Coordination, Carte */}
+        <Route
+          path="/alertes"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationAlertesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/alertes/new"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCreateAlertePage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/alertes/:id"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationAlerteDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/signalements"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationSignalementsPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/signalements/:id"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationSignalementDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/ia"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationIAPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/coordination"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCoordinationPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/carte"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCartePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Héritage Modérateur: Modération photos, Vérification identité */}
+        <Route
+          path="/photos-moderation"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationPhotosModerationPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/verification-identite"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationVerificationIdentitePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Héritage Opérateur: Personnes, Photos en attente, Signalements en attente */}
+        <Route
+          path="/personnes"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationPersonnesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/personnes/:id"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationPersonDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/photos-en-attente"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationPhotosEnAttentePage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/signalements-en-attente"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationSignalementsEnAttentePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Héritage NGO: Campagnes, Cas, Ressources, Partenariats */}
+        <Route
+          path="/campagnes"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCampagnesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/campagnes/create"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCreateCampagnePage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/cas"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCasesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/cas/create"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationCreateCasePage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/ressources"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationRessourcesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/partenariats"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationPartenariatsPage />
             </RoleBasedRoute>
           }
         />

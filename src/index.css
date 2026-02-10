@@ -136,6 +136,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Checkboxes: fond bleu primaire au lieu de noir */
+input[type="checkbox"] {
+  accent-color: var(--color-primary);
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-weight: var(--font-bold);

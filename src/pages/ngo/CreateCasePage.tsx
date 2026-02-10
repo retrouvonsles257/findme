@@ -31,7 +31,15 @@ type FormState = {
   diffusion_autorisee: boolean;
 };
 
-export const NGOCreateCasePage: React.FC = () => {
+export interface NGOCreateCasePageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /ngo. Admin uses segment "cas", NGO "cases". */
+  basePath?: string;
+}
+
+const casesListPath = (basePath: string) => (basePath === '/admin' ? `${basePath}/cas` : `${basePath}/cases`);
+
+export const NGOCreateCasePage: React.FC<NGOCreateCasePageProps> = ({ noLayout = false, basePath = '/ngo' }) => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id as string | undefined;
@@ -221,17 +229,16 @@ export const NGOCreateCasePage: React.FC = () => {
       }
 
       setSuccess('Dossier créé avec succès.');
-      setTimeout(() => navigate('/ngo/cases'), 700);
+      setTimeout(() => navigate(casesListPath(basePath)), 700);
     } catch (err: any) {
       console.error(err);
       setError(err?.message || 'Erreur lors de la création');
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, form, navigate, organisationId, photoUrls, userId]);
+  }, [basePath, canSubmit, form, navigate, organisationId, photoUrls, userId]);
 
-  return (
-    <NGOLayout title="Créer un dossier (ONG)">
+  const pageContent = (
       <div className={styles.container}>
         {error && <div className={styles.error}>{error}</div>}
         {success && <div className={styles.success}>{success}</div>}
@@ -391,7 +398,7 @@ export const NGOCreateCasePage: React.FC = () => {
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.secondaryBtn} type="button" onClick={() => navigate('/ngo/cases')} disabled={submitting}>
+          <button className={styles.secondaryBtn} type="button" onClick={() => navigate(casesListPath(basePath))} disabled={submitting}>
             Annuler
           </button>
           <button className={styles.primaryBtn} type="button" onClick={handleSubmit} disabled={!canSubmit || submitting}>
@@ -399,6 +406,12 @@ export const NGOCreateCasePage: React.FC = () => {
           </button>
         </div>
       </div>
+  );
+
+  if (noLayout) return pageContent;
+  return (
+    <NGOLayout title="Créer un dossier (ONG)">
+      {pageContent}
     </NGOLayout>
   );
 };

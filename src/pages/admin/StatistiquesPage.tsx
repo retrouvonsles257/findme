@@ -232,7 +232,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
         <div className={styles.statistiques__statsGrid} style={{ marginBottom: 16 }}>
           <div
             className={styles.statistiques__coordinationCard}
-            onClick={() => navigate('/authority/coordination')}
+            onClick={() => navigate('/admin/coordination')}
             role="button"
             tabIndex={0}
           >

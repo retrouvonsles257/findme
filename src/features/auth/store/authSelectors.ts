@@ -174,9 +174,13 @@ export const selectIsAuthenticated = (state: any) => {
 export const selectIsAuthenticating = (state: any) => selectAuthState(state)?.isAuthenticating || false;
 
 /**
- * Sélectionne l'état de chargement auth (alias pour compatibilité routes)
+ * Sélectionne l'état de chargement auth (connexion en cours OU restauration de session).
+ * Utilisé par les routes protégées pour afficher "Chargement..." avant de rediriger vers login.
  */
-export const selectAuthLoading = (state: any) => selectAuthState(state)?.isAuthenticating || false;
+export const selectAuthLoading = (state: any) => {
+  const auth = selectAuthState(state);
+  return Boolean(auth?.isAuthenticating || auth?.isLoading);
+};
 
 /**
  * Sélectionne si la déconnexion est en cours

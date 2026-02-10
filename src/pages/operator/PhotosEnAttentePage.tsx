@@ -56,7 +56,13 @@ interface PhotoEnAttente {
 
 const ITEMS_PER_PAGE = 12;
 
-export const PhotosEnAttentePage: React.FC = () => {
+export interface PhotosEnAttentePageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /operator */
+  basePath?: string;
+}
+
+export const PhotosEnAttentePage: React.FC<PhotosEnAttentePageProps> = ({ noLayout = false, basePath = '/operator' }) => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
@@ -148,9 +154,8 @@ export const PhotosEnAttentePage: React.FC = () => {
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  return (
-    <OperatorLayout title={t('operator.pendingPhotos') || 'Photos en attente'}>
-      <div className={styles.photosEnAttente}>
+  const content = (
+    <div className={styles.photosEnAttente}>
         {/* Info Banner */}
         <div className={styles.photosEnAttente__infoBanner}>
           <Info className={styles.photosEnAttente__infoBannerIcon} />
@@ -332,7 +337,7 @@ export const PhotosEnAttentePage: React.FC = () => {
                     className={styles.photosEnAttente__modalBtn}
                     onClick={() => {
                       setSelectedPhoto(null);
-                      navigate(`/operator/dossiers/${selectedPhoto.signalement?.dossier?.id}`);
+                      navigate(`${basePath}/dossiers/${selectedPhoto.signalement?.dossier?.id}`);
                     }}
                   >
                     <FileText size={16} />
@@ -343,7 +348,13 @@ export const PhotosEnAttentePage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+    </div>
+  );
+
+  if (noLayout) return content;
+  return (
+    <OperatorLayout title={t('operator.pendingPhotos') || 'Photos en attente'}>
+      {content}
     </OperatorLayout>
   );
 };

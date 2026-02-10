@@ -77,7 +77,12 @@ interface PhotoFilters {
   search: string;
 }
 
-export const PhotosModerationPage: React.FC = () => {
+export interface PhotosModerationPageProps {
+  /** When true, render only content (no ModerationLayout). Used by admin org pages. */
+  noLayout?: boolean;
+}
+
+export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLayout = false }) => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
@@ -421,9 +426,8 @@ export const PhotosModerationPage: React.FC = () => {
 
   const totalPages = Math.ceil(totalPhotos / pageSize);
 
-  return (
-    <ModerationLayout title={t('moderator.photoModeration')} activeNav="photos">
-      <div className={styles['photos-moderation']}>
+  const content = (
+    <div className={styles['photos-moderation']}>
         {/* Header */}
         <section className={styles['photos-moderation__header']}>
           <div className={styles['photos-moderation__header-content']}>
@@ -1004,7 +1008,13 @@ export const PhotosModerationPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+    </div>
+  );
+
+  if (noLayout) return content;
+  return (
+    <ModerationLayout title={t('moderator.photoModeration')} activeNav="photos">
+      {content}
     </ModerationLayout>
   );
 };

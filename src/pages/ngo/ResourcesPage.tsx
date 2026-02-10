@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
+import { getRessourcesOrganisation } from '../../features/admin-organisation/services';
 import styles from './ResourcesPage.module.css';
 
 interface Resource {
@@ -13,7 +14,13 @@ interface Resource {
   date_creation: string;
 }
 
-export const NGOResourcesPage: React.FC = () => {
+export interface NGOResourcesPageProps {
+  noLayout?: boolean;
+  /** Quand fourni (contexte admin org), charge les ressources depuis ressource_organisation */
+  organisationId?: string | null;
+}
+
+export const NGOResourcesPage: React.FC<NGOResourcesPageProps> = ({ noLayout, organisationId }) => {
   const { t } = useI18n();
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,9 +36,21 @@ export const NGOResourcesPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // NOTE: le modèle SQL officiel ne contient pas de table `ressources_ngo`.
-      // On désactive la requête pour éviter un écran cassé et on affiche un placeholder.
-      setResources([]);
+      if (organisationId) {
+        const rows = await getRessourcesOrganisation(organisationId);
+        setResources(
+          rows.map((r) => ({
+            id: r.id,
+            titre: r.titre,
+            type: r.type,
+            description: r.description ?? '',
+            url: r.url ?? '',
+            date_creation: r.created_at,
+          }))
+        );
+      } else {
+        setResources([]);
+      }
       setCurrentPage(1);
     } catch (err) {
       console.error('Erreur:', err);
@@ -39,7 +58,7 @@ export const NGOResourcesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, organisationId]);
 
   useEffect(() => {
     loadResources();
@@ -47,10 +66,11 @@ export const NGOResourcesPage: React.FC = () => {
 
   const filteredResources = resources.filter((r) => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       r.titre.toLowerCase().includes(searchLower) ||
-      r.description.toLowerCase().includes(searchLower)
-    );
+      r.description.toLowerCase().includes(searchLower);
+    const matchesType = typeFilter === 'all' || r.type === typeFilter;
+    return matchesSearch && matchesType;
   });
 
   const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
@@ -67,24 +87,20 @@ export const NGOResourcesPage: React.FC = () => {
     }
   };
 
+  const loadingContent = (
+    <div className={styles['ngo-resources__loading-container']}>
+      <div className={styles['ngo-resources__spinner']}></div>
+      <p>{t('common.loading')}</p>
+    </div>
+  );
   if (loading) {
-    return (
-      <NGOLayout title={t('ngo.resourcesTitle')}>
-        <div className={styles['ngo-resources__loading-container']}>
-          <div className={styles['ngo-resources__spinner']}></div>
-          <p>{t('common.loading')}</p>
-        </div>
-      </NGOLayout>
-    );
+    if (noLayout) return loadingContent;
+    return <NGOLayout title={t('ngo.resourcesTitle')}>{loadingContent}</NGOLayout>;
   }
 
-  return (
-    <NGOLayout title={t('ngo.resourcesTitle')}>
+  const content = (
+    <div>
       <p className={styles['ngo-resources__subtitle']}>{t('ngo.resourcesSubtitle')}</p>
-
-      <div className={styles['ngo-resources__error-message']}>
-        ℹ️ Cette page n’est pas encore branchée côté base (table `ressources_ngo` absente du modèle SQL).
-      </div>
 
       {error && (
         <div className={styles['ngo-resources__error-message']}>
@@ -116,8 +132,8 @@ export const NGOResourcesPage: React.FC = () => {
         <div className={styles['ngo-resources__resources-grid']}>
           {paginatedResources.length > 0 ? (
             paginatedResources.map((resource) => (
-              <Card key={resource.id}>
-                <CardBody>
+              <Card key={resource.id} className={styles['ngo-resources__card']}>
+                <CardBody className={styles['ngo-resources__card-body']}>
                   <div className={styles['ngo-resources__resource-card']}>
                     <div className={styles['ngo-resources__resource-icon']}>
                       {getTypeIcon(resource.type)}
@@ -126,9 +142,13 @@ export const NGOResourcesPage: React.FC = () => {
                     <p className={styles['ngo-resources__description']}>{resource.description}</p>
                     <div className={styles['ngo-resources__resource-meta']}>
                       <span className={styles['ngo-resources__type']}>{resource.type}</span>
-                      <a href={resource.url} target="_blank" rel="noopener noreferrer" className={styles['ngo-resources__link']}>
-                        {t('ngo.accessResource')} →
-                      </a>
+                      {resource.url && resource.url.trim() ? (
+                        <a href={resource.url} target="_blank" rel="noopener noreferrer" className={styles['ngo-resources__link']}>
+                          {t('ngo.accessResource')} →
+                        </a>
+                      ) : (
+                        <span className={styles['ngo-resources__no-link']}>{t('ngo.noLink')}</span>
+                      )}
                     </div>
                   </div>
                 </CardBody>
@@ -162,6 +182,8 @@ export const NGOResourcesPage: React.FC = () => {
             </button>
           </div>
         )}
-    </NGOLayout>
+    </div>
   );
+  if (noLayout) return content;
+  return <NGOLayout title={t('ngo.resourcesTitle')}>{content}</NGOLayout>;
 };

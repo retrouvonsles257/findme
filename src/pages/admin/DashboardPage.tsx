@@ -132,10 +132,10 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
     { title: t('admin.newDossier'), description: t('admin.createNewFile'), icon: Folder, action: () => navigate('/admin/dossiers/new') },
     { title: t('admin.viewReports'), description: t('admin.manageReports'), icon: FileText, action: () => navigate('/admin/rapports') },
     { title: t('admin.manageUsers'), description: t('admin.manageTeam'), icon: Users, action: () => navigate('/admin/utilisateurs') },
-    { title: t('admin.viewAlertes'), description: t('admin.viewAlertesDesc'), icon: Bell, action: () => navigate('/authority/alertes') },
-    { title: t('admin.viewIAResults'), description: t('admin.viewIAResultsDesc'), icon: Brain, action: () => navigate('/authority/ia-analysis') },
-    { title: t('admin.viewCampagnes'), description: t('admin.viewCampagnesDesc'), icon: Megaphone, action: () => navigate('/authority/donations') },
-    { title: t('admin.viewCoordination'), description: t('admin.coordinationLinkDesc'), icon: UsersRound, action: () => navigate('/authority/coordination') },
+    { title: t('admin.viewAlertes'), description: t('admin.viewAlertesDesc'), icon: Bell, action: () => navigate('/admin/alertes') },
+    { title: t('admin.viewIAResults'), description: t('admin.viewIAResultsDesc'), icon: Brain, action: () => navigate('/admin/ia') },
+    { title: t('admin.viewCampagnes'), description: t('admin.viewCampagnesDesc'), icon: Megaphone, action: () => navigate('/admin/campagnes') },
+    { title: t('admin.viewCoordination'), description: t('admin.coordinationLinkDesc'), icon: UsersRound, action: () => navigate('/admin/coordination') },
   ];
 
   const safeStats = stats || {

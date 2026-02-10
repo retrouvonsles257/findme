@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
+import { getPartenariatsOrganisation } from '../../features/admin-organisation/services';
 import styles from './PartnershipsPage.module.css';
 
 interface Partnership {
@@ -14,7 +15,13 @@ interface Partnership {
   date_partnership: string;
 }
 
-export const NGOPartnershipsPage: React.FC = () => {
+export interface NGOPartnershipsPageProps {
+  noLayout?: boolean;
+  /** Quand fourni (contexte admin org), charge les partenariats depuis partenariat_organisation */
+  organisationId?: string | null;
+}
+
+export const NGOPartnershipsPage: React.FC<NGOPartnershipsPageProps> = ({ noLayout, organisationId }) => {
   const { t } = useI18n();
   const [partnerships, setPartnerships] = useState<Partnership[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,9 +37,22 @@ export const NGOPartnershipsPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // NOTE: le modèle SQL officiel ne contient pas de table `partenariats_ngo`.
-      // On désactive la requête pour éviter un écran cassé et on affiche un placeholder.
-      setPartnerships([]);
+      if (organisationId) {
+        const rows = await getPartenariatsOrganisation(organisationId);
+        setPartnerships(
+          rows.map((p) => ({
+            id: p.id,
+            organisation_name: p.nom_partenaire,
+            contact_person: p.personne_contact ?? '',
+            email: p.email ?? '',
+            phone: p.telephone ?? '',
+            statut: p.statut,
+            date_partnership: p.date_partnership ?? '',
+          }))
+        );
+      } else {
+        setPartnerships([]);
+      }
       setCurrentPage(1);
     } catch (err) {
       console.error('Erreur:', err);
@@ -40,7 +60,7 @@ export const NGOPartnershipsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, organisationId]);
 
   useEffect(() => {
     loadPartnerships();
@@ -48,34 +68,31 @@ export const NGOPartnershipsPage: React.FC = () => {
 
   const filteredPartnerships = partnerships.filter((p) => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       p.organisation_name.toLowerCase().includes(searchLower) ||
-      p.contact_person.toLowerCase().includes(searchLower)
-    );
+      (p.contact_person && p.contact_person.toLowerCase().includes(searchLower));
+    const matchesStatus = statusFilter === 'all' || p.statut === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   const totalPages = Math.ceil(filteredPartnerships.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedPartnerships = filteredPartnerships.slice(startIdx, startIdx + itemsPerPage);
 
+  const loadingContent = (
+    <div className={styles['ngo-partnerships__loading-container']}>
+      <div className={styles['ngo-partnerships__spinner']}></div>
+      <p>{t('common.loading')}</p>
+    </div>
+  );
   if (loading) {
-    return (
-      <NGOLayout title={t('ngo.partnershipsTitle')}>
-        <div className={styles['ngo-partnerships__loading-container']}>
-          <div className={styles['ngo-partnerships__spinner']}></div>
-          <p>{t('common.loading')}</p>
-        </div>
-      </NGOLayout>
-    );
+    if (noLayout) return loadingContent;
+    return <NGOLayout title={t('ngo.partnershipsTitle')}>{loadingContent}</NGOLayout>;
   }
 
-  return (
-    <NGOLayout title={t('ngo.partnershipsTitle')}>
+  const content = (
+    <div>
       <p className={styles['ngo-partnerships__subtitle']}>{t('ngo.partnershipsSubtitle')}</p>
-
-      <div className={styles['ngo-partnerships__error-message']}>
-        ℹ️ Cette page n’est pas encore branchée côté base (table `partenariats_ngo` absente du modèle SQL).
-      </div>
 
       {error && (
         <div className={styles['ngo-partnerships__error-message']}>
@@ -163,6 +180,8 @@ export const NGOPartnershipsPage: React.FC = () => {
             </button>
           </div>
         )}
-    </NGOLayout>
+    </div>
   );
+  if (noLayout) return content;
+  return <NGOLayout title={t('ngo.partnershipsTitle')}>{content}</NGOLayout>;
 };

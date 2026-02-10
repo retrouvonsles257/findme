@@ -11,11 +11,11 @@ import { useAppSelector } from '../../store/types';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { Badge } from '../../components/common/Badge';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
-import { getAdminRoles } from '../../features/admin-organisation/services';
+import { supabase } from '../../config';
+import { getAdminRolesWithCounts, getAdminRoles } from '../../features/admin-organisation/services';
 import {
   Shield,
   Plus,
@@ -46,6 +46,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [newRole, setNewRole] = useState({
@@ -54,28 +55,54 @@ export const AdminOrganisationRolesPage: React.FC = () => {
     permissions: [] as string[],
   });
 
+  const mapRowToRole = useCallback(
+    (r: { id: string; nom_role: string; description?: string; permissions?: Record<string, unknown>; nombre_utilisateurs?: number }) => ({
+      id: r.id,
+      nom: t(`admin.role.${r.nom_role}`, t('common.unknown')),
+      description: r.description || '',
+      utilisateurs: r.nombre_utilisateurs ?? 0,
+      permissions: r.permissions ? Object.keys(r.permissions) : [],
+      createdAt: '',
+    }),
+    [t]
+  );
+
   const loadRoles = useCallback(async () => {
+    setLoadError(null);
+    setLoading(true);
+    const orgId = (currentUser as any)?.organisation_id ?? (currentUser as any)?.id_organisation;
     try {
-      setLoading(true);
-      const rows = await getAdminRoles();
-      const mapped: Role[] = rows.map((r) => ({
-        id: r.id,
-        nom: t(`admin.role.${r.nom_role}`, t('common.unknown')),
-        description: r.description || '',
-        utilisateurs: 0,
-        permissions: r.permissions ? Object.keys(r.permissions as Record<string, unknown>) : [],
-        createdAt: '',
-      }));
-      setRoles(mapped);
-    } catch (error) {
-      console.error('Erreur lors du chargement des rôles:', error);
+      const rows = orgId
+        ? await getAdminRolesWithCounts(orgId)
+        : (await getAdminRoles()).map((r) => ({ ...r, nombre_utilisateurs: 0 as number }));
+      setRoles(rows.map((r) => mapRowToRole(r as Parameters<typeof mapRowToRole>[0])));
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Erreur lors du chargement des rôles';
+      console.error('Erreur chargement rôles:', err);
+      setLoadError(errMsg);
+      try {
+        const { data, error } = await (supabase as any).from('role').select('*').order('niveau_accreditation', { ascending: false });
+        if (!error && data?.length) {
+          setRoles(data.map((r: any) => mapRowToRole({ ...r, nombre_utilisateurs: 0 })));
+          setLoadError(null);
+        } else if (error) {
+          setLoadError(`${errMsg} | Fallback: ${error.message}`);
+        }
+      } catch (fallbackErr: any) {
+        setLoadError(`${errMsg} | Fallback: ${fallbackErr?.message ?? 'unknown'}`);
+      }
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [(currentUser as any)?.organisation_id ?? (currentUser as any)?.id_organisation, mapRowToRole]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser) {
+      navigate('/auth/login');
+      return;
+    }
+    const roleName = typeof currentUser.role === 'string' ? currentUser.role : (currentUser.role as any)?.nom_role;
+    if (roleName !== NomRole.ADMIN_ORGANISATION) {
       navigate('/auth/login');
       return;
     }
@@ -127,9 +154,16 @@ export const AdminOrganisationRolesPage: React.FC = () => {
             </div>
             <div>
               <h1 className={styles.rolesManagement__title}>{t('admin.rolesManagement')}</h1>
-              <p className={styles.rolesManagement__subtitle}>{t('admin.defineRolesAndPermissions')}</p>
+              <p className={styles.rolesManagement__subtitle}>{t('admin.rolesReferentialSubtitle')}</p>
             </div>
           </div>
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/admin/utilisateurs')}
+          >
+            <Users size={18} />
+            {t('admin.manageUsersLink')}
+          </Button>
           {!isReadOnly && (
             <Button
               variant="primary"
@@ -149,8 +183,22 @@ export const AdminOrganisationRolesPage: React.FC = () => {
           </div>
         )}
 
+        {/* Erreur de chargement */}
+        {loadError && (
+          <Card>
+            <CardBody>
+              <div className={styles.rolesManagement__empty}>
+                <p className={styles.rolesManagement__errorText}>{loadError}</p>
+                <Button variant="secondary" onClick={() => loadRoles()}>
+                  {t('common.retry')}
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
         {/* Empty state */}
-        {!loading && roles.length === 0 && (
+        {!loading && !loadError && roles.length === 0 && (
           <Card>
             <CardBody>
               <div className={styles.rolesManagement__empty}>
@@ -180,10 +228,10 @@ export const AdminOrganisationRolesPage: React.FC = () => {
                     <Shield className={styles.rolesManagement__roleIcon} />
                     <h3 className={styles.rolesManagement__roleName}>{role.nom}</h3>
                   </div>
-                  <Badge variant="secondary" size="sm">
-                    <Users size={12} />
-                    {role.utilisateurs} {t('admin.users')}
-                  </Badge>
+                  <span className={styles.rolesManagement__userCountBadge}>
+                    <Users size={14} aria-hidden />
+                    <span>{role.utilisateurs} {t('admin.users')}</span>
+                  </span>
                 </div>
               </CardHeader>
               <CardBody>

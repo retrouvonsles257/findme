@@ -3,10 +3,10 @@
  *
  * Objectif:
  * - Simuler (dev) la confirmation d'un paiement Mobile Money.
- * - Met à jour `don.statut_paiement`, `date_traitement`, et éventuellement `reference_transaction`.
+ * - Met à jour `don.statut_paiement`, `date_traitement`.
  *
- * Déploiement:
- *   supabase functions deploy donations-mock-confirm
+ * Sécurité: confirmToken (mock_token) requis ; pas de JWT utilisateur.
+ * Déploiement: verify_jwt = false au gateway (config.toml).
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -37,17 +37,14 @@ serve(async (req: Request) => {
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
-    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return jsonResponse({ error: 'Supabase env not configured in function runtime' }, 500);
     }
 
-    const authHeader = req.headers.get('Authorization') || '';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: {
-        headers: authHeader ? { Authorization: authHeader } : {},
-      },
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
     const body = (await req.json()) as MockConfirmBody;

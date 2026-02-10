@@ -10,7 +10,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { ModerationLayout } from './ModerationLayout';
-import { supabase } from '../../config';
+import {
+  getDemandesVerificationIdentite,
+  getDemandesVerificationIdentiteStats,
+  traiterDemandeVerificationIdentite,
+  type StatutDemandeVerification,
+} from '../../features/admin-organisation/services';
 import {
   UserCheck,
   Search,
@@ -33,11 +38,9 @@ import {
   User,
   CreditCard,
   Download,
+  MessageSquare,
 } from 'lucide-react';
 import styles from './IdentityVerificationPage.module.css';
-
-// Helper to bypass Supabase typing issues
-const db = () => supabase as any;
 
 // Types
 interface VerificationRequest {
@@ -48,12 +51,11 @@ interface VerificationRequest {
   url_document: string;
   url_selfie?: string;
   date_soumission: string;
-  statut: 'en_attente' | 'en_cours' | 'approuve' | 'rejete';
+  statut: 'en_attente' | 'en_cours' | 'approuve' | 'rejete' | 'complement_demande';
   raison_rejet?: string;
   verifie_par?: string;
   date_verification?: string;
   notes?: string;
-  // Relations
   utilisateur?: {
     id: string;
     nom: string;
@@ -71,13 +73,19 @@ interface VerificationRequest {
 }
 
 interface VerificationFilters {
-  status: 'all' | 'en_attente' | 'en_cours' | 'approuve' | 'rejete';
+  status: 'all' | 'en_attente' | 'en_cours' | 'approuve' | 'rejete' | 'complement_demande';
   documentType: 'all' | 'cni' | 'passeport' | 'autre';
   dateRange: 'all' | '7days' | '30days';
   search: string;
 }
 
-export const IdentityVerificationPage: React.FC = () => {
+export interface IdentityVerificationPageProps {
+  noLayout?: boolean;
+  /** Quand fourni (contexte admin org), charge les demandes de cette org + globales. Sinon demandes globales uniquement. */
+  organisationId?: string | null;
+}
+
+export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> = ({ noLayout = false, organisationId = null }) => {
   const currentUser = useAppSelector(selectUser);
 
   // State
@@ -98,12 +106,12 @@ export const IdentityVerificationPage: React.FC = () => {
     enAttente: 0,
     approuves: 0,
     rejetes: 0,
+    complement_demande: 0,
   });
   const pageSize = 12;
 
-  // Formulaire de décision
   const [decisionData, setDecisionData] = useState({
-    decision: 'approuve' as 'approuve' | 'rejete',
+    decision: 'approuve' as 'approuve' | 'rejete' | 'complement_demande',
     raison_rejet: '',
     notes: '',
   });
@@ -111,76 +119,71 @@ export const IdentityVerificationPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Charger les demandes de vérification
+  const mapApiStatutToUi = (s: string): VerificationRequest['statut'] => {
+    if (s === 'refuse') return 'rejete';
+    if (s === 'complement_demande') return 'complement_demande';
+    return s as VerificationRequest['statut'];
+  };
+
+  const mapUiStatutToApi = (s: string): StatutDemandeVerification | undefined => {
+    if (s === 'all') return undefined;
+    if (s === 'rejete') return 'refuse';
+    if (s === 'complement_demande') return 'complement_demande';
+    return s as StatutDemandeVerification;
+  };
+
   const loadRequests = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Note: Dans une vraie implémentation, cette table serait 'document_accreditation' ou similaire
-      // Pour cet exemple, on simule avec une requête sur utilisateur en attente de vérification
-      let query = supabase
-        .from('utilisateur')
-        .select('*', { count: 'exact' })
-        .eq('type_compte', 'grand_public')
-        .order('created_at', { ascending: false });
+      const apiStatut = mapUiStatutToApi(filters.status);
+      const { data, count } = await getDemandesVerificationIdentite(organisationId ?? null, {
+        statut: apiStatut ?? 'all',
+        typeDocument: filters.documentType,
+        dateRange: filters.dateRange,
+        page: currentPage,
+        pageSize,
+      });
 
-      // Filtrer par statut
-      if (filters.status === 'en_attente') {
-        query = query.eq('statut_compte', 'en_attente_verification');
-      } else if (filters.status === 'approuve') {
-        query = query.eq('statut_compte', 'actif');
-      }
-
-      // Filtrer par date
-      if (filters.dateRange !== 'all') {
-        const now = new Date();
-        const days = filters.dateRange === '7days' ? 7 : 30;
-        const cutoff = new Date(now.setDate(now.getDate() - days));
-        query = query.gte('created_at', cutoff.toISOString());
-      }
-
-      // Recherche
-      if (filters.search) {
-        query = query.or(`nom.ilike.%${filters.search}%,prenom.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
-      }
-
-      // Pagination
-      const start = (currentPage - 1) * pageSize;
-      query = query.range(start, start + pageSize - 1);
-
-      const { data, count, error } = await query;
-
-      if (error) throw error;
-
-      // Transformer en format VerificationRequest
-      const transformedData: VerificationRequest[] = (data || []).map((user: any) => ({
-        id: user.id,
-        id_utilisateur: user.id,
-        type_document: 'cni' as const,
-        url_document: user.document_accreditation || '',
-        date_soumission: user.created_at,
-        statut: user.statut_compte === 'actif' ? 'approuve' : 
-                user.statut_compte === 'en_attente_verification' ? 'en_attente' : 'rejete',
-        utilisateur: {
-          id: user.id,
-          nom: user.nom,
-          prenom: user.prenom,
-          email: user.email,
-          telephone: user.telephone,
-          date_naissance: user.date_naissance,
-          ville: user.ville,
-          region: user.region,
-          pays: user.pays,
-          created_at: user.created_at,
-          score_fiabilite: user.score_fiabilite || 100,
-          nombre_signalements_valides: user.nombre_signalements_valides || 0,
-        },
+      const transformed: VerificationRequest[] = data.map((d) => ({
+        id: d.id,
+        id_utilisateur: d.id_utilisateur,
+        type_document: (d.type_document as 'cni' | 'passeport' | 'autre') || 'cni',
+        url_document: d.url_document || '',
+        url_selfie: d.url_selfie || undefined,
+        date_soumission: d.created_at,
+        statut: mapApiStatutToUi(d.statut),
+        raison_rejet: d.statut === 'refuse' ? d.commentaire_moderateur || undefined : undefined,
+        date_verification: d.traite_le || undefined,
+        notes: d.commentaire_moderateur || undefined,
+        utilisateur: d.utilisateur
+          ? {
+              id: d.id_utilisateur,
+              nom: d.utilisateur.nom,
+              prenom: d.utilisateur.prenom,
+              email: d.utilisateur.email,
+              telephone: d.utilisateur.telephone ?? undefined,
+              date_naissance: d.utilisateur.date_naissance ?? undefined,
+              ville: d.utilisateur.ville ?? undefined,
+              region: d.utilisateur.region ?? undefined,
+              pays: d.utilisateur.pays ?? undefined,
+              created_at: d.utilisateur.created_at,
+              score_fiabilite: d.utilisateur.score_fiabilite ?? 100,
+              nombre_signalements_valides: d.utilisateur.nombre_signalements_valides ?? 0,
+            }
+          : undefined,
       }));
 
-      setRequests(transformedData);
-      setTotalRequests(count || 0);
+      setRequests(transformed);
+      setTotalRequests(count);
 
-      // Charger les stats
-      await loadStats();
+      const statsData = await getDemandesVerificationIdentiteStats(organisationId ?? null);
+      setStats({
+        total: statsData.total,
+        enAttente: statsData.enAttente,
+        approuves: statsData.approuves,
+        rejetes: statsData.refuse,
+        complement_demande: statsData.complement_demande,
+      });
     } catch (err) {
       console.error('Error loading verification requests:', err);
       setErrorMessage('Erreur lors du chargement des demandes');
@@ -188,104 +191,58 @@ export const IdentityVerificationPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, currentPage]);
+  }, [filters, currentPage, organisationId]);
 
-  // Charger les statistiques
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
-      const { data, error } = await db()
-        .from('utilisateur')
-        .select('statut_compte')
-        .eq('type_compte', 'grand_public');
-
-      if (!error && data) {
-        setStats({
-          total: data.length,
-          enAttente: data.filter((u: any) => u.statut_compte === 'en_attente_verification').length,
-          approuves: data.filter((u: any) => u.statut_compte === 'actif').length,
-          rejetes: data.filter((u: any) => u.statut_compte === 'bloque' || u.statut_compte === 'suspendu').length,
-        });
-      }
+      const statsData = await getDemandesVerificationIdentiteStats(organisationId ?? null);
+      setStats({
+        total: statsData.total,
+        enAttente: statsData.enAttente,
+        approuves: statsData.approuves,
+        rejetes: statsData.refuse,
+        complement_demande: statsData.complement_demande,
+      });
     } catch (err) {
       console.error('Error loading stats:', err);
     }
-  };
+  }, [organisationId]);
 
   useEffect(() => {
     loadRequests();
   }, [loadRequests]);
 
-  // Traiter la vérification
   const handleVerification = async () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !currentUser?.id) return;
     setIsProcessing(true);
     setErrorMessage('');
 
+    const action: StatutDemandeVerification =
+      decisionData.decision === 'approuve'
+        ? 'approuve'
+        : decisionData.decision === 'rejete'
+          ? 'refuse'
+          : 'complement_demande';
+
+    const commentaire =
+      decisionData.decision === 'rejete'
+        ? decisionData.raison_rejet || decisionData.notes
+        : decisionData.notes || null;
+
     try {
-      const newStatus = decisionData.decision === 'approuve' ? 'actif' : 'bloque';
-
-      // Mettre à jour le statut de l'utilisateur
-      const { error: updateError } = await db()
-        .from('utilisateur')
-        .update({
-          statut_compte: newStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedRequest.id_utilisateur);
-
-      if (updateError) throw updateError;
-
-      // Si approuvé, ajouter le rôle citoyen_verifie
-      if (decisionData.decision === 'approuve') {
-        // Récupérer l'ID du rôle citoyen_verifie
-        const { data: roleData, error: roleError } = await db()
-          .from('role')
-          .select('id')
-          .eq('nom_role', 'citoyen_verifie')
-          .single();
-
-        if (!roleError && roleData) {
-          await db().from('utilisateur_role').insert({
-            id_utilisateur: selectedRequest.id_utilisateur,
-            id_role: roleData.id,
-            date_attribution: new Date().toISOString(),
-            attribue_par: currentUser?.id,
-            commentaire: decisionData.notes || 'Identité vérifiée par modérateur',
-          });
-        }
-      }
-
-      // Enregistrer dans le journal d'activité
-      await db().from('journal_activite').insert({
-        type_action: 'attribution_role',
-        action_detaillee: decisionData.decision === 'approuve' 
-          ? 'Identité vérifiée - Passage au niveau citoyen_verifie'
-          : 'Vérification d\'identité rejetée',
-        description: decisionData.decision === 'approuve'
-          ? `Utilisateur ${selectedRequest.utilisateur?.prenom} ${selectedRequest.utilisateur?.nom} vérifié`
-          : `Vérification rejetée: ${decisionData.raison_rejet}`,
-        id_utilisateur: currentUser?.id,
-      });
-
-      // Envoyer une notification à l'utilisateur
-      await db().from('notification').insert({
-        type_notification: 'mise_a_jour_dossier',
-        titre: decisionData.decision === 'approuve' 
-          ? 'Identité vérifiée !' 
-          : 'Vérification d\'identité non validée',
-        message: decisionData.decision === 'approuve'
-          ? 'Félicitations ! Votre identité a été vérifiée. Vous êtes maintenant un citoyen vérifié avec un badge spécial.'
-          : `Votre demande de vérification n'a pas été validée. Raison: ${decisionData.raison_rejet}`,
-        canal: 'in_app',
-        priorite: 'haute',
-        statut_envoi: 'en_attente',
-        id_utilisateur: selectedRequest.id_utilisateur,
-      });
+      await traiterDemandeVerificationIdentite(
+        selectedRequest.id,
+        action,
+        commentaire,
+        currentUser.id
+      );
 
       setSuccessMessage(
-        decisionData.decision === 'approuve'
+        action === 'approuve'
           ? 'Identité vérifiée avec succès !'
-          : 'Demande rejetée'
+          : action === 'refuse'
+            ? 'Demande rejetée'
+            : 'Complément demandé'
       );
 
       setSelectedRequest(null);
@@ -305,22 +262,21 @@ export const IdentityVerificationPage: React.FC = () => {
     }
   };
 
-  // Couleur du statut
   const getStatusInfo = (status: string) => {
     const info: Record<string, { label: string; color: string }> = {
       en_attente: { label: 'En attente', color: '#f59e0b' },
       en_cours: { label: 'En cours', color: '#3b82f6' },
       approuve: { label: 'Approuvé', color: '#10b981' },
       rejete: { label: 'Rejeté', color: '#ef4444' },
+      complement_demande: { label: 'Complément demandé', color: '#8b5cf6' },
     };
     return info[status] || { label: status, color: '#6b7280' };
   };
 
   const totalPages = Math.ceil(totalRequests / pageSize);
 
-  return (
-    <ModerationLayout title="Vérification d'identité" activeNav="identity">
-      <div className={styles['identity-verification']}>
+  const content = (
+    <div className={styles['identity-verification']}>
         {/* Header */}
         <section className={styles['identity-verification__header']}>
           <div className={styles['identity-verification__header-content']}>
@@ -375,6 +331,7 @@ export const IdentityVerificationPage: React.FC = () => {
                   <option value="en_cours">En cours</option>
                   <option value="approuve">Approuvés</option>
                   <option value="rejete">Rejetés</option>
+                  <option value="complement_demande">Complément demandé</option>
                 </select>
               </div>
 
@@ -684,8 +641,8 @@ export const IdentityVerificationPage: React.FC = () => {
                     <div className={styles['identity-verification__decision-buttons']}>
                       <button
                         className={`${styles['identity-verification__decision-btn']} ${
-                          decisionData.decision === 'approuve' 
-                            ? styles['identity-verification__decision-btn--active-approve'] 
+                          decisionData.decision === 'approuve'
+                            ? styles['identity-verification__decision-btn--active-approve']
                             : ''
                         }`}
                         onClick={() => setDecisionData(prev => ({ ...prev, decision: 'approuve' }))}
@@ -695,14 +652,23 @@ export const IdentityVerificationPage: React.FC = () => {
                       </button>
                       <button
                         className={`${styles['identity-verification__decision-btn']} ${
-                          decisionData.decision === 'rejete' 
-                            ? styles['identity-verification__decision-btn--active-reject'] 
+                          decisionData.decision === 'rejete'
+                            ? styles['identity-verification__decision-btn--active-reject']
                             : ''
                         }`}
                         onClick={() => setDecisionData(prev => ({ ...prev, decision: 'rejete' }))}
                       >
                         <XCircle size={20} />
                         Rejeter
+                      </button>
+                      <button
+                        className={`${styles['identity-verification__decision-btn']} ${
+                          decisionData.decision === 'complement_demande' ? styles['identity-verification__decision-btn--active-complement'] : ''
+                        }`}
+                        onClick={() => setDecisionData(prev => ({ ...prev, decision: 'complement_demande' }))}
+                      >
+                        <MessageSquare size={20} />
+                        Demander complément
                       </button>
                     </div>
 
@@ -737,7 +703,10 @@ export const IdentityVerificationPage: React.FC = () => {
                     <button
                       className={styles['identity-verification__submit-btn']}
                       onClick={handleVerification}
-                      disabled={isProcessing || (decisionData.decision === 'rejete' && !decisionData.raison_rejet)}
+                      disabled={
+                        isProcessing ||
+                        (decisionData.decision === 'rejete' && !decisionData.raison_rejet)
+                      }
                     >
                       {isProcessing ? (
                         <>
@@ -758,7 +727,12 @@ export const IdentityVerificationPage: React.FC = () => {
                 {selectedRequest.statut !== 'en_attente' && (
                   <div className={styles['identity-verification__already-processed']}>
                     <p>
-                      Cette demande a été {selectedRequest.statut === 'approuve' ? 'approuvée' : 'rejetée'}
+                      Cette demande a été{' '}
+                      {selectedRequest.statut === 'approuve'
+                        ? 'approuvée'
+                        : selectedRequest.statut === 'rejete'
+                          ? 'rejetée'
+                          : 'traitée (complément demandé)'}
                       {selectedRequest.date_verification && (
                         <> le {new Date(selectedRequest.date_verification).toLocaleString('fr-FR')}</>
                       )}
@@ -769,7 +743,13 @@ export const IdentityVerificationPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+    </div>
+  );
+
+  if (noLayout) return content;
+  return (
+    <ModerationLayout title="Vérification d'identité" activeNav="identity">
+      {content}
     </ModerationLayout>
   );
 };

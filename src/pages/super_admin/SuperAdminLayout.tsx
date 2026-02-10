@@ -8,8 +8,9 @@
 import React, { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
-import { useAppSelector } from '../../store/types';
+import { useAppSelector, useAppDispatch } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
+import { logoutThunk } from '../../features/auth/store/authThunks';
 import { supabase } from '../../config';
 import {
   LayoutDashboard,
@@ -77,6 +78,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const { t, language, changeLanguage } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
@@ -234,7 +236,8 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
     },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await dispatch(logoutThunk());
     navigate('/auth/login');
   };
 

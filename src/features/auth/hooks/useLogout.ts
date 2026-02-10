@@ -1,12 +1,13 @@
 /**
  * =====================================================
  * useLogout Hook
- * Hook personnalisé pour la déconnexion
+ * Déconnexion via Redux (logoutThunk) pour garder auth + users en sync.
  * =====================================================
  */
 
 import { useState, useCallback } from 'react';
-import { signOut } from '../../../config/supabase.config';
+import { useAppDispatch } from '../../../store/types';
+import { logoutThunk } from '../store/authThunks';
 
 export interface LogoutError {
   message: string;
@@ -20,6 +21,7 @@ export interface UseLogoutReturn {
 }
 
 export const useLogout = (): UseLogoutReturn => {
+  const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<LogoutError | null>(null);
 
@@ -28,32 +30,31 @@ export const useLogout = (): UseLogoutReturn => {
     setError(null);
 
     try {
-      const { error: logoutError } = await signOut();
-
-      if (logoutError) {
+      const result = await dispatch(logoutThunk());
+      if (logoutThunk.rejected.match(result)) {
+        const payload = result.payload as { message?: string; code?: string } | undefined;
         const authError: LogoutError = {
-          message: logoutError.message || 'Erreur de déconnexion',
-          code: logoutError.code
+          message: payload?.message || 'Erreur de déconnexion',
+          code: payload?.code,
         };
         setError(authError);
         return { error: authError };
       }
-
       return { error: null };
     } catch (err) {
       const authError: LogoutError = {
-        message: err instanceof Error ? err.message : 'Erreur inconnue lors de la déconnexion'
+        message: err instanceof Error ? err.message : 'Erreur inconnue lors de la déconnexion',
       };
       setError(authError);
       return { error: authError };
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   return {
     logout,
     isLoading,
-    error
+    error,
   };
 };

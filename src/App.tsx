@@ -30,6 +30,7 @@ import { envConfig } from './config';
 
 // Routes
 import AppRoutes from './routes/AppRoutes';
+import { AuthSessionRestorer } from './features/auth/components/AuthSessionRestorer';
 
 // Styles
 import './styles/index.ts';
@@ -95,6 +96,7 @@ const App: React.FC = () => {
 
   return (
     <ReduxProvider store={store}>
+      <AuthSessionRestorer />
       <Router>
         <ThemeProvider>
           <LanguageProvider>

@@ -31,10 +31,13 @@ import {
   Map,
   Heart,
 } from 'lucide-react';
-import { useAuth } from '../../../contexts';
 import { useI18n } from '../../../hooks';
 import { supabase } from '../../../config';
 import { AUTH_ROUTES } from '../../../routes/routes.config';
+import { useAppDispatch, useAppSelector } from '../../../store/types';
+import { logoutThunk } from '../../../features/auth/store/authThunks';
+import { selectCurrentUser } from '../../../features/users/store/userSelectors';
+import { selectUserRole } from '../../../features/auth/store/authSelectors';
 import styles from './AuthoritySidebar.module.css';
 
 interface NavItem {
@@ -51,12 +54,16 @@ export interface AuthoritySidebarProps {
 }
 
 export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onToggle }) => {
-  const { user, userRole, signOut } = useAuth();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const userRole = useAppSelector(selectUserRole);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const savedNavScrollRef = useRef(0);
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
 
   const loadPhotoProfil = useCallback(async (uid: string) => {
@@ -73,17 +80,13 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   }, []);
 
   useEffect(() => {
-    if (user?.id) loadPhotoProfil(user.id);
+    if (currentUser?.id) loadPhotoProfil(currentUser.id);
     else setPhotoProfil(null);
-  }, [user?.id, loadPhotoProfil, location.pathname]);
+  }, [currentUser?.id, loadPhotoProfil, location.pathname]);
 
-  // Extraire les infos du user_metadata de Supabase
-  const userMetadata = user?.user_metadata as Record<string, any> | undefined;
-  const userName = userMetadata?.prenom || userMetadata?.nom || user?.email?.split('authority.@')[0] || 'Utilisateur';
-  const userFullName = userMetadata?.prenom && userMetadata?.nom 
-    ? `${userMetadata.prenom} ${userMetadata.nom}` 
-    : userName;
-  const userAvatar = photoProfil || userMetadata?.photo_profil_url || userMetadata?.avatar_url;
+  // Une seule source : Redux (profil table utilisateur), pas user_metadata Supabase
+  const userFullName = (currentUser as any)?.nom_complet || (currentUser as any)?.email || 'Utilisateur';
+  const userAvatar = photoProfil || (currentUser as any)?.photo_profil || (currentUser as any)?.avatar_url;
 
   // Fermer le menu profil quand on clique en dehors
   useEffect(() => {
@@ -111,9 +114,24 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  /* Garder la position de défilement du sidebar après navigation (restauration différée après paint) */
+  useEffect(() => {
+    const el = navRef.current;
+    const saved = savedNavScrollRef.current;
+    if (el && saved >= 0) {
+      const t = setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (navRef.current) navRef.current.scrollTop = saved;
+        });
+      }, 0);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     setShowProfileMenu(false);
-    await signOut();
+    await dispatch(logoutThunk());
     navigate(AUTH_ROUTES.LOGIN);
   };
 
@@ -140,8 +158,9 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   };
 
   const handleNavClick = () => {
-    // Le useEffect sur location.pathname gère la fermeture automatique
-    // Cette fonction est là pour des actions supplémentaires si nécessaire
+    if (navRef.current) {
+      savedNavScrollRef.current = navRef.current.scrollTop;
+    }
   };
 
   const getRoleLabel = (role: string | null) => {
@@ -196,7 +215,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
         </div>
 
         {/* Navigation */}
-        <nav className={styles.navigation}>
+        <nav ref={navRef} className={styles.navigation}>
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -222,7 +241,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
               {userAvatar ? (
                 <img 
                   src={userAvatar} 
-                  alt={userName} 
+                  alt={userFullName} 
                   className={styles.avatarImage}
                 />
               ) : (
@@ -245,14 +264,14 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
               <div className={styles.profileMenuHeader}>
                 <div className={styles.menuAvatar}>
                   {userAvatar ? (
-                    <img src={userAvatar} alt={userName} />
+                    <img src={userAvatar} alt={userFullName} />
                   ) : (
                     <User size={24} />
                   )}
                 </div>
                 <div className={styles.menuUserInfo}>
                   <span className={styles.menuUserName}>{userFullName}</span>
-                  <span className={styles.menuUserEmail}>{user?.email}</span>
+                  <span className={styles.menuUserEmail}>{currentUser?.email}</span>
                 </div>
               </div>
               <div className={styles.menuDivider} />

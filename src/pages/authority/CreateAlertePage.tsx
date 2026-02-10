@@ -34,8 +34,15 @@ import {
 } from 'lucide-react';
 import styles from './CreateAlertePage.module.css';
 
-export const CreateAlertePage: React.FC = () => {
+export interface CreateAlertePageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /authority */
+  basePath?: string;
+}
+
+export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = false, basePath = '/authority' }) => {
   const navigate = useNavigate();
+  const alertesListPath = `${basePath}/alertes`;
   const [searchParams] = useSearchParams();
   const preselectedDossierId = searchParams.get('dossier');
   
@@ -127,7 +134,7 @@ export const CreateAlertePage: React.FC = () => {
         type: 'success',
       });
 
-      navigate(`/authority/alertes/${alerte.id}`);
+      navigate(`${basePath}/alertes/${alerte.id}`);
     } catch (err: any) {
       addNotification({
         title: t('authority.alertes.createAlerte.messages.error'),
@@ -137,16 +144,14 @@ export const CreateAlertePage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, addNotification, navigate]);
+  }, [formData, addNotification, navigate, basePath]);
 
   // Dossiers actifs uniquement
   const activeDossiers = dossiers.filter((d: any) => 
     d.statut_dossier === 'en_cours' && d.diffusion_autorisee !== false
   );
 
-  return (
-    <AuthorityLayout
-    >
+  const content = (
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
@@ -299,7 +304,7 @@ export const CreateAlertePage: React.FC = () => {
           {/* Actions */}
           <div className={styles.actions}>
             <button 
-              onClick={() => navigate('/authority/alertes')}
+              onClick={() => navigate(alertesListPath)}
               className={styles.cancelBtn}
               disabled={isSubmitting}
             >
@@ -326,8 +331,10 @@ export const CreateAlertePage: React.FC = () => {
           </div>
         </div>
       </div>
-    </AuthorityLayout>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default CreateAlertePage;

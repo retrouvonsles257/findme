@@ -8,8 +8,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
-import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
+import { useAppSelector } from '../../store/types';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { cloudinaryConfig } from '../../config/cloudinary.config';
@@ -67,7 +68,7 @@ const wrapInLayout = (children: React.ReactNode) => (
 
 export const AdminOrganisationProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
 
@@ -93,13 +94,13 @@ export const AdminOrganisationProfilePage: React.FC = () => {
   });
 
   const loadProfile = useCallback(async () => {
-    if (!user?.id) return;
+    if (!currentUser?.id) return;
     setIsLoading(true);
     try {
       const { data, error } = await (supabase as any)
         .from('utilisateur')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', currentUser.id)
         .single();
 
       if (error) {
@@ -130,14 +131,14 @@ export const AdminOrganisationProfilePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, addNotification, t]);
+  }, [currentUser?.id, addNotification, t]);
 
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
 
   const handleSave = async () => {
-    if (!user?.id) return;
+    if (!currentUser?.id) return;
     setIsSaving(true);
     try {
       const { error } = await (supabase as any)
@@ -157,7 +158,7 @@ export const AdminOrganisationProfilePage: React.FC = () => {
           langue_preferee: formData.langue_preferee,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq('id', currentUser.id);
 
       if (error) {
         addNotification({
@@ -187,7 +188,7 @@ export const AdminOrganisationProfilePage: React.FC = () => {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file || !currentUser?.id) return;
     setIsUploadingPhoto(true);
     try {
       const formDataUpload = new FormData();
@@ -205,7 +206,7 @@ export const AdminOrganisationProfilePage: React.FC = () => {
       const { error } = await (supabase as any)
         .from('utilisateur')
         .update({ photo_profil: data.secure_url })
-        .eq('id', user.id);
+        .eq('id', currentUser.id);
       if (error) throw error;
 
       addNotification({

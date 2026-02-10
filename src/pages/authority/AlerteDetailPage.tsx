@@ -31,9 +31,16 @@ import {
 } from 'lucide-react';
 import styles from './AlerteDetailPage.module.css';
 
-export const AlerteDetailPage: React.FC = () => {
+export interface AlerteDetailPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /authority */
+  basePath?: string;
+}
+
+export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = false, basePath = '/authority' }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const alertesListPath = `${basePath}/alertes`;
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
   
@@ -56,7 +63,7 @@ export const AlerteDetailPage: React.FC = () => {
           message: t('authority.alertes.alerteDetail.messages.loadError'),
           type: 'error',
         });
-        navigate('/authority/alertes');
+        navigate(alertesListPath);
       } finally {
         setIsLoading(false);
       }
@@ -156,13 +163,12 @@ export const AlerteDetailPage: React.FC = () => {
   const isDraft = alerte.statut_alerte === 'brouillon' || !alerte.statut_alerte;
   const isActive = alerte.statut_alerte === 'en_cours';
 
-  return (
-    <AuthorityLayout>
+  const content = (
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <button onClick={() => navigate('/authority/alertes')} className={styles.backBtn}>
+            <button onClick={() => navigate(alertesListPath)} className={styles.backBtn}>
               <ArrowLeft size={16} /> {t('authority.commonActions.back')}
             </button>
             <div>
@@ -256,7 +262,7 @@ export const AlerteDetailPage: React.FC = () => {
               <h2><FolderOpen size={20} /> {t('authority.alertes.alerteDetail.sections.linkedDossier')}</h2>
               <div 
                 className={styles.dossierLink}
-                onClick={() => navigate(`/authority/dossiers/${alerte.id_dossier}`)}
+                onClick={() => navigate(`${basePath}/dossiers/${alerte.id_dossier}`)}
               >
                 <span>{alerte.dossier_disparition.numero_dossier || t('authority.alertes.alerteDetail.actions.viewDossier')}</span>
                 <span>→</span>
@@ -270,7 +276,7 @@ export const AlerteDetailPage: React.FC = () => {
           {isDraft && (
             <>
               <button 
-                onClick={() => navigate(`/authority/alertes/${id}/edit`)}
+                onClick={() => navigate(`${basePath}/alertes/${id}/edit`)}
                 className={styles.editBtn}
                 disabled={actionLoading}
               >
@@ -313,8 +319,10 @@ export const AlerteDetailPage: React.FC = () => {
           )}
         </div>
       </div>
-    </AuthorityLayout>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default AlerteDetailPage;

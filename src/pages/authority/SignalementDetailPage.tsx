@@ -27,9 +27,16 @@ import {
 } from 'lucide-react';
 import styles from './SignalementDetailPage.module.css';
 
-export const SignalementDetailPage: React.FC = () => {
+export interface SignalementDetailPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /authority */
+  basePath?: string;
+}
+
+export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ noLayout = false, basePath = '/authority' }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const signalementsListPath = `${basePath}/signalements`;
   const { user } = useAuth();
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
@@ -74,7 +81,7 @@ export const SignalementDetailPage: React.FC = () => {
           message: t('authority.signalementDetail.messages.loadError'),
           type: 'error',
         });
-        navigate('/authority/signalements');
+        navigate(signalementsListPath);
       } finally {
         setIsLoading(false);
       }
@@ -152,25 +159,15 @@ export const SignalementDetailPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <AuthorityLayout
-      >
-        <div style={{ padding: '40px', textAlign: 'center' }}>
-          {t('authority.signalementDetail.loading')}
-        </div>
-      </AuthorityLayout>
-    );
+    const loadingEl = <div style={{ padding: '40px', textAlign: 'center' }}>{t('authority.signalementDetail.loading')}</div>;
+    if (noLayout) return loadingEl;
+    return <AuthorityLayout>{loadingEl}</AuthorityLayout>;
   }
 
   if (!signalement) {
-    return (
-      <AuthorityLayout
-      >
-        <div style={{ padding: '40px', textAlign: 'center' }}>
-          {t('authority.signalementDetail.notFound')}
-        </div>
-      </AuthorityLayout>
-    );
+    const notFoundEl = <div style={{ padding: '40px', textAlign: 'center' }}>{t('authority.signalementDetail.notFound')}</div>;
+    if (noLayout) return notFoundEl;
+    return <AuthorityLayout>{notFoundEl}</AuthorityLayout>;
   }
 
   const statusInfo = getStatusInfo(signalement.statut_validation || signalement.etat);
@@ -178,13 +175,12 @@ export const SignalementDetailPage: React.FC = () => {
                       signalement.statut_validation === 'en_verification' ||
                       !signalement.statut_validation;
 
-  return (
-    <AuthorityLayout>
+  const content = (
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <button onClick={() => navigate('/authority/signalements')} className={styles.backBtn}>
+            <button onClick={() => navigate(signalementsListPath)} className={styles.backBtn}>
               {t('authority.commonActions.back')}
             </button>
             <div>
@@ -302,7 +298,7 @@ export const SignalementDetailPage: React.FC = () => {
               <h2><FolderOpen size={20} /> {t('authority.signalementDetail.sections.linkedDossier')}</h2>
               <div 
                 className={styles.dossierLink}
-                onClick={() => navigate(`/authority/dossiers/${dossier.id}`)}
+                onClick={() => navigate(`${basePath}/dossiers/${dossier.id}`)}
               >
                 <div>
                   <strong>{dossier.numero_dossier}</strong>
@@ -404,8 +400,10 @@ export const SignalementDetailPage: React.FC = () => {
           </div>
         )}
       </div>
-    </AuthorityLayout>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default SignalementDetailPage;

@@ -95,7 +95,9 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
         <div className={styles.dossiers__header}>
           <div>
             <h2 className={styles.dossiers__title}>
-              <Folder className={styles.dossiers__titleIcon} />
+              <span className={styles.dossiers__titleIconWrap} aria-hidden>
+                <Folder className={styles.dossiers__titleIcon} size={28} />
+              </span>
               {t('admin.dossiers')}
             </h2>
             <p className={styles.dossiers__subtitle}>

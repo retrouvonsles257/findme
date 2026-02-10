@@ -66,6 +66,16 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const bp = basePath || DEFAULT_BASE_PATH;
 
+  /** Formate une date (string, Date ou timestamp) en chaîne affichable. Évite "Objects are not valid as a React child". */
+  const safeFormatDate = (value: string | Date | number | null | undefined, options?: { dateStyle?: boolean }): string => {
+    if (value == null) return '—';
+    const d = value instanceof Date ? value : new Date(value as string | number);
+    if (Number.isNaN(d.getTime())) return '—';
+    return options?.dateStyle !== false
+      ? d.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')
+      : d.toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US');
+  };
+
   // Fonction pour traduire le statut
   const getStatusLabel = (statut: string) => {
     if (statut === 'en_cours') return t('authority.dossiers.status.en_cours');
@@ -592,7 +602,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                       <h3><FileText size={18} /> {t('authority.dossierDetail.sections.disappearance')}</h3>
                       <div className={styles.infoItem}>
                         <label><Clock size={14} /> {t('authority.dossierDetail.fields.date')}:</label>
-                        <p>{new Date(dossier.date_disparition).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
+                        <p>{safeFormatDate(dossier.date_disparition)}</p>
                       </div>
                       <div className={styles.infoItem}>
                         <label><MapPin size={14} /> {t('authority.dossierDetail.fields.location')}:</label>
@@ -618,7 +628,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                         {(dossier as any).personne.date_naissance && (
                           <div className={styles.infoItem}>
                             <label><Clock size={14} /> {t('authority.dossierDetail.fields.birthDate')}:</label>
-                            <p>{new Date((dossier as any).personne.date_naissance).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
+                            <p>{safeFormatDate((dossier as any).personne.date_naissance)}</p>
                           </div>
                         )}
                         {(dossier as any).personne.sexe && (
@@ -749,7 +759,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                             </span>
                           </div>
                           <p><strong>{t('authority.dossierDetail.fields.location')}:</strong> {sig.lieu_observation || t('authority.dossierDetail.fields.notProvided')}</p>
-                          <p><strong>{t('authority.dossierDetail.fields.date')}:</strong> {new Date(sig.date_observation).toLocaleDateString()}</p>
+                          <p><strong>{t('authority.dossierDetail.fields.date')}:</strong> {safeFormatDate(sig.date_observation)}</p>
                           {(sig.nom_temoin || (sig.utilisateur && (sig.utilisateur.nom || sig.utilisateur.prenom))) && (
                             <p><strong>{t('authority.dossierDetail.fields.author')}:</strong> {
                               sig.nom_temoin || 
@@ -864,7 +874,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                           </div>
                           <p><strong>{t('authority.documents.type')}:</strong> {t(`authority.documents.types.${doc.type_document}`)}</p>
                           {doc.description && <p><strong>{t('authority.documents.description')}:</strong> {doc.description}</p>}
-                          <p><strong>{t('authority.documents.dateUpload')}:</strong> {doc.date_upload ? new Date(doc.date_upload).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US') : '-'}</p>
+                          <p><strong>{t('authority.documents.dateUpload')}:</strong> {doc.date_upload ? safeFormatDate(doc.date_upload, { dateStyle: false }) : '-'}</p>
                           <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                             <button className={styles.btn} onClick={() => window.open(doc.url_fichier, '_blank')}>
                               <Eye size={16} /> {t('authority.documents.open')}
@@ -1063,9 +1073,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                           <div className={styles.itemHeader}>
                             <h4>{t('authority.dossierDetail.tabs.locations')}</h4>
                             <span className={styles.badge} style={{ backgroundColor: '#007bff' }}>
-                              {loc.date_localisation
-                                ? new Date(loc.date_localisation).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')
-                                : '-'}
+                              {safeFormatDate(loc.date_localisation)}
                             </span>
                           </div>
                           <p>
@@ -1104,7 +1112,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                       {historique.map((entry: any) => (
                         <div key={entry.id} className={styles.timelineItem}>
                           <div className={styles.timelineDate}>
-                            {new Date(entry.date_modification).toLocaleDateString()}
+                            {safeFormatDate(entry.date_modification)}
                           </div>
                           <div className={styles.timelineContent}>
                             <p><strong>{entry.action}</strong></p>
@@ -1118,7 +1126,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                     <div className={styles.timeline}>
                       <div className={styles.timelineItem}>
                         <div className={styles.timelineDate}>
-                          {new Date(dossier?.created_at || new Date()).toLocaleDateString()}
+                          {safeFormatDate(dossier?.created_at)}
                         </div>
                         <div className={styles.timelineContent}>
                           <p>{t('authority.dossiers.title')}</p>
@@ -1209,7 +1217,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                             <div className={styles.iaResultHeader}>
                               <span className={styles.iaResultType}>{result.type_analyse}</span>
                               <span className={styles.iaResultDate}>
-                                {new Date(result.date_analyse).toLocaleDateString()}
+                                {safeFormatDate(result.date_analyse)}
                               </span>
                             </div>
                             <div className={styles.iaResultBody}>

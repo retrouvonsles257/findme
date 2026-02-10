@@ -42,7 +42,11 @@ interface MapFilters {
   urgency: 'all' | 'critique' | 'urgent' | 'normal';
 }
 
-export const MapViewPage: React.FC = () => {
+export interface MapViewPageProps {
+  noLayout?: boolean;
+}
+
+export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) => {
   const navigate = useNavigate();
   const { t, language } = useI18n();
   const { user } = useAuth();
@@ -294,9 +298,8 @@ export const MapViewPage: React.FC = () => {
     }
   }, [mapMarkers]);
 
-  return (
-    <AuthorityLayout>
-      <div className={styles['map-view']}>
+  const content = (
+    <div className={styles['map-view']}>
         {/* Header */}
         <section className={styles['map-view__header']}>
           <div className={styles['map-view__header-content']}>
@@ -672,9 +675,11 @@ export const MapViewPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </AuthorityLayout>
+    </div>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default MapViewPage;

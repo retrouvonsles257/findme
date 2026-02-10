@@ -67,7 +67,11 @@ type AnalysisTab = 'matching' | 'similarities' | 'predictions' | 'results' | 'st
 const DEFAULT_THRESHOLD = 70;
 const PRIORITY_THRESHOLD = 85;
 
-export const IAAnalysisPage: React.FC = () => {
+export interface IAAnalysisPageProps {
+  noLayout?: boolean;
+}
+
+export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false }) => {
   const { t, language } = useI18n();
   const [activeTab, setActiveTab] = useState<AnalysisTab>('matching');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -548,9 +552,8 @@ export const IAAnalysisPage: React.FC = () => {
     r => r.statut_validation === 'en_attente' && r.score_confiance >= PRIORITY_THRESHOLD
   ).length;
 
-  return (
-    <AuthorityLayout>
-      <div className={styles.container}>
+  const content = (
+    <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerIcon}>
@@ -1604,9 +1607,11 @@ export const IAAnalysisPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </AuthorityLayout>
+    </div>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default IAAnalysisPage;

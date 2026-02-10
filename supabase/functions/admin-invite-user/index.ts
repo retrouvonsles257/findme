@@ -1,7 +1,7 @@
 /**
  * Edge Function: admin-invite-user
  * Invite un utilisateur par email dans l'organisation (auth.admin.inviteUserByEmail).
- * Nécessite le JWT de l'admin organisation et le service_role en secret.
+ * Validation JWT via jose + JWKS (compatible clés asymétriques Supabase).
  *
  * Déploiement: supabase functions deploy admin-invite-user
  * Secrets: SUPABASE_SERVICE_ROLE_KEY (fourni par défaut)
@@ -9,11 +9,13 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import * as jose from 'jsr:@panva/jose@6';
 
-const corsHeaders = {
+const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Headers': 'authorization, content-type, x-client-info, apikey, x-api-version, x-application-name, x-request-id',
+  'Access-Control-Max-Age': '86400',
 };
 
 type InviteBody = {
@@ -27,6 +29,32 @@ function jsonResponse(payload: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+/** Vérifie le JWT avec le JWKS Supabase (clés asymétriques). Retourne le payload ou null. */
+async function verifySupabaseJwt(req: Request): Promise<{ sub: string } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) return null;
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  if (!supabaseUrl) return null;
+
+  const issuer = Deno.env.get('SB_JWT_ISSUER') ?? `${supabaseUrl}/auth/v1`;
+  const jwksUrl = `${supabaseUrl}/auth/v1/.well-known/jwks.json`;
+
+  try {
+    const JWKS = jose.createRemoteJWKSet(new URL(jwksUrl));
+    const { payload } = await jose.jwtVerify(token, JWKS, {
+      issuer,
+      audience: 'authenticated',
+    });
+    const sub = payload.sub as string;
+    return sub ? { sub } : null;
+  } catch {
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -49,6 +77,13 @@ serve(async (req) => {
     return jsonResponse({ error: 'Server configuration error' }, 500);
   }
 
+  const jwtPayload = await verifySupabaseJwt(req);
+  if (!jwtPayload?.sub) {
+    return jsonResponse({ error: 'Invalid or expired token' }, 401);
+  }
+
+  const userId = jwtPayload.sub;
+
   let body: InviteBody;
   try {
     body = await req.json();
@@ -68,22 +103,25 @@ serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const token = authHeader.replace('Bearer ', '');
-  const { data: { user }, error: userError } = await adminClient.auth.getUser(token);
-  if (userError || !user) {
-    return jsonResponse({ error: 'Invalid or expired token' }, 401);
+  const { data: profile, error: profileError } = await (adminClient as any).from('utilisateur').select('id_organisation').eq('id', userId).maybeSingle();
+  if (profileError) {
+    const detail = profileError?.message || profileError?.code || String(profileError);
+    return jsonResponse({ error: 'Erreur lecture profil', detail }, 500);
   }
+  if (!profile) {
+    return jsonResponse({ error: 'Profil utilisateur introuvable (table utilisateur)' }, 403);
+  }
+  const userOrgId = (profile.id_organisation ?? '') as string;
 
-  const { data: profile } = await (adminClient as any).from('utilisateur').select('id_organisation').eq('id', user.id).single();
-  const metadata = (user.user_metadata || {}) as Record<string, unknown>;
-  const appMeta = (user.app_metadata || {}) as Record<string, unknown>;
-  let userOrgId = (profile?.id_organisation ?? metadata.organisation_id ?? appMeta.organisation_id ?? '') as string;
+  const { data: rolesData } = await (adminClient as any).from('utilisateur_role').select('role:role(nom_role)').eq('id_utilisateur', userId);
+  const roles = Array.isArray(rolesData) ? rolesData : rolesData ? [rolesData] : [];
+  const hasAdminOrg = roles.some((r: any) => r?.role?.nom_role === 'admin_organisation');
 
-  const { data: ur } = await (adminClient as any).from('utilisateur_role').select('role:role(nom_role)').eq('id_utilisateur', user.id).limit(1).maybeSingle();
-  const userRole = (ur?.role?.nom_role ?? metadata.role ?? appMeta.role ?? '') as string;
-
-  if (userRole !== 'admin_organisation' || userOrgId !== organisationId) {
-    return jsonResponse({ error: 'Forbidden: not admin of this organisation' }, 403);
+  if (!hasAdminOrg) {
+    return jsonResponse({ error: 'Rôle admin organisation requis' }, 403);
+  }
+  if (userOrgId !== organisationId) {
+    return jsonResponse({ error: 'Vous n\'êtes pas admin de cette organisation' }, 403);
   }
 
   const redirectUrl = Deno.env.get('SITE_URL') || `${supabaseUrl.replace('.supabase.co', '')}`;
@@ -97,7 +135,7 @@ serve(async (req) => {
       data: {
         organisation_id: organisationId,
         role,
-        invited_by: user.id,
+        invited_by: userId,
       },
       redirectTo,
     }

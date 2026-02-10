@@ -97,6 +97,7 @@
   flex-direction: column;
   gap: 0.25rem;
   overflow-y: auto;
+  overflow-anchor: none; /* évite que le navigateur réancre le scroll à la navigation */
   scrollbar-width: thin;
   scrollbar-color: var(--authority-border, #334155) transparent;
 }

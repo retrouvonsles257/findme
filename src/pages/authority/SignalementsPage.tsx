@@ -37,7 +37,13 @@ import styles from './SignalementsPage.module.css';
 
 type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide';
 
-export const SignalementsPage: React.FC = () => {
+export interface SignalementsPageProps {
+  noLayout?: boolean;
+  /** Base path for links (e.g. /admin when used from admin org). Default /authority */
+  basePath?: string;
+}
+
+export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = false, basePath = '/authority' }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUser = useAppSelector(selectCurrentUser);
@@ -183,9 +189,8 @@ export const SignalementsPage: React.FC = () => {
     }
   };
 
-  return (
-    <AuthorityLayout>
-      <div className={styles.authoritySignalements}>
+  const content = (
+    <div className={styles.authoritySignalements}>
         {/* Page Header */}
         <header className={styles.pageHeader}>
           <div className={styles.headerContent}>
@@ -365,7 +370,7 @@ export const SignalementsPage: React.FC = () => {
                     )}
                     <button
                       className={styles.actionBtn}
-                      onClick={() => navigate(`/authority/signalements/${signalement.id}`)}
+                      onClick={() => navigate(`${basePath}/signalements/${signalement.id}`)}
                       title={t('authority.signalements.actions.viewDetails')}
                     >
                       <Eye size={16} />
@@ -460,9 +465,11 @@ export const SignalementsPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </AuthorityLayout>
+    </div>
   );
+
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default SignalementsPage;

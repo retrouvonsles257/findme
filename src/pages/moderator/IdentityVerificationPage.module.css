@@ -644,6 +644,12 @@
   color: white;
 }
 
+.identity-verification__decision-btn--active-complement {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border-color: #7c3aed;
+  color: white;
+}
+
 .identity-verification__form-group {
   margin-bottom: 1rem;
 }

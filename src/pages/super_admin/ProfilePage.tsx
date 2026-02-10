@@ -9,6 +9,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
+import { useAppSelector } from '../../store/types';
+import { selectUser } from '../../features/auth/store/authSelectors';
 import { uploadFileToCloudinary } from '../../services/cloudinary';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { 
@@ -54,6 +56,7 @@ interface UserProfile {
 
 export const SuperAdminProfilePage: React.FC = () => {
   useI18n(); // For future i18n support
+  const currentUser = useAppSelector(selectUser);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,25 +102,24 @@ export const SuperAdminProfilePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadProfile = useCallback(async () => {
+    if (!currentUser?.id) {
+      setError('Non connecté');
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
       setError(null);
 
-      // Récupérer l'utilisateur courant
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      if (!user) throw new Error('Non connecté');
-
-      // Récupérer le profil utilisateur - l'id de utilisateur EST l'id de auth.users
       const { data, error: fetchError } = await (supabase as any)
         .from('utilisateur')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', currentUser.id)
         .single();
 
       if (fetchError) throw fetchError;
 
-      setProfile({ ...data, email: user.email || data.email });
+      setProfile({ ...data, email: (currentUser as any).email || data.email });
       setFormData({
         nom: data.nom || '',
         prenom: data.prenom || '',
@@ -143,7 +145,7 @@ export const SuperAdminProfilePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     loadProfile();

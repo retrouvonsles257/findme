@@ -29,8 +29,9 @@ import {
   Maximize2,
 } from 'lucide-react';
 import { supabase } from '../../../config';
-import { useAuth } from '../../../contexts';
 import { useI18n } from '../../../hooks';
+import { useAppSelector } from '../../../store/types';
+import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { getLanguageName } from '../../../locales';
 import { useCoordinationMessages } from '../../../features/coordination';
 import styles from './AuthorityHeader.module.css';
@@ -68,7 +69,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   sidebarOpen,
 }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const currentUser = useAppSelector(selectCurrentUser);
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -98,16 +99,18 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   }, []);
 
   useEffect(() => {
-    if (user?.id) loadPhotoProfil(user.id);
+    if (currentUser?.id) loadPhotoProfil(currentUser.id);
     else setPhotoProfil(null);
-  }, [user?.id, loadPhotoProfil, location.pathname]);
+  }, [currentUser?.id, loadPhotoProfil, location.pathname]);
 
   const getInitials = () => {
-    const m = user?.user_metadata as Record<string, any> | undefined;
-    if (m?.prenom && m?.nom) {
-      return `${(m.prenom as string)[0]}${(m.nom as string)[0]}`.toUpperCase();
+    const u = currentUser as { nom_complet?: string; email?: string } | null;
+    if (u?.nom_complet) {
+      const parts = u.nom_complet.trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      if (parts[0]) return parts[0].slice(0, 2).toUpperCase();
     }
-    if (user?.email) return user.email.slice(0, 2).toUpperCase();
+    if (u?.email) return u.email.slice(0, 2).toUpperCase();
     return 'U';
   };
 
@@ -151,7 +154,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 
   // Charger les notifications réelles depuis Supabase
   const fetchNotifications = useCallback(async () => {
-    if (!user?.id) return;
+    if (!currentUser?.id) return;
 
     setLoadingNotifications(true);
     try {
@@ -159,7 +162,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       const { data, error } = await (supabase as any)
         .from('notification')
         .select('authority.id, type_notification, titre, message, lue, date_creation, url_action')
-        .eq('id_utilisateur', user.id)
+        .eq('id_utilisateur', currentUser.id)
         .order('date_creation', { ascending: false })
         .limit(10);
 
@@ -179,7 +182,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     } finally {
       setLoadingNotifications(false);
     }
-  }, [user?.id]);
+  }, [currentUser?.id]);
 
   // Fallback: créer des notifications basées sur les signalements validés
   const fetchFallbackNotifications = async () => {
@@ -249,7 +252,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 
   // Subscription temps réel pour les nouvelles notifications
   useEffect(() => {
-    if (!user?.id) return;
+    if (!currentUser?.id) return;
 
     const channel = supabase
       .channel('notifications')
@@ -259,7 +262,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
           event: 'INSERT',
           schema: 'public',
           table: 'notification',
-          filter: `id_utilisateur=eq.${user.id}`,
+          filter: `id_utilisateur=eq.${currentUser.id}`,
         },
         (payload) => {
           const newNotif = normalizeNotification(payload.new as NotificationDB);
@@ -272,7 +275,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [currentUser?.id]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -319,14 +322,14 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   };
 
   const markAllAsRead = async () => {
-    if (!user?.id) return;
+    if (!currentUser?.id) return;
 
     try {
       // Marquer toutes les notifications DB comme lues
       await (supabase as any)
         .from('notification')
         .update({ lue: true, date_lecture: new Date().toISOString() })
-        .eq('id_utilisateur', user.id)
+        .eq('id_utilisateur', currentUser.id)
         .eq('lue', false);
 
       setNotifications(prev => prev.map(n => ({ ...n, lu: true })));

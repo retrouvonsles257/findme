@@ -43,15 +43,19 @@ export const useHistoriqueDossier = (): UseHistoriqueDossierReturn => {
 
       if (!journalErr && journalData && journalData.length > 0) {
         // Mapper journal_activite vers HistoriqueEntry
-        const mapped = journalData.map((entry: any) => ({
-          id: entry.id,
-          action: entry.type_action || entry.action || 'Action',
-          description: entry.description || entry.contenu || '',
-          date_modification: entry.date_action || entry.created_at,
-          modified_by: entry.utilisateur 
-            ? `${entry.utilisateur.prenom || ''} ${entry.utilisateur.nom || ''}`.trim()
-            : entry.nom_utilisateur || 'Système',
-        }));
+        const mapped = journalData.map((entry: any) => {
+          const rawDate = entry.date_action || entry.created_at;
+          const dateMod = rawDate instanceof Date ? rawDate.toISOString() : (typeof rawDate === 'string' ? rawDate : '');
+          return {
+            id: entry.id,
+            action: entry.type_action || entry.action || 'Action',
+            description: entry.description || entry.contenu || '',
+            date_modification: dateMod,
+            modified_by: entry.utilisateur 
+              ? `${entry.utilisateur.prenom || ''} ${entry.utilisateur.nom || ''}`.trim()
+              : entry.nom_utilisateur || 'Système',
+          };
+        });
         setHistorique(mapped);
         return;
       }
@@ -64,12 +68,17 @@ export const useHistoriqueDossier = (): UseHistoriqueDossierReturn => {
         .order('date_modification', { ascending: false });
 
       if (!histErr && histData) {
-        const mapped = histData.map((entry: any) => ({
-          ...entry,
-          modified_by: entry.utilisateur 
-            ? `${entry.utilisateur.prenom || ''} ${entry.utilisateur.nom || ''}`.trim()
-            : entry.modified_by || 'Système',
-        }));
+        const mapped = histData.map((entry: any) => {
+          const rawDate = entry.date_modification || entry.created_at;
+          const dateMod = rawDate instanceof Date ? rawDate.toISOString() : (typeof rawDate === 'string' ? rawDate : '');
+          return {
+            ...entry,
+            date_modification: dateMod,
+            modified_by: entry.utilisateur 
+              ? `${entry.utilisateur.prenom || ''} ${entry.utilisateur.nom || ''}`.trim()
+              : entry.modified_by || 'Système',
+          };
+        });
         setHistorique(mapped);
       } else {
         // Si aucune table n'existe, retourner vide
