@@ -177,7 +177,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                   )}
                 </div>
                 {failed.length > 0 && (
-                  <ul className={styles.resultFailedList} aria-label="Échecs">
+                  <ul className={styles.resultFailedList} aria-label={t('admin.batchFailed') || 'Échecs'} role="alert">
                     {failed.map((f, i) => (
                       <li key={i}>
                         <strong>{f.email}</strong>: {f.error}

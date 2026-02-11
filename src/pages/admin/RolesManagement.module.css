@@ -80,6 +80,11 @@
 }
 
 /* ----- Loading ----- */
+.rolesManagement__skeletonWrap {
+  padding: 1.5rem;
+  min-height: 360px;
+}
+
 .rolesManagement__loading {
   display: flex;
   flex-direction: column;

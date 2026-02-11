@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { analyzeFacialImage, getResultatsIA, ResultatIA } from '../../features/ia-analysis/services/iaAPI';
 import { isHuggingFaceConfigured } from '../../services/huggingFaceService';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './DossierDetailPage.module.css';
 
 export interface DossierDetailPageProps {
@@ -522,12 +523,14 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   const content = (
     <div className={styles.container}>
         {isLoading ? (
-          <div className={styles.loading}>{t('authority.dossierDetail.loading')}</div>
+          <div className={styles.skeletonWrap}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+          </div>
         ) : error ? (
-          <div className={styles.error}>
+          <div className={styles.errorBanner} role="alert">
             <h3>{t('authority.dossierDetail.error')}</h3>
             <p>{error}</p>
-            <button onClick={() => id && fetchDossier(id)}>{t('authority.commonActions.view')}</button>
+            <button type="button" className={styles.retryBtn} onClick={() => id && fetchDossier(id)}>{t('authority.commonActions.view')}</button>
           </div>
         ) : dossier ? (
           <>

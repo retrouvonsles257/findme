@@ -35,8 +35,10 @@ import {
   Calendar,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
+import { AdminTableSkeleton } from './skeletons';
 import styles from './UsersManagement.module.css';
 
 interface User {
@@ -57,6 +59,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -67,6 +70,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
     if (!orgId) return;
     try {
       setLoading(true);
+      setLoadError(false);
       const rows = await getAdminOrganisationUsers(orgId, {
         search: searchTerm || undefined,
         role: filterRole !== 'all' ? filterRole : undefined,
@@ -85,6 +89,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
       setFilteredUsers(mapped);
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
+      setLoadError(true);
       setFilteredUsers([]);
     } finally {
       setLoading(false);
@@ -240,11 +245,16 @@ export const AdminOrganisationUsersPage: React.FC = () => {
           </CardHeader>
           <CardBody>
             {loading ? (
-              <div className={styles.usersManagement__loadingState}>
-                <Loader2 className={styles.usersManagement__spinner} />
-                <p className={styles.usersManagement__loadingText}>{t('common.loading')}</p>
-              </div>
-            ) : filteredUsers.length === 0 ? (
+              <AdminTableSkeleton columns={6} rows={8} />
+            ) : (
+              <>
+                {loadError && (
+                  <div className={`${styles.usersManagement__error} ${styles.usersManagement__errorBanner}`} role="alert">
+                    <AlertCircle size={18} aria-hidden />
+                    <span>{t('admin.noUsersFound')}</span>
+                  </div>
+                )}
+                {filteredUsers.length === 0 ? (
               <div className={styles.usersManagement__emptyState}>
                 <UserCircle className={styles.usersManagement__emptyIcon} />
                 <p className={styles.usersManagement__emptyText}>{t('admin.noUsersFound')}</p>
@@ -358,6 +368,8 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                   ))}
                 </div>
               </div>
+                )}
+              </>
             )}
           </CardBody>
         </Card>

@@ -5,6 +5,7 @@ import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { StatutDossier } from '../../@types/enums.types';
 import { NGOLayout } from './NGOLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import styles from './CasesPage.module.css';
 
 interface CaseRow {
@@ -118,9 +119,8 @@ export const NGOCasesPage: React.FC<NGOCasesPageProps> = ({ noLayout, basePath =
   const paginatedCases = cases.slice(startIdx, startIdx + itemsPerPage);
 
   const loadingContent = (
-    <div className={styles['ngo-cases__loading-container']}>
-      <div className={styles['ngo-cases__spinner']}></div>
-      <p>{t('common.loading')}</p>
+    <div className={styles['ngo-cases__skeletonWrap']}>
+      <AdminTableSkeleton columns={4} rows={8} />
     </div>
   );
   if (loading) {
@@ -133,8 +133,8 @@ export const NGOCasesPage: React.FC<NGOCasesPageProps> = ({ noLayout, basePath =
       <p className={styles['ngo-cases__subtitle']}>{t('ngo.casesSubtitle')}</p>
 
       {error && (
-        <div className={styles['ngo-cases__error-message']}>
-          ⚠️ {error}
+        <div className={styles['ngo-cases__error-banner']} role="alert">
+          <span>{error}</span>
         </div>
       )}
 

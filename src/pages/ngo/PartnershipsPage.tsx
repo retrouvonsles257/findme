@@ -3,6 +3,7 @@ import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
 import { getPartenariatsOrganisation } from '../../features/admin-organisation/services';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './PartnershipsPage.module.css';
 
 interface Partnership {
@@ -80,9 +81,8 @@ export const NGOPartnershipsPage: React.FC<NGOPartnershipsPageProps> = ({ noLayo
   const paginatedPartnerships = filteredPartnerships.slice(startIdx, startIdx + itemsPerPage);
 
   const loadingContent = (
-    <div className={styles['ngo-partnerships__loading-container']}>
-      <div className={styles['ngo-partnerships__spinner']}></div>
-      <p>{t('common.loading')}</p>
+    <div className={styles['ngo-partnerships__skeletonWrap']}>
+      <AdminListSkeleton cardCount={6} showFilters={false} />
     </div>
   );
   if (loading) {
@@ -95,8 +95,8 @@ export const NGOPartnershipsPage: React.FC<NGOPartnershipsPageProps> = ({ noLayo
       <p className={styles['ngo-partnerships__subtitle']}>{t('ngo.partnershipsSubtitle')}</p>
 
       {error && (
-        <div className={styles['ngo-partnerships__error-message']}>
-          ⚠️ {error}
+        <div className={styles['ngo-partnerships__error-banner']} role="alert">
+          <span>{error}</span>
         </div>
       )}
 

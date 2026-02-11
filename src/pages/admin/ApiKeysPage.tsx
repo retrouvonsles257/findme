@@ -7,8 +7,9 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Key, ArrowLeft, Plus, Copy, Trash2, Loader2, X } from 'lucide-react';
+import { Key, ArrowLeft, Plus, Copy, Trash2, Loader2, X, AlertCircle } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
+import { AdminTableSkeleton } from './skeletons';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -36,6 +37,7 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [keys, setKeys] = useState<AdminApiKeyRow[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
@@ -48,10 +50,12 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
     if (!orgId) return;
     try {
       setLoading(true);
+      setLoadError(false);
       const list = await listAdminApiKeys(orgId);
       setKeys(list);
     } catch (e) {
       console.error('Erreur chargement clés API:', e);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -140,11 +144,18 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
           </div>
           <CardBody>
             {loading ? (
-              <div className={styles.loading}>
-                <Loader2 size={32} className={styles.spinner} />
-                <p>{t('common.loading')}</p>
+              <div className={styles.skeletonWrap}>
+                <AdminTableSkeleton columns={4} rows={5} />
               </div>
-            ) : keys.length === 0 ? (
+            ) : (
+              <>
+              {loadError && (
+                <div className={`${styles.error} ${styles.errorBanner}`} role="alert">
+                  <AlertCircle size={18} aria-hidden />
+                  <span>{t('common.error')}</span>
+                </div>
+              )}
+              {keys.length === 0 ? (
               <p className={styles.empty}>{t('admin.noApiKeys')}</p>
             ) : (
               <ul className={styles.list}>
@@ -175,6 +186,8 @@ export const AdminOrganisationApiKeysPage: React.FC = () => {
                   </li>
                 ))}
               </ul>
+              )}
+              </>
             )}
           </CardBody>
         </div>

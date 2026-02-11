@@ -907,7 +907,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
               <h2>✓ {t('authority.createDossier.step3.title')}</h2>
 
               {submitError && (
-                <div className={styles.submitError}>
+                <div className={styles.submitErrorBanner} role="alert">
                   {submitError}
                 </div>
               )}

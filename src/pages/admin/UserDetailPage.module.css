@@ -42,6 +42,23 @@
   text-decoration: underline;
 }
 
+.skeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 320px;
+}
+
+.errorBanner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  background: var(--admin-error-bg, #fef2f2);
+  border: 1px solid var(--admin-error-border, #fecaca);
+  color: var(--admin-error-text, #b91c1c);
+  padding: var(--space-4, 1rem) var(--space-5, 1.5rem);
+  border-radius: var(--space-1, 0.25rem);
+  font-size: 0.9rem;
+}
+
 .loading {
   display: flex;
   flex-direction: column;

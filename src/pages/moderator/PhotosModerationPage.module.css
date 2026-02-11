@@ -132,24 +132,32 @@
 /* MESSAGES */
 /* ============================================ */
 
-.photos-moderation__success,
-.photos-moderation__error {
+.photos-moderation__skeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 360px;
+}
+
+.photos-moderation__success {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
   border-radius: 10px;
   font-weight: 500;
-}
-
-.photos-moderation__success {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
 }
 
 .photos-moderation__error {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-radius: var(--space-1, 0.25rem);
+  font-weight: 500;
+  background: var(--admin-error-bg, #fef2f2);
+  border: 1px solid var(--admin-error-border, #fecaca);
+  color: var(--admin-error-text, #b91c1c);
 }
 
 /* Stats */

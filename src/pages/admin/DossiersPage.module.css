@@ -192,12 +192,29 @@
   color: #1e293b;
 }
 
+.dossiers__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--admin-error-bg);
+  border: 1px solid var(--admin-error-border);
+  border-radius: var(--space-1);
+  color: var(--admin-error-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.dossiers__errorBanner {
+  margin-bottom: var(--space-4);
+}
+
 .dossiers__loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
-  padding: 4rem;
+  gap: var(--space-2);
+  padding: var(--space-5);
   color: var(--admin-doss-muted);
   font-size: 0.9rem;
 }

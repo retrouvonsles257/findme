@@ -33,6 +33,7 @@ import {
   CheckCircle,
   AlertTriangle,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from './skeletons';
 import styles from '../authority/ProfilePage.module.css';
 
 interface ProfileData {
@@ -261,20 +262,19 @@ export const AdminOrganisationProfilePage: React.FC = () => {
 
   if (isLoading) {
     return wrapInLayout(
-      <div className={styles.loadingContainer}>
-        <Loader2 size={32} className={styles.spinner} />
-        <p>{t('authority.profilePage.loading')}</p>
+      <div className={styles.detailSkeletonWrap}>
+        <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
       </div>
     );
   }
 
   if (!profile) {
     return wrapInLayout(
-      <div className={styles.errorContainer}>
+      <div className={styles.errorContainer} role="alert">
         <AlertTriangle size={48} />
         <h2>{t('authority.profilePage.notFound')}</h2>
         <p>{t('authority.profilePage.notFoundDescription')}</p>
-        <button onClick={() => navigate('/admin/dashboard')}>
+        <button type="button" onClick={() => navigate('/admin/dashboard')}>
           {t('authority.profilePage.backToDashboard')}
         </button>
       </div>

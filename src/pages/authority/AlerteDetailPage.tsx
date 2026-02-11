@@ -29,6 +29,7 @@ import {
   MessageSquare,
   ArrowLeft,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './AlerteDetailPage.module.css';
 
 export interface AlerteDetailPageProps {
@@ -46,6 +47,7 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
   
   const [alerte, setAlerte] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   // Charger l'alerte
@@ -54,16 +56,16 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
       if (!id) return;
 
       try {
+        setLoadError(null);
         const data = await getAlerteById(id);
         setAlerte(data);
       } catch (err: any) {
-        // Erreur gérée par la notification
+        setLoadError(err?.message || t('authority.alertes.alerteDetail.messages.loadError'));
         addNotification({
           title: t('authority.alertes.alerteDetail.messages.error'),
           message: t('authority.alertes.alerteDetail.messages.loadError'),
           type: 'error',
         });
-        navigate(alertesListPath);
       } finally {
         setIsLoading(false);
       }
@@ -138,25 +140,34 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
   };
 
   if (isLoading) {
-    return (
-      <AuthorityLayout
-      >
-        <div style={{ padding: '40px', textAlign: 'center' }}>
-          {t('authority.alertes.alerteDetail.loading')}
-        </div>
-      </AuthorityLayout>
+    const skeleton = (
+      <div className={styles.detailSkeletonWrap}>
+        <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+      </div>
     );
+    if (noLayout) return skeleton;
+    return <AuthorityLayout>{skeleton}</AuthorityLayout>;
+  }
+
+  if (loadError) {
+    const errorBlock = (
+      <div className={styles.errorBanner} role="alert">
+        <p>{loadError}</p>
+        <button type="button" className={styles.backBtn} onClick={() => navigate(alertesListPath)}>
+          {t('authority.commonActions.back')}
+        </button>
+      </div>
+    );
+    if (noLayout) return errorBlock;
+    return <AuthorityLayout>{errorBlock}</AuthorityLayout>;
   }
 
   if (!alerte) {
-    return (
-      <AuthorityLayout
-      >
-        <div style={{ padding: '40px', textAlign: 'center' }}>
-          {t('authority.alertes.alerteDetail.notFound')}
-        </div>
-      </AuthorityLayout>
+    const notFound = (
+      <div className={styles.notFound}>{t('authority.alertes.alerteDetail.notFound')}</div>
     );
+    if (noLayout) return notFound;
+    return <AuthorityLayout>{notFound}</AuthorityLayout>;
   }
 
   const statusInfo = getStatusInfo(alerte.statut_alerte);

@@ -38,6 +38,7 @@ import {
 import { logActivity } from '../../services/audit/auditService';
 import { TypeAction } from '../../@types/enums.types';
 
+import { AdminDetailSkeleton } from './skeletons';
 import styles from './OrganisationSettings.module.css';
 
 export const AdminOrganisationSettingsPage: React.FC = () => {
@@ -45,6 +46,8 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
   const { t } = useI18n();
   
   const currentUser = useAppSelector(selectCurrentUser);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'team' | 'notifications' | 'zones' | 'certifications' | 'ia' | 'security'>('general');
   const [formData, setFormData] = useState({
@@ -89,8 +92,13 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
       return;
     }
     const orgId = currentUser.organisation_id;
-    if (orgId) {
-      getAdminOrganisation(orgId).then((org) => {
+    if (!orgId) {
+      setSettingsLoading(false);
+      return;
+    }
+    setLoadError(null);
+    getAdminOrganisation(orgId)
+      .then((org) => {
         if (org) {
           setFormData({
             organisationName: org.nom || '',
@@ -125,9 +133,13 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
             setIaConfig(prev => ({ ...prev, ...ia }));
           }
         }
-      }).catch(console.error);
-    }
-  }, [currentUser, navigate]);
+        setLoadError(null);
+      })
+      .catch((err) => {
+        setLoadError(err?.message || t('common.error'));
+      })
+      .finally(() => setSettingsLoading(false));
+  }, [currentUser, navigate, t]);
 
   const handleSaveChanges = async () => {
     const orgId = currentUser?.organisation_id;
@@ -296,6 +308,26 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
     { id: 'ia', label: t('admin.iaParams'), icon: Cpu },
     { id: 'security', label: t('admin.security'), icon: Shield },
   ];
+
+  if (settingsLoading) {
+    return (
+      <AdminOrganisationLayout title={t('admin.organisationSettings')} activeNav="parametres">
+        <div className={styles.settings__skeletonWrap}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+        </div>
+      </AdminOrganisationLayout>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <AdminOrganisationLayout title={t('admin.organisationSettings')} activeNav="parametres">
+        <div className={styles.settings__errorBanner} role="alert">
+          <p>{loadError}</p>
+        </div>
+      </AdminOrganisationLayout>
+    );
+  }
 
   return (
     <AdminOrganisationLayout title={t('admin.organisationSettings')} activeNav="parametres">

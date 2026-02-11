@@ -3,6 +3,7 @@ import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
 import { getRessourcesOrganisation } from '../../features/admin-organisation/services';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './ResourcesPage.module.css';
 
 interface Resource {
@@ -88,9 +89,8 @@ export const NGOResourcesPage: React.FC<NGOResourcesPageProps> = ({ noLayout, or
   };
 
   const loadingContent = (
-    <div className={styles['ngo-resources__loading-container']}>
-      <div className={styles['ngo-resources__spinner']}></div>
-      <p>{t('common.loading')}</p>
+    <div className={styles['ngo-resources__skeletonWrap']}>
+      <AdminListSkeleton cardCount={6} showFilters={false} />
     </div>
   );
   if (loading) {
@@ -103,8 +103,8 @@ export const NGOResourcesPage: React.FC<NGOResourcesPageProps> = ({ noLayout, or
       <p className={styles['ngo-resources__subtitle']}>{t('ngo.resourcesSubtitle')}</p>
 
       {error && (
-        <div className={styles['ngo-resources__error-message']}>
-          ⚠️ {error}
+        <div className={styles['ngo-resources__error-banner']} role="alert">
+          <span>{error}</span>
         </div>
       )}
 

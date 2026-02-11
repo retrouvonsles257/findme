@@ -59,6 +59,7 @@ import {
   fetchSimilaritiesResults 
 } from '../../features/ia-analysis/store/iaSlice';
 import { supabase } from '../../config';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './IAAnalysisPage.module.css';
 
 type AnalysisTab = 'matching' | 'similarities' | 'predictions' | 'results' | 'statistics';
@@ -687,7 +688,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                 )}
 
                 {facialError && (
-                  <div className={styles.errorAlert}>
+                  <div className={styles.errorBanner} role="alert">
                     <AlertCircle size={20} />
                     <span>{t('authority.iaAnalysis.messages.errorOccurred')}</span>
                   </div>
@@ -784,16 +785,15 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
               </div>
 
               {iaError && (
-                <div className={styles.errorAlert}>
+                <div className={styles.errorBanner} role="alert">
                   <AlertCircle size={20} />
                   <span>{t('authority.iaAnalysis.messages.errorOccurred')}</span>
                 </div>
               )}
 
               {iaLoading ? (
-                <div className={styles.loadingState}>
-                  <Loader2 size={32} className={styles.spinner} />
-                  <span>{t('authority.iaAnalysis.loading')}</span>
+                <div className={styles.skeletonWrap}>
+                  <AdminListSkeleton cardCount={4} showFilters={false} />
                 </div>
               ) : similaritiesResults.length > 0 ? (
                 <div className={styles.similaritiesList}>
@@ -855,9 +855,8 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
               </div>
 
               {iaLoading ? (
-                <div className={styles.loadingState}>
-                  <Loader2 size={32} className={styles.spinner} />
-                  <span>{t('authority.iaAnalysis.predictions.calculating')}</span>
+                <div className={styles.skeletonWrap}>
+                  <AdminListSkeleton cardCount={4} showFilters={false} />
                 </div>
               ) : locationPredictions.length > 0 ? (
                 <div className={styles.predictionsList}>
@@ -942,9 +941,8 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
               </div>
 
               {iaLoading ? (
-                <div className={styles.loadingState}>
-                  <Loader2 size={32} className={styles.spinner} />
-                  <span>{t('authority.iaAnalysis.loading')}</span>
+                <div className={styles.skeletonWrap}>
+                  <AdminListSkeleton cardCount={6} showFilters={false} />
                 </div>
               ) : (
                 <div className={styles.resultsContainer}>

@@ -33,6 +33,7 @@ import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './SignalementsPage.module.css';
 
 type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide';
@@ -48,7 +49,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
   const { user } = useAuth();
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
-  const { signalements, isLoading, fetchSignalements } = useSignalements();
+  const { signalements, isLoading, error: loadError, fetchSignalements } = useSignalements();
   const orgFilter = useMemo(() => {
     if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
       return { organisation_id: currentUser.organisation_id };
@@ -284,12 +285,17 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
           </div>
         </div>
 
+        {loadError && (
+          <div className={styles.errorBanner} role="alert">
+            <AlertTriangle size={20} />
+            <span>{loadError}</span>
+          </div>
+        )}
         {/* Signalements Grid */}
         <div className={styles.signalementsGrid}>
           {isLoading ? (
-            <div className={styles.loadingState}>
-              <RefreshCw size={24} className={styles.spinning} />
-              <span>{t('authority.signalements.loading')}</span>
+            <div className={styles.skeletonWrap}>
+              <AdminListSkeleton cardCount={6} showFilters={true} />
             </div>
           ) : filteredSignalements.length > 0 ? (
             filteredSignalements.map((signalement: any) => {

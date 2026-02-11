@@ -44,6 +44,7 @@ import {
   BookOpen,
   Handshake,
 } from 'lucide-react';
+import './adminTheme.css';
 import styles from './AdminOrganisationLayout.module.css';
 
 type ActiveNavType =

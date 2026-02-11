@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GitBranch, Plus, Pencil, Trash2, Loader2, X } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
+import { AdminTableSkeleton } from './skeletons';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { Button } from '../../components/common/Button';
 import { useI18n } from '../../hooks';
@@ -171,8 +172,8 @@ export const AdminOrganisationWorkflowsPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className={styles.workflows__error}>
-            {error}
+          <div className={styles.workflows__error} role="alert">
+            <span>{error}</span>
             <Button variant="secondary" size="sm" onClick={() => { setError(null); loadSteps(); }} style={{ marginTop: 8 }}>
               {t('common.retry')}
             </Button>
@@ -180,9 +181,8 @@ export const AdminOrganisationWorkflowsPage: React.FC = () => {
         )}
 
         {loading && (
-          <div className={styles.workflows__loading}>
-            <Loader2 size={32} className={styles.workflows__spinner} />
-            <p>{t('common.loading')}</p>
+          <div className={styles.workflows__skeletonWrap}>
+            <AdminTableSkeleton columns={5} rows={6} />
           </div>
         )}
 

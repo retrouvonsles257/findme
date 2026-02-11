@@ -354,6 +354,28 @@
   color: #1e293b;
 }
 
+.statistiques__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  background: var(--admin-error-bg, #fef2f2);
+  border: 1px solid var(--admin-error-border, #fecaca);
+  border-radius: var(--space-1, 0.25rem);
+  color: var(--admin-error-text, #b91c1c);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.statistiques__errorBanner {
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.statistiques__skeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 280px;
+}
+
 .statistiques__loading {
   display: flex;
   flex-direction: column;

@@ -26,6 +26,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAlertes } from '../../features/alertes/hooks/useAlertes';
+import { AdminListSkeleton } from '../admin/skeletons';
 import { 
   validateAlerte, 
   cancelAlerte, 
@@ -56,7 +57,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
   const { user: _ } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
-  const { alertes, loading, fetchAlertes } = useAlertes();
+  const { alertes, loading, error: loadError, fetchAlertes } = useAlertes();
   const { t, language } = useI18n();
   
   const [filter, setFilter] = useState<FilterType>('all');
@@ -252,12 +253,17 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
           </div>
         </div>
 
+        {loadError && (
+          <div className={styles.errorBanner} role="alert">
+            <AlertTriangle size={20} />
+            <span>{loadError}</span>
+          </div>
+        )}
         {/* Alertes Grid */}
         <div className={styles.alertesGrid}>
           {loading ? (
-            <div className={styles.loadingState}>
-              <RefreshCw size={24} className={styles.spinning} />
-              <span>{t('authority.alertes.loading')}</span>
+            <div className={styles.skeletonWrap}>
+              <AdminListSkeleton cardCount={6} showFilters={true} />
             </div>
           ) : filteredAlertes.length > 0 ? (
             filteredAlertes.map((alerte: any) => {

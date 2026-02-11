@@ -10,6 +10,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthorityLayout } from '../../components/layout';
 import { FolderOpen, MapPin, Calendar, RefreshCw, Send, MessageSquare, Package, Share2, History, User, Phone, Eye, Plus } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import { 
   useCoordinationMessages,
   useCoordinationResources,
@@ -219,22 +220,15 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               <h2>{t('authority.coordination.messages.title')}</h2>
 
               {messagesError && (
-                <div style={{
-                  backgroundColor: '#ffebee',
-                  color: '#c62828',
-                  padding: '12px',
-                  borderRadius: '4px',
-                  marginBottom: '12px',
-                  border: '1px solid #ef5350'
-                }}>
+                <div className={styles.errorBanner} role="alert">
                   <strong>Erreur:</strong> {messagesError}
                 </div>
               )}
 
               <div className={styles.messagesList}>
                 {messagesLoading ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                    {t('authority.coordination.messages.loading')}
+                  <div className={styles.skeletonWrap}>
+                    <AdminListSkeleton cardCount={4} showFilters={false} />
                   </div>
                 ) : messages.length > 0 ? (
                   messages.map((msg) => {
@@ -318,20 +312,16 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               <h2>{t('authority.coordination.resources.title')}</h2>
 
               {resourcesError && (
-                <div style={{
-                  backgroundColor: '#ffebee',
-                  color: '#c62828',
-                  padding: '12px',
-                  borderRadius: '4px',
-                  marginBottom: '12px',
-                }}>
+                <div className={styles.errorBanner} role="alert">
                   {resourcesError}
                 </div>
               )}
 
               <div className={styles.resourcesList}>
                 {resourcesLoading ? (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>Chargement...</div>
+                  <div className={styles.skeletonWrap}>
+                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                  </div>
                 ) : resources.length > 0 ? (
                   resources.map((resource) => (
                     <div key={resource.id} className={styles.resourceItem}>
@@ -409,7 +399,9 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
 
               <div className={styles.sharesList}>
                 {sharedLoading ? (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>Chargement...</div>
+                  <div className={styles.skeletonWrap}>
+                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                  </div>
                 ) : sharedDossiers.length > 0 ? (
                   sharedDossiers.map((share) => (
                     <div key={share.id} className={styles.shareItem}>
@@ -462,20 +454,16 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               </div>
 
               {historyError && (
-                <div style={{
-                  backgroundColor: '#ffebee',
-                  color: '#c62828',
-                  padding: '12px',
-                  borderRadius: '4px',
-                  marginBottom: '12px',
-                }}>
+                <div className={styles.errorBanner} role="alert">
                   {historyError}
                 </div>
               )}
 
               <div className={styles.historyList}>
                 {historyLoading ? (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>Chargement...</div>
+                  <div className={styles.skeletonWrap}>
+                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                  </div>
                 ) : history.length > 0 ? (
                   history.map((entry) => (
                     <div key={entry.id} className={styles.historyItem}>

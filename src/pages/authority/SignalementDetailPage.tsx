@@ -25,6 +25,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './SignalementDetailPage.module.css';
 
 export interface SignalementDetailPageProps {
@@ -45,6 +46,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
   const [signalement, setSignalement] = useState<any>(null);
   const [dossier, setDossier] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [validationComment, setValidationComment] = useState('');
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [pendingDecision, setPendingDecision] = useState<'approuve' | 'rejete' | null>(null);
@@ -75,13 +77,12 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
           if (dosData) setDossier(dosData);
         }
       } catch (err: any) {
-        // Erreur gérée par la notification
+        setLoadError(err?.message || t('authority.signalementDetail.messages.loadError'));
         addNotification({
           title: t('authority.signalements.messages.error'),
           message: t('authority.signalementDetail.messages.loadError'),
           type: 'error',
         });
-        navigate(signalementsListPath);
       } finally {
         setIsLoading(false);
       }
@@ -159,13 +160,30 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
   };
 
   if (isLoading) {
-    const loadingEl = <div style={{ padding: '40px', textAlign: 'center' }}>{t('authority.signalementDetail.loading')}</div>;
-    if (noLayout) return loadingEl;
-    return <AuthorityLayout>{loadingEl}</AuthorityLayout>;
+    const skeleton = (
+      <div className={styles.detailSkeletonWrap}>
+        <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+      </div>
+    );
+    if (noLayout) return skeleton;
+    return <AuthorityLayout>{skeleton}</AuthorityLayout>;
+  }
+
+  if (loadError) {
+    const errorBlock = (
+      <div className={styles.errorBanner} role="alert">
+        <p>{loadError}</p>
+        <button type="button" className={styles.backBtn} onClick={() => navigate(signalementsListPath)}>
+          {t('authority.commonActions.back')}
+        </button>
+      </div>
+    );
+    if (noLayout) return errorBlock;
+    return <AuthorityLayout>{errorBlock}</AuthorityLayout>;
   }
 
   if (!signalement) {
-    const notFoundEl = <div style={{ padding: '40px', textAlign: 'center' }}>{t('authority.signalementDetail.notFound')}</div>;
+    const notFoundEl = <div className={styles.notFound}>{t('authority.signalementDetail.notFound')}</div>;
     if (noLayout) return notFoundEl;
     return <AuthorityLayout>{notFoundEl}</AuthorityLayout>;
   }

@@ -30,6 +30,7 @@ import {
   Users,
   Layers,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './MapViewPage.module.css';
 
 // Types
@@ -426,9 +427,8 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
         </div>
 
         {isLoading ? (
-          <div className={styles['map-view__loading']}>
-            <RefreshCw size={32} className={styles['map-view__spinner']} />
-            {t('authority.map.loading')}
+          <div className={styles['map-view__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : (
           <>

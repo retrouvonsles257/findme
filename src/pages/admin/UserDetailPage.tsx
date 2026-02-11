@@ -20,6 +20,7 @@ import { getAdminUserById, updateAdminUser, updateAdminUserRole, getAdminRoles }
 import type { AdminUserRow, AdminRoleRow } from '../../features/admin-organisation/services';
 import { logActivity } from '../../services/audit/auditService';
 import { TypeAction } from '../../@types/enums.types';
+import { AdminDetailSkeleton } from './skeletons';
 import styles from './UserDetailPage.module.css';
 
 const STATUT_OPTIONS = ['actif', 'suspendu', 'desactive'] as const;
@@ -147,19 +148,16 @@ export const AdminOrganisationUserDetailPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className={styles.loading}>
-            <Loader2 className={styles.spinner} size={32} />
-            <p>{t('common.loading')}</p>
+          <div className={styles.skeletonWrap}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : error || !user ? (
-          <Card>
-            <CardBody>
-              <p className={styles.error}>{error || t('admin.userNotFound')}</p>
-              <Button variant="secondary" onClick={() => navigate('/admin/utilisateurs')}>
-                {t('common.back')}
-              </Button>
-            </CardBody>
-          </Card>
+          <div className={styles.errorBanner} role="alert">
+            <p>{error || t('admin.userNotFound')}</p>
+            <Button variant="secondary" onClick={() => navigate('/admin/utilisateurs')}>
+              {t('common.back')}
+            </Button>
+          </div>
         ) : (
           <Card>
             <CardHeader>

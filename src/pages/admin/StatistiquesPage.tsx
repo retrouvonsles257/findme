@@ -34,6 +34,7 @@ import {
   Download,
   UsersRound,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from './skeletons';
 import styles from './StatistiquesPage.module.css';
 
 export const AdminOrganisationStatistiquesPage: React.FC = () => {
@@ -42,6 +43,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
   
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
   const [statsData, setStatsData] = useState({
     totalDossiers: 0,
@@ -102,6 +104,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
     if (!orgId) return;
     try {
       setLoading(true);
+      setLoadError(false);
       const [data, urgency, ext, monthly] = await Promise.all([
         getAdminDashboardStats(orgId),
         getAdminOrganisationUrgencyCounts(orgId),
@@ -121,6 +124,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
       setMonthlyActivity(monthly);
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques:', error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -169,12 +173,16 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
     <AdminOrganisationLayout title={t('admin.statistiques')} activeNav="statistiques">
       <div className={styles.statistiques__container}>
         {loading ? (
-          <div className={styles.statistiques__loading}>
-            <Loader2 size={32} className={styles.statistiques__loadingSpin} />
-            <p>{t('common.loading')}</p>
+          <div className={styles.statistiques__skeletonWrap}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : (
           <>
+        {loadError && (
+          <div className={`${styles.statistiques__error} ${styles.statistiques__errorBanner}`} role="alert">
+            <span>{t('common.error')}</span>
+          </div>
+        )}
         {/* Header */}
         <div className={styles.statistiques__header}>
           <div className={styles.statistiques__headerContent}>

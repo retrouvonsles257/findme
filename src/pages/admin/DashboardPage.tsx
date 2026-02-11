@@ -11,35 +11,38 @@ import {
   Folder,
   FileText,
   Users,
-  Plus,
-  Activity,
-  CheckCircle,
-  Clock,
-  UserCheck,
-  ArrowRight,
-  Loader2,
-  AlertCircle,
   Bell,
   Brain,
   Megaphone,
   UsersRound,
+  AlertCircle,
+  Activity,
 } from 'lucide-react';
 import { useAppSelector } from '../../store/types';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
 import { useI18n } from '../../hooks';
-import { getAdminDashboardStats, getAdminRecentActivities } from '../../features/admin-organisation/services';
+import {
+  getAdminDashboardStats,
+  getAdminRecentActivities,
+} from '../../features/admin-organisation/services';
 import type { AdminDashboardStats } from '../../features/admin-organisation/services';
+import {
+  ACTIVITY_LABEL_KEYS,
+  ACTIVITY_ICONS,
+  DEFAULT_ACTIVITY_ICON,
+  formatActivityTime,
+} from '../../features/admin-organisation/adminActivityConfig';
+import {
+  DashboardWelcome,
+  DashboardStatsGrid,
+  DashboardQuickActions,
+  DashboardRecentActivity,
+  DashboardSummary,
+} from './dashboard';
+import type { ActivityItem } from './dashboard';
 import styles from './DashboardPage.module.css';
-
-interface ActivityItem {
-  type: string;
-  title: string;
-  description: string;
-  time: string;
-  icon: typeof Folder;
-}
 
 export const AdminOrganisationDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -47,20 +50,24 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const [statsError, setStatsError] = useState(false);
   const [activitiesError, setActivitiesError] = useState(false);
 
   const loadStats = useCallback(async () => {
     const orgId = currentUser?.organisation_id;
     if (!orgId) return;
     try {
-      setLoading(true);
+      setStatsError(false);
+      setStatsLoading(true);
       const data = await getAdminDashboardStats(orgId);
       setStats(data);
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques:', error);
+      setStatsError(true);
     } finally {
-      setLoading(false);
+      setStatsLoading(false);
     }
   }, [currentUser?.organisation_id]);
 
@@ -69,53 +76,31 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
     if (!orgId) return;
     try {
       setActivitiesError(false);
+      setActivitiesLoading(true);
       const rows = await getAdminRecentActivities(orgId, 5);
-      const activityLabels: Record<string, string> = {
-        creation_dossier: t('admin.activityDossierCreated'),
-        modification_dossier: t('admin.activityRapportUpdated'),
-        creation_signalement: t('admin.activityRapportUpdated'),
-        validation_signalement: t('admin.activityRapportUpdated'),
-        diffusion_alerte: t('admin.activityDossierCreated'),
-        connexion: t('admin.recentActivity'),
-        deconnexion: t('admin.recentActivity'),
-        modification_profil: t('admin.recentActivity'),
-        upload_photo: t('admin.activityDossierCreated'),
-        changement_statut: t('admin.activityPersonneFound'),
-        attribution_role: t('admin.recentActivity'),
-        autre: t('admin.recentActivity'),
-      };
-      const formatTime = (dateStr: string) => {
-        const d = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now.getTime() - d.getTime();
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        if (diffHours < 1) return t('common.time_minutes').replace('{{count}}', String(Math.max(1, Math.floor(diffMs / 60000))));
-        if (diffHours < 24) return t('common.time_hours').replace('{{count}}', String(diffHours));
-        if (diffDays === 1) return t('common.time_day');
-        return t('common.time_days').replace('{{count}}', String(diffDays));
-      };
-      const iconByType: Record<string, typeof Folder> = {
-        creation_dossier: Folder,
-        modification_dossier: FileText,
-        creation_signalement: FileText,
-        validation_signalement: CheckCircle,
-        changement_statut: CheckCircle,
-        diffusion_alerte: Folder,
-      };
+      const activityLabels: Record<string, string> = {};
+      for (const [key, i18nKey] of Object.entries(ACTIVITY_LABEL_KEYS)) {
+        activityLabels[key] = t(i18nKey);
+      }
       setRecentActivities(
-        rows.map((r) => ({
+        rows.map((r, i) => ({
+          id: `${r.date_action}-${r.type_action}-${i}`,
           type: r.type_action,
-          title: activityLabels[r.type_action] || r.action_detaillee || r.type_action,
+          title:
+            activityLabels[r.type_action] ||
+            r.action_detaillee ||
+            r.type_action,
           description: r.action_detaillee || r.description || '',
-          time: formatTime(r.date_action),
-          icon: iconByType[r.type_action] || Activity,
+          time: formatActivityTime(r.date_action, t),
+          icon: ACTIVITY_ICONS[r.type_action] || DEFAULT_ACTIVITY_ICON,
         }))
       );
     } catch (error) {
       console.error('Erreur lors du chargement des activités:', error);
       setActivitiesError(true);
       setRecentActivities([]);
+    } finally {
+      setActivitiesLoading(false);
     }
   }, [currentUser?.organisation_id, t]);
 
@@ -124,21 +109,70 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
       navigate('/auth/login');
       return;
     }
+    const orgId = currentUser.organisation_id;
+    if (!orgId) {
+      setStatsLoading(false);
+      setActivitiesLoading(false);
+      return;
+    }
+
     loadStats();
     loadRecentActivities();
   }, [currentUser, navigate, loadStats, loadRecentActivities]);
 
   const quickActions = [
-    { title: t('admin.newDossier'), description: t('admin.createNewFile'), icon: Folder, action: () => navigate('/admin/dossiers/new') },
-    { title: t('admin.viewReports'), description: t('admin.manageReports'), icon: FileText, action: () => navigate('/admin/rapports') },
-    { title: t('admin.manageUsers'), description: t('admin.manageTeam'), icon: Users, action: () => navigate('/admin/utilisateurs') },
-    { title: t('admin.viewAlertes'), description: t('admin.viewAlertesDesc'), icon: Bell, action: () => navigate('/admin/alertes') },
-    { title: t('admin.viewIAResults'), description: t('admin.viewIAResultsDesc'), icon: Brain, action: () => navigate('/admin/ia') },
-    { title: t('admin.viewCampagnes'), description: t('admin.viewCampagnesDesc'), icon: Megaphone, action: () => navigate('/admin/campagnes') },
-    { title: t('admin.viewCoordination'), description: t('admin.coordinationLinkDesc'), icon: UsersRound, action: () => navigate('/admin/coordination') },
+    {
+      path: '/admin/dossiers/new',
+      title: t('admin.newDossier'),
+      description: t('admin.createNewFile'),
+      icon: Folder,
+      action: () => navigate('/admin/dossiers/new'),
+    },
+    {
+      path: '/admin/rapports',
+      title: t('admin.viewReports'),
+      description: t('admin.manageReports'),
+      icon: FileText,
+      action: () => navigate('/admin/rapports'),
+    },
+    {
+      path: '/admin/utilisateurs',
+      title: t('admin.manageUsers'),
+      description: t('admin.manageTeam'),
+      icon: Users,
+      action: () => navigate('/admin/utilisateurs'),
+    },
+    {
+      path: '/admin/alertes',
+      title: t('admin.viewAlertes'),
+      description: t('admin.viewAlertesDesc'),
+      icon: Bell,
+      action: () => navigate('/admin/alertes'),
+    },
+    {
+      path: '/admin/ia',
+      title: t('admin.viewIAResults'),
+      description: t('admin.viewIAResultsDesc'),
+      icon: Brain,
+      action: () => navigate('/admin/ia'),
+    },
+    {
+      path: '/admin/campagnes',
+      title: t('admin.viewCampagnes'),
+      description: t('admin.viewCampagnesDesc'),
+      icon: Megaphone,
+      action: () => navigate('/admin/campagnes'),
+    },
+    {
+      path: '/admin/coordination',
+      title: t('admin.viewCoordination'),
+      description: t('admin.coordinationLinkDesc'),
+      icon: UsersRound,
+      action: () => navigate('/admin/coordination'),
+    },
   ];
 
-  const safeStats = stats || {
+  const safeStats: AdminDashboardStats = stats || {
     totalDossiers: 0,
     dossiersActifs: 0,
     dossiersResolus: 0,
@@ -148,172 +182,173 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
     newDossiersThisMonth: 0,
     resolvedThisMonth: 0,
   };
-  const successRate = safeStats.dossiersResolus > 0 ? Math.round((safeStats.personnesRetrouvees / safeStats.dossiersResolus) * 100) : 0;
+  const successRate =
+    safeStats.dossiersResolus > 0
+      ? Math.round(
+          (safeStats.personnesRetrouvees / safeStats.dossiersResolus) * 100
+        )
+      : 0;
 
   return (
     <AdminOrganisationLayout title={t('admin.dashboard')} activeNav="dashboard">
       <div className={styles.dashboard}>
-        {loading ? (
-          <div className={styles.dashboard__loading}>
-            <Loader2 className={styles.dashboard__loadingSpin} size={32} />
-            <p>{t('common.loading')}</p>
-          </div>
-        ) : (
+        {statsLoading ? (
           <>
-            <div className={styles.dashboard__welcome}>
-              <div className={styles.dashboard__welcomeContent}>
-                <h2 className={styles.dashboard__welcomeTitle}>
-                  {currentUser?.id ? t('admin.welcomeAdmin') : t('admin.welcome')}
-                </h2>
-                <p className={styles.dashboard__welcomeDescription}>{t('admin.manageMissingPersonFiles')}</p>
+            <div className={styles.dashboard__skeletonWelcome}>
+              <div className={styles.dashboard__skeletonWelcomeContent}>
+                <div
+                  className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonLine} ${styles.dashboard__skeletonLineWide}`}
+                />
+                <div
+                  className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonLine} ${styles.dashboard__skeletonLineShort}`}
+                />
               </div>
-              <button
-                type="button"
-                className={styles.dashboard__btnCreate}
-                onClick={() => navigate('/admin/dossiers/new')}
-                title={t('admin.newDossier')}
-                aria-label={t('admin.newDossier')}
-              >
-                <Plus size={18} />
-                {t('admin.newDossier')}
-              </button>
+              <div
+                className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonWelcomeBtn}`}
+              />
             </div>
-
             <div className={styles.dashboard__statsGrid}>
-              <div className={styles.dashboard__statCard}>
-                <div className={styles.dashboard__statHeader}>
-                  <div className={styles.dashboard__statIcon}>
-                    <Folder size={24} />
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={`skeleton-stat-${i}`}
+                  className={styles.dashboard__skeletonStatCard}
+                >
+                  <div className={styles.dashboard__skeletonStatHeader}>
+                    <div
+                      className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonCircle}`}
+                    />
+                    <div
+                      className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonStatValue}`}
+                    />
                   </div>
-                  <div className={styles.dashboard__statContent}>
-                    <p className={styles.dashboard__statValue}>{safeStats.totalDossiers}</p>
-                    <p className={styles.dashboard__statLabel}>{t('admin.totalDossiers')}</p>
-                    {typeof safeStats.newDossiersThisMonth === 'number' && safeStats.newDossiersThisMonth > 0 && (
-                      <p className={styles.dashboard__statChange}>+{safeStats.newDossiersThisMonth} {t('admin.trendThisMonth')}</p>
-                    )}
-                  </div>
+                  <div
+                    className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonStatLabel}`}
+                  />
                 </div>
-              </div>
-              <div className={styles.dashboard__statCard}>
-                <div className={styles.dashboard__statHeader}>
-                  <div className={styles.dashboard__statIcon} style={{ background: 'rgba(251, 191, 36, 0.12)', color: '#d97706' }}>
-                    <Clock size={24} />
-                  </div>
-                  <div className={styles.dashboard__statContent}>
-                    <p className={styles.dashboard__statValue}>{safeStats.dossiersActifs}</p>
-                    <p className={styles.dashboard__statLabel}>{t('admin.activeDossiers')}</p>
-                    <p className={styles.dashboard__statChange}>{t('admin.trendInProgress')}</p>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.dashboard__statCard}>
-                <div className={styles.dashboard__statHeader}>
-                  <div className={styles.dashboard__statIcon} style={{ background: 'rgba(34, 197, 94, 0.12)', color: '#16a34a' }}>
-                    <CheckCircle size={24} />
-                  </div>
-                  <div className={styles.dashboard__statContent}>
-                    <p className={styles.dashboard__statValue}>{safeStats.dossiersResolus}</p>
-                    <p className={styles.dashboard__statLabel}>{t('admin.resolvedDossiers')}</p>
-                    {typeof safeStats.resolvedThisMonth === 'number' && safeStats.resolvedThisMonth > 0 && (
-                      <p className={styles.dashboard__statChange}>+{safeStats.resolvedThisMonth} {t('admin.trendThisMonth')}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className={styles.dashboard__statCard}>
-                <div className={styles.dashboard__statHeader}>
-                  <div className={styles.dashboard__statIcon} style={{ background: 'rgba(168, 85, 247, 0.12)', color: '#9333ea' }}>
-                    <UserCheck size={24} />
-                  </div>
-                  <div className={styles.dashboard__statContent}>
-                    <p className={styles.dashboard__statValue}>{safeStats.personnesRetrouvees}</p>
-                    <p className={styles.dashboard__statLabel}>{t('admin.foundPersons')}</p>
-                    <p className={styles.dashboard__statChange}>{t('admin.trendFound')}</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-
-            <h2 className={styles.dashboard__sectionTitle}>{t('admin.sectionQuickActions')}</h2>
+            <div
+              className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonSectionTitle}`}
+            />
             <div className={styles.dashboard__actionsGrid}>
-              {quickActions.map((action, idx) => {
-                const IconComponent = action.icon;
-                return (
-                  <div key={idx} className={styles.dashboard__actionCard} onClick={action.action}>
-                    <IconComponent className={styles.dashboard__actionIcon} size={28} />
-                    <h3 className={styles.dashboard__actionTitle}>{action.title}</h3>
-                    <p className={styles.dashboard__actionDescription}>{action.description}</p>
-                    <span className={styles.dashboard__actionBtn}>
-                      {t('common.access')} <ArrowRight size={16} />
-                    </span>
-                  </div>
-                );
-              })}
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <div
+                  key={`skeleton-action-${i}`}
+                  className={styles.dashboard__skeletonActionCard}
+                >
+                  <div
+                    className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonActionIcon}`}
+                  />
+                  <div
+                    className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonActionTitle}`}
+                  />
+                  <div
+                    className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonActionDesc}`}
+                  />
+                </div>
+              ))}
             </div>
-
             <div className={styles.dashboard__overview}>
               <div className={styles.dashboard__overviewLeft}>
-                <h2 className={styles.dashboard__sectionTitle}>{t('admin.sectionRecentActivity')}</h2>
-                <div className={styles.dashboard__activityCard}>
-                  {activitiesError ? (
-                    <div className={styles.dashboard__empty}>
-                      <AlertCircle className={styles.dashboard__emptyIcon} />
-                      <p>{t('admin.noLogsFound')}</p>
+                <div
+                  className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonSectionTitle} ${styles.dashboard__skeletonSectionTitleWithMargin}`}
+                />
+                <div className={styles.dashboard__skeletonActivityCard}>
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={`skeleton-activity-${i}`}
+                      className={styles.dashboard__skeletonActivityItem}
+                    >
+                      <div
+                        className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonActivityIcon}`}
+                      />
+                      <div className={styles.dashboard__skeletonActivityLines}>
+                        <div
+                          className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonLine}`}
+                        />
+                        <div
+                          className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonLine} ${styles.dashboard__skeletonLineShort}`}
+                        />
+                      </div>
                     </div>
-                  ) : recentActivities.length === 0 ? (
-                    <div className={styles.dashboard__empty}>
-                      <Activity className={styles.dashboard__emptyIcon} />
-                      <p>{t('admin.noActivity')}</p>
-                    </div>
-                  ) : (
-                    <div className={styles.dashboard__activityList}>
-                      {recentActivities.map((activity, idx) => {
-                        const IconComponent = activity.icon;
-                        return (
-                          <div key={idx} className={styles.dashboard__activityItem}>
-                            <div className={styles.dashboard__activityIconWrapper}>
-                              <IconComponent className={styles.dashboard__activityIcon} size={18} />
-                            </div>
-                            <div className={styles.dashboard__activityContent}>
-                              <h4 className={styles.dashboard__activityTitle}>{activity.title}</h4>
-                              <p className={styles.dashboard__activityDescription}>{activity.description}</p>
-                              <span className={styles.dashboard__activityTime}>{activity.time}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
               <div className={styles.dashboard__overviewRight}>
-                <h2 className={styles.dashboard__sectionTitle}>{t('admin.sectionSummary')}</h2>
-                <div className={styles.dashboard__summaryCard}>
-                  <div className={styles.dashboard__summaryItem}>
-                    <span className={styles.dashboard__summaryLabel}>{t('admin.totalUsers')}</span>
-                    <span className={styles.dashboard__summaryValue}>{safeStats.utilisateurs}</span>
-                  </div>
-                  <div className={styles.dashboard__summaryDivider} />
-                  <div className={styles.dashboard__summaryItem}>
-                    <span className={styles.dashboard__summaryLabel}>{t('admin.recentReports')}</span>
-                    <span className={styles.dashboard__summaryValue}>{safeStats.rapportsRecents}</span>
-                  </div>
-                  <div className={styles.dashboard__summaryDivider} />
-                  <div className={styles.dashboard__summaryItem}>
-                    <span className={styles.dashboard__summaryLabel}>{t('admin.successRate')}</span>
-                    <span className={styles.dashboard__summaryValue}>{successRate}{t('admin.percent')}</span>
-                  </div>
-                  <div className={styles.dashboard__summaryDivider} />
-                  <button
-                    type="button"
-                    className={styles.dashboard__summaryBtn}
-                    onClick={() => navigate('/admin/statistiques')}
-                    title={t('admin.viewDetailedStats')}
-                    aria-label={t('admin.viewDetailedStats')}
-                  >
-                    {t('admin.viewDetailedStats')} <ArrowRight size={16} />
-                  </button>
+                <div
+                  className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonSectionTitle} ${styles.dashboard__skeletonSectionTitleWithMargin}`}
+                />
+                <div className={styles.dashboard__skeletonSummaryCard}>
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={`skeleton-summary-${i}`}
+                      className={styles.dashboard__skeletonSummaryRow}
+                    >
+                      <div
+                        className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonSummaryLabel}`}
+                      />
+                      <div
+                        className={`${styles.dashboard__skeleton} ${styles.dashboard__skeletonSummaryValue}`}
+                      />
+                    </div>
+                  ))}
                 </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {statsError && (
+              <div
+                className={`${styles.dashboard__error} ${styles.dashboard__errorBanner}`}
+                role="alert"
+              >
+                <AlertCircle size={18} aria-hidden />
+                <span>{t('admin.noLogsFound')}</span>
+              </div>
+            )}
+            <DashboardWelcome
+              styles={styles}
+              welcomeTitle={
+                currentUser?.id ? t('admin.welcomeAdmin') : t('admin.welcome')
+              }
+              welcomeDescription={t('admin.manageMissingPersonFiles')}
+              newDossierLabel={t('admin.newDossier')}
+              onNewDossier={() => navigate('/admin/dossiers/new')}
+            />
+            <DashboardStatsGrid styles={styles} stats={safeStats} t={t} />
+            <DashboardQuickActions
+              styles={styles}
+              sectionTitle={t('admin.sectionQuickActions')}
+              actions={quickActions}
+              accessLabel={t('common.access')}
+            />
+            <div className={styles.dashboard__overview}>
+              <div className={styles.dashboard__overviewLeft}>
+                <DashboardRecentActivity
+                  styles={styles}
+                  sectionTitle={t('admin.sectionRecentActivity')}
+                  loading={activitiesLoading}
+                  error={activitiesError}
+                  errorMessage={t('admin.noLogsFound')}
+                  emptyMessage={t('admin.noActivity')}
+                  activities={recentActivities}
+                />
+              </div>
+              <div className={styles.dashboard__overviewRight}>
+                <DashboardSummary
+                  styles={styles}
+                  sectionTitle={t('admin.sectionSummary')}
+                  totalUsersLabel={t('admin.totalUsers')}
+                  recentReportsLabel={t('admin.recentReports')}
+                  successRateLabel={t('admin.successRate')}
+                  totalUsers={safeStats.utilisateurs}
+                  recentReports={safeStats.rapportsRecents}
+                  successRate={successRate}
+                  percentLabel={t('admin.percent')}
+                  viewDetailedStatsLabel={t('admin.viewDetailedStats')}
+                  onViewStats={() => navigate('/admin/statistiques')}
+                />
               </div>
             </div>
           </>

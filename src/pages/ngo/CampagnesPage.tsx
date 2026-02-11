@@ -4,6 +4,7 @@ import { Card, CardBody } from '../../components/common/Card';
 import { useI18n } from '../../hooks';
 import { getCampagnes } from '../../features/campagnes/services/campagneAPI';
 import { NGOLayout } from './NGOLayout';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './CampagnesPage.module.css';
 
 interface CampaignRow {
@@ -65,9 +66,8 @@ export const NGOCampagnesPage: React.FC<NGOCampagnesPageProps> = ({ noLayout, ba
   const paginatedCampaigns = campaigns.slice(startIdx, startIdx + itemsPerPage);
 
   const loadingContent = (
-    <div className={styles['ngo-campagnes__loading-container']}>
-      <div className={styles['ngo-campagnes__spinner']}></div>
-      <p>{t('common.loading')}</p>
+    <div className={styles['ngo-campagnes__skeletonWrap']}>
+      <AdminListSkeleton cardCount={6} showFilters={false} />
     </div>
   );
   if (loading) {
@@ -80,8 +80,8 @@ export const NGOCampagnesPage: React.FC<NGOCampagnesPageProps> = ({ noLayout, ba
       <p className={styles['ngo-campagnes__subtitle']}>{t('ngo.campaignsSubtitle')}</p>
 
       {error && (
-        <div className={styles['ngo-campagnes__error-message']}>
-          ⚠️ {error}
+        <div className={styles['ngo-campagnes__error-banner']} role="alert">
+          <span>{error}</span>
         </div>
       )}
 

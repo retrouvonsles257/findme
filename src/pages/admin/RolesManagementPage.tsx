@@ -28,6 +28,7 @@ import {
   X,
   Loader2,
 } from 'lucide-react';
+import { AdminListSkeleton } from './skeletons';
 import styles from './RolesManagement.module.css';
 
 interface Role {
@@ -177,9 +178,8 @@ export const AdminOrganisationRolesPage: React.FC = () => {
 
         {/* Loading */}
         {loading && (
-          <div className={styles.rolesManagement__loading}>
-            <Loader2 size={32} className={styles.rolesManagement__spinner} />
-            <p>{t('common.loading')}</p>
+          <div className={styles.rolesManagement__skeletonWrap}>
+            <AdminListSkeleton cardCount={6} showFilters={false} />
           </div>
         )}
 

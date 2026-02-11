@@ -26,7 +26,7 @@ import {
   getAdminOrganisationSignalements,
   updateSignalementValidation,
 } from '../../features/admin-organisation/services';
-
+import { AdminTableSkeleton } from './skeletons';
 import styles from './RapportsPage.module.css';
 
 interface Rapport {
@@ -47,6 +47,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [filteredRapports, setFilteredRapports] = useState<Rapport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
@@ -55,6 +56,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
     if (!orgId) return;
     try {
       setLoading(true);
+      setLoadError(false);
       const rows = await getAdminOrganisationSignalements(orgId, {
         search: searchTerm || undefined,
         statut: filterStatus !== 'all' ? filterStatus : undefined,
@@ -82,6 +84,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
       setFilteredRapports(mapped);
     } catch (error) {
       console.error('Erreur lors du chargement des rapports:', error);
+      setLoadError(true);
       setFilteredRapports([]);
     } finally {
       setLoading(false);
@@ -186,8 +189,18 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className={styles.rapports__loading}>{t('common.loading')}</div>
-          ) : filteredRapports.length === 0 ? (
+            <div className={styles.rapports__skeletonWrap}>
+              <AdminTableSkeleton columns={7} rows={8} />
+            </div>
+          ) : (
+            <>
+              {loadError && (
+                <div className={`${styles.rapports__error} ${styles.rapports__errorBanner}`} role="alert">
+                  <AlertCircle size={18} aria-hidden />
+                  <span>{t('admin.noReportsFound')}</span>
+                </div>
+              )}
+              {filteredRapports.length === 0 ? (
             <div className={styles.rapports__empty}>
               <AlertCircle className={styles.rapports__emptyIcon} />
               {t('admin.noReportsFound')}
@@ -264,6 +277,8 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          )}
+            </>
           )}
         </div>
       </div>

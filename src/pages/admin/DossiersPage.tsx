@@ -24,6 +24,7 @@ import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole, StatutDossier, NiveauUrgence } from '../../@types/enums.types';
 import { getAdminOrganisationDossiers } from '../../features/admin-organisation/services';
+import { AdminListSkeleton } from './skeletons';
 
 import styles from './DossiersPage.module.css';
 
@@ -45,6 +46,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
   const [filteredDossiers, setFilteredDossiers] = useState<Dossier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterUrgence, setFilterUrgence] = useState<string>('all');
@@ -54,6 +56,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
     if (!orgId) return;
     try {
       setLoading(true);
+      setLoadError(false);
       const rows = await getAdminOrganisationDossiers(orgId, {
         search: searchTerm || undefined,
         statut: filterStatus !== 'all' ? filterStatus : undefined,
@@ -75,6 +78,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
       setFilteredDossiers(mapped);
     } catch (error) {
       console.error('Erreur lors du chargement des dossiers:', error);
+      setLoadError(true);
       setFilteredDossiers([]);
     } finally {
       setLoading(false);
@@ -92,87 +96,93 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
   return (
     <AdminOrganisationLayout title={t('admin.dossiers')} activeNav="dossiers">
       <div className={styles.dossiers}>
-        <div className={styles.dossiers__header}>
-          <div>
-            <h2 className={styles.dossiers__title}>
-              <span className={styles.dossiers__titleIconWrap} aria-hidden>
-                <Folder className={styles.dossiers__titleIcon} size={28} />
-              </span>
-              {t('admin.dossiers')}
-            </h2>
-            <p className={styles.dossiers__subtitle}>
-              {t('admin.manageMissingPersonFiles')}
-            </p>
-          </div>
-          <button
-            type="button"
-            className={styles.dossiers__btnCreate}
-            onClick={() => navigate('/admin/dossiers/new')}
-            title={t('admin.newDossier')}
-            aria-label={t('admin.newDossier')}
-          >
-            <Plus className={styles.dossiers__btnIcon} />
-            {t('admin.newDossier')}
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className={styles.dossiers__filterCard}>
-          <div className={styles.dossiers__filters}>
-            <div className={styles.dossiers__searchWrapper}>
-              <Search className={styles.dossiers__searchIcon} />
-              <input
-                type="text"
-                placeholder={t('common.search')}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className={styles.dossiers__searchInput}
-              />
-            </div>
-            <div className={styles.dossiers__filterWrapper}>
-              <Filter className={styles.dossiers__filterIcon} />
-              <select
-                value={filterStatus}
-                onChange={e => setFilterStatus(e.target.value)}
-                className={styles.dossiers__filterSelect}
+        {loading ? (
+          <AdminListSkeleton cardCount={6} showFilters={true} />
+        ) : (
+          <>
+            {loadError && (
+              <div className={`${styles.dossiers__error} ${styles.dossiers__errorBanner}`} role="alert">
+                <AlertCircle size={18} aria-hidden />
+                <span>{t('admin.noDossiersFound')}</span>
+              </div>
+            )}
+            <div className={styles.dossiers__header}>
+              <div>
+                <h2 className={styles.dossiers__title}>
+                  <span className={styles.dossiers__titleIconWrap} aria-hidden>
+                    <Folder className={styles.dossiers__titleIcon} size={28} />
+                  </span>
+                  {t('admin.dossiers')}
+                </h2>
+                <p className={styles.dossiers__subtitle}>
+                  {t('admin.manageMissingPersonFiles')}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.dossiers__btnCreate}
+                onClick={() => navigate('/admin/dossiers/new')}
+                title={t('admin.newDossier')}
+                aria-label={t('admin.newDossier')}
               >
-                <option value="all">{t('admin.allStatus')}</option>
-                <option value={StatutDossier.EN_COURS}>{t('admin.inProgress')}</option>
-                <option value={StatutDossier.RETROUVE_VIVANT}>
-                  {t('admin.foundAlive')}
-                </option>
-                <option value={StatutDossier.RETROUVE_DECEDE}>
-                  {t('admin.foundDeceased')}
-                </option>
-              </select>
+                <Plus className={styles.dossiers__btnIcon} />
+                {t('admin.newDossier')}
+              </button>
             </div>
-            <div className={styles.dossiers__filterWrapper}>
-              <Filter className={styles.dossiers__filterIcon} />
-              <select
-                value={filterUrgence}
-                onChange={e => setFilterUrgence(e.target.value)}
-                className={styles.dossiers__filterSelect}
-              >
-                <option value="all">{t('admin.allUrgency')}</option>
-                <option value={NiveauUrgence.CRITIQUE}>{t('admin.critical')}</option>
-                <option value={NiveauUrgence.URGENT}>{t('admin.urgent')}</option>
-                <option value={NiveauUrgence.NORMAL}>{t('admin.normal')}</option>
-              </select>
+
+            <div className={styles.dossiers__filterCard}>
+              <div className={styles.dossiers__filters}>
+                <div className={styles.dossiers__searchWrapper}>
+                  <Search className={styles.dossiers__searchIcon} />
+                  <input
+                    type="text"
+                    placeholder={t('common.search')}
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className={styles.dossiers__searchInput}
+                  />
+                </div>
+                <div className={styles.dossiers__filterWrapper}>
+                  <Filter className={styles.dossiers__filterIcon} />
+                  <select
+                    value={filterStatus}
+                    onChange={e => setFilterStatus(e.target.value)}
+                    className={styles.dossiers__filterSelect}
+                  >
+                    <option value="all">{t('admin.allStatus')}</option>
+                    <option value={StatutDossier.EN_COURS}>{t('admin.inProgress')}</option>
+                    <option value={StatutDossier.RETROUVE_VIVANT}>
+                      {t('admin.foundAlive')}
+                    </option>
+                    <option value={StatutDossier.RETROUVE_DECEDE}>
+                      {t('admin.foundDeceased')}
+                    </option>
+                  </select>
+                </div>
+                <div className={styles.dossiers__filterWrapper}>
+                  <Filter className={styles.dossiers__filterIcon} />
+                  <select
+                    value={filterUrgence}
+                    onChange={e => setFilterUrgence(e.target.value)}
+                    className={styles.dossiers__filterSelect}
+                  >
+                    <option value="all">{t('admin.allUrgency')}</option>
+                    <option value={NiveauUrgence.CRITIQUE}>{t('admin.critical')}</option>
+                    <option value={NiveauUrgence.URGENT}>{t('admin.urgent')}</option>
+                    <option value={NiveauUrgence.NORMAL}>{t('admin.normal')}</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Dossiers List */}
-        <div className={styles.dossiers__contentCard}>
-          <div className={styles.dossiers__contentHeader}>
-            <h2 className={styles.dossiers__contentTitle}>
-              {t('admin.totalDossiers')}{t('common.colon')} <strong>{filteredDossiers.length}</strong>
-            </h2>
-          </div>
+            <div className={styles.dossiers__contentCard}>
+              <div className={styles.dossiers__contentHeader}>
+                <h2 className={styles.dossiers__contentTitle}>
+                  {t('admin.totalDossiers')}{t('common.colon')} <strong>{filteredDossiers.length}</strong>
+                </h2>
+              </div>
 
-          {loading ? (
-            <div className={styles.dossiers__loading}>{t('common.loading')}</div>
-          ) : filteredDossiers.length === 0 ? (
+              {filteredDossiers.length === 0 ? (
             <div className={styles.dossiers__empty}>
               <AlertCircle className={styles.dossiers__emptyIcon} />
               {t('admin.noDossiersFound')}
@@ -252,7 +262,9 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
               ))}
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </AdminOrganisationLayout>
   );

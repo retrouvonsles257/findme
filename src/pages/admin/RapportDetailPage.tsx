@@ -30,6 +30,7 @@ import {
   updateSignalementValidation,
 } from '../../features/admin-organisation/services';
 import type { AdminSignalementRow } from '../../features/admin-organisation/services';
+import { AdminDetailSkeleton } from './skeletons';
 import styles from './RapportDetailPage.module.css';
 
 const STATUT_MAP: Record<string, 'approuve' | 'en_attente' | 'rejete'> = {
@@ -119,19 +120,16 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className={styles.loading}>
-            <Loader2 className={styles.spinner} size={32} />
-            <p>{t('common.loading')}</p>
+          <div className={styles.skeletonWrap}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : error || !rapport ? (
-          <Card>
-            <CardBody>
-              <p className={styles.error}>{error || t('admin.noReportsFound')}</p>
-              <Button variant="secondary" onClick={() => navigate('/admin/rapports')}>
-                {t('common.back')}
-              </Button>
-            </CardBody>
-          </Card>
+          <div className={styles.errorBanner} role="alert">
+            <p>{error || t('admin.noReportsFound')}</p>
+            <Button variant="secondary" onClick={() => navigate('/admin/rapports')}>
+              {t('common.back')}
+            </Button>
+          </div>
         ) : (
           <Card>
             <CardHeader>

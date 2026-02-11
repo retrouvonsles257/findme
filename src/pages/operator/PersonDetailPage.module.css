@@ -113,6 +113,24 @@
   cursor: pointer;
 }
 
+.operatorPersonDetail__skeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 320px;
+}
+
+.operatorPersonDetail__errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  background: var(--admin-error-bg, #fef2f2);
+  border: 1px solid var(--admin-error-border, #fecaca);
+  color: var(--admin-error-text, #b91c1c);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-radius: var(--space-1, 0.25rem);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .operatorPersonDetail__state {
   padding: 1rem;
   border: 1px solid #e2e8f0;

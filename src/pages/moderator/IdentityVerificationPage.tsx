@@ -40,6 +40,7 @@ import {
   Download,
   MessageSquare,
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './IdentityVerificationPage.module.css';
 
 // Types
@@ -371,7 +372,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
           </div>
         )}
         {errorMessage && (
-          <div className={styles['identity-verification__error']}>
+          <div className={styles['identity-verification__errorBanner']} role="alert">
             <AlertTriangle size={20} />
             {errorMessage}
           </div>
@@ -410,9 +411,8 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
         </div>
 
         {isLoading ? (
-          <div className={styles['identity-verification__loading']}>
-            <RefreshCw size={32} className={styles['identity-verification__spinner']} />
-            Chargement des demandes...
+          <div className={styles['identity-verification__skeletonWrap']}>
+            <AdminListSkeleton cardCount={6} showFilters={false} />
           </div>
         ) : (
           <>

@@ -12,6 +12,7 @@ import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { OperatorLayout } from './OperatorLayout';
 import * as personneAPI from '../../features/personnes/services/personneAPI';
 import type { Personne } from '../../features/personnes/types';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './PersonsPage.module.css';
 
 const PAGE_SIZE = 20;
@@ -91,8 +92,16 @@ export const OperatorPersonsPage: React.FC<OperatorPersonsPageProps> = ({ noLayo
           )}
         </div>
 
-        {error && <div className={styles.operatorPersons__state}>{error}</div>}
-        {isLoading && <div className={styles.operatorPersons__state}>Chargement…</div>}
+        {isLoading && (
+          <div className={styles.operatorPersons__skeletonWrap}>
+            <AdminListSkeleton cardCount={6} showFilters={true} />
+          </div>
+        )}
+        {!isLoading && error && (
+          <div className={styles.operatorPersons__errorBanner} role="alert">
+            <span>{error}</span>
+          </div>
+        )}
 
         {!isLoading && !error && (
           <>

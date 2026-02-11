@@ -29,6 +29,7 @@ import {
   Phone,
   Mail
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './SignalementsEnAttentePage.module.css';
 
 interface SignalementEnAttente {
@@ -178,7 +179,7 @@ export const SignalementsEnAttentePage: React.FC<SignalementsEnAttentePageProps>
 
         {/* Error message */}
         {error && (
-          <div className={styles.signalementsEnAttente__errorMessage}>
+          <div className={styles.signalementsEnAttente__errorBanner} role="alert">
             <AlertCircle size={20} />
             <span>{error}</span>
           </div>
@@ -187,9 +188,8 @@ export const SignalementsEnAttentePage: React.FC<SignalementsEnAttentePageProps>
         {/* Content */}
         <div className={styles.signalementsEnAttente__content}>
           {isLoading ? (
-            <div className={styles.signalementsEnAttente__loadingState}>
-              <Loader2 className={styles.signalementsEnAttente__spinner} />
-              <p>Chargement des signalements...</p>
+            <div className={styles.signalementsEnAttente__skeletonWrap}>
+              <AdminListSkeleton cardCount={6} showFilters={false} />
             </div>
           ) : filteredSignalements.length > 0 ? (
             <>

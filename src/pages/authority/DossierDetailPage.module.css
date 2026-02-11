@@ -392,6 +392,44 @@
   font-size: 1rem;
 }
 
+.skeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 320px;
+}
+
+.errorBanner {
+  text-align: left;
+  padding: var(--space-4, 1rem) var(--space-5, 1.5rem);
+  background: var(--admin-error-bg, #fef2f2);
+  border: 1px solid var(--admin-error-border, #fecaca);
+  border-radius: var(--space-1, 0.25rem);
+  color: var(--admin-error-text, #b91c1c);
+}
+
+.errorBanner h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.errorBanner p {
+  margin: 0 0 1rem 0;
+}
+
+.retryBtn {
+  padding: 0.75rem 1.5rem;
+  background: var(--admin-error-text, #b91c1c);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.retryBtn:hover {
+  background: #991b1b;
+}
+
 .loading {
   text-align: center;
   padding: 2rem;

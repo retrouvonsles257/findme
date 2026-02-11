@@ -4,6 +4,11 @@
  * =====================================================
  */
 
+.detailSkeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 320px;
+}
+
 .container {
   max-width: 900px;
   margin: 0 auto;

@@ -32,6 +32,7 @@ import {
   Save,
   Eraser,
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './PhotosModerationPage.module.css';
 
 // Helper to bypass Supabase typing issues
@@ -526,7 +527,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
           </div>
         )}
         {errorMessage && (
-          <div className={styles['photos-moderation__error']}>
+          <div className={styles['photos-moderation__error']} role="alert">
             <AlertTriangle size={20} />
             {errorMessage}
           </div>
@@ -539,9 +540,8 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
         </div>
 
         {isLoading ? (
-          <div className={styles['photos-moderation__loading']}>
-            <RefreshCw size={32} className={styles['photos-moderation__spinner']} />
-            {t('common.loading')}...
+          <div className={styles['photos-moderation__skeletonWrap']}>
+            <AdminListSkeleton cardCount={8} showFilters={false} />
           </div>
         ) : (
           <>

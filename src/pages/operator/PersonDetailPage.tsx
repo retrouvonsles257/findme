@@ -14,6 +14,7 @@ import * as personneAPI from '../../features/personnes/services/personneAPI';
 import * as dossierAPI from '../../features/dossiers/services/dossierAPI';
 import type { Personne } from '../../features/personnes/types';
 import type { DossierDisparition } from '../../@types/database.types';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './PersonDetailPage.module.css';
 
 /** Format a date value for display; avoids rendering a Date object as React child. */
@@ -84,10 +85,18 @@ export const OperatorPersonDetailPage: React.FC<OperatorPersonDetailPageProps> =
 
   const content = (
     <div className={styles.operatorPersonDetail}>
-        {error && <div className={styles.operatorPersonDetail__state}>{error}</div>}
-        {isLoading && <div className={styles.operatorPersonDetail__state}>Chargement…</div>}
+        {isLoading && (
+          <div className={styles.operatorPersonDetail__skeletonWrap}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+          </div>
+        )}
+        {!isLoading && error && (
+          <div className={styles.operatorPersonDetail__errorBanner} role="alert">
+            <span>{error}</span>
+          </div>
+        )}
 
-        {!isLoading && personne && (
+        {!isLoading && !error && personne && (
           <>
             <div className={styles.operatorPersonDetail__card}>
               <div className={styles.operatorPersonDetail__header}>

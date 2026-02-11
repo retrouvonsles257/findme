@@ -28,7 +28,7 @@ import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole } from '../../@types/enums.types';
 import { getAdminAuditLogs, formatAuditLogsAsCsv } from '../../features/admin-organisation/services';
 import type { AdminAuditLogRow } from '../../features/admin-organisation/services';
-
+import { AdminTableSkeleton } from './skeletons';
 import styles from './AuditLogs.module.css';
 
 interface AuditLog {
@@ -51,6 +51,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
   
   const currentUser = useAppSelector(selectCurrentUser);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [rawLogs, setRawLogs] = useState<AdminAuditLogRow[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
@@ -64,6 +65,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
     if (!orgId) return;
     try {
       setLoading(true);
+      setLoadError(false);
       const actionToTypeMap: Record<string, string> = {
         CREATE: 'creation_dossier',
         UPDATE: 'modification_dossier',
@@ -124,6 +126,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
       setRawLogs(rows);
     } catch (error) {
       console.error('Erreur lors du chargement des logs:', error);
+      setLoadError(true);
       setLogs([]);
       setRawLogs([]);
     } finally {
@@ -301,8 +304,18 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <p className={styles.auditLogs__loading}>{t('admin.loading')}</p>
-          ) : filteredLogs.length === 0 ? (
+            <div className={styles.auditLogs__skeletonWrap}>
+              <AdminTableSkeleton columns={5} rows={8} />
+            </div>
+          ) : (
+            <>
+              {loadError && (
+                <div className={`${styles.auditLogs__error} ${styles.auditLogs__errorBanner}`} role="alert">
+                  <AlertCircle size={18} aria-hidden />
+                  <span>{t('admin.noLogsFound')}</span>
+                </div>
+              )}
+              {filteredLogs.length === 0 ? (
             <div className={styles.auditLogs__empty}>
               <AlertCircle className={styles.auditLogs__emptyIcon} />
               {t('admin.noLogsFound')}
@@ -347,6 +360,8 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
                 );
               })}
             </div>
+          )}
+            </>
           )}
         </div>
 

@@ -21,6 +21,7 @@ import {
   type AdminDossierRow,
   type AdminDossierUpdatePayload,
 } from '../../features/admin-organisation/services';
+import { AdminDetailSkeleton } from './skeletons';
 import styles from './DossierDetailPage.module.css';
 
 const STATUT_OPTIONS = [
@@ -128,19 +129,16 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className={styles.loading}>
-            <Loader2 className={styles.spinner} size={32} />
-            <p>{t('common.loading')}</p>
+          <div className={styles.skeletonWrap}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : error && !dossier ? (
-          <Card>
-            <CardBody>
-              <p className={styles.error}>{error}</p>
-              <Button variant="secondary" onClick={() => navigate('/admin/dossiers')}>
-                {t('common.back')}
-              </Button>
-            </CardBody>
-          </Card>
+          <div className={styles.errorBanner} role="alert">
+            <p>{error}</p>
+            <Button variant="secondary" onClick={() => navigate('/admin/dossiers')}>
+              {t('common.back')}
+            </Button>
+          </div>
         ) : dossier ? (
           <Card>
             <CardHeader>

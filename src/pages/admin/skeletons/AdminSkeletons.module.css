@@ -1,0 +1,230 @@
+/**
+ * Styles partagés pour les skeletons admin (liste, tableau, détail)
+ * Utilise les variables du thème admin (adminTheme.css)
+ */
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: adminShimmer 1.5s ease-in-out infinite;
+  border-radius: var(--space-1);
+}
+
+.line {
+  height: 1em;
+  width: 100%;
+}
+
+.lineShort {
+  width: 60%;
+}
+
+.lineWide {
+  width: 70%;
+}
+
+/* --- List skeleton --- */
+.listRoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.listHeaderContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.listHeaderBtn {
+  width: 140px;
+  height: 40px;
+  border-radius: var(--space-1);
+}
+
+.listFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--space-2);
+}
+
+.listFilterItem {
+  height: 40px;
+  min-width: 120px;
+  flex: 1;
+  max-width: 200px;
+  border-radius: var(--space-1);
+}
+
+.listContentCard {
+  padding: var(--space-4);
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--space-2);
+}
+
+.listContentHeader {
+  margin-bottom: var(--space-4);
+}
+
+.listContentTitle {
+  height: 1.25rem;
+  width: 180px;
+  border-radius: var(--space-1);
+}
+
+.listGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.listCard {
+  padding: var(--space-4);
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.listCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.listCardTitle {
+  height: 1rem;
+  width: 60%;
+  border-radius: var(--space-1);
+}
+
+.listCardBadge {
+  height: 0.75rem;
+  width: 70px;
+  border-radius: var(--space-1);
+}
+
+.listCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.listCardLine {
+  height: 0.875rem;
+  width: 100%;
+  border-radius: var(--space-1);
+}
+
+.listCardLineShort {
+  width: 50%;
+}
+
+.listCardFooter {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.listCardBtn {
+  height: 36px;
+  width: 80px;
+  border-radius: var(--space-1);
+}
+
+/* --- Table skeleton --- */
+.tableRoot {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--space-2);
+  background: #fff;
+}
+
+.tableHeader {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.tableHeaderCell {
+  height: 0.875rem;
+  border-radius: var(--space-1);
+}
+
+.tableRow {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableCell {
+  height: 0.875rem;
+  border-radius: var(--space-1);
+}
+
+/* --- Detail skeleton --- */
+.detailRoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.detailTitle {
+  height: 1.5rem;
+  width: 50%;
+  max-width: 320px;
+  border-radius: var(--space-1);
+}
+
+.detailBlock {
+  padding: var(--space-4);
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.detailBlockLine {
+  height: 0.875rem;
+  width: 100%;
+  border-radius: var(--space-1);
+}
+
+.detailBlockLineShort {
+  width: 40%;
+}
+
+.detailBlockLineMid {
+  width: 65%;
+}

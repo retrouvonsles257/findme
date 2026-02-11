@@ -27,6 +27,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './PhotosEnAttentePage.module.css';
 
 interface PhotoEnAttente {
@@ -187,7 +188,7 @@ export const PhotosEnAttentePage: React.FC<PhotosEnAttentePageProps> = ({ noLayo
 
         {/* Error message */}
         {error && (
-          <div className={styles.photosEnAttente__errorMessage}>
+          <div className={styles.photosEnAttente__errorBanner} role="alert">
             <AlertCircle size={20} />
             <span>{error}</span>
           </div>
@@ -196,9 +197,8 @@ export const PhotosEnAttentePage: React.FC<PhotosEnAttentePageProps> = ({ noLayo
         {/* Content */}
         <div className={styles.photosEnAttente__content}>
           {isLoading ? (
-            <div className={styles.photosEnAttente__loadingState}>
-              <Loader2 className={styles.photosEnAttente__spinner} />
-              <p>Chargement des photos...</p>
+            <div className={styles.photosEnAttente__skeletonWrap}>
+              <AdminListSkeleton cardCount={8} showFilters={false} />
             </div>
           ) : photos.length > 0 ? (
             <>

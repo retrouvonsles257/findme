@@ -77,6 +77,11 @@
   line-height: 1.5;
 }
 
+.workflows__skeletonWrap {
+  padding: 1.5rem;
+  min-height: 320px;
+}
+
 .workflows__loading,
 .workflows__empty {
   display: flex;
@@ -102,12 +107,16 @@
 }
 
 .workflows__error {
-  padding: 1rem 1.25rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 0.5rem;
-  color: var(--wf-danger);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  background: var(--admin-error-bg, #fef2f2);
+  border: 1px solid var(--admin-error-border, #fecaca);
+  border-radius: var(--space-1, 0.25rem);
+  color: var(--admin-error-text, #b91c1c);
   font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 .workflows__tableWrap {

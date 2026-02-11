@@ -163,18 +163,12 @@
 }
 
 /* ============================================ */
-/* LOADING */
+/* SKELETON (loading) */
 /* ============================================ */
 
-.map-view__loading {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem;
-  color: #6b7280;
-  font-size: 1.1rem;
+.map-view__skeletonWrap {
+  padding: var(--space-5, 1.5rem);
+  min-height: 420px;
 }
 
 .map-view__spinner {
