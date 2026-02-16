@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardBody } from '../../components/common/Card';
+import { Search, Plus, AlertTriangle, ChevronLeft, ChevronRight, FolderOpen } from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { StatutDossier } from '../../@types/enums.types';
@@ -119,131 +119,152 @@ export const NGOCasesPage: React.FC<NGOCasesPageProps> = ({ noLayout, basePath =
   const paginatedCases = cases.slice(startIdx, startIdx + itemsPerPage);
 
   const loadingContent = (
-    <div className={styles['ngo-cases__skeletonWrap']}>
+    <div className={styles.skeletonWrap}>
       <AdminTableSkeleton columns={4} rows={8} />
     </div>
   );
   if (loading) {
     if (noLayout) return loadingContent;
-    return <NGOLayout title={t('ngo.casesTitle')}>{loadingContent}</NGOLayout>;
+    return <NGOLayout>{loadingContent}</NGOLayout>;
   }
 
   const content = (
-    <div>
-      <p className={styles['ngo-cases__subtitle']}>{t('ngo.casesSubtitle')}</p>
+    <div className={styles.ngoCases}>
+      <header className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.pageTitle}>
+              <FolderOpen size={24} />
+              {t('ngo.casesTitle')}
+            </h1>
+            <p className={styles.pageSubtitle}>{t('ngo.casesSubtitle')}</p>
+          </div>
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => navigate(basePath === '/admin' ? `${basePath}/cas/create` : `${basePath}/cases/create`)}
+            >
+              <Plus size={18} />
+              <span>{t('ngo.createCase')}</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       {error && (
-        <div className={styles['ngo-cases__error-banner']} role="alert">
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
           <span>{error}</span>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={() => navigate(basePath === '/admin' ? `${basePath}/cas/create` : `${basePath}/cases/create`)}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 10,
-            border: 'none',
-            background: '#2563eb',
-            color: 'white',
-            cursor: 'pointer',
-          }}
-        >
-          Créer un dossier
-        </button>
-      </div>
-
-        <div className={styles['ngo-cases__controls']}>
+      <div className={styles.controls}>
+        <div className={styles.searchBox}>
+          <Search size={18} className={styles.searchIcon} />
           <input
             type="text"
             placeholder={t('common.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles['ngo-cases__search-input']}
+            className={styles.searchInput}
           />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className={styles['ngo-cases__filter-select']}
-          >
-            <option value="all">{t('common.allStatuses')}</option>
-            <option value="active">{t('common.active')}</option>
-            <option value="resolved">{t('ngo.resolved')}</option>
-            <option value="closed">{t('ngo.closed')}</option>
-          </select>
         </div>
-
-        <Card>
-          <CardBody>
-            <div className={styles['ngo-cases__table']}>
-              <div className={styles['ngo-cases__table-header']}>
-                <div className={styles['ngo-cases__header-cell']}>{t('common.name')}</div>
-                <div className={styles['ngo-cases__header-cell']}>{t('common.location')}</div>
-                <div className={styles['ngo-cases__header-cell']}>{t('ngo.missingDate')}</div>
-                <div className={styles['ngo-cases__header-cell']}>{t('common.status')}</div>
-              </div>
-
-              {paginatedCases.length > 0 ? (
-                paginatedCases.map((c) => (
-                  <div key={c.id} className={styles['ngo-cases__table-row']}>
-                    <div className={styles['ngo-cases__table-cell']}>{c.nom_complet}</div>
-                    <div className={styles['ngo-cases__table-cell']}>{c.localisation}</div>
-                    <div className={styles['ngo-cases__table-cell']}>{new Date(c.date_disparition).toLocaleDateString('fr-FR')}</div>
-                    <div className={styles['ngo-cases__table-cell']}>
-                      <span
-                        className={styles['ngo-cases__badge']}
-                        style={{
-                          backgroundColor:
-                            c.statut_dossier === StatutDossier.EN_COURS
-                              ? '#ef4444'
-                              : [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE].includes(c.statut_dossier as any)
-                                ? '#10b981'
-                                : '#9ca3af',
-                        }}
-                      >
-                        {c.statut_dossier === StatutDossier.EN_COURS
-                          ? t('common.active')
-                          : [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE].includes(c.statut_dossier as any)
-                            ? t('ngo.resolved')
-                            : t('ngo.closed')}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles['ngo-cases__empty-state']}>
-                  <p>{t('ngo.noCases')}</p>
-                </div>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-
-        {totalPages > 1 && (
-          <div className={styles['ngo-cases__pagination']}>
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className={styles['ngo-cases__pagination-button']}
+        <div className={styles.filterSort}>
+          <div className={styles.selectWrapper}>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className={styles.select}
             >
-              ← {t('common.previous')}
-            </button>
-            <span className={styles['ngo-cases__page-info']}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className={styles['ngo-cases__pagination-button']}
-            >
-              {t('common.next')} →
-            </button>
+              <option value="all">{t('common.allStatuses')}</option>
+              <option value="active">{t('common.active')}</option>
+              <option value="resolved">{t('ngo.resolved')}</option>
+              <option value="closed">{t('ngo.closed')}</option>
+            </select>
           </div>
-        )}
+        </div>
+      </div>
+
+      <div className={styles.tableContainer}>
+        <div className={styles.table}>
+          <div className={styles.tableHeader}>
+            <div className={styles.headerCell}>{t('common.name')}</div>
+            <div className={styles.headerCell}>{t('common.location')}</div>
+            <div className={styles.headerCell}>{t('ngo.missingDate')}</div>
+            <div className={styles.headerCell}>{t('common.status')}</div>
+          </div>
+          {paginatedCases.length > 0 ? (
+            paginatedCases.map((c) => (
+              <div
+                key={c.id}
+                className={styles.tableRow}
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`${basePath}/cases/${c.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`${basePath}/cases/${c.id}`);
+                  }
+                }}
+              >
+                <div className={styles.tableCell}>{c.nom_complet}</div>
+                <div className={styles.tableCell}>{c.localisation}</div>
+                <div className={styles.tableCell}>{new Date(c.date_disparition).toLocaleDateString('fr-FR')}</div>
+                <div className={styles.tableCell}>
+                  <span
+                    className={styles.statusBadge}
+                    data-status={
+                      c.statut_dossier === StatutDossier.EN_COURS
+                        ? 'en_cours'
+                        : [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE].includes(c.statut_dossier as any)
+                          ? 'resolved'
+                          : 'closed'
+                    }
+                  >
+                    {c.statut_dossier === StatutDossier.EN_COURS
+                      ? t('common.active')
+                      : [StatutDossier.RETROUVE_VIVANT, StatutDossier.RETROUVE_DECEDE].includes(c.statut_dossier as any)
+                        ? t('ngo.resolved')
+                        : t('ngo.closed')}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className={styles.emptyState}>
+              <p>{t('ngo.noCases')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className={styles.paginationButton}
+          >
+            <ChevronLeft size={18} /> {t('common.previous')}
+          </button>
+          <span className={styles.pageInfo}>
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className={styles.paginationButton}
+          >
+            {t('common.next')} <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
   if (noLayout) return content;
-  return <NGOLayout title={t('ngo.casesTitle')}>{content}</NGOLayout>;
+  return <NGOLayout>{content}</NGOLayout>;
 };

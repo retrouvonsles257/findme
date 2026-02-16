@@ -1,6 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardBody } from '../../components/common/Card';
+import {
+  FolderOpen,
+  Zap,
+  CheckCircle,
+  Megaphone,
+  BookOpen,
+  Handshake,
+  ClipboardList,
+  AlertTriangle,
+  LayoutDashboard,
+} from 'lucide-react';
 import { StatCard } from '../../components/cards/StatCard';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
@@ -23,7 +33,7 @@ interface RecentActivity {
   title: string;
   description: string;
   timestamp: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 export const NGODashboardPage: React.FC = () => {
@@ -87,7 +97,7 @@ export const NGODashboardPage: React.FC = () => {
         title: log.type_action,
         description: log.description || '',
         timestamp: new Date(log.date_action).toLocaleString('fr-FR'),
-        icon: '📋',
+        icon: <ClipboardList size={20} />,
       }));
 
       setRecentActivities(activities);
@@ -107,28 +117,28 @@ export const NGODashboardPage: React.FC = () => {
     {
       title: t('ngo.viewAllCases'),
       description: t('ngo.manageCases'),
-      icon: '📁',
+      icon: FolderOpen,
       action: () => navigate('/ngo/cases'),
       color: '#667eea',
     },
     {
       title: t('ngo.viewCampaigns'),
       description: t('ngo.manageCampaigns'),
-      icon: '📢',
+      icon: Megaphone,
       action: () => navigate('/ngo/campagnes'),
       color: '#764ba2',
     },
     {
       title: t('ngo.viewResources'),
       description: t('ngo.manageResources'),
-      icon: '📚',
+      icon: BookOpen,
       action: () => navigate('/ngo/resources'),
       color: '#f59e0b',
     },
     {
       title: t('ngo.viewPartnerships'),
       description: t('ngo.managePartnerships'),
-      icon: '🤝',
+      icon: Handshake,
       action: () => navigate('/ngo/partnerships'),
       color: '#10b981',
     },
@@ -136,9 +146,9 @@ export const NGODashboardPage: React.FC = () => {
 
   if (loading) {
     return (
-      <NGOLayout title={t('ngo.dashboardTitle')}>
-        <div className={styles['ngo-dashboard__loading-container']}>
-          <div className={styles['ngo-dashboard__spinner']}></div>
+      <NGOLayout>
+        <div className={styles.ngoDashboardLoading}>
+          <div className={styles.ngoDashboardSpinner} />
           <p>{t('common.loading')}</p>
         </div>
       </NGOLayout>
@@ -146,90 +156,104 @@ export const NGODashboardPage: React.FC = () => {
   }
 
   return (
-    <NGOLayout title={t('ngo.dashboardTitle')}>
-      <p className={styles['ngo-dashboard__subtitle']}>{t('ngo.dashboardSubtitle')}</p>
+    <NGOLayout>
+      <div className={styles.ngoDashboard}>
+        <header className={styles.pageHeader}>
+          <div className={styles.headerContent}>
+            <div className={styles.titleSection}>
+              <h1 className={styles.pageTitle}>
+                <LayoutDashboard size={24} />
+                {t('ngo.dashboardTitle')}
+              </h1>
+              <p className={styles.pageSubtitle}>{t('ngo.dashboardSubtitle')}</p>
+            </div>
+          </div>
+        </header>
 
-      {error && (
-        <div className={styles['ngo-dashboard__error-message']}>
-          ⚠️ {error}
-        </div>
-      )}
+        {error && (
+          <div className={styles.errorBanner} role="alert">
+            <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
+            <span>{error}</span>
+          </div>
+        )}
 
-        <div className={styles['ngo-dashboard__stats-grid']}>
-          <StatCard
-            title={t('ngo.totalCases')}
-            value={stats.totalCases}
-            icon="📁"
-            trend={{ value: 5, isPositive: true }}
-            color="#667eea"
-          />
-          <StatCard
-            title={t('ngo.activeCases')}
-            value={stats.activeCases}
-            icon="⚡"
-            trend={{ value: 3, isPositive: true }}
-            color="#764ba2"
-          />
-          <StatCard
-            title={t('ngo.resolvedCases')}
-            value={stats.resolvedCases}
-            icon="✓"
-            trend={{ value: 2, isPositive: true }}
-            color="#10b981"
-          />
-          <StatCard
-            title={t('ngo.totalCampaigns')}
-            value={stats.totalCampaigns}
-            icon="📢"
-            trend={{ value: 1, isPositive: true }}
-            color="#f59e0b"
-          />
-        </div>
-
-        <section className={styles['ngo-dashboard__quick-actions-section']}>
-          <h2>{t('common.quickActions')}</h2>
-          <div className={styles['ngo-dashboard__quick-actions-grid']}>
-            {quickActions.map((action, idx) => (
-              <Card key={idx}>
-                <CardBody>
-                  <div className={styles['ngo-dashboard__action-card']} style={{ borderLeftColor: action.color }}>
-                    <div className={styles['ngo-dashboard__action-icon']}>{action.icon}</div>
-                    <div className={styles['ngo-dashboard__action-content']}>
-                      <h3>{action.title}</h3>
-                      <p>{action.description}</p>
-                      <button 
-                        className={styles['ngo-dashboard__action-button']}
-                        onClick={action.action}
-                      >
-                        {t('common.goTo')} →
-                      </button>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
+        <section className={styles.statsSection}>
+          <div className={styles.statsGrid}>
+            <StatCard
+              title={t('ngo.totalCases')}
+              value={stats.totalCases}
+              icon={<FolderOpen size={24} />}
+              trend={{ value: 5, isPositive: true }}
+              color="#1d4ed8"
+            />
+            <StatCard
+              title={t('ngo.activeCases')}
+              value={stats.activeCases}
+              icon={<Zap size={24} />}
+              trend={{ value: 3, isPositive: true }}
+              color="#1d4ed8"
+            />
+            <StatCard
+              title={t('ngo.resolvedCases')}
+              value={stats.resolvedCases}
+              icon={<CheckCircle size={24} />}
+              trend={{ value: 2, isPositive: true }}
+              color="#22c55e"
+            />
+            <StatCard
+              title={t('ngo.totalCampaigns')}
+              value={stats.totalCampaigns}
+              icon={<Megaphone size={24} />}
+              trend={{ value: 1, isPositive: true }}
+              color="#1d4ed8"
+            />
           </div>
         </section>
 
-        <section className={styles['ngo-dashboard__activities-section']}>
-          <h2>{t('ngo.recentActivities')}</h2>
-          <div className={styles['ngo-dashboard__activities-list']}>
+        <section className={styles.quickActionsSection}>
+          <h2 className={styles.sectionTitle}>{t('common.quickActions')}</h2>
+          <div className={styles.actionsGrid}>
+            {quickActions.map((action, idx) => {
+              const ActionIcon = action.icon;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  className={styles.actionCard}
+                  onClick={action.action}
+                >
+                  <div className={styles.actionIcon}>
+                    <ActionIcon size={22} />
+                  </div>
+                  <span className={styles.actionLabel}>{action.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className={styles.recentSection}>
+          <h2 className={styles.sectionTitle}>{t('ngo.recentActivities')}</h2>
+          <div className={styles.itemsList}>
             {recentActivities.length > 0 ? (
               recentActivities.map((activity) => (
-                <div key={activity.id} className={styles['ngo-dashboard__activity-item']}>
-                  <span className={styles['ngo-dashboard__activity-icon']}>{activity.icon}</span>
-                  <div className={styles['ngo-dashboard__activity-content']}>
-                    <h4>{activity.title}</h4>
-                    <p>{activity.description}</p>
+                <div key={activity.id} className={styles.listItem}>
+                  <span className={styles.listItemIcon}>{activity.icon}</span>
+                  <div className={styles.itemMain}>
+                    <p className={styles.itemTitle}>{activity.title}</p>
+                    <p className={styles.itemDesc}>{activity.description || '—'}</p>
                   </div>
-                  <span className={styles['ngo-dashboard__activity-time']}>{activity.timestamp}</span>
+                  <span className={styles.itemDate}>{activity.timestamp}</span>
                 </div>
               ))
             ) : (
-              <p className={styles['ngo-dashboard__empty-state']}>{t('ngo.noActivities')}</p>
+              <div className={styles.emptyState}>
+                <p>{t('ngo.noActivities')}</p>
+              </div>
             )}
           </div>
         </section>
-      </NGOLayout>
+      </div>
+    </NGOLayout>
   );
 };

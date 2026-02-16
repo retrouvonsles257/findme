@@ -12,6 +12,7 @@
   "cases": "Cas",
   "casesTitle": "Gestion des cas",
   "casesSubtitle": "Suivi des personnes disparues",
+  "createCase": "Créer un dossier",
   "noCases": "Aucun cas trouvé",
   "missingDate": "Date de disparition",
   "resolved": "Résolu",
@@ -20,7 +21,13 @@
   "campaigns": "Campagnes",
   "campaignsTitle": "Campagnes de sensibilisation",
   "campaignsSubtitle": "Gestion des campagnes d'information",
+  "createCampaign": "Créer une campagne",
   "noCampaigns": "Aucune campagne trouvée",
+  "campaignStatus": {
+    "planned": "Planifiée",
+    "completed": "Terminée",
+    "cancelled": "Annulée"
+  },
   "completed": "Complétée",
   "paused": "Suspendue",
   "objective": "Objectif",
@@ -41,6 +48,11 @@
   "partnershipsTitle": "Partenaires",
   "partnershipsSubtitle": "Gestion des partenariats organisationnels",
   "noPartnerships": "Aucun partenariat trouvé",
+  "noOrganisation": "Aucune organisation associée à votre compte. Les ressources et partenariats ne sont pas disponibles.",
+  "personInfo": "Personne",
+  "contactFamily": "Contact famille",
+  "editCase": "Modifier le dossier",
+  "urgency": "Niveau d'urgence",
   "organisation": "Organisation",
   "contactPerson": "Personne de contact",
 
@@ -53,5 +65,22 @@
   "viewPartnerships": "Voir les partenaires",
   "managePartnerships": "Gérer les partenariats",
 
-  "searchCases": "Rechercher un cas..."
+  "searchCases": "Rechercher un cas...",
+
+  "alertes": "Alertes",
+  "alertesTitle": "Alertes de prévention et sensibilisation",
+  "createAlerteTitle": "Créer une alerte",
+  "statistics": "Statistiques",
+  "statisticsSubtitle": "Indicateurs de votre organisation (données agrégées)",
+  "exportAnonymised": "Exporter (anonymisé)",
+  "urgencyDistribution": "Répartition par urgence",
+  "monthlyActivity": "Activité mensuelle",
+  "month": "Mois",
+  "newCases": "Nouveaux",
+  "personsFound": "Personnes retrouvées",
+  "avgResolutionDays": "Délai moyen de résolution",
+  "days": "jours",
+  "profileSubtitle": "Informations de votre compte ONG",
+  "profileFullName": "Nom complet",
+  "profileOrganisation": "Organisation"
 }

@@ -87,7 +87,7 @@ export const NGOIAAnalysisPage: React.FC = () => {
   );
 
   return (
-    <NGOLayout title="IA (ONG)">
+    <NGOLayout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {error && (
           <div style={{ padding: 12, borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#991b1b' }}>

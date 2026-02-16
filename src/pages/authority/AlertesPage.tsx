@@ -32,7 +32,8 @@ import {
   cancelAlerte, 
   deleteAlerte,
   diffuserAlerte,
-  updateAlerteStatut
+  updateAlerteStatut,
+  type AlerteFilters,
 } from '../../features/alertes/services/alerteAPI';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
@@ -50,9 +51,11 @@ export interface AlertesPageProps {
   noLayout?: boolean;
   /** Base path for links (e.g. /admin when used from admin org). Default /authority */
   basePath?: string;
+  /** Filtres initiaux (ex. id_organisation_responsable pour NGO). Prioritaire sur le filtre déduit du rôle. */
+  initialFilters?: AlerteFilters;
 }
 
-export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, basePath = '/authority' }) => {
+export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, basePath = '/authority', initialFilters }) => {
   const navigate = useNavigate();
   const { user: _ } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const currentUser = useAppSelector(selectCurrentUser);
@@ -69,11 +72,13 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
   const [actionComment, setActionComment] = useState('');
 
   useEffect(() => {
-    const filters = currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id
-      ? { id_organisation_responsable: currentUser.organisation_id }
-      : undefined;
+    const filters = initialFilters ?? (
+      currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id
+        ? { id_organisation_responsable: currentUser.organisation_id }
+        : undefined
+    );
     fetchAlertes(filters);
-  }, [fetchAlertes, currentUser?.role, currentUser?.organisation_id]);
+  }, [fetchAlertes, initialFilters, currentUser?.role, currentUser?.organisation_id]);
 
   const filteredAlertes = alertes.filter((a: any) => {
     const status = a.statut_alerte || 'brouillon';

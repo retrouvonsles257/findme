@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, CardBody } from '../../components/common/Card';
+import { FileText, Wrench, BookOpen, GraduationCap, Library, AlertTriangle, ExternalLink, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
 import { getRessourcesOrganisation } from '../../features/admin-organisation/services';
@@ -60,6 +60,7 @@ export const NGOResourcesPage: React.FC<NGOResourcesPageProps> = ({ noLayout, or
       setLoading(false);
     }
   }, [t, organisationId]);
+  const noOrganisation = organisationId === undefined || organisationId === null;
 
   useEffect(() => {
     loadResources();
@@ -78,112 +79,136 @@ export const NGOResourcesPage: React.FC<NGOResourcesPageProps> = ({ noLayout, or
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedResources = filteredResources.slice(startIdx, startIdx + itemsPerPage);
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: string): React.ReactNode => {
+    const iconProps = { size: 28 };
     switch (type) {
-      case 'document': return '📄';
-      case 'tool': return '🛠️';
-      case 'guide': return '📖';
-      case 'training': return '🎓';
-      default: return '📚';
+      case 'document': return <FileText {...iconProps} />;
+      case 'tool': return <Wrench {...iconProps} />;
+      case 'guide': return <BookOpen {...iconProps} />;
+      case 'training': return <GraduationCap {...iconProps} />;
+      default: return <Library {...iconProps} />;
     }
   };
 
   const loadingContent = (
-    <div className={styles['ngo-resources__skeletonWrap']}>
+    <div className={styles.skeletonWrap}>
       <AdminListSkeleton cardCount={6} showFilters={false} />
     </div>
   );
   if (loading) {
     if (noLayout) return loadingContent;
-    return <NGOLayout title={t('ngo.resourcesTitle')}>{loadingContent}</NGOLayout>;
+    return <NGOLayout>{loadingContent}</NGOLayout>;
   }
 
   const content = (
-    <div>
-      <p className={styles['ngo-resources__subtitle']}>{t('ngo.resourcesSubtitle')}</p>
+    <div className={styles.ngoResources}>
+      <header className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.pageTitle}>
+              <BookOpen size={24} />
+              {t('ngo.resourcesTitle')}
+            </h1>
+            <p className={styles.pageSubtitle}>{t('ngo.resourcesSubtitle')}</p>
+          </div>
+        </div>
+      </header>
+
+      {noOrganisation && (
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
+          <span>{t('ngo.noOrganisation')}</span>
+        </div>
+      )}
 
       {error && (
-        <div className={styles['ngo-resources__error-banner']} role="alert">
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
           <span>{error}</span>
         </div>
       )}
 
-        <div className={styles['ngo-resources__controls']}>
-          <input
-            type="text"
-            placeholder={t('common.search')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles['ngo-resources__search-input']}
-          />
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as any)}
-            className={styles['ngo-resources__filter-select']}
-          >
-            <option value="all">{t('ngo.allTypes')}</option>
-            <option value="document">{t('ngo.document')}</option>
-            <option value="tool">{t('ngo.tool')}</option>
-            <option value="guide">{t('ngo.guide')}</option>
-            <option value="training">{t('ngo.training')}</option>
-          </select>
-        </div>
+      {!noOrganisation && (
+        <>
+          <div className={styles.controls}>
+            <div className={styles.searchBox}>
+              <Search size={18} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder={t('common.search')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+            <div className={styles.filterSort}>
+              <div className={styles.selectWrapper}>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as any)}
+                  className={styles.select}
+                >
+                  <option value="all">{t('ngo.allTypes')}</option>
+                  <option value="document">{t('ngo.document')}</option>
+                  <option value="tool">{t('ngo.tool')}</option>
+                  <option value="guide">{t('ngo.guide')}</option>
+                  <option value="training">{t('ngo.training')}</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-        <div className={styles['ngo-resources__resources-grid']}>
-          {paginatedResources.length > 0 ? (
-            paginatedResources.map((resource) => (
-              <Card key={resource.id} className={styles['ngo-resources__card']}>
-                <CardBody className={styles['ngo-resources__card-body']}>
-                  <div className={styles['ngo-resources__resource-card']}>
-                    <div className={styles['ngo-resources__resource-icon']}>
-                      {getTypeIcon(resource.type)}
-                    </div>
-                    <h3>{resource.titre}</h3>
-                    <p className={styles['ngo-resources__description']}>{resource.description}</p>
-                    <div className={styles['ngo-resources__resource-meta']}>
-                      <span className={styles['ngo-resources__type']}>{resource.type}</span>
-                      {resource.url && resource.url.trim() ? (
-                        <a href={resource.url} target="_blank" rel="noopener noreferrer" className={styles['ngo-resources__link']}>
-                          {t('ngo.accessResource')} →
-                        </a>
-                      ) : (
-                        <span className={styles['ngo-resources__no-link']}>{t('ngo.noLink')}</span>
-                      )}
-                    </div>
+          <div className={styles.cardsGrid}>
+            {paginatedResources.length > 0 ? (
+              paginatedResources.map((resource) => (
+                <div key={resource.id} className={styles.card}>
+                  <div className={styles.cardIcon}>{getTypeIcon(resource.type)}</div>
+                  <h3 className={styles.cardTitle}>{resource.titre}</h3>
+                  <p className={styles.cardDescription}>{resource.description}</p>
+                  <div className={styles.cardMeta}>
+                    <span className={styles.typeBadge}>{resource.type}</span>
+                    {resource.url && resource.url.trim() ? (
+                      <a href={resource.url} target="_blank" rel="noopener noreferrer" className={styles.cardLink}>
+                        {t('ngo.accessResource')} <ExternalLink size={14} />
+                      </a>
+                    ) : (
+                      <span className={styles.noLink}>{t('ngo.noLink')}</span>
+                    )}
                   </div>
-                </CardBody>
-              </Card>
-            ))
-          ) : (
-            <div className={styles['ngo-resources__empty-state']}>
-              <p>{t('ngo.noResources')}</p>
+                </div>
+              ))
+            ) : (
+              <div className={styles.emptyState}>
+                <p>{t('ngo.noResources')}</p>
+              </div>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className={styles.paginationButton}
+              >
+                <ChevronLeft size={18} /> {t('common.previous')}
+              </button>
+              <span className={styles.pageInfo}>{currentPage} / {totalPages}</span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className={styles.paginationButton}
+              >
+                {t('common.next')} <ChevronRight size={18} />
+              </button>
             </div>
           )}
-        </div>
-
-        {totalPages > 1 && (
-          <div className={styles['ngo-resources__pagination']}>
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className={styles['ngo-resources__pagination-button']}
-            >
-              ← {t('common.previous')}
-            </button>
-            <span className={styles['ngo-resources__page-info']}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className={styles['ngo-resources__pagination-button']}
-            >
-              {t('common.next')} →
-            </button>
-          </div>
-        )}
+        </>
+      )}
     </div>
   );
   if (noLayout) return content;
-  return <NGOLayout title={t('ngo.resourcesTitle')}>{content}</NGOLayout>;
+  return <NGOLayout>{content}</NGOLayout>;
 };

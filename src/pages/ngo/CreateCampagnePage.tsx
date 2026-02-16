@@ -49,7 +49,7 @@ export const NGOCreateCampagnePage: React.FC<NGOCreateCampagnePageProps> = ({ no
 
   if (noLayout) return pageContent;
   return (
-    <NGOLayout title="Créer une campagne">
+    <NGOLayout>
       {pageContent}
     </NGOLayout>
   );

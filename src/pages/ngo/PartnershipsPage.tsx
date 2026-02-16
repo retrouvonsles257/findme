@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, CardBody } from '../../components/common/Card';
+import { Search, AlertTriangle, ChevronLeft, ChevronRight, Handshake } from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
 import { getPartenariatsOrganisation } from '../../features/admin-organisation/services';
@@ -62,6 +62,7 @@ export const NGOPartnershipsPage: React.FC<NGOPartnershipsPageProps> = ({ noLayo
       setLoading(false);
     }
   }, [t, organisationId]);
+  const noOrganisation = organisationId === undefined || organisationId === null;
 
   useEffect(() => {
     loadPartnerships();
@@ -81,107 +82,128 @@ export const NGOPartnershipsPage: React.FC<NGOPartnershipsPageProps> = ({ noLayo
   const paginatedPartnerships = filteredPartnerships.slice(startIdx, startIdx + itemsPerPage);
 
   const loadingContent = (
-    <div className={styles['ngo-partnerships__skeletonWrap']}>
+    <div className={styles.skeletonWrap}>
       <AdminListSkeleton cardCount={6} showFilters={false} />
     </div>
   );
   if (loading) {
     if (noLayout) return loadingContent;
-    return <NGOLayout title={t('ngo.partnershipsTitle')}>{loadingContent}</NGOLayout>;
+    return <NGOLayout>{loadingContent}</NGOLayout>;
   }
 
   const content = (
-    <div>
-      <p className={styles['ngo-partnerships__subtitle']}>{t('ngo.partnershipsSubtitle')}</p>
+    <div className={styles.ngoPartnerships}>
+      <header className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.pageTitle}>
+              <Handshake size={24} />
+              {t('ngo.partnershipsTitle')}
+            </h1>
+            <p className={styles.pageSubtitle}>{t('ngo.partnershipsSubtitle')}</p>
+          </div>
+        </div>
+      </header>
+
+      {noOrganisation && (
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
+          <span>{t('ngo.noOrganisation')}</span>
+        </div>
+      )}
 
       {error && (
-        <div className={styles['ngo-partnerships__error-banner']} role="alert">
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
           <span>{error}</span>
         </div>
       )}
 
-        <div className={styles['ngo-partnerships__controls']}>
-          <input
-            type="text"
-            placeholder={t('common.search')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles['ngo-partnerships__search-input']}
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className={styles['ngo-partnerships__filter-select']}
-          >
-            <option value="all">{t('common.allStatuses')}</option>
-            <option value="active">{t('common.active')}</option>
-            <option value="inactive">{t('common.inactive')}</option>
-            <option value="pending">{t('common.pending')}</option>
-          </select>
-        </div>
-
-        <Card>
-          <CardBody>
-            <div className={styles['ngo-partnerships__table']}>
-              <div className={styles['ngo-partnerships__table-header']}>
-                <div className={styles['ngo-partnerships__header-cell']}>{t('ngo.organisation')}</div>
-                <div className={styles['ngo-partnerships__header-cell']}>{t('ngo.contactPerson')}</div>
-                <div className={styles['ngo-partnerships__header-cell']}>{t('common.email')}</div>
-                <div className={styles['ngo-partnerships__header-cell']}>{t('common.phone')}</div>
-                <div className={styles['ngo-partnerships__header-cell']}>{t('common.status')}</div>
+      {!noOrganisation && (
+        <>
+          <div className={styles.controls}>
+            <div className={styles.searchBox}>
+              <Search size={18} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder={t('common.search')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+            <div className={styles.filterSort}>
+              <div className={styles.selectWrapper}>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className={styles.select}
+                >
+                  <option value="all">{t('common.allStatuses')}</option>
+                  <option value="active">{t('common.active')}</option>
+                  <option value="inactive">{t('common.inactive')}</option>
+                  <option value="pending">{t('common.pending')}</option>
+                </select>
               </div>
+            </div>
+          </div>
 
+          <div className={styles.tableContainer}>
+            <div className={styles.table}>
+              <div className={styles.tableHeader}>
+                <div className={styles.headerCell}>{t('ngo.organisation')}</div>
+                <div className={styles.headerCell}>{t('ngo.contactPerson')}</div>
+                <div className={styles.headerCell}>{t('common.email')}</div>
+                <div className={styles.headerCell}>{t('common.phone')}</div>
+                <div className={styles.headerCell}>{t('common.status')}</div>
+              </div>
               {paginatedPartnerships.length > 0 ? (
                 paginatedPartnerships.map((partnership) => (
-                  <div key={partnership.id} className={styles['ngo-partnerships__table-row']}>
-                    <div className={styles['ngo-partnerships__table-cell']}>{partnership.organisation_name}</div>
-                    <div className={styles['ngo-partnerships__table-cell']}>{partnership.contact_person}</div>
-                    <div className={styles['ngo-partnerships__table-cell']}>{partnership.email}</div>
-                    <div className={styles['ngo-partnerships__table-cell']}>{partnership.phone}</div>
-                    <div className={styles['ngo-partnerships__table-cell']}>
-                      <span
-                        className={styles['ngo-partnerships__badge']}
-                        style={{
-                          backgroundColor: partnership.statut === 'active' ? '#10b981' : partnership.statut === 'inactive' ? '#ef4444' : '#f59e0b',
-                        }}
-                      >
+                  <div key={partnership.id} className={styles.tableRow}>
+                    <div className={styles.tableCell}>{partnership.organisation_name}</div>
+                    <div className={styles.tableCell}>{partnership.contact_person}</div>
+                    <div className={styles.tableCell}>{partnership.email}</div>
+                    <div className={styles.tableCell}>{partnership.phone}</div>
+                    <div className={styles.tableCell}>
+                      <span className={styles.statusBadge} data-status={partnership.statut}>
                         {partnership.statut === 'active' ? t('common.active') : partnership.statut === 'inactive' ? t('common.inactive') : t('common.pending')}
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className={styles['ngo-partnerships__empty-state']}>
+                <div className={styles.emptyState}>
                   <p>{t('ngo.noPartnerships')}</p>
                 </div>
               )}
             </div>
-          </CardBody>
-        </Card>
-
-        {totalPages > 1 && (
-          <div className={styles['ngo-partnerships__pagination']}>
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className={styles['ngo-partnerships__pagination-button']}
-            >
-              ← {t('common.previous')}
-            </button>
-            <span className={styles['ngo-partnerships__page-info']}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className={styles['ngo-partnerships__pagination-button']}
-            >
-              {t('common.next')} →
-            </button>
           </div>
-        )}
+
+          {totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className={styles.paginationButton}
+              >
+                <ChevronLeft size={18} /> {t('common.previous')}
+              </button>
+              <span className={styles.pageInfo}>{currentPage} / {totalPages}</span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className={styles.paginationButton}
+              >
+                {t('common.next')} <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
   if (noLayout) return content;
-  return <NGOLayout title={t('ngo.partnershipsTitle')}>{content}</NGOLayout>;
+  return <NGOLayout>{content}</NGOLayout>;
 };

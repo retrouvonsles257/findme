@@ -1,0 +1,76 @@
+/**
+ * RETROUVONSLES - NGO Layout Styles
+ * Aligné sur Authority Layout (sidebar + header + main)
+ */
+
+:root {
+  --ngo-primary: #1d4ed8;
+  --ngo-primary-hover: #1e40af;
+  --ngo-bg-main: #f1f5f9;
+  --ngo-sidebar-bg: #1e293b;
+  --ngo-text-primary: #f8fafc;
+  --ngo-text-secondary: #94a3b8;
+  --ngo-text-dark: #1e293b;
+  --ngo-border: #334155;
+  --ngo-sidebar-width: 260px;
+  --ngo-header-height: 70px;
+  --ngo-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --ngo-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.ngoLayout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  max-width: 100%;
+  background: var(--ngo-bg-main);
+  font-family: var(--ngo-font);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  background: var(--ngo-bg-main);
+  transition: margin-left var(--ngo-transition), width var(--ngo-transition);
+}
+
+.mainWrapper.sidebarOpen {
+  margin-left: var(--ngo-sidebar-width);
+  width: calc(100vw - var(--ngo-sidebar-width));
+}
+
+.mainWrapper.sidebarClosed {
+  margin-left: 0;
+  width: 100vw;
+}
+
+/* Pleine largeur, pas d'espace entre sidebar et contenu */
+.mainContent {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--ngo-bg-main);
+  min-height: calc(100vh - var(--ngo-header-height));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .mainWrapper.sidebarOpen {
+    margin-left: 0;
+    width: 100vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 0;
+  }
+}

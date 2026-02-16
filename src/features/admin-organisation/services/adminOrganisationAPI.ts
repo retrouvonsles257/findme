@@ -168,7 +168,13 @@ export interface AdminDossierRow {
   lieu_disparition?: string;
   ville_disparition?: string;
   region_disparition?: string;
+  pays_disparition?: string;
   circonstances?: string;
+  contact_famille_principale?: string | null;
+  telephone_contact?: string | null;
+  email_contact?: string | null;
+  type_disparition?: string;
+  date_derniere_observation?: string | null;
   created_at: string;
   personne?: { nom: string; prenom: string; nom_complet?: string };
 }
@@ -1482,6 +1488,9 @@ export async function getAdminDossierById(
       type_disparition,
       statut_dossier,
       niveau_urgence,
+      contact_famille_principale,
+      telephone_contact,
+      email_contact,
       created_at,
       personne:personne(nom, prenom, nom_complet)
     `)
@@ -1492,14 +1501,12 @@ export async function getAdminDossierById(
   return data || null;
 }
 
-/** Champs modifiables pour un dossier (admin org) */
+/** Champs modifiables pour un dossier (admin org / ONG) */
 export type AdminDossierUpdatePayload = Partial<Pick<
   AdminDossierRow,
-  'date_disparition' | 'statut_dossier' | 'niveau_urgence' | 'lieu_disparition' | 'ville_disparition' | 'region_disparition' | 'circonstances'
+  'date_disparition' | 'statut_dossier' | 'niveau_urgence' | 'lieu_disparition' | 'ville_disparition' | 'region_disparition' | 'pays_disparition' | 'circonstances' | 'contact_famille_principale' | 'telephone_contact' | 'email_contact' | 'type_disparition'
 >> & {
   date_derniere_observation?: string | null;
-  pays_disparition?: string;
-  type_disparition?: string;
   date_resolution?: string | null;
 };
 
@@ -1523,6 +1530,9 @@ export async function updateAdminDossier(
   if (payload.circonstances !== undefined) clean.circonstances = payload.circonstances;
   if (payload.type_disparition !== undefined) clean.type_disparition = payload.type_disparition;
   if (payload.date_resolution !== undefined) clean.date_resolution = payload.date_resolution;
+  if (payload.contact_famille_principale !== undefined) clean.contact_famille_principale = payload.contact_famille_principale;
+  if (payload.telephone_contact !== undefined) clean.telephone_contact = payload.telephone_contact;
+  if (payload.email_contact !== undefined) clean.email_contact = payload.email_contact;
 
   const { data, error } = await db('dossier_disparition')
     .update(clean)

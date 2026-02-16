@@ -1,3 +1,5 @@
+import { BarChart2 } from 'lucide-react';
+
 interface StatCardIconProps {
   icon?: string | React.ReactNode;
   color: string;
@@ -38,10 +40,9 @@ export const StatCardIcon: React.FC<StatCardIconProps> = ({ icon, color }) => {
           alignItems: 'center',
           justifyContent: 'center',
           color: 'white',
-          fontSize: '20px'
         }}
       >
-        📊
+        <BarChart2 size={22} />
       </div>
     );
   }

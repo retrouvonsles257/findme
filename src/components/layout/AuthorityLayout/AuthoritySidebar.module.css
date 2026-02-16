@@ -22,7 +22,8 @@
   top: 0;
   height: 100vh;
   width: var(--authority-sidebar-width, 260px);
-  background: var(--authority-bg-sidebar, #1e293b);
+  /* Background image set inline per actor (niveau_4 for Authority) */
+  background-color: #0f172a;
   display: flex;
   flex-direction: column;
   z-index: 999;

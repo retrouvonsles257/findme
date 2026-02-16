@@ -16,6 +16,7 @@ import { useNotification } from '../../contexts';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { createAlerte } from '../../features/alertes/services/alerteAPI';
 import { TypeAlerte as TypeAlerteEnum } from '../../@types/enums.types';
+import type { TypeAlerte } from '../../@types';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
 import {
@@ -38,9 +39,20 @@ export interface CreateAlertePageProps {
   noLayout?: boolean;
   /** Base path for links (e.g. /admin when used from admin org). Default /authority */
   basePath?: string;
+  /** Restreindre les types d'alerte (ex. pour NGO : prévention / sensibilisation uniquement). */
+  allowedTypes?: TypeAlerte[];
 }
 
-export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = false, basePath = '/authority' }) => {
+const TYPE_OPTIONS: { value: TypeAlerte; labelKey: string }[] = [
+  { value: TypeAlerteEnum.DISPARITION_STANDARD, labelKey: 'authority.alertes.createAlerte.form.types.standard' },
+  { value: TypeAlerteEnum.DISPARITION_ENFANT, labelKey: 'authority.alertes.createAlerte.form.types.child' },
+  { value: TypeAlerteEnum.DISPARITION_ADULTE_VULNERABLE, labelKey: 'authority.alertes.createAlerte.form.types.vulnerable' },
+  { value: TypeAlerteEnum.AMBER_ALERT, labelKey: 'authority.alertes.createAlerte.form.types.amber' },
+  { value: TypeAlerteEnum.MISE_A_JOUR, labelKey: 'authority.alertes.createAlerte.form.types.update' },
+  { value: TypeAlerteEnum.PERSONNE_RETROUVEE, labelKey: 'authority.alertes.createAlerte.form.types.found' },
+];
+
+export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = false, basePath = '/authority', allowedTypes }) => {
   const navigate = useNavigate();
   const alertesListPath = `${basePath}/alertes`;
   const [searchParams] = useSearchParams();
@@ -50,20 +62,26 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const initialCriteria = useMemo(() => {
-    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
-      return { organisation_id: currentUser.organisation_id };
+    const orgId = (currentUser as { organisation_id?: string })?.organisation_id;
+    if ((currentUser?.role === NomRole.ADMIN_ORGANISATION || currentUser?.role === NomRole.RESPONSABLE_ONG) && orgId) {
+      return { organisation_id: orgId };
     }
     return undefined;
-  }, [currentUser?.role, currentUser?.organisation_id]);
+  }, [currentUser?.role, (currentUser as { organisation_id?: string })?.organisation_id]);
   const { dossiers } = useDossiers({ initialCriteria });
   const { t, language } = useI18n();
+
+  const typeOptions = allowedTypes?.length
+    ? TYPE_OPTIONS.filter((o) => allowedTypes.includes(o.value))
+    : TYPE_OPTIONS;
+  const defaultType = typeOptions[0]?.value ?? TypeAlerteEnum.DISPARITION_STANDARD;
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titre: '',
     message: '',
     message_court: '',
-    type_alerte: TypeAlerteEnum.DISPARITION_STANDARD,
+    type_alerte: defaultType,
     id_dossier: preselectedDossierId || '',
     rayon_km: 50,
     canaux_diffusion: ['push', 'in_app'] as string[],
@@ -195,12 +213,9 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
                   value={formData.type_alerte}
                   onChange={(e) => setFormData({ ...formData, type_alerte: e.target.value as any })}
                 >
-                  <option value={TypeAlerteEnum.DISPARITION_STANDARD}>{t('authority.alertes.createAlerte.form.types.standard')}</option>
-                  <option value={TypeAlerteEnum.DISPARITION_ENFANT}>{t('authority.alertes.createAlerte.form.types.child')}</option>
-                  <option value={TypeAlerteEnum.DISPARITION_ADULTE_VULNERABLE}>{t('authority.alertes.createAlerte.form.types.vulnerable')}</option>
-                  <option value={TypeAlerteEnum.AMBER_ALERT}>{t('authority.alertes.createAlerte.form.types.amber')}</option>
-                  <option value={TypeAlerteEnum.MISE_A_JOUR}>{t('authority.alertes.createAlerte.form.types.update')}</option>
-                  <option value={TypeAlerteEnum.PERSONNE_RETROUVEE}>{t('authority.alertes.createAlerte.form.types.found')}</option>
+                  {typeOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
+                  ))}
                 </select>
               </div>
 

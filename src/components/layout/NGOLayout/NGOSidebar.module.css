@@ -1,0 +1,306 @@
+/**
+ * RETROUVONSLES - NGO Sidebar Styles
+ * Aligné sur Authority Sidebar (nom complet app, nav, profil)
+ */
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  backdrop-filter: blur(2px);
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--ngo-sidebar-width, 260px);
+  /* Background image set inline (niveau_5_responsable_ong.png) */
+  background-color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  transition: transform var(--ngo-transition), width var(--ngo-transition);
+  overflow: hidden;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid var(--ngo-border, #334155);
+  min-height: 70px;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logoIcon {
+  color: var(--ngo-primary, #1d4ed8);
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ngo-text-primary, #f8fafc);
+  white-space: nowrap;
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--ngo-text-secondary, #94a3b8);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ngo-text-primary, #f8fafc);
+}
+
+.navigation {
+  flex: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ngo-border, #334155) transparent;
+}
+
+.navigation::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navigation::-webkit-scrollbar-thumb {
+  background: var(--ngo-border, #334155);
+  border-radius: 4px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: var(--ngo-text-secondary, #94a3b8);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: var(--ngo-font);
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ngo-text-primary, #f8fafc);
+}
+
+.navItem.active {
+  background: var(--ngo-primary, #1d4ed8);
+  color: white;
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.navLabel {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileSection {
+  position: relative;
+  padding: 0.75rem;
+  border-top: 1px solid var(--ngo-border, #334155);
+  margin-top: auto;
+}
+
+.profileDropdown {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0.75rem;
+  right: 0.75rem;
+  background: var(--ngo-sidebar-bg, #1e293b);
+  border: 1px solid var(--ngo-border, #334155);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.sidebarMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--ngo-text-secondary, #94a3b8);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: var(--ngo-font);
+}
+
+.sidebarMenuItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ngo-text-primary, #f8fafc);
+}
+
+.sidebarMenuDivider {
+  height: 1px;
+  background: var(--ngo-border, #334155);
+}
+
+.sidebarLogoutItem:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.profileButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.profileButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ngo-primary, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profileName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ngo-text-primary, #f8fafc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileRole {
+  font-size: 0.75rem;
+  color: var(--ngo-text-secondary, #94a3b8);
+}
+
+.mobileClose {
+  display: none;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--ngo-text-secondary, #94a3b8);
+  border-radius: 6px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobileClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ngo-text-primary, #f8fafc);
+}
+
+@media (max-width: 1024px) {
+  .overlay {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mobileClose {
+    display: flex;
+  }
+
+  .toggleBtn {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+}

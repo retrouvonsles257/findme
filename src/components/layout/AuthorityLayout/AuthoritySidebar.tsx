@@ -198,7 +198,16 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
         />
       )}
 
-      <aside className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}>
+      <aside
+        className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.96)), url('/assets/images/niveau_4_officier_police.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
         {/* Header with Logo and Toggle */}
         <div className={styles.sidebarHeader}>
           <div className={styles.logoSection}>

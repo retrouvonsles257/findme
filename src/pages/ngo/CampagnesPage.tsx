@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardBody } from '../../components/common/Card';
+import { Search, Plus, AlertTriangle, ChevronLeft, ChevronRight, Megaphone } from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { getCampagnes } from '../../features/campagnes/services/campagneAPI';
 import { NGOLayout } from './NGOLayout';
@@ -66,139 +66,135 @@ export const NGOCampagnesPage: React.FC<NGOCampagnesPageProps> = ({ noLayout, ba
   const paginatedCampaigns = campaigns.slice(startIdx, startIdx + itemsPerPage);
 
   const loadingContent = (
-    <div className={styles['ngo-campagnes__skeletonWrap']}>
+    <div className={styles.skeletonWrap}>
       <AdminListSkeleton cardCount={6} showFilters={false} />
     </div>
   );
   if (loading) {
     if (noLayout) return loadingContent;
-    return <NGOLayout title={t('ngo.campaignsTitle')}>{loadingContent}</NGOLayout>;
+    return <NGOLayout>{loadingContent}</NGOLayout>;
   }
 
   const content = (
-    <div>
-      <p className={styles['ngo-campagnes__subtitle']}>{t('ngo.campaignsSubtitle')}</p>
+    <div className={styles.ngoCampagnes}>
+      <header className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <h1 className={styles.pageTitle}>
+              <Megaphone size={24} />
+              {t('ngo.campaignsTitle')}
+            </h1>
+            <p className={styles.pageSubtitle}>{t('ngo.campaignsSubtitle')}</p>
+          </div>
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => navigate(`${basePath}/campagnes/create`)}
+            >
+              <Plus size={18} />
+              <span>{t('ngo.createCampaign')}</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       {error && (
-        <div className={styles['ngo-campagnes__error-banner']} role="alert">
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle size={20} className={styles.errorBannerIcon} aria-hidden />
           <span>{error}</span>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={() => navigate(`${basePath}/campagnes/create`)}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 10,
-            border: 'none',
-            background: '#2563eb',
-            color: 'white',
-            cursor: 'pointer',
-          }}
-        >
-          Créer une campagne
-        </button>
-      </div>
-
-        <div className={styles['ngo-campagnes__controls']}>
+      <div className={styles.controls}>
+        <div className={styles.searchBox}>
+          <Search size={18} className={styles.searchIcon} />
           <input
             type="text"
             placeholder={t('common.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles['ngo-campagnes__search-input']}
+            className={styles.searchInput}
           />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className={styles['ngo-campagnes__filter-select']}
-          >
-            <option value="all">{t('common.allStatuses')}</option>
-            <option value="planifiee">Planifiée</option>
-            <option value="en_cours">{t('common.active')}</option>
-            <option value="terminee">Terminée</option>
-            <option value="annulee">Annulée</option>
-          </select>
         </div>
+        <div className={styles.filterSort}>
+          <div className={styles.selectWrapper}>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className={styles.select}
+            >
+              <option value="all">{t('common.allStatuses')}</option>
+              <option value="planifiee">{t('ngo.campaignStatus.planned')}</option>
+              <option value="en_cours">{t('common.active')}</option>
+              <option value="terminee">{t('ngo.campaignStatus.completed')}</option>
+              <option value="annulee">{t('ngo.campaignStatus.cancelled')}</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-        <div className={styles['ngo-campagnes__campaigns-grid']}>
-          {paginatedCampaigns.length > 0 ? (
-            paginatedCampaigns.map((campaign) => (
-              <Card key={campaign.id}>
-                <CardBody>
-                  <div className={styles['ngo-campagnes__campaign-card']}>
-                    <div className={styles['ngo-campagnes__campaign-header']}>
-                      <h3>{campaign.titre}</h3>
-                      <span
-                        className={styles['ngo-campagnes__badge']}
-                        style={{
-                          backgroundColor:
-                            campaign.statut_campagne === 'en_cours'
-                              ? '#10b981'
-                              : campaign.statut_campagne === 'terminee'
-                                ? '#667eea'
-                                : campaign.statut_campagne === 'planifiee'
-                                  ? '#f59e0b'
-                                  : '#ef4444',
-                        }}
-                      >
-                        {campaign.statut_campagne === 'en_cours'
-                          ? t('common.active')
-                          : campaign.statut_campagne === 'terminee'
-                            ? 'Terminée'
-                            : campaign.statut_campagne === 'planifiee'
-                              ? 'Planifiée'
-                              : 'Annulée'}
-                      </span>
-                    </div>
-                    <p className={styles['ngo-campagnes__description']}>{campaign.description || '—'}</p>
-                    <div className={styles['ngo-campagnes__dates']}>
-                      <small>
-                        {new Date(campaign.date_debut).toLocaleDateString('fr-FR')}
-                        {campaign.date_fin ? ` - ${new Date(campaign.date_fin).toLocaleDateString('fr-FR')}` : ''}
-                      </small>
-                    </div>
-                    <div className={styles['ngo-campagnes__objective']}>
-                      <p>
-                        {t('ngo.objective')}: <strong>{campaign.objectif || '—'}</strong>
-                      </p>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            ))
-          ) : (
-            <div className={styles['ngo-campagnes__empty-state']}>
-              <p>{t('ngo.noCampaigns')}</p>
+      <div className={styles.cardsGrid}>
+        {paginatedCampaigns.length > 0 ? (
+          paginatedCampaigns.map((campaign) => (
+            <div key={campaign.id} className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>{campaign.titre}</h3>
+                <span
+                  className={styles.statusBadge}
+                  data-status={campaign.statut_campagne}
+                >
+                  {campaign.statut_campagne === 'en_cours'
+                    ? t('common.active')
+                    : campaign.statut_campagne === 'terminee'
+                      ? t('ngo.campaignStatus.completed')
+                      : campaign.statut_campagne === 'planifiee'
+                        ? t('ngo.campaignStatus.planned')
+                        : t('ngo.campaignStatus.cancelled')}
+                </span>
+              </div>
+              <p className={styles.cardDescription}>{campaign.description || '—'}</p>
+              <div className={styles.cardMeta}>
+                <small>
+                  {new Date(campaign.date_debut).toLocaleDateString('fr-FR')}
+                  {campaign.date_fin ? ` – ${new Date(campaign.date_fin).toLocaleDateString('fr-FR')}` : ''}
+                </small>
+              </div>
+              <p className={styles.cardObjective}>
+                {t('ngo.objective')}: <strong>{campaign.objectif || '—'}</strong>
+              </p>
             </div>
-          )}
-        </div>
-
-        {totalPages > 1 && (
-          <div className={styles['ngo-campagnes__pagination']}>
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className={styles['ngo-campagnes__pagination-button']}
-            >
-              ← {t('common.previous')}
-            </button>
-            <span className={styles['ngo-campagnes__page-info']}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className={styles['ngo-campagnes__pagination-button']}
-            >
-              {t('common.next')} →
-            </button>
+          ))
+        ) : (
+          <div className={styles.emptyState}>
+            <p>{t('ngo.noCampaigns')}</p>
           </div>
         )}
+      </div>
+
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className={styles.paginationButton}
+          >
+            <ChevronLeft size={18} /> {t('common.previous')}
+          </button>
+          <span className={styles.pageInfo}>{currentPage} / {totalPages}</span>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className={styles.paginationButton}
+          >
+            {t('common.next')} <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
   if (noLayout) return content;
-  return <NGOLayout title={t('ngo.campaignsTitle')}>{content}</NGOLayout>;
+  return <NGOLayout>{content}</NGOLayout>;
 };

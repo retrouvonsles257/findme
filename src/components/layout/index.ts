@@ -15,6 +15,10 @@ export type { DashboardLayoutProps } from './DashbordLayout';
 export { AuthorityLayout, useAuthorityLayout, AuthoritySidebar, AuthorityHeader } from './AuthorityLayout/index';
 export type { AuthorityLayoutProps, AuthoritySidebarProps, AuthorityHeaderProps } from './AuthorityLayout/index';
 
+// NGO Layout (aligné Authority)
+export { NGOLayout, NGOSidebar, NGOHeader } from './NGOLayout/index';
+export type { NGOLayoutProps, NGOSidebarProps, NGOHeaderProps } from './NGOLayout/index';
+
 // Header Components
 export { Header } from './Header';
 export type { HeaderProps, HeaderType } from './Header';

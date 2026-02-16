@@ -410,7 +410,7 @@ export const NGOCreateCasePage: React.FC<NGOCreateCasePageProps> = ({ noLayout =
 
   if (noLayout) return pageContent;
   return (
-    <NGOLayout title="Créer un dossier (ONG)">
+    <NGOLayout>
       {pageContent}
     </NGOLayout>
   );

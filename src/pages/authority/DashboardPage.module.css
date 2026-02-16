@@ -5,13 +5,14 @@
  * =====================================================
  */
 
-/* Container */
+/* Container - pleine largeur, pas d'espace sur les côtés */
 .authorityDashboard {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 

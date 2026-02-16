@@ -13,14 +13,24 @@ import {
   NGOCampagnesPage,
   NGOCreateCasePage,
   NGOCreateCampagnePage,
+  NGOCaseDetailPage,
+  NGOCaseEditPage,
+  NGOAlertesPage,
+  NGOCreateAlertePage,
+  NGOAlerteDetailPage,
   NGOResourcesPage,
   NGOPartnershipsPage,
   NGOIAAnalysisPage,
+  NGOStatistiquesPage,
+  NGOProfilePage,
 } from '../pages/ngo';
 
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
 import { NomRole } from '../@types/enums.types';
+import { useAppSelector } from '../store/types';
+import { selectUser } from '../features/auth/store/authSelectors';
+import { selectCurrentUser } from '../features/users/store/userSelectors';
 
 /**
  * NGORoutes Component
@@ -33,6 +43,9 @@ import { NomRole } from '../@types/enums.types';
  */
 const NGORoutes: React.FC = () => {
   const ngoRoles = [NomRole.RESPONSABLE_ONG];
+  const authUser = useAppSelector(selectUser) as { organisation_id?: string } | null;
+  const currentUser = useAppSelector(selectCurrentUser) as { organisation_id?: string } | null;
+  const organisationId = currentUser?.organisation_id ?? authUser?.organisation_id ?? null;
 
   return (
     <PrivateRoute>
@@ -64,6 +77,22 @@ const NGORoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+        <Route
+          path="/cases/:id"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOCaseDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/cases/:id/edit"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOCaseEditPage />
+            </RoleBasedRoute>
+          }
+        />
 
         {/* Campagnes */}
         <Route
@@ -83,6 +112,32 @@ const NGORoutes: React.FC = () => {
           }
         />
 
+        {/* Alertes */}
+        <Route
+          path="/alertes"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOAlertesPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/alertes/new"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOCreateAlertePage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/alertes/:id"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOAlerteDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* IA */}
         <Route
           path="/ia"
@@ -93,12 +148,22 @@ const NGORoutes: React.FC = () => {
           }
         />
 
+        {/* Statistiques */}
+        <Route
+          path="/statistics"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOStatistiquesPage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* Resources */}
         <Route
           path="/resources"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
-              <NGOResourcesPage />
+              <NGOResourcesPage organisationId={organisationId} />
             </RoleBasedRoute>
           }
         />
@@ -108,7 +173,37 @@ const NGORoutes: React.FC = () => {
           path="/partnerships"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
-              <NGOPartnershipsPage />
+              <NGOPartnershipsPage organisationId={organisationId} />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Profile */}
+        <Route
+          path="/profile"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOProfilePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Settings (même flux que Authority) */}
+        <Route
+          path="/settings"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOProfilePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Security (même flux que Authority) */}
+        <Route
+          path="/security"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGOProfilePage />
             </RoleBasedRoute>
           }
         />

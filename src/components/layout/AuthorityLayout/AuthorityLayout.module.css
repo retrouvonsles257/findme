@@ -61,10 +61,10 @@
   width: 100vw;
 }
 
-/* Main Content Area - Full space */
+/* Main Content Area - Pleine largeur, pas d'espace entre sidebar et contenu */
 .mainContent {
   flex: 1;
-  padding: 1.5rem;
+  padding: 0;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--authority-bg-main);
@@ -83,12 +83,12 @@
 
 @media (max-width: 768px) {
   .mainContent {
-    padding: 1rem;
+    padding: 0;
   }
 }
 
 @media (max-width: 480px) {
   .mainContent {
-    padding: 0.75rem;
+    padding: 0;
   }
 }
