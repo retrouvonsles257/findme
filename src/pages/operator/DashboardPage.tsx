@@ -20,7 +20,6 @@ import {
   CheckCircle2,
   FileText,
   Calendar,
-  TrendingUp,
   UserPlus,
   AlertCircle,
   Image
@@ -102,70 +101,80 @@ export const OperatorDashboardPage: React.FC = () => {
 
   return (
     <OperatorLayout title={t('operator.dashboardTitle')}>
-      {/* Statistics Cards */}
-      <div className={styles['operator-dashboard__stats-grid']}>
-        <div className={styles['operator-dashboard__stat-card']}>
-          <div className={styles['operator-dashboard__stat-icon']} style={{ backgroundColor: '#eff6ff' }}>
-            <FileText style={{ color: '#1d4ed8' }} />
-          </div>
-          <div className={styles['operator-dashboard__stat-content']}>
-            <span className={styles['operator-dashboard__stat-label']}>{t('operator.totalDossiers')}</span>
-            <span className={styles['operator-dashboard__stat-value']}>{stats.dossiers_total}</span>
-          </div>
-        </div>
-
-        <div className={styles['operator-dashboard__stat-card']}>
-          <div className={styles['operator-dashboard__stat-icon']} style={{ backgroundColor: '#fef3c7' }}>
-            <Clock style={{ color: '#ea580c' }} />
-          </div>
-          <div className={styles['operator-dashboard__stat-content']}>
-            <span className={styles['operator-dashboard__stat-label']}>{t('operator.inProgress')}</span>
-            <span className={styles['operator-dashboard__stat-value']}>{stats.dossiers_en_cours}</span>
-          </div>
-        </div>
-
-        <div className={styles['operator-dashboard__stat-card']}>
-          <div className={styles['operator-dashboard__stat-icon']} style={{ backgroundColor: '#dcfce7' }}>
-            <CheckCircle2 style={{ color: '#10b981' }} />
-          </div>
-          <div className={styles['operator-dashboard__stat-content']}>
-            <span className={styles['operator-dashboard__stat-label']}>{t('operator.found')}</span>
-            <span className={styles['operator-dashboard__stat-value']}>{stats.dossiers_retrouves}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className={styles['operator-dashboard__section']}>
-        <h2 className={styles['operator-dashboard__section-title']}>{t('operator.quickActions')}</h2>
-        <div className={styles['operator-dashboard__actions-grid']}>
-          {quickActions.map((action, idx) => {
-            const IconComponent = action.icon;
-            return (
-              <div
-                key={idx}
-                className={styles['operator-dashboard__action-card']}
-                onClick={action.action}
-              >
-                <div 
-                  className={styles['operator-dashboard__action-icon']}
-                  style={{ backgroundColor: `${action.color}15` }}
-                >
-                  <IconComponent style={{ color: action.color }} />
-                </div>
-                <div className={styles['operator-dashboard__action-content']}>
-                  <h3 className={styles['operator-dashboard__action-title']}>{action.title}</h3>
-                  <p className={styles['operator-dashboard__action-description']}>{action.description}</p>
-                </div>
-                <TrendingUp className={styles['operator-dashboard__action-arrow']} />
+      <div className={styles['operator-dashboard']}>
+        {/* Statistics Cards */}
+        <div className={styles['operator-dashboard__stats-grid']}>
+          <div className={styles['operator-dashboard__stat-card']}>
+            <div className={styles['operator-dashboard__stat-header']}>
+              <div className={styles['operator-dashboard__stat-icon']} style={{ backgroundColor: 'rgba(29, 78, 216, 0.1)', color: '#1d4ed8' }}>
+                <FileText size={24} />
               </div>
-            );
-          })}
+              <div className={styles['operator-dashboard__stat-content']}>
+                <h3 className={styles['operator-dashboard__stat-value']}>{stats.dossiers_total}</h3>
+                <p className={styles['operator-dashboard__stat-label']}>{t('operator.totalDossiers')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles['operator-dashboard__stat-card']}>
+            <div className={styles['operator-dashboard__stat-header']}>
+              <div className={styles['operator-dashboard__stat-icon']} style={{ backgroundColor: '#fef3c7', color: '#ea580c' }}>
+                <Clock size={24} />
+              </div>
+              <div className={styles['operator-dashboard__stat-content']}>
+                <h3 className={styles['operator-dashboard__stat-value']}>{stats.dossiers_en_cours}</h3>
+                <p className={styles['operator-dashboard__stat-label']}>{t('operator.inProgress')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles['operator-dashboard__stat-card']}>
+            <div className={styles['operator-dashboard__stat-header']}>
+              <div className={styles['operator-dashboard__stat-icon']} style={{ backgroundColor: '#dcfce7', color: '#10b981' }}>
+                <CheckCircle2 size={24} />
+              </div>
+              <div className={styles['operator-dashboard__stat-content']}>
+                <h3 className={styles['operator-dashboard__stat-value']}>{stats.dossiers_retrouves}</h3>
+                <p className={styles['operator-dashboard__stat-label']}>{t('operator.found')}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Quick Actions */}
+        <div className={styles['operator-dashboard__section']}>
+          <h2 className={styles['operator-dashboard__section-title']}>{t('operator.quickActions')}</h2>
+          <div className={styles['operator-dashboard__actions-grid']}>
+            {quickActions.map((action, idx) => {
+              const IconComponent = action.icon;
+              const isPrimary = idx === 0;
+              return (
+                <div
+                  key={idx}
+                  className={`${styles['operator-dashboard__action-card']} ${isPrimary ? styles['operator-dashboard__action-card--primary'] : ''}`}
+                  onClick={action.action}
+                  onKeyDown={(e) => e.key === 'Enter' && action.action()}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div
+                    className={styles['operator-dashboard__action-icon']}
+                    style={isPrimary ? undefined : { backgroundColor: `${action.color}15`, color: action.color }}
+                  >
+                    <IconComponent size={24} />
+                  </div>
+                  <div className={styles['operator-dashboard__action-content']}>
+                    <h3 className={styles['operator-dashboard__action-title']}>{action.title}</h3>
+                    <p className={styles['operator-dashboard__action-description']}>{action.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
       {/* Recent Dossiers */}
-      <div className={styles['operator-dashboard__section']}>
+        <div className={styles['operator-dashboard__section']}>
         <h2 className={styles['operator-dashboard__section-title']}>{t('operator.recentDossiers')}</h2>
         {isLoading ? (
           <div className={styles['operator-dashboard__loading-state']}>
@@ -218,6 +227,7 @@ export const OperatorDashboardPage: React.FC = () => {
             </p>
           </div>
         )}
+        </div>
       </div>
     </OperatorLayout>
   );

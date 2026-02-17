@@ -60,6 +60,8 @@
     "dashboard": "Dashboard",
     "home": "Home",
     "menu": "Menu",
+  "openMenu": "Open menu",
+  "closeMenu": "Collapse menu",
     "actions": "Actions",
     "details": "Details",
     "information": "Information",
@@ -181,5 +183,6 @@
   "switchToFrench": "Switch to French",
   "ellipsis": "…",
   "colon": ": ",
-  "countSeparator": " / "
+  "countSeparator": " / ",
+  "support": "Support"
 }

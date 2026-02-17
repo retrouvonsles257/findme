@@ -80,5 +80,16 @@
   "editDossierTitle": "Modifier le dossier",
   "editDossierSubtitle": "Mettez à jour les informations du dossier",
   "updating": "Mise à jour en cours...",
-  "successUpdate": "Dossier mis à jour avec succès!"
+  "successUpdate": "Dossier mis à jour avec succès!",
+
+  "createPerson": "Créer une personne",
+  "personnesMenu": "Personnes",
+  "signalementsEnAttenteMenu": "Signalements en attente",
+  "photosEnAttenteMenu": "Photos en attente",
+  "donsMenu": "Dons",
+
+  "nav": {
+    "principal": "Principal",
+    "suivi": "Suivi"
+  }
 }

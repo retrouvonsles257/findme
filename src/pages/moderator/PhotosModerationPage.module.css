@@ -9,8 +9,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1rem;
+  padding: 1rem 0;
   min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ============================================ */
@@ -694,6 +696,24 @@
 
   .photos-moderation__modal-info-section {
     padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .photos-moderation {
+    padding: 0.5rem;
+  }
+
+  .photos-moderation__header {
+    padding: 0.75rem;
+  }
+
+  .photos-moderation__title {
+    font-size: 1.2rem;
+  }
+
+  .photos-moderation__grid {
+    grid-template-columns: 1fr;
   }
 }
 

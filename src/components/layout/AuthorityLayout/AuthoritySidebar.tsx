@@ -1,14 +1,13 @@
 /**
  * =====================================================
  * RETROUVONSLES - Authority Sidebar
- * Sidebar collapsible avec navigation et avatar
- * Style moderne inspiré de ChatGPT/Claude
- * Fermeture automatique sur mobile
+ * Structure alignée sur Admin : navigation par groupes (Opérationnel, Suivi) + section utilisateur
+ * Persistance du scroll (sessionStorage), fermeture automatique sur mobile
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   FolderOpen,
@@ -40,13 +39,57 @@ import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { selectUserRole } from '../../../features/auth/store/authSelectors';
 import styles from './AuthoritySidebar.module.css';
 
-interface NavItem {
+type AuthorityNavId =
+  | 'dashboard'
+  | 'dossiers'
+  | 'alertes'
+  | 'signalements'
+  | 'photos-moderation'
+  | 'map-view'
+  | 'investigation'
+  | 'ia-analysis'
+  | 'coordination'
+  | 'donations'
+  | 'statistiques';
+
+interface AuthorityNavItem {
+  id: AuthorityNavId;
+  labelKey: string;
   path: string;
-  label: string;
-  icon: React.ReactNode;
+  icon: typeof LayoutDashboard;
 }
 
-// navItems sera créé dynamiquement dans le composant pour utiliser i18n
+interface AuthorityNavGroup {
+  groupKey: 'operational' | 'followUp';
+  labelKey: string;
+  items: AuthorityNavItem[];
+}
+
+const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
+  {
+    groupKey: 'operational',
+    labelKey: 'authority.nav.operational',
+    items: [
+      { id: 'dashboard', labelKey: 'authority.menu.dashboard', path: '/authority/dashboard', icon: LayoutDashboard },
+      { id: 'dossiers', labelKey: 'authority.menu.dossiers', path: '/authority/dossiers', icon: FolderOpen },
+      { id: 'alertes', labelKey: 'authority.menu.alertes', path: '/authority/alertes', icon: Bell },
+      { id: 'signalements', labelKey: 'authority.menu.signalements', path: '/authority/signalements', icon: FileSearch },
+      { id: 'photos-moderation', labelKey: 'authority.menu.photosModeration', path: '/authority/photos-moderation', icon: Image },
+      { id: 'map-view', labelKey: 'authority.menu.mapView', path: '/authority/map-view', icon: Map },
+      { id: 'investigation', labelKey: 'authority.menu.investigation', path: '/authority/investigation', icon: Search },
+      { id: 'ia-analysis', labelKey: 'authority.menu.analysis', path: '/authority/ia-analysis', icon: Brain },
+      { id: 'coordination', labelKey: 'authority.menu.coordination', path: '/authority/coordination', icon: Users },
+    ],
+  },
+  {
+    groupKey: 'followUp',
+    labelKey: 'authority.nav.followUp',
+    items: [
+      { id: 'donations', labelKey: 'authority.menu.donations', path: '/authority/donations', icon: Heart },
+      { id: 'statistiques', labelKey: 'authority.menu.statistiques', path: '/authority/statistiques', icon: BarChart3 },
+    ],
+  },
+];
 
 export interface AuthoritySidebarProps {
   isOpen: boolean;
@@ -63,6 +106,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
+  const SIDEBAR_SCROLL_KEY = 'authoritySidebarScrollTop';
   const savedNavScrollRef = useRef(0);
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
 
@@ -114,20 +158,24 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  /* Garder la position de défilement du sidebar après navigation (restauration différée après paint) */
-  useEffect(() => {
+  /* Restaurer le scroll du nav après navigation (sessionStorage, comme Admin) */
+  useLayoutEffect(() => {
     const el = navRef.current;
-    const saved = savedNavScrollRef.current;
-    if (el && saved >= 0) {
-      const t = setTimeout(() => {
-        requestAnimationFrame(() => {
-          if (navRef.current) navRef.current.scrollTop = saved;
-        });
-      }, 0);
-      return () => clearTimeout(t);
+    const fromStorage = (() => {
+      try {
+        const v = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+        return v != null ? parseInt(v, 10) : savedNavScrollRef.current;
+      } catch {
+        return savedNavScrollRef.current;
+      }
+    })();
+    const saved = fromStorage > 0 ? fromStorage : savedNavScrollRef.current;
+    if (el && saved > 0) {
+      el.scrollTop = saved;
     }
-    return undefined;
   }, [location.pathname]);
+
+  const isActive = (itemPath: string) => location.pathname.startsWith(itemPath);
 
   const handleLogout = async () => {
     setShowProfileMenu(false);
@@ -140,7 +188,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   };
 
   const goToProfile = () => {
-    navigate('/authority/profile');
+    navigate('/authority/profile', { state: { edit: true } });
     setShowProfileMenu(false);
     // Fermer sidebar sur mobile
     if (window.innerWidth <= 768) {
@@ -157,12 +205,6 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
     }
   };
 
-  const handleNavClick = () => {
-    if (navRef.current) {
-      savedNavScrollRef.current = navRef.current.scrollTop;
-    }
-  };
-
   const getRoleLabel = (role: string | null) => {
     switch (role) {
       case 'officier_police': return t('authority.roles.officier_police');
@@ -172,20 +214,6 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
       default: return t('authority.roles.default');
     }
   };
-
-  const navItems: NavItem[] = [
-    { path: '/authority/dashboard', label: t('authority.menu.dashboard'), icon: <LayoutDashboard size={20} /> },
-    { path: '/authority/dossiers', label: t('authority.menu.dossiers'), icon: <FolderOpen size={20} /> },
-    { path: '/authority/alertes', label: t('authority.menu.alertes'), icon: <Bell size={20} /> },
-    { path: '/authority/signalements', label: t('authority.menu.signalements'), icon: <FileSearch size={20} /> },
-    { path: '/authority/photos-moderation', label: t('authority.menu.photosModeration'), icon: <Image size={20} /> },
-    { path: '/authority/map-view', label: t('authority.menu.mapView'), icon: <Map size={20} /> },
-    { path: '/authority/investigation', label: t('authority.menu.investigation'), icon: <Search size={20} /> },
-    { path: '/authority/ia-analysis', label: t('authority.menu.analysis'), icon: <Brain size={20} /> },
-    { path: '/authority/coordination', label: t('authority.menu.coordination'), icon: <Users size={20} /> },
-    { path: '/authority/donations', label: t('authority.menu.donations'), icon: <Heart size={20} /> },
-    { path: '/authority/statistiques', label: t('authority.menu.statistiques'), icon: <BarChart3 size={20} /> },
-  ];
 
   return (
     <>
@@ -223,53 +251,72 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav ref={navRef} className={styles.navigation}>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `${styles.navItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavClick}
-            >
-              <span className={styles.navIcon}>{item.icon}</span>
-              <span className={styles.navLabel}>{item.label}</span>
-            </NavLink>
+        {/* Navigation par groupes (aligné Admin) */}
+        <nav ref={navRef} className={styles.nav} aria-label={t('common.menu')}>
+          {AUTHORITY_NAV_GROUPS.map((group) => (
+            <div key={group.groupKey} className={styles.navGroup}>
+              <div className={styles.navGroupTitle}>{t(group.labelKey)}</div>
+              <ul className={styles.navGroupList}>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.path);
+                  const label = t(item.labelKey);
+                  return (
+                    <li key={item.id} className={styles.navGroupListItem}>
+                      <button
+                        type="button"
+                        className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                        onClick={() => {
+                          if (navRef.current) {
+                            const top = navRef.current.scrollTop;
+                            savedNavScrollRef.current = top;
+                            try {
+                              sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(top));
+                            } catch {}
+                          }
+                          navigate(item.path);
+                          if (window.innerWidth <= 768) onToggle();
+                        }}
+                        aria-current={active ? 'page' : undefined}
+                        aria-label={label}
+                      >
+                        <span className={styles.navItemIcon} aria-hidden>
+                          <Icon size={20} />
+                        </span>
+                        <span>{label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           ))}
         </nav>
 
-        {/* User Profile Section */}
-        <div className={styles.profileSection} ref={profileMenuRef}>
-          <button 
-            className={styles.profileButton}
+        {/* Section utilisateur (aligné Admin) */}
+        <div className={styles.userSection} ref={profileMenuRef}>
+          <button
+            type="button"
+            className={styles.userBtn}
             onClick={handleProfileClick}
+            aria-expanded={showProfileMenu}
+            aria-haspopup="true"
           >
-            <div className={styles.avatar}>
+            <div className={styles.userAvatarPlaceholder}>
               {userAvatar ? (
-                <img 
-                  src={userAvatar} 
-                  alt={userFullName} 
-                  className={styles.avatarImage}
-                />
+                <img src={userAvatar} alt="" className={styles.userAvatarImg} />
               ) : (
                 <User size={20} />
               )}
             </div>
             <div className={styles.profileInfo}>
-              <span className={styles.profileName}>
-                {userFullName}
-              </span>
-              <span className={styles.profileRole}>
-                {getRoleLabel(userRole)}
-              </span>
+              <span className={styles.userName}>{userFullName}</span>
+              <span className={styles.profileRole}>{getRoleLabel(userRole)}</span>
             </div>
           </button>
 
-          {/* Profile Dropdown Menu */}
           {showProfileMenu && (
-            <div className={styles.profileMenu}>
+            <div className={styles.userMenu}>
               <div className={styles.profileMenuHeader}>
                 <div className={styles.menuAvatar}>
                   {userAvatar ? (
@@ -283,24 +330,29 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
                   <span className={styles.menuUserEmail}>{currentUser?.email}</span>
                 </div>
               </div>
-              <div className={styles.menuDivider} />
-              <button className={styles.menuItem} onClick={goToProfile}>
+              <div className={styles.userMenuDivider} />
+              <button type="button" className={styles.userMenuItem} onClick={goToProfile}>
                 <Edit size={16} />
                 <span>{t('authority.sidebar.editProfile')}</span>
               </button>
-              <button className={styles.menuItem} onClick={goToSettings}>
+              <button type="button" className={styles.userMenuItem} onClick={goToSettings}>
                 <Settings size={16} />
                 <span>{t('authority.sidebar.settings')}</span>
               </button>
-              <button className={styles.menuItem} onClick={() => {
-                navigate('/authority/security');
-                setShowProfileMenu(false);
-              }}>
+              <button
+                type="button"
+                className={styles.userMenuItem}
+                onClick={() => {
+                  navigate('/authority/security');
+                  setShowProfileMenu(false);
+                  if (window.innerWidth <= 768) onToggle();
+                }}
+              >
                 <KeyRound size={16} />
                 <span>{t('authority.sidebar.security')}</span>
               </button>
-              <div className={styles.menuDivider} />
-              <button className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
+              <div className={styles.userMenuDivider} />
+              <button type="button" className={`${styles.userMenuItem} ${styles.userMenuItemDanger}`} onClick={handleLogout}>
                 <LogOut size={16} />
                 <span>{t('authority.sidebar.logout')}</span>
               </button>

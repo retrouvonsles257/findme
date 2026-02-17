@@ -80,5 +80,16 @@
   "editDossierTitle": "Edit File",
   "editDossierSubtitle": "Update file information",
   "updating": "Updating...",
-  "successUpdate": "File updated successfully!"
+  "successUpdate": "File updated successfully!",
+
+  "createPerson": "Create person",
+  "personnesMenu": "Persons",
+  "signalementsEnAttenteMenu": "Pending reports",
+  "photosEnAttenteMenu": "Pending photos",
+  "donsMenu": "Donations",
+
+  "nav": {
+    "principal": "Main",
+    "suivi": "Follow-up"
+  }
 }

@@ -1,12 +1,11 @@
 /**
  * =====================================================
  * RETROUVONSLES - Citizen Layout
- * Layout principal pour les pages citoyens
- * Style inspiré de ChatGPT/Claude avec sidebar rétractable
+ * Navigation par groupes + persistance scroll (aligné Admin)
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
@@ -34,6 +33,50 @@ import {
 } from 'lucide-react';
 import styles from './CitizenLayout.module.css';
 
+type CitizenNavId = 'dashboard' | 'dossiers' | 'map' | 'alerts' | 'signalements' | 'new-signalement' | 'donations' | 'settings';
+
+interface CitizenNavItem {
+  id: CitizenNavId;
+  labelKey: string;
+  path: string;
+  icon: typeof Home;
+}
+
+interface CitizenNavGroup {
+  groupKey: 'principal' | 'signalements' | 'parametres';
+  labelKey: string;
+  items: CitizenNavItem[];
+}
+
+const CITIZEN_NAV_GROUPS: CitizenNavGroup[] = [
+  {
+    groupKey: 'principal',
+    labelKey: 'citizen.nav.principal',
+    items: [
+      { id: 'dashboard', labelKey: 'common.dashboard', path: '/citizen/dashboard', icon: Home },
+      { id: 'dossiers', labelKey: 'citizen.dossiers', path: '/citizen/dossiers', icon: Users },
+      { id: 'map', labelKey: 'citizen.map', path: '/citizen/map', icon: Map },
+      { id: 'alerts', labelKey: 'citizen.alerts', path: '/citizen/alerts', icon: Bell },
+    ],
+  },
+  {
+    groupKey: 'signalements',
+    labelKey: 'citizen.nav.signalements',
+    items: [
+      { id: 'signalements', labelKey: 'common.reports', path: '/citizen/my-signalements', icon: FileText },
+      { id: 'new-signalement', labelKey: 'citizen.newReport', path: '/citizen/dossiers?mode=report', icon: Plus },
+      { id: 'donations', labelKey: 'citizen.donations', path: '/citizen/donations', icon: Heart },
+    ],
+  },
+  {
+    groupKey: 'parametres',
+    labelKey: 'citizen.nav.parametres',
+    items: [
+      { id: 'settings', labelKey: 'citizen.settings', path: '/citizen/settings', icon: Settings },
+    ],
+  },
+];
+
 interface CitizenLayoutProps {
   children: React.ReactNode;
   activeNav?: string;
@@ -59,6 +102,9 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const SIDEBAR_SCROLL_KEY = 'citizenSidebarScrollTop';
+  const savedNavScrollRef = useRef(0);
   const [headerSearch, setHeaderSearch] = useState('');
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
 
@@ -150,64 +196,20 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
     }
   };
 
-  // Navigation items
-  const navItems = [
-    {
-      id: 'dashboard',
-      label: t('common.dashboard'),
-      icon: Home,
-      path: '/citizen/dashboard',
-    },
-    {
-      id: 'dossiers',
-      label: t('citizen.dossiers'),
-      icon: Users,
-      path: '/citizen/dossiers',
-    },
-    {
-      id: 'map',
-      label: t('citizen.map'),
-      icon: Map,
-      path: '/citizen/map',
-    },
-    {
-      id: 'alerts',
-      label: t('citizen.alerts'),
-      icon: Bell,
-      path: '/citizen/alerts',
-    },
-    {
-      id: 'signalements',
-      label: t('common.reports'),
-      icon: FileText,
-      path: '/citizen/my-signalements',
-    },
-    {
-      id: 'new-signalement',
-      label: t('citizen.newReport'),
-      icon: Plus,
-      // Selon le modèle: un signalement citoyen est lié à un dossier.
-      // On envoie donc vers la liste des dossiers publics pour choisir le dossier concerné.
-      path: '/citizen/dossiers?mode=report',
-    },
-    {
-      id: 'donations',
-      label: t('citizen.donations') || 'Dons',
-      icon: Heart,
-      path: '/citizen/donations',
-    },
-    {
-      id: 'settings',
-      label: t('citizen.settings'),
-      icon: Settings,
-      path: '/citizen/settings',
-    },
-  ];
-
   const isActive = (itemId: string, itemPath: string) => {
     if (activeNav) return activeNav === itemId;
-    return location.pathname === itemPath;
+    return location.pathname === itemPath || (itemPath.includes('?') && location.pathname === itemPath.split('?')[0]);
   };
+
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    let fromStorage = savedNavScrollRef.current;
+    try {
+      const v = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+      if (v != null) fromStorage = parseInt(v, 10);
+    } catch {}
+    if (el && fromStorage > 0) el.scrollTop = fromStorage;
+  }, [location.pathname]);
 
   return (
     <div className={styles.layout}>
@@ -258,26 +260,56 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className={styles.nav}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.id, item.path);
-            return (
-              <button
-                key={item.id}
-                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
-                onClick={() => {
-                  navigate(item.path);
-                  setMobileOpen(false);
-                }}
-                title={isCollapsed ? item.label : undefined}
+        {/* Navigation par groupes (aligné Admin) */}
+        <nav ref={navRef} className={styles.nav} aria-label={t('common.menu')}>
+          {CITIZEN_NAV_GROUPS.map((group) => (
+            <div key={group.groupKey} className={styles.navGroup}>
+              <div
+                className={styles.navGroupTitle}
+                id={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
+                aria-hidden={isCollapsed}
               >
-                <Icon size={20} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            );
-          })}
+                {t(group.labelKey)}
+              </div>
+              <ul
+                className={styles.navGroupList}
+                aria-labelledby={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
+              >
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.id, item.path);
+                  const label = t(item.labelKey);
+                  return (
+                    <li key={item.id} className={styles.navGroupListItem}>
+                      <button
+                        type="button"
+                        className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                        onClick={() => {
+                          if (navRef.current) {
+                            const top = navRef.current.scrollTop;
+                            savedNavScrollRef.current = top;
+                            try {
+                              sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(top));
+                            } catch {}
+                          }
+                          navigate(item.path);
+                          setMobileOpen(false);
+                        }}
+                        title={isCollapsed ? label : undefined}
+                        aria-current={active ? 'page' : undefined}
+                        aria-label={label}
+                      >
+                        <span className={styles.navItemIcon} aria-hidden>
+                          <Icon size={20} />
+                        </span>
+                        {!isCollapsed && <span>{label}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         {/* User section en bas */}
@@ -377,20 +409,12 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
 
             <button
               type="button"
-              className={styles.topHeaderUser}
-              onClick={() => navigate('/citizen/profile')}
-              title={(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
+              className={styles.topHeaderDonateBtn}
+              onClick={() => navigate('/citizen/donations')}
+              title={t('citizen.donations') || 'Soutenir le projet'}
             >
-              <div className={styles.topHeaderUserAvatarPlaceholder}>
-                {photo ? (
-                  <img src={photo} alt="" className={styles.userAvatarImg} />
-                ) : (
-                  getInitials()
-                )}
-              </div>
-              <span className={styles.topHeaderUserName}>
-                {(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'User'}
-              </span>
+              <Heart size={18} />
+              <span>{t('common.support') || 'Soutenir'}</span>
             </button>
           </div>
         </header>

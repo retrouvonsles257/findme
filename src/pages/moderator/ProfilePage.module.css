@@ -1,0 +1,7 @@
+/**
+ * Override pour la page Profil modérateur : alignement avec le titre du layout
+ * (pas de padding horizontal supplémentaire, le layout fournit déjà 1.25rem)
+ */
+.container {
+  padding: 1rem 0;
+}

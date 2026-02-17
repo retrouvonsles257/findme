@@ -329,7 +329,7 @@ export const SignalementsValidationPage: React.FC = () => {
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err: any) {
       console.error('Validation error:', err);
-      setErrorMessage(err.message || 'Une erreur est survenue');
+      setErrorMessage(err.message || t('moderator.errorOccurred'));
       setTimeout(() => setErrorMessage(''), 5000);
     }
   };
@@ -355,15 +355,15 @@ export const SignalementsValidationPage: React.FC = () => {
   const getStatusBadge = (sig: any) => {
     const statut = sig.statut_validation || sig.etat;
     const badges: Record<string, { label: string; color: string }> = {
-      en_attente: { label: 'En attente', color: '#f59e0b' },
-      nouveau: { label: 'Nouveau', color: '#3b82f6' },
-      en_verification: { label: 'En cours', color: '#8b5cf6' },
-      en_cours: { label: 'En cours', color: '#8b5cf6' },
-      valide: { label: 'Validé', color: '#10b981' },
-      invalide: { label: 'Rejeté', color: '#ef4444' },
-      rejete: { label: 'Rejeté', color: '#ef4444' },
-      spam: { label: 'Spam', color: '#dc2626' },
-      doublonne: { label: 'Doublon', color: '#6b7280' },
+      en_attente: { label: t('moderator.pendingLabel'), color: '#f59e0b' },
+      nouveau: { label: t('moderator.nouveau'), color: '#3b82f6' },
+      en_verification: { label: t('moderator.enCours'), color: '#8b5cf6' },
+      en_cours: { label: t('moderator.enCours'), color: '#8b5cf6' },
+      valide: { label: t('moderator.valides'), color: '#10b981' },
+      invalide: { label: t('moderator.rejected'), color: '#ef4444' },
+      rejete: { label: t('moderator.rejected'), color: '#ef4444' },
+      spam: { label: t('moderator.spam'), color: '#dc2626' },
+      doublonne: { label: t('moderator.duplicates'), color: '#6b7280' },
     };
     return badges[statut] || { label: statut, color: '#6b7280' };
   };
@@ -395,7 +395,7 @@ export const SignalementsValidationPage: React.FC = () => {
               <Search size={20} className={styles['validation__search-icon']} />
               <input
                 type="text"
-                placeholder={t('moderator.searchPlaceholder') || 'Rechercher par lieu, description...'}
+                placeholder={t('moderator.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => handleSearch(e.target.value)}
                 className={styles['validation__search-input']}
@@ -414,7 +414,7 @@ export const SignalementsValidationPage: React.FC = () => {
                 fetchSignalements(undefined, currentPage);
                 fetchStats();
               }}
-              title="Rafraîchir"
+              title={t('moderator.refresh')}
             >
               <RefreshCw size={20} />
             </button>
@@ -434,8 +434,8 @@ export const SignalementsValidationPage: React.FC = () => {
                   <option value="en_verification">{t('moderator.inProgress')}</option>
                   <option value="valide">{t('moderator.validated')}</option>
                   <option value="invalide">{t('moderator.rejected')}</option>
-                  <option value="spam">Spam</option>
-                  <option value="doublonne">Doublons</option>
+                  <option value="spam">{t('moderator.spam')}</option>
+                  <option value="doublonne">{t('moderator.duplicates')}</option>
                 </select>
               </div>
               
@@ -445,10 +445,10 @@ export const SignalementsValidationPage: React.FC = () => {
                   value={filters.priority}
                   onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value as any }))}
                 >
-                  <option value="all">Toutes</option>
-                  <option value="haute">Haute</option>
-                  <option value="moyenne">Moyenne</option>
-                  <option value="basse">Basse</option>
+                  <option value="all">{t('moderator.allPriorities')}</option>
+                  <option value="haute">{t('moderator.priorityHigh')}</option>
+                  <option value="moyenne">{t('moderator.priorityMedium')}</option>
+                  <option value="basse">{t('moderator.priorityLow')}</option>
                 </select>
               </div>
               
@@ -458,10 +458,10 @@ export const SignalementsValidationPage: React.FC = () => {
                   value={filters.dateRange}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateRange: e.target.value as any }))}
                 >
-                  <option value="all">Toutes périodes</option>
-                  <option value="7days">7 derniers jours</option>
-                  <option value="30days">30 derniers jours</option>
-                  <option value="90days">90 derniers jours</option>
+                  <option value="all">{t('moderator.allPeriods')}</option>
+                  <option value="7days">{t('moderator.last7Days')}</option>
+                  <option value="30days">{t('moderator.lastMonth')}</option>
+                  <option value="90days">{t('moderator.days90')}</option>
                 </select>
               </div>
             </div>
@@ -487,31 +487,31 @@ export const SignalementsValidationPage: React.FC = () => {
           <div className={styles['validation__quick-stats']}>
             <div className={styles['validation__stat']}>
               <span className={styles['validation__stat-value']}>{stats.parEtat?.nouveau || 0}</span>
-              <span className={styles['validation__stat-label']}>En attente</span>
+              <span className={styles['validation__stat-label']}>{t('moderator.pendingLabel')}</span>
             </div>
             <div className={styles['validation__stat']}>
               <span className={styles['validation__stat-value']}>{stats.parEtat?.en_cours || 0}</span>
-              <span className={styles['validation__stat-label']}>En cours</span>
+              <span className={styles['validation__stat-label']}>{t('moderator.enCours')}</span>
             </div>
             <div className={styles['validation__stat']}>
               <span className={styles['validation__stat-value']}>{stats.parEtat?.valide || 0}</span>
-              <span className={styles['validation__stat-label']}>Validés</span>
+              <span className={styles['validation__stat-label']}>{t('moderator.valides')}</span>
             </div>
             <div className={styles['validation__stat']}>
               <span className={styles['validation__stat-value']}>{stats.derniers7jours || 0}</span>
-              <span className={styles['validation__stat-label']}>Cette semaine</span>
+              <span className={styles['validation__stat-label']}>{t('moderator.thisWeek')}</span>
             </div>
           </div>
         )}
 
         {isLoading ? (
-          <div className={styles['validation__loading']}>{t('common.loading')}...</div>
+          <div className={styles['validation__loading']}>{t('common.loading')}</div>
         ) : (
           <div className={styles['validation__content']}>
             {/* Left Panel - Liste */}
             <div className={styles['validation__list-panel']}>
               <div className={styles['validation__list-header']}>
-                <span>{filteredSignalements.length} signalement(s)</span>
+                <span>{t('moderator.reportCount').replace('{{count}}', String(filteredSignalements.length))}</span>
               </div>
 
               {/* Liste des signalements */}
@@ -532,7 +532,7 @@ export const SignalementsValidationPage: React.FC = () => {
                         <div className={styles['validation__item-header']}>
                           <h4 className={styles['validation__item-title']}>
                             <MapPin size={16} />
-                            {sig.lieu_observation || sig.ville_observation || 'Lieu non spécifié'}
+                            {sig.lieu_observation || sig.ville_observation || t('moderator.placeUnspecified')}
                           </h4>
                           <span 
                             className={styles['validation__badge']}
@@ -577,7 +577,7 @@ export const SignalementsValidationPage: React.FC = () => {
                   >
                     <ChevronLeft size={20} />
                   </button>
-                  <span>Page {currentPage} / {totalPages}</span>
+                  <span>{t('moderator.pageOf').replace('{{current}}', String(currentPage)).replace('{{total}}', String(totalPages))}</span>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => prev + 1)}
@@ -597,18 +597,18 @@ export const SignalementsValidationPage: React.FC = () => {
                     <div className={styles['validation__signaler-info']}>
                       <h3>
                         <User size={18} />
-                        Informations du signaleur
+                        {t('moderator.signalerInfo')}
                       </h3>
                       <div className={styles['validation__signaler-grid']}>
                         <div className={styles['validation__signaler-item']}>
-                          <span className={styles['validation__signaler-label']}>Nom</span>
+                          <span className={styles['validation__signaler-label']}>{t('common.name')}</span>
                           <span className={styles['validation__signaler-value']}>
                             {signalerInfo.prenom} {signalerInfo.nom}
                           </span>
                         </div>
                         <div className={styles['validation__signaler-item']}>
                           <span className={styles['validation__signaler-label']}>
-                            <Shield size={14} /> Score fiabilité
+                            <Shield size={14} /> {t('moderator.reliabilityScore')}
                           </span>
                           <span 
                             className={styles['validation__signaler-value']}
@@ -618,13 +618,13 @@ export const SignalementsValidationPage: React.FC = () => {
                           </span>
                         </div>
                         <div className={styles['validation__signaler-item']}>
-                          <span className={styles['validation__signaler-label']}>Signalements validés</span>
+                          <span className={styles['validation__signaler-label']}>{t('moderator.reportsValidated')}</span>
                           <span className={styles['validation__signaler-value']}>
                             {signalerInfo.nombre_signalements_valides || 0}
                           </span>
                         </div>
                         <div className={styles['validation__signaler-item']}>
-                          <span className={styles['validation__signaler-label']}>Signalements rejetés</span>
+                          <span className={styles['validation__signaler-label']}>{t('moderator.reportsRejected')}</span>
                           <span className={styles['validation__signaler-value']}>
                             {signalerInfo.nombre_signalements_invalides || 0}
                           </span>
@@ -637,12 +637,12 @@ export const SignalementsValidationPage: React.FC = () => {
                   <div className={styles['validation__metadata']}>
                     <h3>
                       <Globe size={18} />
-                      Métadonnées
+                      {t('moderator.metadata')}
                     </h3>
                     <div className={styles['validation__metadata-grid']}>
                       <div className={styles['validation__meta-item']}>
                         <Smartphone size={14} />
-                        <span>Source: {selectedSignalement.source_signalement || 'application_web'}</span>
+                        <span>{t('moderator.source')}: {selectedSignalement.source_signalement || 'application_web'}</span>
                       </div>
                       {selectedSignalement.ip_signalement && (
                         <div className={styles['validation__meta-item']}>
@@ -652,12 +652,12 @@ export const SignalementsValidationPage: React.FC = () => {
                       )}
                       <div className={styles['validation__meta-item']}>
                         <Clock size={14} />
-                        <span>Créé: {new Date(selectedSignalement.created_at).toLocaleString('fr-FR')}</span>
+                        <span>{t('moderator.createdAt')}: {new Date(selectedSignalement.created_at).toLocaleString('fr-FR')}</span>
                       </div>
                       {selectedSignalement.temoin_anonyme && (
                         <div className={styles['validation__meta-item']}>
                           <User size={14} />
-                          <span>Témoin anonyme</span>
+                          <span>{t('moderator.anonymousWitness')}</span>
                         </div>
                       )}
                     </div>
@@ -672,11 +672,11 @@ export const SignalementsValidationPage: React.FC = () => {
                       >
                         <h3>
                           <FileText size={18} />
-                          Dossier de disparition associé
+                          {t('moderator.associatedDossier')}
                         </h3>
-                        <button className={styles['validation__dossier-toggle']}>
+                        <button type="button" className={styles['validation__dossier-toggle']}>
                           {showDossierPreview ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                          {showDossierPreview ? 'Masquer' : 'Voir le dossier'}
+                          {showDossierPreview ? t('common.hide') : t('moderator.viewDossier')}
                         </button>
                       </div>
                       
@@ -684,7 +684,7 @@ export const SignalementsValidationPage: React.FC = () => {
                         loadingDossier ? (
                           <div className={styles['validation__dossier-loading']}>
                             <RefreshCw size={20} className={styles['validation__spinner']} />
-                            Chargement du dossier...
+                            {t('moderator.loadingDossier')}
                           </div>
                         ) : dossierInfo ? (
                           <div className={styles['validation__dossier-content']}>
@@ -703,7 +703,7 @@ export const SignalementsValidationPage: React.FC = () => {
                                 ) : (
                                   <div className={styles['validation__dossier-no-photo']}>
                                     <Image size={24} />
-                                    <span>Pas de photo</span>
+                                    <span>{t('moderator.noPhoto')}</span>
                                   </div>
                                 )}
                               </div>
@@ -713,7 +713,7 @@ export const SignalementsValidationPage: React.FC = () => {
                                   {dossierInfo.personne?.prenom} {dossierInfo.personne?.nom}
                                 </h4>
                                 <p className={styles['validation__dossier-number']}>
-                                  Dossier: {dossierInfo.numero_dossier}
+                                  {t('moderator.dossierNumber')}: {dossierInfo.numero_dossier}
                                 </p>
                                 <div className={styles['validation__dossier-details']}>
                                   {dossierInfo.personne?.date_naissance && (
@@ -726,10 +726,10 @@ export const SignalementsValidationPage: React.FC = () => {
                                     <span>
                                       <User size={12} />
                                       {dossierInfo.personne.sexe === 'masculin'
-                                        ? 'Homme'
+                                        ? t('common.male')
                                         : dossierInfo.personne.sexe === 'feminin'
-                                          ? 'Femme'
-                                          : 'Non spécifié'}
+                                          ? t('common.female')
+                                          : t('moderator.unspecified')}
                                     </span>
                                   )}
                                   {dossierInfo.personne?.taille_cm && (
@@ -742,34 +742,34 @@ export const SignalementsValidationPage: React.FC = () => {
                             {/* Infos disparition */}
                             <div className={styles['validation__dossier-disappearance']}>
                               <div className={styles['validation__dossier-row']}>
-                                <label>Date disparition</label>
+                                <label>{t('moderator.dateDisappearance')}</label>
                                 <span>
                                   {dossierInfo.date_disparition 
                                     ? new Date(dossierInfo.date_disparition).toLocaleDateString('fr-FR')
-                                    : 'Non spécifiée'}
+                                    : t('moderator.unspecified')}
                                 </span>
                               </div>
                               <div className={styles['validation__dossier-row']}>
-                                <label>Lieu disparition</label>
+                                <label>{t('moderator.placeDisappearance')}</label>
                                 <span>
-                                  {dossierInfo.lieu_disparition || dossierInfo.ville_disparition || 'Non spécifié'}
+                                  {dossierInfo.lieu_disparition || dossierInfo.ville_disparition || t('moderator.placeUnspecified')}
                                 </span>
                               </div>
                               {dossierInfo.circonstances && (
                                 <div className={styles['validation__dossier-row']}>
-                                  <label>Circonstances</label>
+                                  <label>{t('moderator.circumstances')}</label>
                                   <span>{dossierInfo.circonstances.substring(0, 150)}...</span>
                                 </div>
                               )}
                               {dossierInfo.personne?.derniers_vetements_portes && (
                                 <div className={styles['validation__dossier-row']}>
-                                  <label>Vêtements</label>
+                                  <label>{t('moderator.clothing')}</label>
                                   <span>{dossierInfo.personne.derniers_vetements_portes}</span>
                                 </div>
                               )}
                               {dossierInfo.personne?.signes_distinctifs && (
                                 <div className={styles['validation__dossier-row']}>
-                                  <label>Signes distinctifs</label>
+                                  <label>{t('moderator.distinctiveSigns')}</label>
                                   <span>{dossierInfo.personne.signes_distinctifs}</span>
                                 </div>
                               )}
@@ -782,15 +782,15 @@ export const SignalementsValidationPage: React.FC = () => {
                                 data-status={dossierInfo.statut_dossier}
                               >
                                 {dossierInfo.statut_dossier === 'en_cours'
-                                  ? 'Recherches en cours'
+                                  ? t('moderator.statusInProgress')
                                   : dossierInfo.statut_dossier === 'retrouve_vivant'
-                                    ? 'Retrouvé vivant'
+                                    ? t('moderator.foundAlive')
                                     : dossierInfo.statut_dossier === 'retrouve_decede'
-                                      ? 'Retrouvé décédé'
+                                      ? t('moderator.foundDeceased')
                                       : dossierInfo.statut_dossier === 'suspendu'
-                                        ? 'Suspendu'
+                                        ? t('moderator.suspended')
                                         : dossierInfo.statut_dossier === 'classe_sans_suite'
-                                          ? 'Classé sans suite'
+                                          ? t('moderator.closedNoAction')
                                           : dossierInfo.statut_dossier}
                               </span>
                               {dossierInfo.niveau_urgence && (
@@ -798,7 +798,7 @@ export const SignalementsValidationPage: React.FC = () => {
                                   className={styles['validation__dossier-urgency']}
                                   data-urgency={dossierInfo.niveau_urgence}
                                 >
-                                  Urgence: {dossierInfo.niveau_urgence}
+                                  {t('moderator.urgency')}: {dossierInfo.niveau_urgence}
                                 </span>
                               )}
                             </div>
@@ -807,14 +807,13 @@ export const SignalementsValidationPage: React.FC = () => {
                             <div className={styles['validation__dossier-coherence']}>
                               <AlertTriangle size={16} />
                               <p>
-                                <strong>Vérifiez la cohérence:</strong> Le signalement correspond-il à la 
-                                description physique, aux vêtements et au lieu de disparition du dossier?
+                                {t('moderator.checkCoherence')}
                               </p>
                             </div>
                           </div>
                         ) : (
                           <div className={styles['validation__dossier-error']}>
-                            Impossible de charger les informations du dossier
+                            {t('moderator.dossierLoadError')}
                           </div>
                         )
                       )}
@@ -831,7 +830,7 @@ export const SignalementsValidationPage: React.FC = () => {
                         <span>{selectedSignalement.lieu_observation}</span>
                       </div>
                       <div className={styles['validation__detail-row']}>
-                        <label>Ville / Région</label>
+                        <label>{t('moderator.cityRegion')}</label>
                         <span>
                           {selectedSignalement.ville_observation}
                           {selectedSignalement.region_observation && `, ${selectedSignalement.region_observation}`}
@@ -844,11 +843,11 @@ export const SignalementsValidationPage: React.FC = () => {
                         </span>
                       </div>
                       <div className={styles['validation__detail-row']}>
-                        <label>Niveau de certitude</label>
-                        <span>{selectedSignalement.niveau_certitude || 'Non spécifié'}</span>
+                        <label>{t('moderator.certaintyLevel')}</label>
+                        <span>{selectedSignalement.niveau_certitude || t('moderator.unspecified')}</span>
                       </div>
                       <div className={styles['validation__detail-row']}>
-                        <label>Score de pertinence</label>
+                        <label>{t('moderator.relevanceScore')}</label>
                         <span>
                           {(() => {
                             const raw = selectedSignalement.score_pertinence ?? selectedSignalement.score_correspondance ?? 0;
@@ -859,7 +858,7 @@ export const SignalementsValidationPage: React.FC = () => {
                       </div>
                       {selectedSignalement.contexte_observation && (
                         <div className={styles['validation__detail-row']}>
-                          <label>Contexte</label>
+                          <label>{t('moderator.context')}</label>
                           <span>{selectedSignalement.contexte_observation}</span>
                         </div>
                       )}
@@ -900,7 +899,7 @@ export const SignalementsValidationPage: React.FC = () => {
                           onClick={() => setValidationData(prev => ({ ...prev, decision: 'approuve', statut_final: 'valide' }))}
                         >
                           <CheckCircle size={18} />
-                          Approuver
+                          {t('moderator.approve')}
                         </button>
                         <button
                           className={`${styles['validation__decision-btn']} ${
@@ -909,7 +908,7 @@ export const SignalementsValidationPage: React.FC = () => {
                           onClick={() => setValidationData(prev => ({ ...prev, decision: 'rejete', statut_final: 'invalide' }))}
                         >
                           <XCircle size={18} />
-                          Rejeter
+                          {t('moderator.reject')}
                         </button>
                         <button
                           className={`${styles['validation__decision-btn']} ${
@@ -918,7 +917,7 @@ export const SignalementsValidationPage: React.FC = () => {
                           onClick={() => setValidationData(prev => ({ ...prev, decision: 'besoin_clarification' }))}
                         >
                           <AlertTriangle size={18} />
-                          À clarifier
+                          {t('moderator.needsClarification')}
                         </button>
                       </div>
                     </div>
@@ -926,7 +925,7 @@ export const SignalementsValidationPage: React.FC = () => {
                     {/* Options de rejet (spam/doublon) */}
                     {validationData.decision === 'rejete' && (
                       <div className={styles['validation__form-group']}>
-                        <label>Type de rejet</label>
+                        <label>{t('moderator.rejectType')}</label>
                         <div className={styles['validation__reject-options']}>
                           <label className={styles['validation__radio-label']}>
                             <input
@@ -936,7 +935,7 @@ export const SignalementsValidationPage: React.FC = () => {
                               onChange={() => setValidationData(prev => ({ ...prev, statut_final: 'invalide' }))}
                             />
                             <XCircle size={16} />
-                            Non pertinent
+                            {t('moderator.notRelevant')}
                           </label>
                           <label className={styles['validation__radio-label']}>
                             <input
@@ -946,7 +945,7 @@ export const SignalementsValidationPage: React.FC = () => {
                               onChange={() => setValidationData(prev => ({ ...prev, statut_final: 'spam' }))}
                             />
                             <Flag size={16} />
-                            Spam
+                            {t('moderator.spam')}
                           </label>
                           <label className={styles['validation__radio-label']}>
                             <input
@@ -956,7 +955,7 @@ export const SignalementsValidationPage: React.FC = () => {
                               onChange={() => setValidationData(prev => ({ ...prev, statut_final: 'doublonne' }))}
                             />
                             <Copy size={16} />
-                            Doublon
+                            {t('moderator.duplicates')}
                           </label>
                         </div>
                       </div>
@@ -964,15 +963,15 @@ export const SignalementsValidationPage: React.FC = () => {
 
                     {/* Priorité */}
                     <div className={styles['validation__form-group']}>
-                      <label>Priorité de traitement</label>
+                      <label>{t('moderator.priorityLabel')}</label>
                       <select
                         value={validationData.priorite}
                         onChange={(e) => setValidationData(prev => ({ ...prev, priorite: e.target.value as any }))}
                         className={styles['validation__select']}
                       >
-                        <option value="basse">Basse</option>
-                        <option value="moyenne">Moyenne</option>
-                        <option value="haute">Haute</option>
+                        <option value="basse">{t('moderator.priorityLow')}</option>
+                        <option value="moyenne">{t('moderator.priorityMedium')}</option>
+                        <option value="haute">{t('moderator.priorityHigh')}</option>
                       </select>
                     </div>
 
@@ -997,7 +996,7 @@ export const SignalementsValidationPage: React.FC = () => {
                         type="text"
                         value={validationData.raison}
                         onChange={(e) => setValidationData(prev => ({ ...prev, raison: e.target.value }))}
-                        placeholder="Raison de la décision..."
+                        placeholder={t('moderator.reasonPlaceholder')}
                         className={styles['validation__input']}
                       />
                     </div>
@@ -1008,7 +1007,7 @@ export const SignalementsValidationPage: React.FC = () => {
                       <textarea
                         value={validationData.avis}
                         onChange={(e) => setValidationData(prev => ({ ...prev, avis: e.target.value }))}
-                        placeholder="Notes internes de modération..."
+                        placeholder={t('moderator.notesPlaceholder')}
                         className={styles['validation__textarea']}
                         rows={3}
                       />
@@ -1034,11 +1033,11 @@ export const SignalementsValidationPage: React.FC = () => {
                             className={styles['validation__select']}
                             style={{ marginTop: '8px' }}
                           >
-                            <option value="">Sélectionner une autorité</option>
-                            <option value="police_nationale">Police Nationale</option>
-                            <option value="gendarmerie">Gendarmerie</option>
-                            <option value="protection_civile">Protection Civile</option>
-                            <option value="croix_rouge">Croix-Rouge</option>
+                            <option value="">{t('moderator.selectAuthority')}</option>
+                            <option value="police_nationale">{t('moderator.authorityPolice')}</option>
+                            <option value="gendarmerie">{t('moderator.authorityGendarmerie')}</option>
+                            <option value="protection_civile">{t('moderator.authorityProtectionCivile')}</option>
+                            <option value="croix_rouge">{t('moderator.authorityCroixRouge')}</option>
                           </select>
                         )}
                       </div>
@@ -1067,7 +1066,7 @@ export const SignalementsValidationPage: React.FC = () => {
               ) : (
                 <div className={styles['validation__no-selection']}>
                   <MessageSquare size={48} />
-                  <p>Sélectionnez un signalement pour le valider</p>
+                  <p>{t('moderator.selectReportPrompt')}</p>
                 </div>
               )}
             </div>

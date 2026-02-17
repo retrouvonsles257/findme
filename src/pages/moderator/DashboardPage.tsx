@@ -174,14 +174,14 @@ export const ModerationDashboardPage: React.FC = () => {
       label: t('moderator.totalSignalements'),
       value: stats?.total || 0,
       change: recentCount > 0 ? `+${recentCount}` : '—',
-      subtext: recentCount > 0 ? t('moderator.last7Days') || '7 derniers jours' : '',
+      subtext: recentCount > 0 ? t('moderator.last7Days') : '',
       icon: BarChart3,
     },
     {
       label: t('moderator.pending'),
       value: (stats?.parEtat?.nouveau || 0) + (stats?.parEtat?.en_cours || 0),
       change: pendingSignalements.length > 0 ? `${pendingSignalements.length}` : '—',
-      subtext: t('moderator.toReview') || 'à examiner',
+      subtext: t('moderator.toReview'),
       icon: Clock,
     },
     {
@@ -199,17 +199,17 @@ export const ModerationDashboardPage: React.FC = () => {
       icon: XCircle,
     },
     {
-      label: t('moderator.photosToModerate') || 'Photos à modérer',
+      label: t('moderator.photosToModerate'),
       value: globalStats.photosEnAttente,
       change: globalStats.photosEnAttente > 0 ? `${globalStats.photosEnAttente}` : '—',
-      subtext: globalStats.photosEnAttente > 0 ? t('moderator.pending') || 'en attente' : '',
+      subtext: globalStats.photosEnAttente > 0 ? t('moderator.pending') : '',
       icon: Image,
     },
     {
-      label: t('moderator.idVerifications') || 'Identités à vérifier',
+      label: t('moderator.idVerifications'),
       value: globalStats.identitesEnAttente,
       change: globalStats.identitesEnAttente > 0 ? `${globalStats.identitesEnAttente}` : '—',
-      subtext: globalStats.identitesEnAttente > 0 ? t('moderator.pending') || 'en attente' : '',
+      subtext: globalStats.identitesEnAttente > 0 ? t('moderator.pending') : '',
       icon: UserCheck,
     },
   ];
@@ -256,7 +256,7 @@ export const ModerationDashboardPage: React.FC = () => {
         {/* Stats Cards */}
         {isLoading ? (
           <div className={styles['mod-dashboard__loading']}>
-            {t('common.loading')}...
+            {t('common.loading')}
           </div>
         ) : (
           <>
@@ -291,20 +291,21 @@ export const ModerationDashboardPage: React.FC = () => {
               <div className={styles['mod-dashboard__section-header']}>
                 <h2 className={styles['mod-dashboard__section-title']}>
                   <Award size={20} />
-                  {t('moderator.personalStats') || 'Mes Performances'}
+                  {t('moderator.personalStats')}
                 </h2>
-                <button 
+                <button
+                  type="button"
                   className={styles['mod-dashboard__view-all']}
                   onClick={() => navigate('/moderator/activity-history')}
                 >
                   <History size={16} />
-                  {t('common.viewAll') || 'Voir historique'}
+                  {t('moderator.viewHistory')}
                 </button>
               </div>
-              
+
               {loadingPersonalStats ? (
                 <div className={styles['mod-dashboard__loading-small']}>
-                  {t('common.loading')}...
+                  {t('common.loading')}
                 </div>
               ) : (
                 <div className={styles['mod-dashboard__personal-grid']}>
@@ -317,7 +318,7 @@ export const ModerationDashboardPage: React.FC = () => {
                         {personalStats.actionsToday}
                       </span>
                       <span className={styles['mod-dashboard__personal-label']}>
-                        {t('moderator.actionsToday') || 'Aujourd\'hui'}
+                        {t('moderator.actionsToday')}
                       </span>
                     </div>
                   </div>
@@ -331,7 +332,7 @@ export const ModerationDashboardPage: React.FC = () => {
                         {personalStats.actionsThisWeek}
                       </span>
                       <span className={styles['mod-dashboard__personal-label']}>
-                        {t('moderator.actionsThisWeek') || 'Cette semaine'}
+                        {t('moderator.actionsThisWeek')}
                       </span>
                     </div>
                   </div>
@@ -345,7 +346,7 @@ export const ModerationDashboardPage: React.FC = () => {
                         {personalStats.validations}
                       </span>
                       <span className={styles['mod-dashboard__personal-label']}>
-                        {t('moderator.myValidations') || 'Validations'}
+                        {t('moderator.myValidations')}
                       </span>
                     </div>
                   </div>
@@ -359,7 +360,7 @@ export const ModerationDashboardPage: React.FC = () => {
                         {personalStats.rejections}
                       </span>
                       <span className={styles['mod-dashboard__personal-label']}>
-                        {t('moderator.myRejections') || 'Rejets'}
+                        {t('moderator.myRejections')}
                       </span>
                     </div>
                   </div>
@@ -373,7 +374,7 @@ export const ModerationDashboardPage: React.FC = () => {
                         {personalStats.photosModerees}
                       </span>
                       <span className={styles['mod-dashboard__personal-label']}>
-                        {t('moderator.photosModerated') || 'Photos modérées'}
+                        {t('moderator.photosModerated')}
                       </span>
                     </div>
                   </div>
@@ -387,7 +388,7 @@ export const ModerationDashboardPage: React.FC = () => {
                         {personalStats.identitesVerifiees}
                       </span>
                       <span className={styles['mod-dashboard__personal-label']}>
-                        {t('moderator.identitiesVerified') || 'ID vérifiées'}
+                        {t('moderator.identitiesVerified')}
                       </span>
                     </div>
                   </div>

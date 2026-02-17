@@ -1,14 +1,15 @@
 /**
- * RETROUVONSLES - NGO Profile Page
- * Aligné sur Authority : chargement Supabase, affichage des infos, édition et photo de profil
+ * =====================================================
+ * RETROUVONSLES - Moderator Profile Page
+ * Page de profil modérateur (alignée Citizen / Authority / Admin)
+ * =====================================================
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { NGOLayout } from '../../components/layout';
-import { useNotification } from '../../contexts';
+import { useNavigate } from 'react-router-dom';
+import { ModerationLayout } from './ModerationLayout';
 import { useAppSelector } from '../../store/types';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { selectUser } from '../../features/auth/store/authSelectors';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { cloudinaryConfig } from '../../config/cloudinary.config';
@@ -17,8 +18,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Building,
-  Shield,
   Camera,
   Save,
   X,
@@ -27,11 +26,11 @@ import {
   Calendar,
   Globe,
   Bell,
-  Lock,
   CheckCircle,
   AlertTriangle,
 } from 'lucide-react';
 import styles from '../authority/ProfilePage.module.css';
+import modStyles from './ProfilePage.module.css';
 
 interface ProfileData {
   id: string;
@@ -45,8 +44,6 @@ interface ProfileData {
   region: string;
   pays: string;
   photo_profil: string;
-  numero_badge: string;
-  id_organisation?: string | null;
   accepte_notifications: boolean;
   accepte_geolocalisation: boolean;
   rayon_notification_km: number;
@@ -54,37 +51,19 @@ interface ProfileData {
   statut_compte: string;
   score_fiabilite: number;
   created_at: string;
-  derniere_connexion: string;
+  derniere_connexion?: string;
 }
 
-interface OrganisationData {
-  id: string;
-  nom: string;
-  type_organisation: string;
-  pays: string;
-  region: string | null;
-  ville: string | null;
-  adresse: string | null;
-  contact_officiel: string | null;
-  telephone: string | null;
-  email: string | null;
-  site_web: string | null;
-}
-
-export const NGOProfilePage: React.FC = () => {
+export const ModeratorProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const currentUser = useAppSelector(selectCurrentUser);
-  const { addNotification } = useNotification();
+  const currentUser = useAppSelector(selectUser);
   const { t, language } = useI18n();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [organisation, setOrganisation] = useState<OrganisationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -102,7 +81,6 @@ export const NGOProfilePage: React.FC = () => {
 
   const loadProfile = useCallback(async () => {
     if (!currentUser?.id) return;
-
     setIsLoading(true);
     try {
       const { data, error } = await (supabase as any)
@@ -112,11 +90,7 @@ export const NGOProfilePage: React.FC = () => {
         .single();
 
       if (error) {
-        addNotification({
-          title: t('authority.profilePage.messages.error'),
-          message: t('authority.profilePage.messages.loadError'),
-          type: 'error',
-        });
+        setProfile(null);
         return;
       }
 
@@ -132,42 +106,22 @@ export const NGOProfilePage: React.FC = () => {
         pays: data.pays || t('authority.profilePage.defaults.country'),
         accepte_notifications: data.accepte_notifications ?? true,
         accepte_geolocalisation: data.accepte_geolocalisation ?? false,
-        rayon_notification_km: data.rayon_notification_km || 50,
+        rayon_notification_km: data.rayon_notification_km ?? 50,
         langue_preferee: data.langue_preferee || 'fr',
       });
-
-      if (data.id_organisation) {
-        const { data: org } = await (supabase as any)
-          .from('organisation')
-          .select('id, nom, type_organisation, pays, region, ville, adresse, contact_officiel, telephone, email, site_web')
-          .eq('id', data.id_organisation)
-          .maybeSingle();
-        setOrganisation(org || null);
-      } else {
-        setOrganisation(null);
-      }
     } catch {
-      // ignore
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser?.id, addNotification, t]);
+  }, [currentUser?.id, t]);
 
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
 
-  // Ouvrir directement en mode édition si on vient du menu "Modifier le profil"
-  useEffect(() => {
-    if (profile && (location.state as { edit?: boolean })?.edit) {
-      setIsEditing(true);
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [profile, location.state, location.pathname, navigate]);
-
   const handleSave = async () => {
     if (!currentUser?.id) return;
-
     setIsSaving(true);
     try {
       const { error } = await (supabase as any)
@@ -189,29 +143,11 @@ export const NGOProfilePage: React.FC = () => {
         })
         .eq('id', currentUser.id);
 
-      if (error) {
-        addNotification({
-          title: t('authority.profilePage.messages.error'),
-          message: error.message || t('authority.profilePage.messages.saveError'),
-          type: 'error',
-        });
-        return;
-      }
-
-      addNotification({
-        title: t('authority.profilePage.messages.success'),
-        message: t('authority.profilePage.messages.profileUpdated'),
-        type: 'success',
-      });
-
+      if (error) throw error;
       setIsEditing(false);
       loadProfile();
     } catch (err: any) {
-      addNotification({
-        title: t('authority.profilePage.messages.error'),
-        message: err.message || t('authority.profilePage.messages.genericError'),
-        type: 'error',
-      });
+      console.error(err);
     } finally {
       setIsSaving(false);
     }
@@ -220,7 +156,6 @@ export const NGOProfilePage: React.FC = () => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !currentUser?.id) return;
-
     setIsUploadingPhoto(true);
     try {
       const formDataUpload = new FormData();
@@ -233,30 +168,15 @@ export const NGOProfilePage: React.FC = () => {
         { method: 'POST', body: formDataUpload }
       );
       const data = await response.json();
+      if (!data.secure_url) throw new Error('Upload failed');
 
-      if (!data.secure_url) {
-        throw new Error(t('authority.profilePage.messages.photoUploadError'));
-      }
-
-      const { error } = await (supabase as any)
+      await (supabase as any)
         .from('utilisateur')
         .update({ photo_profil: data.secure_url })
         .eq('id', currentUser.id);
-
-      if (error) throw error;
-
-      addNotification({
-        title: t('authority.profilePage.messages.success'),
-        message: t('authority.profilePage.messages.photoUpdated'),
-        type: 'success',
-      });
       loadProfile();
-    } catch {
-      addNotification({
-        title: t('authority.profilePage.messages.error'),
-        message: t('authority.profilePage.messages.photoUploadError'),
-        type: 'error',
-      });
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -275,7 +195,7 @@ export const NGOProfilePage: React.FC = () => {
         pays: profile.pays || t('authority.profilePage.defaults.country'),
         accepte_notifications: profile.accepte_notifications ?? true,
         accepte_geolocalisation: profile.accepte_geolocalisation ?? false,
-        rayon_notification_km: profile.rayon_notification_km || 50,
+        rayon_notification_km: profile.rayon_notification_km ?? 50,
         langue_preferee: profile.langue_preferee || 'fr',
       });
     }
@@ -288,44 +208,42 @@ export const NGOProfilePage: React.FC = () => {
         return { label: t('authority.profilePage.accountStatus.active'), color: '#28a745', icon: <CheckCircle size={14} /> };
       case 'suspendu':
         return { label: t('authority.profilePage.accountStatus.suspended'), color: '#dc3545', icon: <AlertTriangle size={14} /> };
-      case 'en_attente_verification':
-        return { label: t('authority.profilePage.accountStatus.pendingVerification'), color: '#ffc107', icon: <Loader2 size={14} /> };
       default:
-        return { label: statut, color: '#6c757d', icon: <User size={14} /> };
+        return { label: statut || '—', color: '#6c757d', icon: <User size={14} /> };
     }
   };
 
   if (isLoading) {
     return (
-      <NGOLayout>
+      <ModerationLayout title={t('common.profile')} activeNav="profile">
         <div className={styles.loadingContainer}>
           <Loader2 size={32} className={styles.spinner} />
           <p>{t('authority.profilePage.loading')}</p>
         </div>
-      </NGOLayout>
+      </ModerationLayout>
     );
   }
 
   if (!profile) {
     return (
-      <NGOLayout>
+      <ModerationLayout title={t('common.profile')} activeNav="profile">
         <div className={styles.errorContainer}>
           <AlertTriangle size={48} />
           <h2>{t('authority.profilePage.notFound')}</h2>
           <p>{t('authority.profilePage.notFoundDescription')}</p>
-          <button type="button" onClick={() => navigate('/ngo/dashboard')}>
+          <button type="button" onClick={() => navigate('/moderator/dashboard')}>
             {t('authority.profilePage.backToDashboard')}
           </button>
         </div>
-      </NGOLayout>
+      </ModerationLayout>
     );
   }
 
-  const statutInfo = getStatutBadge(profile.statut_compte || 'actif');
+  const statutInfo = getStatutBadge(profile.statut_compte);
 
   return (
-    <NGOLayout>
-      <div className={styles.container}>
+    <ModerationLayout title={t('common.profile')} activeNav="profile">
+      <div className={`${styles.container} ${modStyles.container}`}>
         <div className={styles.header}>
           <h1><User size={24} /> {t('authority.profilePage.title')}</h1>
           {!isEditing ? (
@@ -353,22 +271,13 @@ export const NGOProfilePage: React.FC = () => {
             <div className={styles.avatarSection}>
               <div className={styles.avatar}>
                 {profile.photo_profil ? (
-                  <img src={profile.photo_profil} alt={profile.prenom} />
+                  <img src={profile.photo_profil} alt="" />
                 ) : (
                   <User size={48} />
                 )}
                 <label className={styles.avatarUpload}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    disabled={isUploadingPhoto}
-                  />
-                  {isUploadingPhoto ? (
-                    <Loader2 size={20} className={styles.spinner} />
-                  ) : (
-                    <Camera size={20} />
-                  )}
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={isUploadingPhoto} />
+                  {isUploadingPhoto ? <Loader2 size={20} className={styles.spinner} /> : <Camera size={20} />}
                 </label>
               </div>
               <div className={styles.profileInfo}>
@@ -379,11 +288,14 @@ export const NGOProfilePage: React.FC = () => {
                 </span>
               </div>
             </div>
-
             <div className={styles.statsRow}>
               <div className={styles.stat}>
                 <span className={styles.statValue}>{profile.score_fiabilite?.toFixed(0) ?? 100}%</span>
                 <span className={styles.statLabel}>{t('authority.profilePage.stats.reliabilityScore')}</span>
+              </div>
+              <div className={styles.stat}>
+                <span className={styles.statValue}>{new Date(profile.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                <span className={styles.statLabel}>{t('authority.profilePage.security.memberSince')}</span>
               </div>
             </div>
           </div>
@@ -394,12 +306,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label>{t('authority.profilePage.fields.lastName')}</label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.nom}
-                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                    placeholder={t('authority.profilePage.placeholders.lastName')}
-                  />
+                  <input type="text" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} placeholder={t('authority.profilePage.placeholders.lastName')} />
                 ) : (
                   <p>{profile.nom || '-'}</p>
                 )}
@@ -407,12 +314,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label>{t('authority.profilePage.fields.firstName')}</label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.prenom}
-                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                    placeholder={t('authority.profilePage.placeholders.firstName')}
-                  />
+                  <input type="text" value={formData.prenom} onChange={(e) => setFormData({ ...formData, prenom: e.target.value })} placeholder={t('authority.profilePage.placeholders.firstName')} />
                 ) : (
                   <p>{profile.prenom || '-'}</p>
                 )}
@@ -420,12 +322,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label><Phone size={14} /> {t('authority.profilePage.fields.phone')}</label>
                 {isEditing ? (
-                  <input
-                    type="tel"
-                    value={formData.telephone}
-                    onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                    placeholder={t('authority.profilePage.placeholders.phone')}
-                  />
+                  <input type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder={t('authority.profilePage.placeholders.phone')} />
                 ) : (
                   <p>{profile.telephone || '-'}</p>
                 )}
@@ -433,13 +330,9 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label><Calendar size={14} /> {t('authority.profilePage.fields.birthDate')}</label>
                 {isEditing ? (
-                  <input
-                    type="date"
-                    value={formData.date_naissance}
-                    onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
-                  />
+                  <input type="date" value={formData.date_naissance} onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })} />
                 ) : (
-                  <p>{profile.date_naissance ? new Date(profile.date_naissance).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US') : t('authority.profilePage.values.placeholderDash')}</p>
+                  <p>{profile.date_naissance ? new Date(profile.date_naissance).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US') : '-'}</p>
                 )}
               </div>
             </div>
@@ -451,12 +344,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroupFull}>
                 <label>{t('authority.profilePage.fields.fullAddress')}</label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.adresse}
-                    onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                    placeholder={t('authority.profilePage.placeholders.fullAddress')}
-                  />
+                  <input type="text" value={formData.adresse} onChange={(e) => setFormData({ ...formData, adresse: e.target.value })} placeholder={t('authority.profilePage.placeholders.fullAddress')} />
                 ) : (
                   <p>{profile.adresse || '-'}</p>
                 )}
@@ -464,12 +352,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label>{t('authority.profilePage.fields.city')}</label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.ville}
-                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                    placeholder={t('authority.profilePage.placeholders.city')}
-                  />
+                  <input type="text" value={formData.ville} onChange={(e) => setFormData({ ...formData, ville: e.target.value })} placeholder={t('authority.profilePage.placeholders.city')} />
                 ) : (
                   <p>{profile.ville || '-'}</p>
                 )}
@@ -477,22 +360,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label>{t('authority.profilePage.fields.region')}</label>
                 {isEditing ? (
-                  <select
-                    value={formData.region}
-                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  >
-                    <option value="">{t('authority.profilePage.placeholders.select')}</option>
-                    <option value="Centre">{t('authority.profilePage.regions.centre')}</option>
-                    <option value="Littoral">{t('authority.profilePage.regions.littoral')}</option>
-                    <option value="Ouest">{t('authority.profilePage.regions.ouest')}</option>
-                    <option value="Nord-Ouest">{t('authority.profilePage.regions.nordOuest')}</option>
-                    <option value="Sud-Ouest">{t('authority.profilePage.regions.sudOuest')}</option>
-                    <option value="Sud">{t('authority.profilePage.regions.sud')}</option>
-                    <option value="Est">{t('authority.profilePage.regions.est')}</option>
-                    <option value="Adamaoua">{t('authority.profilePage.regions.adamaoua')}</option>
-                    <option value="Nord">{t('authority.profilePage.regions.nord')}</option>
-                    <option value="Extrême-Nord">{t('authority.profilePage.regions.extremeNord')}</option>
-                  </select>
+                  <input type="text" value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })} placeholder={t('authority.profilePage.placeholders.select')} />
                 ) : (
                   <p>{profile.region || '-'}</p>
                 )}
@@ -500,12 +368,7 @@ export const NGOProfilePage: React.FC = () => {
               <div className={styles.formGroup}>
                 <label><Globe size={14} /> {t('authority.profilePage.fields.country')}</label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.pays}
-                    onChange={(e) => setFormData({ ...formData, pays: e.target.value })}
-                    placeholder={t('authority.profilePage.placeholders.country')}
-                  />
+                  <input type="text" value={formData.pays} onChange={(e) => setFormData({ ...formData, pays: e.target.value })} placeholder={t('authority.profilePage.placeholders.country')} />
                 ) : (
                   <p>{profile.pays || t('authority.profilePage.defaults.country')}</p>
                 )}
@@ -513,48 +376,6 @@ export const NGOProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Section Organisation (lecture seule) */}
-          {organisation && (
-            <div className={styles.formSection}>
-              <h3><Building size={18} /> {t('authority.profilePage.sections.organisation')}</h3>
-              <div className={styles.securityInfo}>
-                <div className={styles.infoItem}>
-                  <Building size={16} />
-                  <span>{t('authority.profilePage.organisation.name')}: {organisation.nom}</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <Globe size={16} />
-                  <span>{t('authority.profilePage.organisation.type')}: {organisation.type_organisation?.replace(/_/g, ' ') || '—'}</span>
-                </div>
-                {(organisation.region || organisation.ville) && (
-                  <div className={styles.infoItem}>
-                    <MapPin size={16} />
-                    <span>{[organisation.ville, organisation.region].filter(Boolean).join(', ') || '—'}</span>
-                  </div>
-                )}
-                {organisation.telephone && (
-                  <div className={styles.infoItem}>
-                    <Phone size={16} />
-                    <span>{organisation.telephone}</span>
-                  </div>
-                )}
-                {organisation.email && (
-                  <div className={styles.infoItem}>
-                    <Mail size={16} />
-                    <span>{organisation.email}</span>
-                  </div>
-                )}
-                {organisation.contact_officiel && (
-                  <div className={styles.infoItem}>
-                    <User size={16} />
-                    <span>{organisation.contact_officiel}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Section Préférences — ONG : notifications métier uniquement (pas de périmètre d'alertes, elles les créent) */}
           <div className={styles.formSection}>
             <h3><Bell size={18} /> {t('authority.profilePage.sections.preferences')}</h3>
             <div className={styles.preferencesGrid}>
@@ -568,11 +389,7 @@ export const NGOProfilePage: React.FC = () => {
                 </div>
                 {isEditing ? (
                   <label className={styles.switch}>
-                    <input
-                      type="checkbox"
-                      checked={formData.accepte_notifications}
-                      onChange={(e) => setFormData({ ...formData, accepte_notifications: e.target.checked })}
-                    />
+                    <input type="checkbox" checked={formData.accepte_notifications} onChange={(e) => setFormData({ ...formData, accepte_notifications: e.target.checked })} />
                     <span className={styles.slider} />
                   </label>
                 ) : (
@@ -590,45 +407,36 @@ export const NGOProfilePage: React.FC = () => {
                   </div>
                 </div>
                 {isEditing ? (
-                  <select
-                    value={formData.langue_preferee}
-                    onChange={(e) => setFormData({ ...formData, langue_preferee: e.target.value })}
-                    className={styles.languageSelect}
-                  >
-                    <option value="fr">Français</option>
-                    <option value="en">English</option>
+                  <select value={formData.langue_preferee} onChange={(e) => setFormData({ ...formData, langue_preferee: e.target.value })} className={styles.languageSelect}>
+                    <option value="fr">{t('common.french')}</option>
+                    <option value="en">{t('common.english')}</option>
                   </select>
                 ) : (
-                  <span className={styles.statusDot}>{profile.langue_preferee === 'en' ? 'English' : 'Français'}</span>
+                  <span className={styles.statusDot}>{profile.langue_preferee === 'en' ? t('common.english') : t('common.french')}</span>
                 )}
               </div>
             </div>
           </div>
 
           <div className={styles.formSection}>
-            <h3><Lock size={18} /> {t('authority.profilePage.sections.security')}</h3>
+            <h3>{t('authority.profilePage.security.memberSince')}</h3>
             <div className={styles.securityInfo}>
               <div className={styles.infoItem}>
-                <Building size={16} />
-                <span>{t('authority.profilePage.security.badge')}: {profile.numero_badge || t('authority.profilePage.security.notAssigned')}</span>
-              </div>
-              <div className={styles.infoItem}>
                 <Calendar size={16} />
-                <span>{t('authority.profilePage.security.memberSince')}: {new Date(profile.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                <span>{new Date(profile.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
               </div>
-              <div className={styles.infoItem}>
-                <Shield size={16} />
-                <span>{t('authority.profilePage.security.lastLogin')}: {profile.derniere_connexion
-                  ? new Date(profile.derniere_connexion).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')
-                  : t('authority.profilePage.values.na')}</span>
-              </div>
+              {profile.derniere_connexion && (
+                <div className={styles.infoItem}>
+                  <User size={16} />
+                  <span>{t('authority.profilePage.security.lastLogin')}: {new Date(profile.derniere_connexion).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                </div>
+              )}
             </div>
-            <button type="button" className={styles.changePasswordBtn} onClick={() => navigate('/ngo/security')}>
-              <Lock size={16} /> {t('authority.profilePage.security.changePassword')}
-            </button>
           </div>
         </div>
       </div>
-    </NGOLayout>
+    </ModerationLayout>
   );
 };
+
+export default ModeratorProfilePage;

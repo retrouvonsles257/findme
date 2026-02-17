@@ -6,13 +6,14 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
 import { useI18n } from '../../hooks';
 import { CitizenLayout } from './CitizenLayout';
+import { supabase } from '../../config';
 import {
   Bell,
   MapPin,
@@ -25,7 +26,6 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
-  ChevronRight,
   Radio,
   Users,
   X,
@@ -54,11 +54,36 @@ export const CitizenAlertesPage: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [dossierPhotos, setDossierPhotos] = useState<Record<string, string>>({});
 
   // Charger les alertes au montage
   useEffect(() => {
     fetchAlertes();
   }, [fetchAlertes]);
+
+  // Charger les photos des dossiers liés aux alertes
+  const loadDossierPhotos = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    try {
+      const { data } = await (supabase as any)
+        .from('dossier_disparition')
+        .select('id, personne:id_personne(photo_principale)')
+        .in('id', ids);
+      const map: Record<string, string> = {};
+      (data || []).forEach((d: any) => {
+        const photo = d.personne?.photo_principale;
+        if (d.id && photo) map[d.id] = photo;
+      });
+      setDossierPhotos((prev) => ({ ...prev, ...map }));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const ids = [...new Set((alertes as any[]).map((a: any) => a.id_dossier).filter(Boolean))];
+    loadDossierPhotos(ids);
+  }, [alertes, loadDossierPhotos]);
 
   // Vérifier les alertes de proximité quand la position change
   useEffect(() => {
@@ -284,61 +309,51 @@ export const CitizenAlertesPage: React.FC = () => {
                 <p>{t('citizen.noAlertsDescription')}</p>
               </div>
             ) : (
-              filteredAlertes.map((alerte: any) => (
-                <div 
-                  key={alerte.id} 
-                  className={styles['alertes__card']}
-                  onClick={() => handleViewDetails(alerte.id, alerte.id_dossier)}
-                >
-                  <div className={styles['alertes__card-icon']}>
-                    {getTypeIcon(alerte.type_alerte)}
-                  </div>
-                  
-                  <div className={styles['alertes__card-content']}>
-                    <div className={styles['alertes__card-header']}>
-                      <h4 className={styles['alertes__card-title']}>{alerte.titre}</h4>
-                      <span className={`${styles['alertes__status']} ${getStatusKey(alerte.statut) === 'active' ? styles['alertes__status--active'] : getStatusKey(alerte.statut) === 'cloturee' || getStatusKey(alerte.statut) === 'expiree' || getStatusKey(alerte.statut) === 'cancelled' ? styles['alertes__status--closed'] : styles['alertes__status--pending']}`}>
-                        {t(`citizen.alertStatus.${getStatusKey(alerte.statut)}`)}
-                      </span>
+              <div className={styles['alertes__grid']}>
+                {filteredAlertes.map((alerte: any) => {
+                  const photo = alerte.id_dossier ? dossierPhotos[alerte.id_dossier] : null;
+                  const statusKey = getStatusKey(alerte.statut);
+                  return (
+                    <div
+                      key={alerte.id}
+                      className={styles['alertes__card']}
+                      onClick={() => handleViewDetails(alerte.id, alerte.id_dossier)}
+                    >
+                      <div className={styles['alertes__card-media']}>
+                        {photo ? (
+                          <img src={photo} alt="" />
+                        ) : (
+                          <div className={styles['alertes__card-media-placeholder']}>
+                            {getTypeIcon(alerte.type_alerte)}
+                          </div>
+                        )}
+                        <span className={`${styles['alertes__card-status']} ${statusKey === 'active' ? styles['alertes__status--active'] : statusKey === 'cloturee' || statusKey === 'expiree' || statusKey === 'cancelled' ? styles['alertes__status--closed'] : styles['alertes__status--pending']}`}>
+                          {t(`citizen.alertStatus.${statusKey}`)}
+                        </span>
+                      </div>
+                      <div className={styles['alertes__card-body']}>
+                        <h4 className={styles['alertes__card-title']}>{alerte.titre}</h4>
+                        <p className={styles['alertes__card-message']}>
+                          {alerte.message?.substring(0, 120)}
+                          {(alerte.message?.length || 0) > 120 ? '...' : ''}
+                        </p>
+                        <div className={styles['alertes__card-meta']}>
+                          <span className={styles['alertes__card-date']}>
+                            <Clock size={14} />
+                            {formatTimeAgo(alerte.created_at || new Date().toISOString())}
+                          </span>
+                          {alerte.rayon_km && (
+                            <span className={styles['alertes__card-radius']}>
+                              <MapPin size={14} />
+                              {t('citizen.radiusKm').replace('{{radius}}', String(alerte.rayon_km))}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    
-                    <p className={styles['alertes__card-message']}>
-                      {alerte.message?.substring(0, 120)}
-                      {(alerte.message?.length || 0) > 120 ? '...' : ''}
-                    </p>
-                    
-                    <div className={styles['alertes__card-meta']}>
-                      <span className={styles['alertes__card-date']}>
-                        <Clock size={14} />
-                        {formatTimeAgo(alerte.created_at || new Date().toISOString())}
-                      </span>
-                      
-                      {alerte.rayon_km && (
-                        <span className={styles['alertes__card-radius']}>
-                          <MapPin size={14} />
-                          {t('citizen.radiusKm').replace('{{radius}}', String(alerte.rayon_km))}
-                        </span>
-                      )}
-                      
-                      {alerte.vues !== undefined && (
-                        <span className={styles['alertes__card-views']}>
-                          <Eye size={14} />
-                          {t('citizen.views').replace('{{count}}', String(alerte.vues))}
-                        </span>
-                      )}
-                      
-                      {alerte.partages !== undefined && (
-                        <span className={styles['alertes__card-shares']}>
-                          <Share2 size={14} />
-                          {t('citizen.shares').replace('{{count}}', String(alerte.partages))}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <ChevronRight size={20} className={styles['alertes__card-arrow']} />
-                </div>
-              ))
+                  );
+                })}
+              </div>
             )}
           </div>
         )}

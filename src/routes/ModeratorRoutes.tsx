@@ -9,6 +9,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import {
   ModerationDashboardPage,
+  ModeratorProfilePage,
   SignalementsValidationPage,
   PhotosModerationPage,
   ReportsPage,
@@ -45,6 +46,16 @@ const ModeratorRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={moderatorRoles}>
               <ModerationDashboardPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Profile */}
+        <Route
+          path="/profile"
+          element={
+            <RoleBasedRoute requiredRoles={moderatorRoles}>
+              <ModeratorProfilePage />
             </RoleBasedRoute>
           }
         />

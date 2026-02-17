@@ -310,18 +310,20 @@ export const CitizenDossiersPage: React.FC = () => {
                           </span>
                         </div>
 
-                        {d.circonstances && (
-                          <p className={styles.desc}>
-                            {d.circonstances.length > 120 ? `${d.circonstances.slice(0, 120)}…` : d.circonstances}
-                          </p>
-                        )}
+                        <div className={styles.cardContent}>
+                          {d.circonstances && (
+                            <p className={styles.desc}>
+                              {d.circonstances.length > 120 ? `${d.circonstances.slice(0, 120)}…` : d.circonstances}
+                            </p>
+                          )}
+                        </div>
 
                         <div className={styles.actions}>
-                          <button className={styles.btn} onClick={() => handleOpenDossier(d.id)}>
-                            <Eye size={16} /> {t('common.viewDetails') || 'Voir'}
+                          <button type="button" className={styles.btn} onClick={() => handleOpenDossier(d.id)}>
+                            <Eye size={16} /> {t('citizen.viewShort') || 'Voir'}
                           </button>
-                          <button className={styles.btnPrimary} onClick={() => handleReport(d.id)} disabled={!canReport}>
-                            <MessageSquare size={16} /> {t('citizen.newReport') || 'Signaler'}
+                          <button type="button" className={styles.btnPrimary} onClick={() => handleReport(d.id)} disabled={!canReport}>
+                            <MessageSquare size={16} /> {t('citizen.reportShort') || 'Signaler'}
                           </button>
                         </div>
                       </div>

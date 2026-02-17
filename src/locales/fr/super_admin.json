@@ -105,5 +105,23 @@
   "actionUserLogin": "Connexion utilisateur",
   "actionConfigUpdate": "Mise à jour de configuration",
 
-  "avgResolutionValue": "12 jours"
+  "avgResolutionValue": "12 jours",
+
+  "nav": {
+    "overview": "Vue d'ensemble",
+    "organisations": "Organisations & utilisateurs",
+    "system": "Système",
+    "content": "Contenu & opérationnel",
+    "profile": "Profil"
+  },
+  "campagnesMenu": "Campagnes",
+  "donsMenu": "Dons",
+  "rolesMenu": "Rôles",
+  "dossiersMenu": "Gestion Dossiers",
+  "dossiersCritiquesMenu": "Dossiers critiques",
+  "alertesMenu": "Gestion Alertes",
+  "resultatsIaMenu": "Résultats IA",
+  "signalementValidationMenu": "Validation Signalements",
+  "profileMenu": "Mon Profil",
+  "maintenanceMenu": "Maintenance"
 }

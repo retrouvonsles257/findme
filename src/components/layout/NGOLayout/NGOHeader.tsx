@@ -1,17 +1,16 @@
 /**
  * RETROUVONSLES - NGO Header
- * Aligné sur Authority : menu toggle, recherche, actions, langue, avatar + dropdown (Profil, Déconnexion)
+ * Aligné sur Authority : menu toggle, recherche, actions, langue, avatar clic → navigation profil (pas de dropdown)
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, Search, Plus, Globe, CheckCircle, User, LogOut, Edit, Settings, KeyRound } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, Search, Plus, Globe, CheckCircle } from 'lucide-react';
 import { useI18n } from '../../../hooks';
-import { useAppDispatch, useAppSelector } from '../../../store/types';
+import { useAppSelector } from '../../../store/types';
 import { selectCurrentUser } from '../../../features/users/store/userSelectors';
-import { logoutThunk } from '../../../features/auth/store/authThunks';
-import { AUTH_ROUTES } from '../../../routes/routes.config';
 import { getLanguageName } from '../../../locales';
+import { supabase } from '../../../config';
 import styles from './NGOHeader.module.css';
 
 export interface NGOHeaderProps {
@@ -24,50 +23,43 @@ export const NGOHeader: React.FC<NGOHeaderProps> = ({
   sidebarOpen,
 }) => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const location = useLocation();
   const currentUser = useAppSelector(selectCurrentUser);
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [photoProfil, setPhotoProfil] = useState<string | null>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
-  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  const loadPhotoProfil = useCallback(async (uid: string) => {
+    try {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('photo_profil')
+        .eq('id', uid)
+        .maybeSingle();
+      setPhotoProfil(data?.photo_profil || null);
+    } catch {
+      setPhotoProfil(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.id) loadPhotoProfil(currentUser.id);
+    else setPhotoProfil(null);
+  }, [currentUser?.id, loadPhotoProfil, location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (languageMenuRef.current && !languageMenuRef.current.contains(e.target as Node)) {
         setShowLanguageMenu(false);
       }
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
-        setShowProfileMenu(false);
-      }
     };
-    if (showLanguageMenu || showProfileMenu) {
+    if (showLanguageMenu) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLanguageMenu, showProfileMenu]);
-
-  const handleLogout = async () => {
-    setShowProfileMenu(false);
-    await dispatch(logoutThunk());
-    navigate(AUTH_ROUTES.LOGIN);
-  };
-
-  const goToProfile = () => {
-    setShowProfileMenu(false);
-    navigate('/ngo/profile');
-  };
-
-  const goToSettings = () => {
-    setShowProfileMenu(false);
-    navigate('/ngo/settings');
-  };
-
-  const goToSecurity = () => {
-    setShowProfileMenu(false);
-    navigate('/ngo/security');
-  };
+  }, [showLanguageMenu]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,54 +149,20 @@ export const NGOHeader: React.FC<NGOHeaderProps> = ({
           )}
         </div>
 
-        <div className={styles.profileWrapper} ref={profileMenuRef}>
-          <button
-            type="button"
-            className={styles.headerAvatarBtn}
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            title={t('common.profile')}
-            aria-expanded={showProfileMenu}
-            aria-haspopup="true"
-          >
-            <div className={styles.headerAvatarPlaceholder}>
-              {getInitials()}
-            </div>
-          </button>
-
-          {showProfileMenu && (
-            <div className={styles.profileDropdown}>
-              <div className={styles.profileMenuHeader}>
-                <div className={styles.menuAvatar}>
-                  {getInitials()}
-                </div>
-                <div className={styles.menuUserInfo}>
-                  <span className={styles.menuUserName}>
-                    {(currentUser as any)?.nom_complet || (currentUser as any)?.email || 'Utilisateur'}
-                  </span>
-                  <span className={styles.menuUserEmail}>{currentUser?.email || ''}</span>
-                </div>
-              </div>
-              <div className={styles.menuDivider} />
-              <button type="button" className={styles.menuItem} onClick={goToProfile}>
-                <Edit size={16} />
-                <span>{t('authority.sidebar.editProfile')}</span>
-              </button>
-              <button type="button" className={styles.menuItem} onClick={goToSettings}>
-                <Settings size={16} />
-                <span>{t('authority.sidebar.settings')}</span>
-              </button>
-              <button type="button" className={styles.menuItem} onClick={goToSecurity}>
-                <KeyRound size={16} />
-                <span>{t('authority.sidebar.security')}</span>
-              </button>
-              <div className={styles.menuDivider} />
-              <button type="button" className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
-                <LogOut size={16} />
-                <span>{t('authority.sidebar.logout')}</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          className={styles.headerAvatarBtn}
+          onClick={() => navigate('/ngo/profile')}
+          title={t('authority.sidebar.editProfile') || t('common.profile')}
+        >
+          <div className={styles.headerAvatarPlaceholder}>
+            {photoProfil ? (
+              <img src={photoProfil} alt="" className={styles.headerAvatarImg} />
+            ) : (
+              getInitials()
+            )}
+          </div>
+        </button>
       </div>
     </header>
   );

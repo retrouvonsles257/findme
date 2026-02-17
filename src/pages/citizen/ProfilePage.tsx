@@ -15,7 +15,7 @@ import { uploadFileToCloudinary } from '../../services/cloudinary';
 import { CitizenLayout } from './CitizenLayout';
 import { 
   User, Mail, Phone, MapPin, CheckCircle, Camera, 
-  Loader2, AlertCircle, Save, Shield, Settings
+  Loader2, AlertCircle, Save, Shield, Settings, BadgeCheck
 } from 'lucide-react';
 import styles from './ProfilePage.module.css';
 import { NomRole, StatutCompte } from '../../@types/enums.types';
@@ -337,9 +337,8 @@ export const CitizenProfilePage: React.FC = () => {
               <h2 className={styles['profile__name']}>{userName}</h2>
               <p className={styles['profile__email']}>{userEmail}</p>
               {isVerified && (
-                <div className={styles['profile__verified-badge']}>
-                  <CheckCircle size={18} />
-                  <span>{t('citizen.verified')}</span>
+                <div className={styles['profile__verified-badge']} title={t('citizen.verified')}>
+                  <BadgeCheck size={22} className={styles['profile__verified-icon']} />
                 </div>
               )}
             </div>

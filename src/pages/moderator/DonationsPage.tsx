@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../config';
+import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { ModerationLayout } from './ModerationLayout';
 import { DonationForm, DonationHistory } from '../../features/dons/components';
 // Reuse the citizen donations styling for perfect consistency
 import styles from '../citizen/DonationsPage.module.css';
+import modStyles from './DonationsPage.module.css';
 
 export const ModeratorDonationsPage: React.FC = () => {
+  const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const [resolvedEmail, setResolvedEmail] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -43,27 +46,27 @@ export const ModeratorDonationsPage: React.FC = () => {
   }, [searchParams]);
 
   return (
-    <ModerationLayout title="Dons" activeNav="donations">
-      <div className={styles.page}>
+    <ModerationLayout title={t('moderator.donationsTitle')} activeNav="donations">
+      <div className={`${styles.page} ${modStyles.modPage}`}>
         <div className={styles.hero}>
           <div className={styles.heroTop}>
             <div>
-              <h1 className={styles.heroTitle}>Soutenir RetrouvonsLes</h1>
+              <h1 className={styles.heroTitle}>{t('moderator.donationsHeroTitle')}</h1>
               <p className={styles.heroSubtitle}>
-                Orange Money / MTN MoMo (mode dev/mock par défaut). Les confirmations réelles passent par webhook.
+                {t('moderator.donationsHeroSubtitle')}
               </p>
             </div>
           </div>
 
           <div className={styles.pillRow}>
             <span className={styles.pill}>
-              <strong>Orange Money</strong> + <strong>MTN MoMo</strong>
+              <strong>{t('moderator.donationsPillOrangeMtn')}</strong> + <strong>{t('moderator.donationsPillMtn')}</strong>
             </span>
             <span className={styles.pill}>
-              Paiement <strong>sécurisé</strong> (webhook)
+              {t('moderator.donationsPillSecure')}
             </span>
             <span className={styles.pill}>
-              Mode dev: <strong>mock</strong> par défaut
+              {t('moderator.donationsPillDevMode')}
             </span>
           </div>
         </div>
@@ -71,8 +74,8 @@ export const ModeratorDonationsPage: React.FC = () => {
         <div className={styles.grid}>
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>Faire un don</h2>
-              <span className={styles.cardHint}>Orange / MTN • XAF</span>
+              <h2 className={styles.cardTitle}>{t('moderator.makeDonation')}</h2>
+              <span className={styles.cardHint}>{t('moderator.donationsCardHint')}</span>
             </div>
             <DonationForm
               prefilledAmount={5000}
@@ -81,15 +84,14 @@ export const ModeratorDonationsPage: React.FC = () => {
               onSuccess={() => setRefreshTick((x) => x + 1)}
             />
             <p className={styles.note}>
-              En dev, le paiement est simulé via une Edge Function. En production, la confirmation viendra via webhook
-              de la passerelle.
+              {t('moderator.donationsNote')}
             </p>
           </section>
 
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>Mes dons</h2>
-              <span className={styles.cardHint}>{resolvedEmail ? 'Compte connecté' : 'Dons récents'}</span>
+              <h2 className={styles.cardTitle}>{t('moderator.myDonations')}</h2>
+              <span className={styles.cardHint}>{resolvedEmail ? t('moderator.donationsAccountConnected') : t('moderator.donationsRecent')}</span>
             </div>
             <DonationHistory
               key={`${resolvedEmail || 'recent'}:${refreshTick}`}

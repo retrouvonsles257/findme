@@ -82,5 +82,11 @@
   "days": "days",
   "profileSubtitle": "Your NGO account information",
   "profileFullName": "Full name",
-  "profileOrganisation": "Organization"
+  "profileOrganisation": "Organization",
+
+  "nav": {
+    "principal": "Main",
+    "resources": "Resources"
+  },
+  "ia": "AI"
 }

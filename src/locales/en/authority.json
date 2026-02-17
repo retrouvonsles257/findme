@@ -707,7 +707,11 @@
     "donations": "Donations & Campaigns",
     "statistiques": "Statistics"
   },
-    "header": {
+  "nav": {
+    "operational": "Operational",
+    "followUp": "Follow-up"
+  },
+  "header": {
       "searchPlaceholder": "Search a file, a person...",
       "new": "New",
       "newDossier": "New file",
@@ -1308,8 +1312,13 @@
     "sections": {
       "personalInfo": "Personal information",
       "address": "Address",
+      "organisation": "My organisation",
       "preferences": "Preferences",
       "security": "Security"
+    },
+    "organisation": {
+      "name": "Name",
+      "type": "Type"
     },
     "fields": {
       "lastName": "Last name",
@@ -1355,7 +1364,8 @@
     "preferences": {
       "notifications": {
         "title": "Notifications",
-        "description": "Receive alerts and updates"
+        "description": "Receive alerts and updates",
+        "descriptionForAuthority": "Receive work notifications (case updates, IA matches, coordination)"
       },
       "geolocation": {
         "title": "Geolocation",
@@ -1364,6 +1374,10 @@
       "notificationRadius": {
         "title": "Notification radius",
         "description": "Distance to receive alerts"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Interface language"
       }
     },
     "security": {

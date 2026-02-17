@@ -532,7 +532,11 @@
     "donations": "Dons & Campagnes",
     "statistiques": "Statistiques"
   },
-    "header": {
+  "nav": {
+    "operational": "Opérationnel",
+    "followUp": "Suivi"
+  },
+  "header": {
       "searchPlaceholder": "Rechercher un dossier, une personne...",
       "new": "Nouveau",
       "newDossier": "Nouveau dossier",
@@ -1309,8 +1313,13 @@
     "sections": {
       "personalInfo": "Informations personnelles",
       "address": "Adresse",
+      "organisation": "Mon organisation",
       "preferences": "Préférences",
       "security": "Sécurité"
+    },
+    "organisation": {
+      "name": "Nom",
+      "type": "Type"
     },
     "fields": {
       "lastName": "Nom",
@@ -1356,7 +1365,8 @@
     "preferences": {
       "notifications": {
         "title": "Notifications",
-        "description": "Recevoir les alertes et mises à jour"
+        "description": "Recevoir les alertes et mises à jour",
+        "descriptionForAuthority": "Recevoir les notifications métier (mises à jour dossiers, correspondances IA, coordination)"
       },
       "geolocation": {
         "title": "Géolocalisation",
@@ -1365,6 +1375,10 @@
       "notificationRadius": {
         "title": "Rayon de notification",
         "description": "Distance pour recevoir les alertes"
+      },
+      "language": {
+        "title": "Langue",
+        "description": "Langue de l'interface"
       }
     },
     "security": {

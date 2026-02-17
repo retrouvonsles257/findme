@@ -61,7 +61,7 @@ type FilterType = 'all' | 'validation_signalement' | 'upload_photo' | 'attributi
 type DateRange = '7d' | '30d' | '90d' | 'all';
 
 export const ActivityHistoryPage: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
   // State
@@ -189,10 +189,10 @@ export const ActivityHistoryPage: React.FC = () => {
     return <History size={18} className={styles.iconDefault} />;
   };
 
-  // Formater la date avec l'heure
+  const locale = language === 'fr' ? 'fr-FR' : 'en-GB';
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -201,9 +201,9 @@ export const ActivityHistoryPage: React.FC = () => {
     });
   };
 
-  // Exporter l'historique en CSV
+  // Exporter l'historique en CSV (i18n headers)
   const exportToCSV = () => {
-    const headers = ['Date', 'Type', 'Action', 'Description', 'ID Signalement'];
+    const headers = [t('moderator.csvDate'), t('moderator.csvType'), t('moderator.csvAction'), t('moderator.csvDescription'), t('moderator.csvReportId')];
     const rows = activities.map(a => [
       formatDateTime(a.date_action),
       a.type_action,
@@ -224,9 +224,8 @@ export const ActivityHistoryPage: React.FC = () => {
     link.click();
   };
 
-  // Grouper les activités par date
   const groupedActivities = activities.reduce((groups, activity) => {
-    const date = new Date(activity.date_action).toLocaleDateString('fr-FR', {
+    const date = new Date(activity.date_action).toLocaleDateString(locale, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -240,164 +239,134 @@ export const ActivityHistoryPage: React.FC = () => {
   }, {} as Record<string, ActivityLog[]>);
 
   return (
-    <ModerationLayout 
-      title={t('moderator.activityHistory') || 'Mon Historique'} 
-      activeNav="history"
-    >
-      <div className={styles.container}>
-        {/* Statistiques personnelles */}
+    <ModerationLayout title={t('moderator.activityHistory')} activeNav="history">
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <h2 className={styles.headerTitle}>
+              <History size={28} />
+              {t('moderator.activityHistory')}
+            </h2>
+            <p className={styles.headerSubtitle}>{t('moderator.dashboardDescription')}</p>
+          </div>
+          <div className={styles.toolbar}>
+            <div className={styles.filterGroup}>
+              <span className={styles.toolbarLabel}>{t('moderator.period')}:</span>
+              <div className={styles.dateFilters}>
+                {(['7d', '30d', '90d', 'all'] as DateRange[]).map((range) => (
+                  <button
+                    key={range}
+                    type="button"
+                    className={`${styles.toolbarBtn} ${dateRange === range ? styles.toolbarBtnActive : ''}`}
+                    onClick={() => setDateRange(range)}
+                  >
+                    {range === '7d' ? t('moderator.days7') : range === '30d' ? t('moderator.30days') : range === '90d' ? t('moderator.days90') : t('moderator.allTime')}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.filterGroup}>
+              <span className={styles.toolbarLabel}>{t('moderator.type')}:</span>
+              <div className={styles.typeFilters}>
+                <button type="button" className={`${styles.toolbarBtn} ${filter === 'all' ? styles.toolbarBtnActive : ''}`} onClick={() => setFilter('all')}>
+                  <Filter size={16} /> {t('moderator.allTypes')}
+                </button>
+                <button type="button" className={`${styles.toolbarBtn} ${filter === 'validation_signalement' ? styles.toolbarBtnActive : ''}`} onClick={() => setFilter('validation_signalement')}>
+                  <CheckCircle size={16} /> {t('moderator.reportsFilter')}
+                </button>
+                <button type="button" className={`${styles.toolbarBtn} ${filter === 'upload_photo' ? styles.toolbarBtnActive : ''}`} onClick={() => setFilter('upload_photo')}>
+                  <Image size={16} /> {t('moderator.photos')}
+                </button>
+                <button type="button" className={`${styles.toolbarBtn} ${filter === 'attribution_role' ? styles.toolbarBtnActive : ''}`} onClick={() => setFilter('attribution_role')}>
+                  <UserCheck size={16} /> {t('moderator.identities')}
+                </button>
+              </div>
+            </div>
+            <div className={styles.bulkActions}>
+              <button type="button" className={styles.toolbarBtn} onClick={loadActivities}>
+                <RefreshCw size={18} /> {t('moderator.refresh')}
+              </button>
+              <button type="button" className={styles.toolbarBtn} onClick={exportToCSV} disabled={activities.length === 0}>
+                <Download size={18} /> {t('moderator.exportCsv')}
+              </button>
+            </div>
+          </div>
+        </header>
+
         <div className={styles.statsSection}>
           <h3 className={styles.sectionTitle}>
             <BarChart3 size={20} />
-            Mes Statistiques
+            {t('moderator.myStats')}
           </h3>
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <History size={24} />
-              </div>
+              <div className={styles.statIcon}><History size={24} /></div>
               <div className={styles.statInfo}>
                 <span className={styles.statValue}>{stats.totalActions}</span>
-                <span className={styles.statLabel}>Actions totales</span>
+                <span className={styles.statLabel}>{t('moderator.totalActions')}</span>
               </div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <TrendingUp size={24} />
-              </div>
+              <div className={styles.statIcon}><TrendingUp size={24} /></div>
               <div className={styles.statInfo}>
                 <span className={styles.statValue}>{stats.actionsThisWeek}</span>
-                <span className={styles.statLabel}>Cette semaine</span>
+                <span className={styles.statLabel}>{t('moderator.thisWeekLabel')}</span>
               </div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <Calendar size={24} />
-              </div>
+              <div className={styles.statIcon}><Calendar size={24} /></div>
               <div className={styles.statInfo}>
                 <span className={styles.statValue}>{stats.actionsThisMonth}</span>
-                <span className={styles.statLabel}>Ce mois</span>
+                <span className={styles.statLabel}>{t('moderator.thisMonthLabel')}</span>
               </div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statIcon}>
-                <Clock size={24} />
-              </div>
+              <div className={styles.statIcon}><Clock size={24} /></div>
               <div className={styles.statInfo}>
                 <span className={styles.statValue}>{stats.averagePerDay}</span>
-                <span className={styles.statLabel}>Moyenne/jour</span>
+                <span className={styles.statLabel}>{t('moderator.averagePerDay')}</span>
               </div>
             </div>
           </div>
-
-          {/* Répartition des actions */}
           <div className={styles.breakdownGrid}>
             <div className={styles.breakdownCard}>
               <CheckCircle size={20} className={styles.iconSuccess} />
               <span className={styles.breakdownValue}>{stats.signalementValidations}</span>
-              <span className={styles.breakdownLabel}>Validations</span>
+              <span className={styles.breakdownLabel}>{t('moderator.validations')}</span>
             </div>
             <div className={styles.breakdownCard}>
               <XCircle size={20} className={styles.iconDanger} />
               <span className={styles.breakdownValue}>{stats.signalementRejections}</span>
-              <span className={styles.breakdownLabel}>Rejets</span>
+              <span className={styles.breakdownLabel}>{t('moderator.rejections')}</span>
             </div>
             <div className={styles.breakdownCard}>
               <Image size={20} className={styles.iconInfo} />
               <span className={styles.breakdownValue}>{stats.photoModerations}</span>
-              <span className={styles.breakdownLabel}>Photos modérées</span>
+              <span className={styles.breakdownLabel}>{t('moderator.photosModerated')}</span>
             </div>
             <div className={styles.breakdownCard}>
               <UserCheck size={20} className={styles.iconPrimary} />
               <span className={styles.breakdownValue}>{stats.identityVerifications}</span>
-              <span className={styles.breakdownLabel}>ID vérifiées</span>
+              <span className={styles.breakdownLabel}>{t('moderator.idVerified')}</span>
             </div>
           </div>
         </div>
 
-        {/* Filtres */}
-        <div className={styles.filtersSection}>
-          <div className={styles.filterGroup}>
-            <label>Période:</label>
-            <div className={styles.dateFilters}>
-              {(['7d', '30d', '90d', 'all'] as DateRange[]).map(range => (
-                <button
-                  key={range}
-                  className={`${styles.filterBtn} ${dateRange === range ? styles.filterBtnActive : ''}`}
-                  onClick={() => setDateRange(range)}
-                >
-                  {range === '7d' ? '7 jours' : 
-                   range === '30d' ? '30 jours' : 
-                   range === '90d' ? '90 jours' : 'Tout'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.filterGroup}>
-            <label>Type:</label>
-            <div className={styles.typeFilters}>
-              <button
-                className={`${styles.filterBtn} ${filter === 'all' ? styles.filterBtnActive : ''}`}
-                onClick={() => setFilter('all')}
-              >
-                <Filter size={16} /> Tous
-              </button>
-              <button
-                className={`${styles.filterBtn} ${filter === 'validation_signalement' ? styles.filterBtnActive : ''}`}
-                onClick={() => setFilter('validation_signalement')}
-              >
-                <CheckCircle size={16} /> Signalements
-              </button>
-              <button
-                className={`${styles.filterBtn} ${filter === 'upload_photo' ? styles.filterBtnActive : ''}`}
-                onClick={() => setFilter('upload_photo')}
-              >
-                <Image size={16} /> Photos
-              </button>
-              <button
-                className={`${styles.filterBtn} ${filter === 'attribution_role' ? styles.filterBtnActive : ''}`}
-                onClick={() => setFilter('attribution_role')}
-              >
-                <UserCheck size={16} /> Identités
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.actionsGroup}>
-            <button 
-              className={styles.actionBtn}
-              onClick={loadActivities}
-            >
-              <RefreshCw size={18} /> Actualiser
-            </button>
-            <button 
-              className={styles.actionBtn}
-              onClick={exportToCSV}
-              disabled={activities.length === 0}
-            >
-              <Download size={18} /> Exporter CSV
-            </button>
-          </div>
-        </div>
-
-        {/* Liste des activités */}
         <div className={styles.activitiesList}>
           <h3 className={styles.sectionTitle}>
             <History size={20} />
-            Historique des Actions
+            {t('moderator.historyOfActions')}
           </h3>
-
           {loading ? (
             <div className={styles.loading}>
               <RefreshCw className={styles.spinner} size={32} />
-              <p>Chargement de l'historique...</p>
+              <p>{t('moderator.loadingHistory')}</p>
             </div>
           ) : activities.length === 0 ? (
             <div className={styles.empty}>
               <History size={48} />
-              <h3>Aucune activité</h3>
-              <p>Vous n'avez pas encore d'actions enregistrées pour cette période.</p>
+              <h3>{t('moderator.noActivity')}</h3>
+              <p>{t('moderator.noActivityMessage')}</p>
             </div>
           ) : (
             Object.entries(groupedActivities).map(([date, dayActivities]) => (
@@ -405,33 +374,24 @@ export const ActivityHistoryPage: React.FC = () => {
                 <h4 className={styles.dayHeader}>
                   <Calendar size={16} />
                   {date}
-                  <span className={styles.dayCount}>{dayActivities.length} action(s)</span>
+                  <span className={styles.dayCount}>{t('moderator.actionsCount').replace('{{count}}', String(dayActivities.length))}</span>
                 </h4>
                 <div className={styles.dayActivities}>
-                  {dayActivities.map(activity => (
+                  {dayActivities.map((activity) => (
                     <div key={activity.id} className={styles.activityItem}>
-                      <div className={styles.activityIcon}>
-                        {getActionIcon(activity.type_action, activity.action_detaillee)}
-                      </div>
+                      <div className={styles.activityIcon}>{getActionIcon(activity.type_action, activity.action_detaillee)}</div>
                       <div className={styles.activityContent}>
                         <div className={styles.activityHeader}>
-                          <span className={styles.activityType}>
-                            {activity.type_action.replace(/_/g, ' ')}
-                          </span>
+                          <span className={styles.activityType}>{activity.type_action.replace(/_/g, ' ')}</span>
                           <span className={styles.activityTime}>
-                            {new Date(activity.date_action).toLocaleTimeString('fr-FR', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(activity.date_action).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         <p className={styles.activityDetail}>{activity.action_detaillee}</p>
-                        {activity.description && (
-                          <p className={styles.activityDescription}>{activity.description}</p>
-                        )}
+                        {activity.description && <p className={styles.activityDescription}>{activity.description}</p>}
                         {activity.id_signalement && (
                           <span className={styles.activityRef}>
-                            Signalement: {activity.id_signalement.substring(0, 8)}...
+                            {t('moderator.reportRef')}: {activity.id_signalement.substring(0, 8)}...
                           </span>
                         )}
                       </div>

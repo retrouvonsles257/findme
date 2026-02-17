@@ -178,7 +178,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
       setTotalPhotos(count || 0);
     } catch (err) {
       console.error('Error loading photos:', err);
-      setErrorMessage('Erreur lors du chargement des photos');
+      setErrorMessage(t('moderator.errorLoadingPhotos'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setIsLoading(false);
@@ -222,7 +222,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error approving photo:', err);
-      setErrorMessage(err.message || 'Erreur lors de l\'approbation');
+      setErrorMessage(err.message || t('moderator.errorApproving'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setProcessingId(null);
@@ -249,7 +249,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
       await db().from('journal_activite').insert({
         type_action: 'upload_photo',
         action_detaillee: 'Photo rejetée par modérateur',
-        description: `Photo ${photo.id} rejetée. Raison: ${moderationData.notes || 'Non spécifiée'}`,
+        description: `Photo ${photo.id} rejetée. Raison: ${moderationData.notes || t('moderator.unspecifiedRejection')}`,
         id_utilisateur: currentUser?.id,
         id_signalement: photo.id_signalement || null,
       });
@@ -260,7 +260,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error rejecting photo:', err);
-      setErrorMessage(err.message || 'Erreur lors du rejet');
+      setErrorMessage(err.message || t('moderator.errorRejecting'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setProcessingId(null);
@@ -288,7 +288,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error:', err);
-      setErrorMessage(err.message || 'Erreur');
+      setErrorMessage(err.message || t('moderator.errorGeneric'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setProcessingId(null);
@@ -400,13 +400,13 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
         id_signalement: selectedPhoto.id_signalement || null,
       });
 
-      setSuccessMessage('Zones de floutage enregistrées avec succès');
+      setSuccessMessage(t('moderator.blurSavedSuccess'));
       setShowBlurEditor(false);
       loadPhotos();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error saving blur regions:', err);
-      setErrorMessage(err.message || 'Erreur lors de la sauvegarde');
+      setErrorMessage(err.message || t('moderator.errorSavingBlur'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setProcessingId(null);
@@ -417,12 +417,12 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
   // Badge de statut
   const getStatusBadge = (photo: Photo) => {
     if (photo.approuvee) {
-      return { label: 'Approuvée', color: '#10b981' };
+      return { label: t('moderator.photosStatusApproved'), color: '#10b981' };
     }
     if (photo.moderee_par) {
-      return { label: 'Rejetée', color: '#ef4444' };
+      return { label: t('moderator.photosStatusRejected'), color: '#ef4444' };
     }
-    return { label: 'En attente', color: '#f59e0b' };
+    return { label: t('moderator.photosStatusPending'), color: '#f59e0b' };
   };
 
   const totalPages = Math.ceil(totalPhotos / pageSize);
@@ -446,7 +446,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
               <Search size={20} className={styles['photos-moderation__search-icon']} />
               <input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder={t('moderator.photosSearchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className={styles['photos-moderation__search-input']}
@@ -458,7 +458,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter size={20} />
-              Filtres
+              {t('moderator.filters')}
             </button>
 
             <button
@@ -473,46 +473,46 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
           {showFilters && (
             <div className={styles['photos-moderation__filters']}>
               <div className={styles['photos-moderation__filter-group']}>
-                <label>Statut</label>
+                <label>{t('moderator.status')}</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="pending">En attente</option>
-                  <option value="approved">Approuvées</option>
-                  <option value="rejected">Rejetées</option>
+                  <option value="all">{t('moderator.iaTypeAll')}</option>
+                  <option value="pending">{t('moderator.photosStatusPending')}</option>
+                  <option value="approved">{t('moderator.photosStatusApproved')}</option>
+                  <option value="rejected">{t('moderator.photosStatusRejected')}</option>
                 </select>
               </div>
 
               <div className={styles['photos-moderation__filter-group']}>
-                <label>Type</label>
+                <label>{t('moderator.photosTypeLabel')}</label>
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="portrait">Portrait</option>
-                  <option value="corps_entier">Corps entier</option>
-                  <option value="signalement">Signalement</option>
-                  <option value="lieu_disparition">Lieu</option>
-                  <option value="objet_personnel">Objet personnel</option>
-                  <option value="document">Document</option>
-                  <option value="autre">Autre</option>
+                  <option value="all">{t('moderator.iaTypeAll')}</option>
+                  <option value="portrait">{t('moderator.photosTypePortrait')}</option>
+                  <option value="corps_entier">{t('moderator.photosTypeFullBody')}</option>
+                  <option value="signalement">{t('moderator.photosTypeSignalement')}</option>
+                  <option value="lieu_disparition">{t('moderator.photosTypeLieu')}</option>
+                  <option value="objet_personnel">{t('moderator.photosTypePersonalObject')}</option>
+                  <option value="document">{t('moderator.photosTypeDocument')}</option>
+                  <option value="autre">{t('moderator.photosTypeOther')}</option>
                 </select>
               </div>
 
               <div className={styles['photos-moderation__filter-group']}>
-                <label>Qualité</label>
+                <label>{t('moderator.photosQualityLabel')}</label>
                 <select
                   value={filters.quality}
                   onChange={(e) => setFilters(prev => ({ ...prev, quality: e.target.value as any }))}
                 >
-                  <option value="all">Toutes</option>
-                  <option value="excellente">Excellente</option>
-                  <option value="bonne">Bonne</option>
-                  <option value="moyenne">Moyenne</option>
-                  <option value="faible">Faible</option>
+                  <option value="all">{t('moderator.iaPeriodAll')}</option>
+                  <option value="excellente">{t('moderator.photosQualityExcellent')}</option>
+                  <option value="bonne">{t('moderator.photosQualityGood')}</option>
+                  <option value="moyenne">{t('moderator.photosQualityAverage')}</option>
+                  <option value="faible">{t('moderator.photosQualityLow')}</option>
                 </select>
               </div>
             </div>
@@ -535,8 +535,8 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
 
         {/* Stats rapides */}
         <div className={styles['photos-moderation__stats']}>
-          <span>{totalPhotos} photo(s) trouvée(s)</span>
-          <span>Page {currentPage} / {totalPages || 1}</span>
+          <span>{t('moderator.photosFoundCount').replace('{{count}}', String(totalPhotos))}</span>
+          <span>{t('moderator.photosPageOf').replace('{{current}}', String(currentPage)).replace('{{total}}', String(totalPages || 1))}</span>
         </div>
 
         {isLoading ? (
@@ -558,7 +558,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                       <div className={styles['photos-moderation__photo-container']}>
                         <img
                           src={photo.url_thumbnail || photo.url_cloudinary}
-                          alt={photo.titre || 'Photo'}
+                          alt={photo.titre || t('common.image')}
                           className={styles['photos-moderation__photo']}
                           onClick={() => {
                             setSelectedPhoto(photo);
@@ -630,7 +630,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                             ) : (
                               <CheckCircle size={16} />
                             )}
-                            Approuver
+                            {t('moderator.approve')}
                           </button>
                           <button
                             className={`${styles['photos-moderation__action-btn']} ${styles['photos-moderation__action-btn--reject']}`}
@@ -642,7 +642,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                             ) : (
                               <XCircle size={16} />
                             )}
-                            Rejeter
+                            {t('moderator.reject')}
                           </button>
                         </div>
                       )}
@@ -652,7 +652,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
               ) : (
                 <div className={styles['photos-moderation__empty']}>
                   <Image size={48} />
-                  <p>Aucune photo trouvée</p>
+                  <p>{t('moderator.noPhotosFound')}</p>
                 </div>
               )}
             </div>
@@ -665,14 +665,14 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                   onClick={() => setCurrentPage(prev => prev - 1)}
                 >
                   <ChevronLeft size={20} />
-                  Précédent
+                  {t('common.previous')}
                 </button>
-                <span>Page {currentPage} / {totalPages}</span>
+                <span>{t('moderator.photosPageOf').replace('{{current}}', String(currentPage)).replace('{{total}}', String(totalPages))}</span>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
                 >
-                  Suivant
+                  {t('common.next')}
                   <ChevronRight size={20} />
                 </button>
               </div>
@@ -705,13 +705,13 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                       <div className={styles['photos-moderation__blur-toolbar']}>
                         <span>
                           <Square size={16} />
-                          Dessinez des rectangles sur les zones à flouter
+                          {t('moderator.drawRectanglesBlur')}
                         </span>
                         <div className={styles['photos-moderation__blur-actions']}>
                           <button
                             className={styles['photos-moderation__blur-btn']}
                             onClick={clearAllBlurRegions}
-                            title="Effacer tout"
+                            title={t('moderator.eraseAll')}
                           >
                             <Eraser size={16} />
                           </button>
@@ -720,7 +720,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                             onClick={() => setShowBlurEditor(false)}
                           >
                             <X size={16} />
-                            Annuler
+                            {t('common.cancel')}
                           </button>
                           <button
                             className={`${styles['photos-moderation__blur-btn']} ${styles['photos-moderation__blur-btn--save']}`}
@@ -732,7 +732,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                             ) : (
                               <Save size={16} />
                             )}
-                            Enregistrer ({blurRegions.length})
+                            {t('moderator.saveBlurCount').replace('{{count}}', String(blurRegions.length))}
                           </button>
                         </div>
                       </div>
@@ -774,7 +774,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                               <Trash2 size={12} />
                             </button>
                             <span className={styles['photos-moderation__blur-region-label']}>
-                              Zone {index + 1}
+                              {t('moderator.zoneLabel')} {index + 1}
                             </span>
                           </div>
                         ))}
@@ -795,11 +795,11 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                       
                       {blurRegions.length > 0 && (
                         <div className={styles['photos-moderation__blur-list']}>
-                          <strong>{blurRegions.length} zone(s) de floutage:</strong>
+                          <strong>{t('moderator.zonesBlurredCount').replace('{{count}}', String(blurRegions.length))}</strong>
                           <ul>
                             {blurRegions.map((region, index) => (
                               <li key={index}>
-                                Zone {index + 1}: {Math.round(region.width)}% x {Math.round(region.height)}%
+                                {t('moderator.zoneLabel')} {index + 1}: {Math.round(region.width)}% x {Math.round(region.height)}%
                                 <button onClick={() => removeBlurRegion(index)}>
                                   <Trash2 size={12} />
                                 </button>
@@ -840,45 +840,45 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
 
                 {/* Informations et actions */}
                 <div className={styles['photos-moderation__modal-info-section']}>
-                  <h3>Détails de la photo</h3>
+                  <h3>{t('moderator.photoDetails')}</h3>
 
                   <div className={styles['photos-moderation__modal-details']}>
                     <div className={styles['photos-moderation__detail-row']}>
-                      <label>ID</label>
+                      <label>{t('moderator.idLabel')}</label>
                       <span>{selectedPhoto.id.substring(0, 8)}...</span>
                     </div>
                     {selectedPhoto.titre && (
                       <div className={styles['photos-moderation__detail-row']}>
-                        <label>Titre</label>
+                        <label>{t('moderator.titleLabel')}</label>
                         <span>{selectedPhoto.titre}</span>
                       </div>
                     )}
                     {selectedPhoto.description && (
                       <div className={styles['photos-moderation__detail-row']}>
-                        <label>Description</label>
+                        <label>{t('common.description')}</label>
                         <span>{selectedPhoto.description}</span>
                       </div>
                     )}
                     {selectedPhoto.lieu_prise && (
                       <div className={styles['photos-moderation__detail-row']}>
-                        <label>Lieu</label>
+                        <label>{t('moderator.placeLabel')}</label>
                         <span>{selectedPhoto.lieu_prise}</span>
                       </div>
                     )}
                     {selectedPhoto.signalement && (
                       <div className={styles['photos-moderation__detail-row']}>
-                        <label>Signalement</label>
+                        <label>{t('moderator.reportLabel')}</label>
                         <span>{selectedPhoto.signalement.lieu_observation}</span>
                       </div>
                     )}
                     {selectedPhoto.uploadeur && (
                       <div className={styles['photos-moderation__detail-row']}>
-                        <label>Uploadé par</label>
+                        <label>{t('moderator.uploadedBy')}</label>
                         <span>{selectedPhoto.uploadeur.prenom} {selectedPhoto.uploadeur.nom}</span>
                       </div>
                     )}
                     <div className={styles['photos-moderation__detail-row']}>
-                      <label>Date</label>
+                      <label>{t('common.date')}</label>
                       <span>{new Date(selectedPhoto.created_at).toLocaleString('fr-FR')}</span>
                     </div>
                   </div>
@@ -891,11 +891,11 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                         onClick={() => initBlurEditor(selectedPhoto)}
                       >
                         <Square size={16} />
-                        Flouter des éléments sensibles
+                        {t('moderator.blurSensitiveElements')}
                       </button>
                       {selectedPhoto.caracteristiques_detectees?.zones_floutees && selectedPhoto.caracteristiques_detectees.zones_floutees.length > 0 && (
                         <span className={styles['photos-moderation__blur-count']}>
-                          {selectedPhoto.caracteristiques_detectees.zones_floutees.length} zone(s) floutée(s)
+                          {t('moderator.zonesBlurredCount').replace('{{count}}', String(selectedPhoto.caracteristiques_detectees.zones_floutees.length))}
                         </span>
                       )}
                     </div>
@@ -904,40 +904,40 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                   {/* Formulaire de modération */}
                   {!selectedPhoto.moderee_par && !showBlurEditor && (
                     <div className={styles['photos-moderation__modal-form']}>
-                      <h4>Modération</h4>
+                      <h4>{t('moderator.moderationLabel')}</h4>
 
                       <div className={styles['photos-moderation__form-group']}>
                         <label>
                           <Star size={14} />
-                          Qualité de l'image
+                          {t('moderator.imageQualityLabel')}
                         </label>
                         <select
                           value={moderationData.qualite_image}
                           onChange={(e) => setModerationData(prev => ({ ...prev, qualite_image: e.target.value as any }))}
                         >
-                          <option value="excellente">Excellente</option>
-                          <option value="bonne">Bonne</option>
-                          <option value="moyenne">Moyenne</option>
-                          <option value="faible">Faible</option>
+                          <option value="excellente">{t('moderator.photosQualityExcellent')}</option>
+                          <option value="bonne">{t('moderator.photosQualityGood')}</option>
+                          <option value="moyenne">{t('moderator.photosQualityAverage')}</option>
+                          <option value="faible">{t('moderator.photosQualityLow')}</option>
                         </select>
                       </div>
 
                       <div className={styles['photos-moderation__form-group']}>
                         <label>
                           <Tag size={14} />
-                          Type de photo
+                          {t('moderator.photoTypeLabel')}
                         </label>
                         <select
                           value={moderationData.type_photo}
                           onChange={(e) => setModerationData(prev => ({ ...prev, type_photo: e.target.value as any }))}
                         >
-                          <option value="portrait">Portrait</option>
-                          <option value="corps_entier">Corps entier</option>
-                          <option value="signalement">Signalement</option>
-                          <option value="lieu_disparition">Lieu de disparition</option>
-                          <option value="objet_personnel">Objet personnel</option>
-                          <option value="document">Document</option>
-                          <option value="autre">Autre</option>
+                          <option value="portrait">{t('moderator.photosTypePortrait')}</option>
+                          <option value="corps_entier">{t('moderator.photosTypeFullBody')}</option>
+                          <option value="signalement">{t('moderator.photosTypeSignalement')}</option>
+                          <option value="lieu_disparition">{t('moderator.lieuDisparition')}</option>
+                          <option value="objet_personnel">{t('moderator.photosTypePersonalObject')}</option>
+                          <option value="document">{t('moderator.photosTypeDocument')}</option>
+                          <option value="autre">{t('moderator.photosTypeOther')}</option>
                         </select>
                       </div>
 
@@ -949,16 +949,16 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                             onChange={(e) => setModerationData(prev => ({ ...prev, visible_public: e.target.checked }))}
                           />
                           {moderationData.visible_public ? <Eye size={14} /> : <EyeOff size={14} />}
-                          Visible publiquement
+                          {t('moderator.visiblePublic')}
                         </label>
                       </div>
 
                       <div className={styles['photos-moderation__form-group']}>
-                        <label>Notes (optionnel)</label>
+                        <label>{t('moderator.notesOptional')}</label>
                         <textarea
                           value={moderationData.notes}
                           onChange={(e) => setModerationData(prev => ({ ...prev, notes: e.target.value }))}
-                          placeholder="Notes de modération..."
+                          placeholder={t('moderator.notesModerationPlaceholder')}
                           rows={3}
                         />
                       </div>
@@ -974,7 +974,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                           ) : (
                             <CheckCircle size={18} />
                           )}
-                          Approuver
+                          {t('moderator.approve')}
                         </button>
                         <button
                           className={`${styles['photos-moderation__action-btn']} ${styles['photos-moderation__action-btn--reject']}`}
@@ -986,7 +986,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                           ) : (
                             <XCircle size={18} />
                           )}
-                          Rejeter
+                          {t('moderator.reject')}
                         </button>
                       </div>
                     </div>
@@ -996,10 +996,11 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                   {selectedPhoto.moderee_par && !showBlurEditor && (
                     <div className={styles['photos-moderation__already-moderated']}>
                       <p>
-                        Cette photo a déjà été {selectedPhoto.approuvee ? 'approuvée' : 'rejetée'} le{' '}
-                        {selectedPhoto.date_moderation
-                          ? new Date(selectedPhoto.date_moderation).toLocaleString('fr-FR')
-                          : 'date inconnue'}
+                        {t('moderator.alreadyModeratedOn')
+                          .replace('{{action}}', selectedPhoto.approuvee ? t('moderator.alreadyApprovedOn') : t('moderator.alreadyRejectedOn'))
+                          .replace('{{date}}', selectedPhoto.date_moderation
+                            ? new Date(selectedPhoto.date_moderation).toLocaleString('fr-FR')
+                            : t('moderator.dateUnknown'))}
                       </p>
                     </div>
                   )}

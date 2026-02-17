@@ -105,5 +105,23 @@
   "actionUserLogin": "User login",
   "actionConfigUpdate": "Configuration update",
 
-  "avgResolutionValue": "12 days"
+  "avgResolutionValue": "12 days",
+
+  "nav": {
+    "overview": "Overview",
+    "organisations": "Organizations & users",
+    "system": "System",
+    "content": "Content & operations",
+    "profile": "Profile"
+  },
+  "campagnesMenu": "Campaigns",
+  "donsMenu": "Donations",
+  "rolesMenu": "Roles",
+  "dossiersMenu": "Case Management",
+  "dossiersCritiquesMenu": "Critical Cases",
+  "alertesMenu": "Alerts Management",
+  "resultatsIaMenu": "AI Results",
+  "signalementValidationMenu": "Report Validation",
+  "profileMenu": "My Profile",
+  "maintenanceMenu": "Maintenance"
 }

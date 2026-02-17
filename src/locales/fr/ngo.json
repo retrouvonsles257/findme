@@ -82,5 +82,11 @@
   "days": "jours",
   "profileSubtitle": "Informations de votre compte ONG",
   "profileFullName": "Nom complet",
-  "profileOrganisation": "Organisation"
+  "profileOrganisation": "Organisation",
+
+  "nav": {
+    "principal": "Principal",
+    "resources": "Ressources"
+  },
+  "ia": "IA"
 }

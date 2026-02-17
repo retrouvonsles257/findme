@@ -9,6 +9,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
+import { useI18n } from '../../hooks';
 import { ModerationLayout } from './ModerationLayout';
 import {
   getDemandesVerificationIdentite,
@@ -87,6 +88,7 @@ export interface IdentityVerificationPageProps {
 }
 
 export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> = ({ noLayout = false, organisationId = null }) => {
+  const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
   // State
@@ -187,7 +189,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
       });
     } catch (err) {
       console.error('Error loading verification requests:', err);
-      setErrorMessage('Erreur lors du chargement des demandes');
+      setErrorMessage(t('moderator.errorLoadingRequests'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setIsLoading(false);
@@ -240,10 +242,10 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
 
       setSuccessMessage(
         action === 'approuve'
-          ? 'Identité vérifiée avec succès !'
+          ? t('moderator.identityVerifiedSuccess')
           : action === 'refuse'
-            ? 'Demande rejetée'
-            : 'Complément demandé'
+            ? t('moderator.requestRejected')
+            : t('moderator.complementRequested')
       );
 
       setSelectedRequest(null);
@@ -256,7 +258,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err: any) {
       console.error('Error processing verification:', err);
-      setErrorMessage(err.message || 'Erreur lors du traitement');
+      setErrorMessage(err.message || t('moderator.errorProcessing'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setIsProcessing(false);
@@ -265,11 +267,11 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
 
   const getStatusInfo = (status: string) => {
     const info: Record<string, { label: string; color: string }> = {
-      en_attente: { label: 'En attente', color: '#f59e0b' },
-      en_cours: { label: 'En cours', color: '#3b82f6' },
-      approuve: { label: 'Approuvé', color: '#10b981' },
-      rejete: { label: 'Rejeté', color: '#ef4444' },
-      complement_demande: { label: 'Complément demandé', color: '#8b5cf6' },
+      en_attente: { label: t('moderator.identityStatusPending'), color: '#f59e0b' },
+      en_cours: { label: t('moderator.identityStatusInProgress'), color: '#3b82f6' },
+      approuve: { label: t('moderator.identityStatusApproved'), color: '#10b981' },
+      rejete: { label: t('moderator.identityStatusRejected'), color: '#ef4444' },
+      complement_demande: { label: t('moderator.identityStatusComplement'), color: '#8b5cf6' },
     };
     return info[status] || { label: status, color: '#6b7280' };
   };
@@ -283,11 +285,10 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
           <div className={styles['identity-verification__header-content']}>
             <h1 className={styles['identity-verification__title']}>
               <UserCheck size={28} />
-              Vérification d'identité des citoyens
+              {t('moderator.identityTitle')}
             </h1>
             <p className={styles['identity-verification__subtitle']}>
-              Examinez les documents d'identité soumis par les citoyens pour valider leur passage 
-              au niveau "Citoyen Vérifié" (badge de confiance).
+              {t('moderator.identitySubtitle')}
             </p>
           </div>
 
@@ -297,7 +298,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
               <Search size={20} className={styles['identity-verification__search-icon']} />
               <input
                 type="text"
-                placeholder="Rechercher par nom, email..."
+                placeholder={t('moderator.searchPlaceholderIdentity')}
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className={styles['identity-verification__search-input']}
@@ -308,7 +309,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter size={20} />
-              Filtres
+              {t('moderator.filters')}
             </button>
             <button
               className={styles['identity-verification__toolbar-btn']}
@@ -322,42 +323,42 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
           {showFilters && (
             <div className={styles['identity-verification__filters']}>
               <div className={styles['identity-verification__filter-group']}>
-                <label>Statut</label>
+                <label>{t('moderator.status')}</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="en_attente">En attente</option>
-                  <option value="en_cours">En cours</option>
-                  <option value="approuve">Approuvés</option>
-                  <option value="rejete">Rejetés</option>
-                  <option value="complement_demande">Complément demandé</option>
+                  <option value="all">{t('moderator.iaTypeAll')}</option>
+                  <option value="en_attente">{t('moderator.identityStatusPending')}</option>
+                  <option value="en_cours">{t('moderator.identityStatusInProgress')}</option>
+                  <option value="approuve">{t('moderator.identityStatusApproved')}</option>
+                  <option value="rejete">{t('moderator.identityStatusRejected')}</option>
+                  <option value="complement_demande">{t('moderator.identityStatusComplement')}</option>
                 </select>
               </div>
 
               <div className={styles['identity-verification__filter-group']}>
-                <label>Type de document</label>
+                <label>{t('moderator.identityDocumentTypeLabel')}</label>
                 <select
                   value={filters.documentType}
                   onChange={(e) => setFilters(prev => ({ ...prev, documentType: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="cni">CNI</option>
-                  <option value="passeport">Passeport</option>
-                  <option value="autre">Autre</option>
+                  <option value="all">{t('moderator.iaTypeAll')}</option>
+                  <option value="cni">{t('moderator.typeCni')}</option>
+                  <option value="passeport">{t('moderator.passport')}</option>
+                  <option value="autre">{t('common.other')}</option>
                 </select>
               </div>
 
               <div className={styles['identity-verification__filter-group']}>
-                <label>Période</label>
+                <label>{t('moderator.period')}</label>
                 <select
                   value={filters.dateRange}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateRange: e.target.value as any }))}
                 >
-                  <option value="all">Toutes</option>
-                  <option value="7days">7 derniers jours</option>
-                  <option value="30days">30 derniers jours</option>
+                  <option value="all">{t('moderator.identityPeriodAll')}</option>
+                  <option value="7days">{t('moderator.iaPeriod7')}</option>
+                  <option value="30days">{t('moderator.iaPeriod30')}</option>
                 </select>
               </div>
             </div>
@@ -384,28 +385,28 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
             <User size={24} />
             <div>
               <span className={styles['identity-verification__stat-value']}>{stats.total}</span>
-              <span className={styles['identity-verification__stat-label']}>Total</span>
+              <span className={styles['identity-verification__stat-label']}>{t('moderator.identityTotalLabel')}</span>
             </div>
           </div>
           <div className={styles['identity-verification__stat']}>
             <Clock size={24} />
             <div>
               <span className={styles['identity-verification__stat-value']}>{stats.enAttente}</span>
-              <span className={styles['identity-verification__stat-label']}>En attente</span>
+              <span className={styles['identity-verification__stat-label']}>{t('moderator.identityStatusPending')}</span>
             </div>
           </div>
           <div className={styles['identity-verification__stat']}>
             <CheckCircle size={24} />
             <div>
               <span className={styles['identity-verification__stat-value']}>{stats.approuves}</span>
-              <span className={styles['identity-verification__stat-label']}>Vérifiés</span>
+              <span className={styles['identity-verification__stat-label']}>{t('moderator.identityVerifiedLabel')}</span>
             </div>
           </div>
           <div className={styles['identity-verification__stat']}>
             <XCircle size={24} />
             <div>
               <span className={styles['identity-verification__stat-value']}>{stats.rejetes}</span>
-              <span className={styles['identity-verification__stat-label']}>Rejetés</span>
+              <span className={styles['identity-verification__stat-label']}>{t('moderator.identityRejectedLabel')}</span>
             </div>
           </div>
         </div>
@@ -463,7 +464,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                         )}
                         <p className={styles['identity-verification__date']}>
                           <Calendar size={14} />
-                          Inscrit le {new Date(user?.created_at || '').toLocaleDateString('fr-FR')}
+                          {t('moderator.registeredOn')} {new Date(user?.created_at || '').toLocaleDateString('fr-FR')}
                         </p>
                       </div>
 
@@ -471,13 +472,13 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                         <div className={styles['identity-verification__doc-type']}>
                           <CreditCard size={16} />
                           <span>
-                            {request.type_document === 'cni' ? 'CNI' : 
-                             request.type_document === 'passeport' ? 'Passeport' : 'Autre'}
+                            {request.type_document === 'cni' ? t('moderator.typeCni') : 
+                             request.type_document === 'passeport' ? t('moderator.passport') : t('common.other')}
                           </span>
                         </div>
                         <button className={styles['identity-verification__view-btn']}>
                           <Eye size={16} />
-                          Examiner
+                          {t('moderator.examine')}
                         </button>
                       </div>
                     </div>
@@ -486,7 +487,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
               ) : (
                 <div className={styles['identity-verification__empty']}>
                   <UserCheck size={48} />
-                  <p>Aucune demande de vérification trouvée</p>
+                  <p>{t('moderator.noVerificationRequests')}</p>
                 </div>
               )}
             </div>
@@ -499,14 +500,14 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                   onClick={() => setCurrentPage(prev => prev - 1)}
                 >
                   <ChevronLeft size={20} />
-                  Précédent
+                  {t('common.previous')}
                 </button>
-                <span>Page {currentPage} / {totalPages}</span>
+                <span>{t('moderator.pageOf').replace('{{current}}', String(currentPage)).replace('{{total}}', String(totalPages))}</span>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
                 >
-                  Suivant
+                  {t('common.next')}
                   <ChevronRight size={20} />
                 </button>
               </div>
@@ -552,42 +553,42 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
               <div className={styles['identity-verification__modal-body']}>
                 {/* Informations utilisateur */}
                 <div className={styles['identity-verification__info-section']}>
-                  <h4>Informations du compte</h4>
+                  <h4>{t('moderator.accountInfo')}</h4>
                   <div className={styles['identity-verification__info-grid']}>
                     <div className={styles['identity-verification__info-row']}>
-                      <label>Email</label>
+                      <label>{t('common.email')}</label>
                       <span>{selectedRequest.utilisateur?.email}</span>
                     </div>
                     {selectedRequest.utilisateur?.telephone && (
                       <div className={styles['identity-verification__info-row']}>
-                        <label>Téléphone</label>
+                        <label>{t('common.phone')}</label>
                         <span>{selectedRequest.utilisateur.telephone}</span>
                       </div>
                     )}
                     {selectedRequest.utilisateur?.date_naissance && (
                       <div className={styles['identity-verification__info-row']}>
-                        <label>Date de naissance</label>
+                        <label>{t('moderator.dateOfBirth')}</label>
                         <span>{new Date(selectedRequest.utilisateur.date_naissance).toLocaleDateString('fr-FR')}</span>
                       </div>
                     )}
                     {selectedRequest.utilisateur?.ville && (
                       <div className={styles['identity-verification__info-row']}>
-                        <label>Localisation</label>
+                        <label>{t('common.location')}</label>
                         <span>
                           {selectedRequest.utilisateur.ville}, {selectedRequest.utilisateur.region}, {selectedRequest.utilisateur.pays}
                         </span>
                       </div>
                     )}
                     <div className={styles['identity-verification__info-row']}>
-                      <label>Date d'inscription</label>
+                      <label>{t('moderator.registrationDate')}</label>
                       <span>{new Date(selectedRequest.utilisateur?.created_at || '').toLocaleString('fr-FR')}</span>
                     </div>
                     <div className={styles['identity-verification__info-row']}>
-                      <label>Score de fiabilité</label>
+                      <label>{t('moderator.reliabilityScore')}</label>
                       <span>{selectedRequest.utilisateur?.score_fiabilite || 100}%</span>
                     </div>
                     <div className={styles['identity-verification__info-row']}>
-                      <label>Signalements validés</label>
+                      <label>{t('moderator.validatedReportsCount')}</label>
                       <span>{selectedRequest.utilisateur?.nombre_signalements_valides || 0}</span>
                     </div>
                   </div>
@@ -597,19 +598,19 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                 <div className={styles['identity-verification__doc-section']}>
                   <h4>
                     <FileText size={18} />
-                    Document d'identité
+                    {t('moderator.identityDocumentTitle')}
                   </h4>
                   <div className={styles['identity-verification__doc-type-badge']}>
                     <CreditCard size={16} />
-                    {selectedRequest.type_document === 'cni' ? 'Carte Nationale d\'Identité' : 
-                     selectedRequest.type_document === 'passeport' ? 'Passeport' : 'Autre document'}
+                    {selectedRequest.type_document === 'cni' ? t('moderator.nationalIdCard') : 
+                     selectedRequest.type_document === 'passeport' ? t('moderator.passport') : t('moderator.otherDocument')}
                   </div>
                   
                   {selectedRequest.url_document ? (
                     <div className={styles['identity-verification__doc-preview']}>
                       <img 
                         src={selectedRequest.url_document} 
-                        alt="Document d'identité"
+                        alt={t('moderator.identityDocumentTitle')}
                         className={styles['identity-verification__doc-image']}
                       />
                       <a 
@@ -619,13 +620,13 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                         className={styles['identity-verification__doc-download']}
                       >
                         <Download size={16} />
-                        Voir en plein écran
+                        {t('moderator.viewFullScreen')}
                       </a>
                     </div>
                   ) : (
                     <div className={styles['identity-verification__no-doc']}>
                       <AlertTriangle size={24} />
-                      <p>Aucun document soumis</p>
+                      <p>{t('moderator.noDocumentSubmitted')}</p>
                     </div>
                   )}
                 </div>
@@ -635,7 +636,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                   <div className={styles['identity-verification__decision-section']}>
                     <h4>
                       <Shield size={18} />
-                      Décision de vérification
+                      {t('moderator.verificationDecision')}
                     </h4>
 
                     <div className={styles['identity-verification__decision-buttons']}>
@@ -648,7 +649,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                         onClick={() => setDecisionData(prev => ({ ...prev, decision: 'approuve' }))}
                       >
                         <CheckCircle size={20} />
-                        Approuver
+                        {t('moderator.approve')}
                       </button>
                       <button
                         className={`${styles['identity-verification__decision-btn']} ${
@@ -659,7 +660,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                         onClick={() => setDecisionData(prev => ({ ...prev, decision: 'rejete' }))}
                       >
                         <XCircle size={20} />
-                        Rejeter
+                        {t('moderator.reject')}
                       </button>
                       <button
                         className={`${styles['identity-verification__decision-btn']} ${
@@ -668,34 +669,34 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                         onClick={() => setDecisionData(prev => ({ ...prev, decision: 'complement_demande' }))}
                       >
                         <MessageSquare size={20} />
-                        Demander complément
+                        {t('moderator.requestComplement')}
                       </button>
                     </div>
 
                     {decisionData.decision === 'rejete' && (
                       <div className={styles['identity-verification__form-group']}>
-                        <label>Raison du rejet *</label>
+                        <label>{t('moderator.rejectReasonLabel')}</label>
                         <select
                           value={decisionData.raison_rejet}
                           onChange={(e) => setDecisionData(prev => ({ ...prev, raison_rejet: e.target.value }))}
                         >
-                          <option value="">Sélectionner une raison</option>
-                          <option value="document_illisible">Document illisible</option>
-                          <option value="document_expire">Document expiré</option>
-                          <option value="document_falsifie">Suspicion de falsification</option>
-                          <option value="informations_incoherentes">Informations incohérentes</option>
-                          <option value="photo_non_conforme">Photo non conforme</option>
-                          <option value="autre">Autre</option>
+                          <option value="">{t('moderator.selectReason')}</option>
+                          <option value="document_illisible">{t('moderator.reasonIllegible')}</option>
+                          <option value="document_expire">{t('moderator.reasonExpired')}</option>
+                          <option value="document_falsifie">{t('moderator.reasonFake')}</option>
+                          <option value="informations_incoherentes">{t('moderator.reasonInconsistent')}</option>
+                          <option value="photo_non_conforme">{t('moderator.reasonPhotoNonCompliant')}</option>
+                          <option value="autre">{t('common.other')}</option>
                         </select>
                       </div>
                     )}
 
                     <div className={styles['identity-verification__form-group']}>
-                      <label>Notes (optionnel)</label>
+                      <label>{t('moderator.notesOptional')}</label>
                       <textarea
                         value={decisionData.notes}
                         onChange={(e) => setDecisionData(prev => ({ ...prev, notes: e.target.value }))}
-                        placeholder="Notes internes..."
+                        placeholder={t('moderator.notesPlaceholderInternal')}
                         rows={3}
                       />
                     </div>
@@ -711,12 +712,12 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                       {isProcessing ? (
                         <>
                           <RefreshCw size={18} className={styles['identity-verification__spinner']} />
-                          Traitement...
+                          {t('moderator.processing')}
                         </>
                       ) : (
                         <>
                           <Shield size={18} />
-                          Confirmer la décision
+                          {t('moderator.confirmDecision')}
                         </>
                       )}
                     </button>
@@ -729,10 +730,10 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
                     <p>
                       Cette demande a été{' '}
                       {selectedRequest.statut === 'approuve'
-                        ? 'approuvée'
+                        ? t('moderator.alreadyProcessedApproved')
                         : selectedRequest.statut === 'rejete'
-                          ? 'rejetée'
-                          : 'traitée (complément demandé)'}
+                          ? t('moderator.alreadyProcessedRejected')
+                          : t('moderator.alreadyProcessedComplement')}
                       {selectedRequest.date_verification && (
                         <> le {new Date(selectedRequest.date_verification).toLocaleString('fr-FR')}</>
                       )}
@@ -748,7 +749,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
 
   if (noLayout) return content;
   return (
-    <ModerationLayout title="Vérification d'identité" activeNav="identity">
+    <ModerationLayout title={t('moderator.identityPageTitle')} activeNav="identity">
       {content}
     </ModerationLayout>
   );

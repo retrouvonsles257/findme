@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '../../hooks';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { ModerationLayout } from './ModerationLayout';
 import { MapTilerView, MapTilerMarker } from '../../components/maps/MapTilerView/MapTilerView';
@@ -32,6 +33,7 @@ interface MapFilters {
 }
 
 export const MapViewPage: React.FC = () => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { signalements, isLoading, fetchSignalements } = useSignalements();
 
@@ -122,7 +124,7 @@ export const MapViewPage: React.FC = () => {
         id: sig.id,
         lat: lat,
         lng: lng,
-        label: sig.lieu_observation || sig.ville_observation || 'Signalement',
+        label: sig.lieu_observation || sig.ville_observation || t('moderator.reportLabel'),
         type: markerType,
         image: sig.photo_url,
         data: { signalementId: sig.id } as Record<string, unknown>,
@@ -142,11 +144,11 @@ export const MapViewPage: React.FC = () => {
   const getStatusBadge = (sig: any) => {
     const statut = sig.statut_validation || sig.etat;
     const badges: Record<string, { label: string; color: string }> = {
-      en_attente: { label: 'En attente', color: '#f59e0b' },
-      nouveau: { label: 'Nouveau', color: '#3b82f6' },
-      en_verification: { label: 'En cours', color: '#8b5cf6' },
-      valide: { label: 'Validé', color: '#10b981' },
-      invalide: { label: 'Rejeté', color: '#ef4444' },
+      en_attente: { label: t('moderator.pendingLabel'), color: '#f59e0b' },
+      nouveau: { label: t('moderator.nouveau'), color: '#3b82f6' },
+      en_verification: { label: t('moderator.enCours'), color: '#8b5cf6' },
+      valide: { label: t('moderator.valides'), color: '#10b981' },
+      invalide: { label: t('moderator.rejected'), color: '#ef4444' },
     };
     return badges[statut] || { label: statut, color: '#6b7280' };
   };
@@ -199,44 +201,45 @@ export const MapViewPage: React.FC = () => {
   }, [filteredSignalements]);
 
   return (
-    <ModerationLayout title="Vue Carte" activeNav="map">
+    <ModerationLayout title={t('moderator.mapViewTitle')} activeNav="map">
       <div className={styles['map-view']}>
-        {/* Header */}
         <section className={styles['map-view__header']}>
           <div className={styles['map-view__header-content']}>
             <h1 className={styles['map-view__title']}>
               <MapPin size={28} />
-              Vue Carte des Signalements
+              {t('moderator.mapViewTitleFull')}
             </h1>
             <p className={styles['map-view__subtitle']}>
-              Visualisez les signalements géolocalisés sur une carte interactive.
+              {t('moderator.mapViewSubtitle')}
             </p>
           </div>
 
-          {/* Toolbar */}
           <div className={styles['map-view__toolbar']}>
             <div className={styles['map-view__view-toggle']}>
               <button
+                type="button"
                 className={`${styles['map-view__toggle-btn']} ${viewMode === 'map' ? styles['map-view__toggle-btn--active'] : ''}`}
                 onClick={() => setViewMode('map')}
               >
                 <Map size={18} />
-                Carte
+                {t('moderator.mapViewMap')}
               </button>
               <button
+                type="button"
                 className={`${styles['map-view__toggle-btn']} ${viewMode === 'list' ? styles['map-view__toggle-btn--active'] : ''}`}
                 onClick={() => setViewMode('list')}
               >
                 <List size={18} />
-                Liste
+                {t('moderator.mapViewList')}
               </button>
             </div>
             <button
+              type="button"
               className={styles['map-view__toolbar-btn']}
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter size={20} />
-              Filtres
+              {t('moderator.filters')}
             </button>
             <button
               className={styles['map-view__toolbar-btn']}
@@ -250,42 +253,42 @@ export const MapViewPage: React.FC = () => {
           {showFilters && (
             <div className={styles['map-view__filters']}>
               <div className={styles['map-view__filter-group']}>
-                <label>Statut</label>
+                <label>{t('moderator.status')}</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="en_attente">En attente</option>
-                  <option value="en_verification">En cours</option>
-                  <option value="valide">Validés</option>
-                  <option value="invalide">Rejetés</option>
+                  <option value="all">{t('moderator.allTypes')}</option>
+                  <option value="en_attente">{t('moderator.pendingLabel')}</option>
+                  <option value="en_verification">{t('moderator.enCours')}</option>
+                  <option value="valide">{t('moderator.valides')}</option>
+                  <option value="invalide">{t('moderator.rejected')}</option>
                 </select>
               </div>
 
               <div className={styles['map-view__filter-group']}>
-                <label>Période</label>
+                <label>{t('moderator.period')}</label>
                 <select
                   value={filters.dateRange}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateRange: e.target.value as any }))}
                 >
-                  <option value="all">Toutes</option>
-                  <option value="7days">7 derniers jours</option>
-                  <option value="30days">30 derniers jours</option>
-                  <option value="90days">90 derniers jours</option>
+                  <option value="all">{t('moderator.notifications.all')}</option>
+                  <option value="7days">{t('moderator.last7Days')}</option>
+                  <option value="30days">{t('moderator.lastMonth')}</option>
+                  <option value="90days">{t('moderator.days90')}</option>
                 </select>
               </div>
 
               <div className={styles['map-view__filter-group']}>
-                <label>Score minimum</label>
+                <label>{t('moderator.minScore')}</label>
                 <select
                   value={filters.minScore}
                   onChange={(e) => setFilters(prev => ({ ...prev, minScore: parseInt(e.target.value) }))}
                 >
-                  <option value="0">Tous</option>
-                  <option value="50">&ge; 50%</option>
-                  <option value="70">&ge; 70%</option>
-                  <option value="85">&ge; 85%</option>
+                  <option value="0">{t('moderator.allTypes')}</option>
+                  <option value="50">≥ 50%</option>
+                  <option value="70">≥ 70%</option>
+                  <option value="85">≥ 85%</option>
                 </select>
               </div>
             </div>
@@ -296,32 +299,32 @@ export const MapViewPage: React.FC = () => {
         <div className={styles['map-view__stats']}>
           <div className={styles['map-view__stat']}>
             <MapPin size={20} />
-            <span>{stats.total} signalements total</span>
+            <span>{stats.total} {t('moderator.reportsTotal')}</span>
           </div>
-          <div className={styles['map-view__stat']} title="Signalements visibles sur la carte">
+          <div className={styles['map-view__stat']} title={t('moderator.reportsVisibleOnMap')}>
             <Map size={20} />
-            <span>{stats.avecCoordonnees} géolocalisés</span>
+            <span>{stats.avecCoordonnees} {t('moderator.geolocated')}</span>
           </div>
           {stats.sansCoordonnees > 0 && (
-            <div className={styles['map-view__stat']} style={{ color: '#f59e0b' }} title="Signalements sans coordonnées GPS">
+            <div className={styles['map-view__stat']} style={{ color: '#f59e0b' }} title={t('moderator.reportsWithoutGps')}>
               <AlertTriangle size={20} />
-              <span>{stats.sansCoordonnees} sans GPS</span>
+              <span>{stats.sansCoordonnees} {t('moderator.withoutGps')}</span>
             </div>
           )}
           <div className={styles['map-view__stat']}>
             <Clock size={20} />
-            <span>{stats.enAttente} en attente</span>
+            <span>{stats.enAttente} {t('moderator.pendingLabel')}</span>
           </div>
           <div className={styles['map-view__stat']}>
             <CheckCircle size={20} />
-            <span>{stats.valides} validés</span>
+            <span>{stats.valides} {t('moderator.valides')}</span>
           </div>
         </div>
 
         {isLoading ? (
           <div className={styles['map-view__loading']}>
             <RefreshCw size={32} className={styles['map-view__spinner']} />
-            Chargement de la carte...
+            {t('moderator.mapLoading')}
           </div>
         ) : (
           <>
@@ -341,7 +344,7 @@ export const MapViewPage: React.FC = () => {
                 
                 {/* Panel latéral des signalements */}
                 <div className={styles['map-view__markers-panel']}>
-                  <h4>Sur la carte ({filteredSignalements.length})</h4>
+                  <h4>{t('moderator.onMapCount').replace('{{count}}', String(filteredSignalements.length))}</h4>
                   <div className={styles['map-view__markers-list']}>
                     {filteredSignalements.slice(0, 15).map((sig) => {
                       const statusBadge = getStatusBadge(sig);
@@ -360,7 +363,7 @@ export const MapViewPage: React.FC = () => {
                           />
                           <div className={styles['map-view__marker-info']}>
                             <span className={styles['map-view__marker-location']}>
-                              {sig.lieu_observation || sig.ville_observation || 'Lieu non spécifié'}
+                              {sig.lieu_observation || sig.ville_observation || t('moderator.placeUnspecified')}
                             </span>
                             <span className={styles['map-view__marker-coords']}>
                               {lat?.toFixed(4)}, {lng?.toFixed(4)}
@@ -378,7 +381,7 @@ export const MapViewPage: React.FC = () => {
                   </div>
                   {filteredSignalements.length > 15 && (
                     <p className={styles['map-view__more-markers']}>
-                      + {filteredSignalements.length - 15} autres sur la carte
+                      {t('moderator.othersOnMap').replace('{{count}}', String(filteredSignalements.length - 15))}
                     </p>
                   )}
 
@@ -387,7 +390,7 @@ export const MapViewPage: React.FC = () => {
                     <>
                       <h4 style={{ marginTop: '16px', color: '#f59e0b' }}>
                         <AlertTriangle size={16} style={{ marginRight: '6px' }} />
-                        Sans GPS ({signalementsSansCoordonnees.length})
+                        {t('moderator.withoutGpsCount').replace('{{count}}', String(signalementsSansCoordonnees.length))}
                       </h4>
                       <div className={styles['map-view__markers-list']}>
                         {signalementsSansCoordonnees.slice(0, 5).map((sig) => {
@@ -406,10 +409,10 @@ export const MapViewPage: React.FC = () => {
                               />
                               <div className={styles['map-view__marker-info']}>
                                 <span className={styles['map-view__marker-location']}>
-                                  {sig.lieu_observation || sig.ville_observation || 'Lieu non spécifié'}
+                                  {sig.lieu_observation || sig.ville_observation || t('moderator.placeUnspecified')}
                                 </span>
                                 <span className={styles['map-view__marker-coords']} style={{ color: '#f59e0b' }}>
-                                  Coordonnées manquantes
+                                  {t('moderator.coordinatesMissing')}
                                 </span>
                               </div>
                               <span
@@ -424,7 +427,7 @@ export const MapViewPage: React.FC = () => {
                       </div>
                       {signalementsSansCoordonnees.length > 5 && (
                         <p className={styles['map-view__more-markers']}>
-                          + {signalementsSansCoordonnees.length - 5} autres sans coordonnées
+                          {t('moderator.othersWithoutCoords').replace('{{count}}', String(signalementsSansCoordonnees.length - 5))}
                         </p>
                       )}
                     </>
@@ -455,8 +458,8 @@ export const MapViewPage: React.FC = () => {
                         </div>
                         <div className={styles['map-view__list-content']}>
                           <h4>
-                            {sig.lieu_observation || sig.ville_observation || 'Lieu non spécifié'}
-                            {!hasCoords && <span style={{ color: '#f59e0b', fontSize: '12px', marginLeft: '8px' }}>(sans GPS)</span>}
+                            {sig.lieu_observation || sig.ville_observation || t('moderator.placeUnspecified')}
+                            {!hasCoords && <span style={{ color: '#f59e0b', fontSize: '12px', marginLeft: '8px' }}>{t('moderator.withoutGpsShort')}</span>}
                           </h4>
                           <p className={styles['map-view__list-description']}>
                             {sig.description?.substring(0, 100)}...
@@ -471,10 +474,10 @@ export const MapViewPage: React.FC = () => {
                                 {lat?.toFixed(4)}, {lng?.toFixed(4)}
                               </span>
                             ) : (
-                              <span style={{ color: '#f59e0b' }}>Coordonnées manquantes</span>
+                              <span style={{ color: '#f59e0b' }}>{t('moderator.coordinatesMissing')}</span>
                             )}
                             <span>
-                              Score: {Math.round((sig.score_correspondance || sig.score_pertinence || 0) * 100)}%
+                              {t('moderator.modalScore')}: {Math.round((sig.score_correspondance || sig.score_pertinence || 0) * 100)}%
                             </span>
                           </div>
                         </div>
@@ -493,7 +496,7 @@ export const MapViewPage: React.FC = () => {
                             }}
                           >
                             <Eye size={16} />
-                            Voir
+                            {t('common.view')}
                           </button>
                         </div>
                       </div>
@@ -502,7 +505,7 @@ export const MapViewPage: React.FC = () => {
                 ) : (
                   <div className={styles['map-view__empty']}>
                     <MapPin size={48} />
-                    <p>Aucun signalement trouvé</p>
+                    <p>{t('moderator.noReportsFound')}</p>
                   </div>
                 )}
               </div>
@@ -535,18 +538,18 @@ export const MapViewPage: React.FC = () => {
               <div className={styles['map-view__modal-body']}>
                 <div className={styles['map-view__modal-grid']}>
                   <div className={styles['map-view__modal-row']}>
-                    <label>Coordonnées</label>
+                    <label>{t('moderator.modalCoordinates')}</label>
                     <span>
                       {(selectedSignalement.latitude_observation ?? selectedSignalement.latitude)?.toFixed(6)}, 
                       {(selectedSignalement.longitude_observation ?? selectedSignalement.longitude)?.toFixed(6)}
                     </span>
                   </div>
                   <div className={styles['map-view__modal-row']}>
-                    <label>Date d'observation</label>
+                    <label>{t('moderator.modalObservationDate')}</label>
                     <span>{new Date(selectedSignalement.date_observation).toLocaleString('fr-FR')}</span>
                   </div>
                   <div className={styles['map-view__modal-row']}>
-                    <label>Statut</label>
+                    <label>{t('moderator.status')}</label>
                     <span
                       className={styles['map-view__modal-status']}
                       style={{ backgroundColor: getStatusBadge(selectedSignalement).color }}
@@ -555,7 +558,7 @@ export const MapViewPage: React.FC = () => {
                     </span>
                   </div>
                   <div className={styles['map-view__modal-row']}>
-                    <label>Score</label>
+                    <label>{t('moderator.modalScore')}</label>
                     <span>
                       {Math.round((selectedSignalement.score_correspondance || selectedSignalement.score_pertinence || 0) * 100)}%
                     </span>
@@ -563,7 +566,7 @@ export const MapViewPage: React.FC = () => {
                 </div>
 
                 <div className={styles['map-view__modal-description']}>
-                  <label>Description</label>
+                  <label>{t('common.description')}</label>
                   <p>{selectedSignalement.description}</p>
                 </div>
 
@@ -578,7 +581,7 @@ export const MapViewPage: React.FC = () => {
                   onClick={() => handleViewDetails(selectedSignalement)}
                 >
                   <Eye size={18} />
-                  Ouvrir dans Validation
+                  {t('moderator.openInValidation')}
                 </button>
               </div>
             </div>

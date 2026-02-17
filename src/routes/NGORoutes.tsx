@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   NGODashboardPage,
   NGOCasesPage,
@@ -31,6 +31,7 @@ import { NomRole } from '../@types/enums.types';
 import { useAppSelector } from '../store/types';
 import { selectUser } from '../features/auth/store/authSelectors';
 import { selectCurrentUser } from '../features/users/store/userSelectors';
+import { ROUTES } from './routes.config';
 
 /**
  * NGORoutes Component
@@ -47,12 +48,17 @@ const NGORoutes: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser) as { organisation_id?: string } | null;
   const organisationId = currentUser?.organisation_id ?? authUser?.organisation_id ?? null;
 
+  const base = ROUTES.ngo.BASE;
+
   return (
     <PrivateRoute>
       <Routes>
+        {/* Redirection /ngo vers dashboard */}
+        <Route index element={<Navigate to={`${base}/dashboard`} replace />} />
+
         {/* Dashboard */}
         <Route
-          path="/dashboard"
+          path="dashboard"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGODashboardPage />
@@ -62,7 +68,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Cases */}
         <Route
-          path="/cases"
+          path="cases"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCasesPage />
@@ -70,7 +76,7 @@ const NGORoutes: React.FC = () => {
           }
         />
         <Route
-          path="/cases/create"
+          path="cases/create"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCreateCasePage />
@@ -78,7 +84,7 @@ const NGORoutes: React.FC = () => {
           }
         />
         <Route
-          path="/cases/:id"
+          path="cases/:id"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCaseDetailPage />
@@ -86,7 +92,7 @@ const NGORoutes: React.FC = () => {
           }
         />
         <Route
-          path="/cases/:id/edit"
+          path="cases/:id/edit"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCaseEditPage />
@@ -96,7 +102,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Campagnes */}
         <Route
-          path="/campagnes"
+          path="campagnes"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCampagnesPage />
@@ -104,7 +110,7 @@ const NGORoutes: React.FC = () => {
           }
         />
         <Route
-          path="/campagnes/create"
+          path="campagnes/create"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCreateCampagnePage />
@@ -114,7 +120,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Alertes */}
         <Route
-          path="/alertes"
+          path="alertes"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOAlertesPage />
@@ -122,7 +128,7 @@ const NGORoutes: React.FC = () => {
           }
         />
         <Route
-          path="/alertes/new"
+          path="alertes/new"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOCreateAlertePage />
@@ -130,7 +136,7 @@ const NGORoutes: React.FC = () => {
           }
         />
         <Route
-          path="/alertes/:id"
+          path="alertes/:id"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOAlerteDetailPage />
@@ -140,7 +146,7 @@ const NGORoutes: React.FC = () => {
 
         {/* IA */}
         <Route
-          path="/ia"
+          path="ia"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOIAAnalysisPage />
@@ -150,7 +156,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Statistiques */}
         <Route
-          path="/statistics"
+          path="statistics"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOStatistiquesPage />
@@ -160,7 +166,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Resources */}
         <Route
-          path="/resources"
+          path="resources"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOResourcesPage organisationId={organisationId} />
@@ -170,7 +176,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Partnerships */}
         <Route
-          path="/partnerships"
+          path="partnerships"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOPartnershipsPage organisationId={organisationId} />
@@ -178,9 +184,9 @@ const NGORoutes: React.FC = () => {
           }
         />
 
-        {/* Profile */}
+        {/* Profile - Modifier le profil */}
         <Route
-          path="/profile"
+          path="profile"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOProfilePage />
@@ -190,7 +196,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Settings (même flux que Authority) */}
         <Route
-          path="/settings"
+          path="settings"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOProfilePage />
@@ -200,7 +206,7 @@ const NGORoutes: React.FC = () => {
 
         {/* Security (même flux que Authority) */}
         <Route
-          path="/security"
+          path="security"
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOProfilePage />

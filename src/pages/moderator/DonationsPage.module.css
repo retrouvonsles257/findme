@@ -1,0 +1,12 @@
+/**
+ * Overrides pour la page Dons modérateur : alignement avec le titre du layout
+ * (annule le centrage, max-width et padding horizontal du .page citoyen)
+ */
+.modPage {
+  margin: 0 !important;
+  max-width: 100% !important;
+  width: 100%;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}

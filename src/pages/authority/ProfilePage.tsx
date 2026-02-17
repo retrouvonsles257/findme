@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthorityLayout } from '../../components/layout';
 import { useNotification } from '../../contexts';
 import { useAppSelector } from '../../store/types';
@@ -49,6 +49,7 @@ interface ProfileData {
   pays: string;
   photo_profil: string;
   numero_badge: string;
+  id_organisation?: string | null;
   accepte_notifications: boolean;
   accepte_geolocalisation: boolean;
   rayon_notification_km: number;
@@ -61,13 +62,29 @@ interface ProfileData {
   created_at: string;
 }
 
+interface OrganisationData {
+  id: string;
+  nom: string;
+  type_organisation: string;
+  pays: string;
+  region: string | null;
+  ville: string | null;
+  adresse: string | null;
+  contact_officiel: string | null;
+  telephone: string | null;
+  email: string | null;
+  site_web: string | null;
+}
+
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
-  
+
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [organisation, setOrganisation] = useState<OrganisationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -125,16 +142,35 @@ export const ProfilePage: React.FC = () => {
         rayon_notification_km: data.rayon_notification_km || 50,
         langue_preferee: data.langue_preferee || 'fr',
       });
+
+      if (data.id_organisation) {
+        const { data: org } = await (supabase as any)
+          .from('organisation')
+          .select('id, nom, type_organisation, pays, region, ville, adresse, contact_officiel, telephone, email, site_web')
+          .eq('id', data.id_organisation)
+          .maybeSingle();
+        setOrganisation(org || null);
+      } else {
+        setOrganisation(null);
+      }
     } catch (err) {
       // Erreur gérée par la notification
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser?.id, addNotification]);
+  }, [currentUser?.id, addNotification, t]);
 
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  // Ouvrir directement en mode édition si on vient du menu "Modifier le profil"
+  useEffect(() => {
+    if (profile && (location.state as { edit?: boolean })?.edit) {
+      setIsEditing(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [profile, location.state, location.pathname, navigate]);
 
   // Sauvegarder les modifications
   const handleSave = async () => {
@@ -529,17 +565,57 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Section Préférences */}
+          {/* Section Organisation (lecture seule) */}
+          {organisation && (
+            <div className={styles.formSection}>
+              <h3><Building size={18} /> {t('authority.profilePage.sections.organisation')}</h3>
+              <div className={styles.securityInfo}>
+                <div className={styles.infoItem}>
+                  <Building size={16} />
+                  <span>{t('authority.profilePage.organisation.name')}: {organisation.nom}</span>
+                </div>
+                <div className={styles.infoItem}>
+                  <Globe size={16} />
+                  <span>{t('authority.profilePage.organisation.type')}: {organisation.type_organisation?.replace(/_/g, ' ') || '—'}</span>
+                </div>
+                {(organisation.region || organisation.ville) && (
+                  <div className={styles.infoItem}>
+                    <MapPin size={16} />
+                    <span>{[organisation.ville, organisation.region].filter(Boolean).join(', ') || '—'}</span>
+                  </div>
+                )}
+                {organisation.telephone && (
+                  <div className={styles.infoItem}>
+                    <Phone size={16} />
+                    <span>{organisation.telephone}</span>
+                  </div>
+                )}
+                {organisation.email && (
+                  <div className={styles.infoItem}>
+                    <Mail size={16} />
+                    <span>{organisation.email}</span>
+                  </div>
+                )}
+                {organisation.contact_officiel && (
+                  <div className={styles.infoItem}>
+                    <User size={16} />
+                    <span>{organisation.contact_officiel}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Section Préférences — Autorités : notifications métier uniquement (pas de périmètre d'alertes, elles les créent) */}
           <div className={styles.formSection}>
             <h3><Bell size={18} /> {t('authority.profilePage.sections.preferences')}</h3>
-            
             <div className={styles.preferencesGrid}>
               <div className={styles.preferenceItem}>
                 <div className={styles.preferenceInfo}>
                   <Bell size={20} />
                   <div>
                     <h4>{t('authority.profilePage.preferences.notifications.title')}</h4>
-                    <p>{t('authority.profilePage.preferences.notifications.description')}</p>
+                    <p>{t('authority.profilePage.preferences.notifications.descriptionForAuthority')}</p>
                   </div>
                 </div>
                 {isEditing ? (
@@ -549,7 +625,7 @@ export const ProfilePage: React.FC = () => {
                       checked={formData.accepte_notifications}
                       onChange={(e) => setFormData({ ...formData, accepte_notifications: e.target.checked })}
                     />
-                    <span className={styles.slider}></span>
+                    <span className={styles.slider} />
                   </label>
                 ) : (
                   <span className={`${styles.statusDot} ${profile.accepte_notifications ? styles.active : ''}`}>
@@ -557,52 +633,27 @@ export const ProfilePage: React.FC = () => {
                   </span>
                 )}
               </div>
-
               <div className={styles.preferenceItem}>
                 <div className={styles.preferenceInfo}>
-                  <MapPin size={20} />
+                  <Globe size={20} />
                   <div>
-                    <h4>{t('authority.profilePage.preferences.geolocation.title')}</h4>
-                    <p>{t('authority.profilePage.preferences.geolocation.description')}</p>
+                    <h4>{t('authority.profilePage.preferences.language.title')}</h4>
+                    <p>{t('authority.profilePage.preferences.language.description')}</p>
                   </div>
                 </div>
                 {isEditing ? (
-                  <label className={styles.switch}>
-                    <input
-                      type="checkbox"
-                      checked={formData.accepte_geolocalisation}
-                      onChange={(e) => setFormData({ ...formData, accepte_geolocalisation: e.target.checked })}
-                    />
-                    <span className={styles.slider}></span>
-                  </label>
+                  <select
+                    value={formData.langue_preferee}
+                    onChange={(e) => setFormData({ ...formData, langue_preferee: e.target.value })}
+                    className={styles.languageSelect}
+                  >
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                  </select>
                 ) : (
-                  <span className={`${styles.statusDot} ${profile.accepte_geolocalisation ? styles.active : ''}`}>
-                    {profile.accepte_geolocalisation ? t('authority.profilePage.toggle.enabled') : t('authority.profilePage.toggle.disabled')}
-                  </span>
+                  <span className={styles.statusDot}>{profile.langue_preferee === 'en' ? 'English' : 'Français'}</span>
                 )}
               </div>
-
-              {isEditing && (
-                <div className={styles.preferenceItem}>
-                  <div className={styles.preferenceInfo}>
-                    <Globe size={20} />
-                    <div>
-                      <h4>{t('authority.profilePage.preferences.notificationRadius.title')}</h4>
-                      <p>{t('authority.profilePage.preferences.notificationRadius.description')}</p>
-                    </div>
-                  </div>
-                  <div className={styles.rangeInput}>
-                    <input
-                      type="range"
-                      min="10"
-                      max="200"
-                      value={formData.rayon_notification_km}
-                      onChange={(e) => setFormData({ ...formData, rayon_notification_km: Number(e.target.value) })}
-                    />
-                    <span>{formData.rayon_notification_km} {t('authority.profilePage.units.km')}</span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

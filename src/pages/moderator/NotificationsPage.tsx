@@ -51,7 +51,7 @@ interface Notification {
 type FilterType = 'all' | 'unread' | 'signalement' | 'photo' | 'ia' | 'identity' | 'system';
 
 export const NotificationsPage: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectUser);
 
@@ -279,18 +279,18 @@ export const NotificationsPage: React.FC = () => {
     }
   };
 
-  // Formater la date
+  // Formater la date (i18n)
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
-    if (diff < 60000) return 'À l\'instant';
-    if (diff < 3600000) return `Il y a ${Math.floor(diff / 60000)} min`;
-    if (diff < 86400000) return `Il y a ${Math.floor(diff / 3600000)} h`;
-    if (diff < 604800000) return `Il y a ${Math.floor(diff / 86400000)} j`;
-    
-    return date.toLocaleDateString('fr-FR', {
+
+    if (diff < 60000) return t('moderator.time.justNow');
+    if (diff < 3600000) return t('moderator.time.minutesAgo').replace('{{count}}', String(Math.floor(diff / 60000)));
+    if (diff < 86400000) return t('moderator.time.hoursAgo').replace('{{count}}', String(Math.floor(diff / 3600000)));
+    if (diff < 604800000) return t('moderator.time.daysAgo').replace('{{count}}', String(Math.floor(diff / 86400000)));
+
+    return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-GB', {
       day: 'numeric',
       month: 'short',
       year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
@@ -298,130 +298,118 @@ export const NotificationsPage: React.FC = () => {
   };
 
   return (
-    <ModerationLayout 
-      title={t('common.notifications') || 'Notifications'} 
+    <ModerationLayout
+      title={t('common.notifications')}
       activeNav="notifications"
     >
-      <div className={styles.container}>
-        {/* Stats */}
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <h2 className={styles.headerTitle}>
+              <Bell size={28} />
+              {t('common.notifications')}
+            </h2>
+            <p className={styles.headerSubtitle}>
+              {t('moderator.dashboardDescription')}
+            </p>
+          </div>
+          <div className={styles.toolbar}>
+            <div className={styles.filters}>
+              <button
+                className={`${styles.toolbarBtn} ${filter === 'all' ? styles.toolbarBtnActive : ''}`}
+                onClick={() => setFilter('all')}
+              >
+                <Filter size={16} /> {t('moderator.notifications.all')}
+              </button>
+              <button
+                className={`${styles.toolbarBtn} ${filter === 'unread' ? styles.toolbarBtnActive : ''}`}
+                onClick={() => setFilter('unread')}
+              >
+                <Bell size={16} /> {t('moderator.notifications.unreadCount').replace('{{count}}', String(stats.unread))}
+              </button>
+              <button
+                className={`${styles.toolbarBtn} ${filter === 'signalement' ? styles.toolbarBtnActive : ''}`}
+                onClick={() => setFilter('signalement')}
+              >
+                <AlertTriangle size={16} /> {t('moderator.notifications.reports')}
+              </button>
+              <button
+                className={`${styles.toolbarBtn} ${filter === 'ia' ? styles.toolbarBtnActive : ''}`}
+                onClick={() => setFilter('ia')}
+              >
+                <Brain size={16} /> IA
+              </button>
+              <button
+                className={`${styles.toolbarBtn} ${filter === 'photo' ? styles.toolbarBtnActive : ''}`}
+                onClick={() => setFilter('photo')}
+              >
+                <Image size={16} /> {t('moderator.photos')}
+              </button>
+            </div>
+            <div className={styles.bulkActions}>
+              <button type="button" className={styles.toolbarBtn} onClick={loadNotifications} title={t('moderator.notifications.refresh')}>
+                <RefreshCw size={18} />
+              </button>
+              <button type="button" className={styles.toolbarBtn} onClick={markAllAsRead} disabled={stats.unread === 0} title={t('moderator.notifications.markAllRead')}>
+                <CheckCheck size={18} />
+              </button>
+              {selectedNotifications.size > 0 && (
+                <button type="button" className={`${styles.toolbarBtn} ${styles.toolbarBtnDanger}`} onClick={deleteSelected} title={t('moderator.notifications.deleteSelection')}>
+                  <Trash2 size={18} /> ({selectedNotifications.size})
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <Bell size={24} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{stats.total}</span>
-              <span className={styles.statLabel}>Total</span>
+              <span className={styles.statLabel}>{t('moderator.notifications.total')}</span>
             </div>
           </div>
           <div className={`${styles.statCard} ${styles.statUnread}`}>
             <AlertTriangle size={24} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{stats.unread}</span>
-              <span className={styles.statLabel}>Non lues</span>
+              <span className={styles.statLabel}>{t('moderator.notifications.unread')}</span>
             </div>
           </div>
           <div className={styles.statCard}>
             <CheckCircle size={24} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{stats.signalements}</span>
-              <span className={styles.statLabel}>Signalements</span>
+              <span className={styles.statLabel}>{t('moderator.notifications.reports')}</span>
             </div>
           </div>
           <div className={styles.statCard}>
             <Brain size={24} />
             <div className={styles.statInfo}>
               <span className={styles.statValue}>{stats.ia}</span>
-              <span className={styles.statLabel}>Alertes IA</span>
+              <span className={styles.statLabel}>{t('moderator.notifications.iaAlerts')}</span>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className={styles.actions}>
-          <div className={styles.filters}>
-            <button
-              className={`${styles.filterBtn} ${filter === 'all' ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              <Filter size={16} /> Toutes
-            </button>
-            <button
-              className={`${styles.filterBtn} ${filter === 'unread' ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilter('unread')}
-            >
-              <Bell size={16} /> Non lues ({stats.unread})
-            </button>
-            <button
-              className={`${styles.filterBtn} ${filter === 'signalement' ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilter('signalement')}
-            >
-              <AlertTriangle size={16} /> Signalements
-            </button>
-            <button
-              className={`${styles.filterBtn} ${filter === 'ia' ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilter('ia')}
-            >
-              <Brain size={16} /> IA
-            </button>
-            <button
-              className={`${styles.filterBtn} ${filter === 'photo' ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilter('photo')}
-            >
-              <Image size={16} /> Photos
-            </button>
-          </div>
-
-          <div className={styles.bulkActions}>
-            <button 
-              className={styles.actionBtn}
-              onClick={loadNotifications}
-              title="Actualiser"
-            >
-              <RefreshCw size={18} />
-            </button>
-            <button 
-              className={styles.actionBtn}
-              onClick={markAllAsRead}
-              disabled={stats.unread === 0}
-              title="Tout marquer comme lu"
-            >
-              <CheckCheck size={18} />
-            </button>
-            {selectedNotifications.size > 0 && (
-              <button 
-                className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                onClick={deleteSelected}
-                title="Supprimer la sélection"
-              >
-                <Trash2 size={18} /> ({selectedNotifications.size})
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Liste des notifications */}
         <div className={styles.notificationsList}>
           {loading ? (
             <div className={styles.loading}>
               <RefreshCw className={styles.spinner} size={32} />
-              <p>Chargement des notifications...</p>
+              <p>{t('moderator.notifications.loading')}</p>
             </div>
           ) : filteredNotifications.length === 0 ? (
             <div className={styles.empty}>
               <Bell size={48} />
-              <h3>Aucune notification</h3>
-              <p>
-                {filter === 'unread' 
-                  ? 'Toutes vos notifications ont été lues.'
-                  : 'Vous n\'avez pas encore de notifications.'}
-              </p>
+              <h3>{t('moderator.notifications.empty')}</h3>
+              <p>{filter === 'unread' ? t('moderator.notifications.emptyAllRead') : t('moderator.notifications.emptyNone')}</p>
             </div>
           ) : (
             filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`${styles.notificationItem} ${
-                  !notification.lue ? styles.notificationUnread : ''
-                } ${getPriorityClass(notification.priorite)}`}
+                className={`${styles.notificationItem} ${!notification.lue ? styles.notificationUnread : ''} ${getPriorityClass(notification.priorite)}`}
               >
                 <input
                   type="checkbox"
@@ -429,18 +417,10 @@ export const NotificationsPage: React.FC = () => {
                   checked={selectedNotifications.has(notification.id)}
                   onChange={() => toggleSelection(notification.id)}
                 />
-                
-                <div 
-                  className={styles.notificationIcon}
-                  onClick={() => handleNotificationClick(notification)}
-                >
+                <div className={styles.notificationIcon} onClick={() => handleNotificationClick(notification)}>
                   {getIcon(notification.type_notification)}
                 </div>
-                
-                <div 
-                  className={styles.notificationContent}
-                  onClick={() => handleNotificationClick(notification)}
-                >
+                <div className={styles.notificationContent} onClick={() => handleNotificationClick(notification)}>
                   <div className={styles.notificationHeader}>
                     <h4 className={styles.notificationTitle}>{notification.titre}</h4>
                     <span className={styles.notificationTime}>
@@ -451,32 +431,17 @@ export const NotificationsPage: React.FC = () => {
                   <p className={styles.notificationMessage}>{notification.message}</p>
                   {notification.priorite === 'haute' || notification.priorite === 'urgente' ? (
                     <span className={styles.urgentBadge}>
-                      {notification.priorite === 'urgente' ? 'URGENT' : 'Important'}
+                      {notification.priorite === 'urgente' ? t('moderator.notifications.urgent') : t('moderator.notifications.important')}
                     </span>
                   ) : null}
                 </div>
-
                 <div className={styles.notificationActions}>
                   {!notification.lue && (
-                    <button
-                      className={styles.iconBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        markAsRead(notification.id);
-                      }}
-                      title="Marquer comme lu"
-                    >
+                    <button type="button" className={styles.iconBtn} onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); }} title={t('moderator.notifications.markAsRead')}>
                       <Check size={18} />
                     </button>
                   )}
-                  <button
-                    className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteNotification(notification.id);
-                    }}
-                    title="Supprimer"
-                  >
+                  <button type="button" className={`${styles.iconBtn} ${styles.iconBtnDanger}`} onClick={(e) => { e.stopPropagation(); deleteNotification(notification.id); }} title={t('common.delete')}>
                     <XCircle size={18} />
                   </button>
                 </div>

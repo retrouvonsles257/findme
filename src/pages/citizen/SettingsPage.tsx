@@ -27,6 +27,8 @@ import {
   CheckCircle,
   Save,
   RefreshCw,
+  Gauge,
+  Activity,
 } from 'lucide-react';
 import styles from './SettingsPage.module.css';
 
@@ -368,6 +370,7 @@ export const CitizenSettingsPage: React.FC = () => {
 
             <div className={styles['settings__option']}>
               <div className={styles['settings__option-info']}>
+                <Gauge size={18} />
                 <div>
                   <h4>{t('citizen.notificationRadius')}</h4>
                   <p>{t('citizen.notificationRadiusDesc')}</p>
@@ -430,8 +433,8 @@ export const CitizenSettingsPage: React.FC = () => {
                 onChange={(e) => handleChange('langue', e.target.value)}
                 className={styles['settings__select']}
               >
-                <option value="fr">Français</option>
-                <option value="en">English</option>
+                <option value="fr">{t('citizen.languageFr')}</option>
+                <option value="en">{t('citizen.languageEn')}</option>
               </select>
             </div>
 
@@ -484,6 +487,7 @@ export const CitizenSettingsPage: React.FC = () => {
 
             <div className={styles['settings__option']}>
               <div className={styles['settings__option-info']}>
+                <Activity size={18} />
                 <div>
                   <h4>{t('citizen.showActivity')}</h4>
                   <p>{t('citizen.showActivityDesc')}</p>

@@ -15,7 +15,7 @@ import { NomRole } from '../../@types/enums.types';
 import { CitizenLayout } from './CitizenLayout';
 import { useSignalements } from '../../features/signalements/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
-import { Plus, Eye, Bell, BarChart3, CheckCircle, Clock, AlertTriangle, Loader2, MapPin } from 'lucide-react';
+import { Plus, Eye, Bell, BarChart3, CheckCircle, Clock, AlertTriangle, Loader2, MapPin, BadgeCheck } from 'lucide-react';
 import styles from './DashboardPage.module.css';
 
 export const CitizenDashboardPage: React.FC = () => {
@@ -187,8 +187,8 @@ export const CitizenDashboardPage: React.FC = () => {
             )}
           </div>
           {isVerified && (
-            <div className={styles['dashboard__verified-badge']}>
-              <span>✓ {t('citizen.verified')}</span>
+            <div className={styles['dashboard__verified-badge']} title={t('citizen.verified')}>
+              <BadgeCheck size={24} className={styles['dashboard__verified-icon']} />
             </div>
           )}
         </section>

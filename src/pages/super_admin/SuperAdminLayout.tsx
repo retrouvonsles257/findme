@@ -1,11 +1,11 @@
 /**
  * =====================================================
  * RETROUVONSLES - Super Admin Layout
- * Aligné sur le layout Citizen (sidebar image + header)
+ * Structure alignée sur Admin : navigation par groupes + section utilisateur + persistance scroll
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector, useAppDispatch } from '../../store/types';
@@ -65,6 +65,70 @@ type ActiveNavType =
   | 'documents'
   | 'liens-filiation';
 
+interface SuperAdminNavItem {
+  id: ActiveNavType;
+  labelKey: string;
+  path: string;
+  icon: typeof LayoutDashboard;
+}
+
+interface SuperAdminNavGroup {
+  groupKey: 'overview' | 'organisations' | 'system' | 'content' | 'profile';
+  labelKey: string;
+  items: SuperAdminNavItem[];
+}
+
+const SUPER_ADMIN_NAV_GROUPS: SuperAdminNavGroup[] = [
+  {
+    groupKey: 'overview',
+    labelKey: 'super_admin.nav.overview',
+    items: [
+      { id: 'dashboard', labelKey: 'common.dashboard', path: '/super-admin/dashboard', icon: LayoutDashboard },
+      { id: 'global-stats', labelKey: 'super_admin.globalStatsMenu', path: '/super-admin/global-stats', icon: Globe },
+    ],
+  },
+  {
+    groupKey: 'organisations',
+    labelKey: 'super_admin.nav.organisations',
+    items: [
+      { id: 'organisations', labelKey: 'super_admin.organisations', path: '/super-admin/organisations', icon: Building2 },
+      { id: 'system-users', labelKey: 'super_admin.systemUsersMenu', path: '/super-admin/system-users', icon: Users },
+      { id: 'roles', labelKey: 'super_admin.rolesMenu', path: '/super-admin/roles', icon: UserCog },
+    ],
+  },
+  {
+    groupKey: 'system',
+    labelKey: 'super_admin.nav.system',
+    items: [
+      { id: 'ia-config', labelKey: 'super_admin.iaConfigMenu', path: '/super-admin/ia-configuration', icon: Cpu },
+      { id: 'security', labelKey: 'super_admin.securityMenu', path: '/super-admin/security', icon: Shield },
+      { id: 'system-logs', labelKey: 'super_admin.systemLogsMenu', path: '/super-admin/system-logs', icon: FileText },
+      { id: 'system-settings', labelKey: 'super_admin.systemSettingsMenu', path: '/super-admin/system-settings', icon: Settings },
+      { id: 'maintenance', labelKey: 'super_admin.maintenanceMenu', path: '/super-admin/maintenance', icon: Database },
+    ],
+  },
+  {
+    groupKey: 'content',
+    labelKey: 'super_admin.nav.content',
+    items: [
+      { id: 'campagnes', labelKey: 'super_admin.campagnesMenu', path: '/super-admin/campagnes', icon: Megaphone },
+      { id: 'dons', labelKey: 'super_admin.donsMenu', path: '/super-admin/dons', icon: DollarSign },
+      { id: 'dossiers', labelKey: 'super_admin.dossiersMenu', path: '/super-admin/dossiers', icon: FolderOpen },
+      { id: 'dossiers-critiques', labelKey: 'super_admin.dossiersCritiquesMenu', path: '/super-admin/dossiers-critiques', icon: AlertTriangle },
+      { id: 'alertes', labelKey: 'super_admin.alertesMenu', path: '/super-admin/alertes', icon: Bell },
+      { id: 'resultats-ia', labelKey: 'super_admin.resultatsIaMenu', path: '/super-admin/resultats-ia', icon: Brain },
+      { id: 'signalement-validation', labelKey: 'super_admin.signalementValidationMenu', path: '/super-admin/signalement-validation', icon: CheckSquare },
+    ],
+  },
+  {
+    groupKey: 'profile',
+    labelKey: 'super_admin.nav.profile',
+    items: [
+      { id: 'profile', labelKey: 'super_admin.profileMenu', path: '/super-admin/profile', icon: User },
+    ],
+  },
+];
+
 interface SuperAdminLayoutProps {
   children: React.ReactNode;
   title: string;
@@ -89,6 +153,9 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
   });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const SIDEBAR_SCROLL_KEY = 'superAdminSidebarScrollTop';
+  const savedNavScrollRef = useRef(0);
   const [headerSearch, setHeaderSearch] = useState('');
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
 
@@ -124,117 +191,6 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const navItems = [
-    {
-      id: 'dashboard',
-      label: t('common.dashboard'),
-      path: '/super-admin/dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      id: 'global-stats',
-      label: t('super_admin.globalStatsMenu'),
-      path: '/super-admin/global-stats',
-      icon: Globe,
-    },
-    {
-      id: 'organisations',
-      label: t('super_admin.organisations'),
-      path: '/super-admin/organisations',
-      icon: Building2,
-    },
-    {
-      id: 'system-users',
-      label: t('super_admin.systemUsersMenu'),
-      path: '/super-admin/system-users',
-      icon: Users,
-    },
-    {
-      id: 'ia-config',
-      label: t('super_admin.iaConfigMenu'),
-      path: '/super-admin/ia-configuration',
-      icon: Cpu,
-    },
-    {
-      id: 'security',
-      label: t('super_admin.securityMenu'),
-      path: '/super-admin/security',
-      icon: Shield,
-    },
-    {
-      id: 'system-logs',
-      label: t('super_admin.systemLogsMenu'),
-      path: '/super-admin/system-logs',
-      icon: FileText,
-    },
-    {
-      id: 'system-settings',
-      label: t('super_admin.systemSettingsMenu'),
-      path: '/super-admin/system-settings',
-      icon: Settings,
-    },
-    {
-      id: 'campagnes',
-      label: 'Campagnes',
-      path: '/super-admin/campagnes',
-      icon: Megaphone,
-    },
-    {
-      id: 'dons',
-      label: 'Dons',
-      path: '/super-admin/dons',
-      icon: DollarSign,
-    },
-    {
-      id: 'roles',
-      label: 'Rôles',
-      path: '/super-admin/roles',
-      icon: UserCog,
-    },
-    {
-      id: 'dossiers',
-      label: 'Gestion Dossiers',
-      path: '/super-admin/dossiers',
-      icon: FolderOpen,
-    },
-    {
-      id: 'dossiers-critiques',
-      label: 'Dossiers critiques',
-      path: '/super-admin/dossiers-critiques',
-      icon: AlertTriangle,
-    },
-    {
-      id: 'alertes',
-      label: 'Gestion Alertes',
-      path: '/super-admin/alertes',
-      icon: Bell,
-    },
-    {
-      id: 'resultats-ia',
-      label: 'Résultats IA',
-      path: '/super-admin/resultats-ia',
-      icon: Brain,
-    },
-    {
-      id: 'signalement-validation',
-      label: 'Validation Signalements',
-      path: '/super-admin/signalement-validation',
-      icon: CheckSquare,
-    },
-    {
-      id: 'profile',
-      label: 'Mon Profil',
-      path: '/super-admin/profile',
-      icon: User,
-    },
-    {
-      id: 'maintenance',
-      label: 'Maintenance',
-      path: '/super-admin/maintenance',
-      icon: Database,
-    },
-  ];
 
   const handleLogout = async () => {
     await dispatch(logoutThunk());
@@ -275,6 +231,23 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
     if (activeNav) return activeNav === itemId;
     return location.pathname.startsWith(itemPath);
   };
+
+  /* Restaurer le scroll du sidebar après navigation (sessionStorage, comme Admin) */
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    const fromStorage = (() => {
+      try {
+        const v = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+        return v != null ? parseInt(v, 10) : savedNavScrollRef.current;
+      } catch {
+        return savedNavScrollRef.current;
+      }
+    })();
+    const saved = fromStorage > 0 ? fromStorage : savedNavScrollRef.current;
+    if (el && saved > 0) {
+      el.scrollTop = saved;
+    }
+  }, [location.pathname]);
 
   return (
     <div className={styles.layout}>
@@ -324,26 +297,56 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className={styles.nav}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.id as ActiveNavType, item.path);
-            return (
-              <button
-                key={item.id}
-                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
-                onClick={() => {
-                  navigate(item.path);
-                  setMobileOpen(false);
-                }}
-                title={isCollapsed ? item.label : undefined}
+        {/* Navigation par groupes (aligné Admin) */}
+        <nav ref={navRef} className={styles.nav} aria-label={t('common.menu')}>
+          {SUPER_ADMIN_NAV_GROUPS.map((group) => (
+            <div key={group.groupKey} className={styles.navGroup}>
+              <div
+                className={styles.navGroupTitle}
+                id={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
+                aria-hidden={isCollapsed}
               >
-                <Icon size={20} />
-                {!isCollapsed && <span>{item.label}</span>}
-              </button>
-            );
-          })}
+                {t(group.labelKey)}
+              </div>
+              <ul
+                className={styles.navGroupList}
+                aria-labelledby={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
+              >
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.id, item.path);
+                  const label = t(item.labelKey);
+                  return (
+                    <li key={item.id} className={styles.navGroupListItem}>
+                      <button
+                        type="button"
+                        className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                        onClick={() => {
+                          if (navRef.current) {
+                            const top = navRef.current.scrollTop;
+                            savedNavScrollRef.current = top;
+                            try {
+                              sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(top));
+                            } catch {}
+                          }
+                          navigate(item.path);
+                          setMobileOpen(false);
+                        }}
+                        title={isCollapsed ? label : undefined}
+                        aria-current={active ? 'page' : undefined}
+                        aria-label={label}
+                      >
+                        <span className={styles.navItemIcon} aria-hidden>
+                          <Icon size={20} />
+                        </span>
+                        {!isCollapsed && <span>{label}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         {/* User section */}

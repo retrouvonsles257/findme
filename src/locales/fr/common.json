@@ -60,6 +60,8 @@
     "dashboard": "Tableau de bord",
     "home": "Accueil",
     "menu": "Menu",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Réduire le menu",
     "actions": "Actions",
     "details": "Détails",
     "information": "Informations",
@@ -181,5 +183,6 @@
   "switchToFrench": "Passer en français",
   "ellipsis": "…",
   "colon": " :",
-  "countSeparator": " / "
+  "countSeparator": " / ",
+  "support": "Soutenir"
 }

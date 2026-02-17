@@ -10,6 +10,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
+import { useI18n } from '../../hooks';
 import { ModerationLayout } from './ModerationLayout';
 import { supabase } from '../../config';
 import {
@@ -81,6 +82,7 @@ interface IAFilters {
 }
 
 export const IAResultsPage: React.FC = () => {
+  const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
   // State
@@ -294,7 +296,7 @@ export const IAResultsPage: React.FC = () => {
         id_signalement: selectedResult.id_signalement,
       });
 
-      setFlagSuccess('Faux positif signalé avec succès. Un officier examinera ce résultat.');
+      setFlagSuccess(t('moderator.iaResultsSuccessFlag'));
       setShowFalsePositiveForm(false);
       setFalsePositiveReason('');
       
@@ -327,16 +329,16 @@ export const IAResultsPage: React.FC = () => {
   // Labels et couleurs pour les types d'analyse
   const getTypeAnalyseInfo = (type: string) => {
     const info: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-      reconnaissance_faciale: { label: 'Reconnaissance faciale', color: '#3b82f6', icon: <User size={16} /> },
-      comparaison_photos: { label: 'Comparaison photos', color: '#8b5cf6', icon: <Image size={16} /> },
-      prediction_localisation: { label: 'Prédiction localisation', color: '#10b981', icon: <MapPin size={16} /> },
-      detection_similitudes: { label: 'Détection similitudes', color: '#f59e0b', icon: <Activity size={16} /> },
-      analyse_biometrique: { label: 'Analyse biométrique', color: '#ec4899', icon: <User size={16} /> },
-      regroupement_cas: { label: 'Regroupement cas', color: '#06b6d4', icon: <BarChart3 size={16} /> },
-      estimation_age: { label: 'Estimation âge', color: '#84cc16', icon: <TrendingUp size={16} /> },
-      analyse_vetements: { label: 'Analyse vêtements', color: '#f97316', icon: <Eye size={16} /> },
-      detection_objets: { label: 'Détection objets', color: '#6366f1', icon: <Search size={16} /> },
-      autre: { label: 'Autre', color: '#6b7280', icon: <Brain size={16} /> },
+      reconnaissance_faciale: { label: t('moderator.iaTypeFacial'), color: '#3b82f6', icon: <User size={16} /> },
+      comparaison_photos: { label: t('moderator.iaTypeComparison'), color: '#8b5cf6', icon: <Image size={16} /> },
+      prediction_localisation: { label: t('moderator.iaTypePrediction'), color: '#10b981', icon: <MapPin size={16} /> },
+      detection_similitudes: { label: t('moderator.iaTypeSimilarities'), color: '#f59e0b', icon: <Activity size={16} /> },
+      analyse_biometrique: { label: t('moderator.iaTypeBiometric'), color: '#ec4899', icon: <User size={16} /> },
+      regroupement_cas: { label: t('moderator.iaTypeGrouping'), color: '#06b6d4', icon: <BarChart3 size={16} /> },
+      estimation_age: { label: t('moderator.iaTypeAge'), color: '#84cc16', icon: <TrendingUp size={16} /> },
+      analyse_vetements: { label: t('common.other'), color: '#f97316', icon: <Eye size={16} /> },
+      detection_objets: { label: t('common.other'), color: '#6366f1', icon: <Search size={16} /> },
+      autre: { label: t('common.other'), color: '#6b7280', icon: <Brain size={16} /> },
     };
     return info[type] || info.autre;
   };
@@ -344,11 +346,11 @@ export const IAResultsPage: React.FC = () => {
   // Labels pour les statuts
   const getStatusInfo = (status: string) => {
     const info: Record<string, { label: string; color: string }> = {
-      en_attente: { label: 'En attente', color: '#f59e0b' },
-      confirme: { label: 'Confirmé', color: '#10b981' },
-      infirme: { label: 'Infirmé', color: '#ef4444' },
-      incertain: { label: 'Incertain', color: '#6b7280' },
-      necessite_verification: { label: 'À vérifier', color: '#8b5cf6' },
+      en_attente: { label: t('moderator.iaStatusPending'), color: '#f59e0b' },
+      confirme: { label: t('moderator.iaStatusConfirmed'), color: '#10b981' },
+      infirme: { label: t('moderator.iaStatusInfirmed'), color: '#ef4444' },
+      incertain: { label: t('moderator.iaStatusUncertain'), color: '#6b7280' },
+      necessite_verification: { label: t('moderator.iaStatusToVerify'), color: '#8b5cf6' },
     };
     return info[status] || { label: status, color: '#6b7280' };
   };
@@ -364,19 +366,19 @@ export const IAResultsPage: React.FC = () => {
   const totalPages = Math.ceil(totalResults / pageSize);
 
   return (
-    <ModerationLayout title="Résultats IA" activeNav="ia">
+    <ModerationLayout title={t('moderator.iaResults')} activeNav="ia">
       <div className={styles['ia-results']}>
         {/* Header */}
         <section className={styles['ia-results__header']}>
           <div className={styles['ia-results__header-content']}>
             <h1 className={styles['ia-results__title']}>
               <Brain size={28} />
-              Résultats d'Analyse IA
+              {t('moderator.iaResultsTitle')}
             </h1>
             <p className={styles['ia-results__subtitle']}>
-              Consultez les correspondances et analyses effectuées par l'intelligence artificielle.
+              {t('moderator.iaResultsSubtitle')}
               <br />
-              <em>Note : La validation des résultats est réservée aux autorités (niveau 4+).</em>
+              <em>{t('moderator.iaResultsNote')}</em>
             </p>
           </div>
 
@@ -386,7 +388,7 @@ export const IAResultsPage: React.FC = () => {
               <Search size={20} className={styles['ia-results__search-icon']} />
               <input
                 type="text"
-                placeholder="Rechercher par dossier, signalement..."
+                placeholder={t('moderator.iaSearchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className={styles['ia-results__search-input']}
@@ -397,7 +399,7 @@ export const IAResultsPage: React.FC = () => {
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter size={20} />
-              Filtres
+              {t('moderator.filters')}
             </button>
             <button
               className={styles['ia-results__toolbar-btn']}
@@ -411,44 +413,44 @@ export const IAResultsPage: React.FC = () => {
           {showFilters && (
             <div className={styles['ia-results__filters']}>
               <div className={styles['ia-results__filter-group']}>
-                <label>Type d'analyse</label>
+                <label>{t('moderator.iaFilterType')}</label>
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="reconnaissance_faciale">Reconnaissance faciale</option>
-                  <option value="comparaison_photos">Comparaison photos</option>
-                  <option value="prediction_localisation">Prédiction localisation</option>
-                  <option value="detection_similitudes">Détection similitudes</option>
-                  <option value="analyse_biometrique">Analyse biométrique</option>
-                  <option value="regroupement_cas">Regroupement cas</option>
-                  <option value="estimation_age">Estimation âge</option>
+                  <option value="all">{t('moderator.iaTypeAll')}</option>
+                  <option value="reconnaissance_faciale">{t('moderator.iaTypeFacial')}</option>
+                  <option value="comparaison_photos">{t('moderator.iaTypeComparison')}</option>
+                  <option value="prediction_localisation">{t('moderator.iaTypePrediction')}</option>
+                  <option value="detection_similitudes">{t('moderator.iaTypeSimilarities')}</option>
+                  <option value="analyse_biometrique">{t('moderator.iaTypeBiometric')}</option>
+                  <option value="regroupement_cas">{t('moderator.iaTypeGrouping')}</option>
+                  <option value="estimation_age">{t('moderator.iaTypeAge')}</option>
                 </select>
               </div>
 
               <div className={styles['ia-results__filter-group']}>
-                <label>Statut</label>
+                <label>{t('moderator.iaStatusLabel')}</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as any }))}
                 >
-                  <option value="all">Tous</option>
-                  <option value="en_attente">En attente</option>
-                  <option value="confirme">Confirmés</option>
-                  <option value="infirme">Infirmés</option>
-                  <option value="incertain">Incertains</option>
-                  <option value="necessite_verification">À vérifier</option>
+                  <option value="all">{t('moderator.iaTypeAll')}</option>
+                  <option value="en_attente">{t('moderator.iaStatusPending')}</option>
+                  <option value="confirme">{t('moderator.iaStatusConfirmed')}</option>
+                  <option value="infirme">{t('moderator.iaStatusInfirmed')}</option>
+                  <option value="incertain">{t('moderator.iaStatusUncertain')}</option>
+                  <option value="necessite_verification">{t('moderator.iaStatusToVerify')}</option>
                 </select>
               </div>
 
               <div className={styles['ia-results__filter-group']}>
-                <label>Score minimum</label>
+                <label>{t('moderator.iaMinScore')}</label>
                 <select
                   value={filters.minScore}
                   onChange={(e) => setFilters(prev => ({ ...prev, minScore: parseInt(e.target.value) }))}
                 >
-                  <option value="0">Tous</option>
+                  <option value="0">{t('moderator.iaTypeAll')}</option>
                   <option value="50">&ge; 50%</option>
                   <option value="70">&ge; 70%</option>
                   <option value="85">&ge; 85%</option>
@@ -456,15 +458,15 @@ export const IAResultsPage: React.FC = () => {
               </div>
 
               <div className={styles['ia-results__filter-group']}>
-                <label>Période</label>
+                <label>{t('moderator.iaPeriodLabel')}</label>
                 <select
                   value={filters.dateRange}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateRange: e.target.value as any }))}
                 >
-                  <option value="all">Toutes</option>
-                  <option value="7days">7 derniers jours</option>
-                  <option value="30days">30 derniers jours</option>
-                  <option value="90days">90 derniers jours</option>
+                  <option value="all">{t('moderator.iaPeriodAll')}</option>
+                  <option value="7days">{t('moderator.iaPeriod7')}</option>
+                  <option value="30days">{t('moderator.iaPeriod30')}</option>
+                  <option value="90days">{t('moderator.iaPeriod90')}</option>
                 </select>
               </div>
             </div>
@@ -477,28 +479,28 @@ export const IAResultsPage: React.FC = () => {
             <Brain size={24} />
             <div>
               <span className={styles['ia-results__stat-value']}>{stats.total}</span>
-              <span className={styles['ia-results__stat-label']}>Total analyses</span>
+              <span className={styles['ia-results__stat-label']}>{t('moderator.iaTotalAnalyses')}</span>
             </div>
           </div>
           <div className={styles['ia-results__stat']}>
             <Clock size={24} />
             <div>
               <span className={styles['ia-results__stat-value']}>{stats.enAttente}</span>
-              <span className={styles['ia-results__stat-label']}>En attente</span>
+              <span className={styles['ia-results__stat-label']}>{t('moderator.iaStatusPending')}</span>
             </div>
           </div>
           <div className={styles['ia-results__stat']}>
             <CheckCircle size={24} />
             <div>
               <span className={styles['ia-results__stat-value']}>{stats.confirmes}</span>
-              <span className={styles['ia-results__stat-label']}>Confirmés</span>
+              <span className={styles['ia-results__stat-label']}>{t('moderator.iaStatusConfirmed')}</span>
             </div>
           </div>
           <div className={styles['ia-results__stat']}>
             <Percent size={24} />
             <div>
               <span className={styles['ia-results__stat-value']}>{stats.scoresMoyen}%</span>
-              <span className={styles['ia-results__stat-label']}>Score moyen</span>
+              <span className={styles['ia-results__stat-label']}>{t('moderator.iaScoreMoyen')}</span>
             </div>
           </div>
         </div>
@@ -506,7 +508,7 @@ export const IAResultsPage: React.FC = () => {
         {isLoading ? (
           <div className={styles['ia-results__loading']}>
             <RefreshCw size={32} className={styles['ia-results__spinner']} />
-            Chargement des résultats...
+            {t('moderator.iaLoadingResults')}
           </div>
         ) : (
           <>
@@ -547,14 +549,14 @@ export const IAResultsPage: React.FC = () => {
                               {Math.round(result.score_confiance)}%
                             </span>
                           </div>
-                          <span className={styles['ia-results__score-label']}>Confiance</span>
+                          <span className={styles['ia-results__score-label']}>{t('moderator.iaConfidence')}</span>
                         </div>
 
                         {/* Info */}
                         <div className={styles['ia-results__item-info']}>
                           {result.dossier && (
                             <p className={styles['ia-results__item-dossier']}>
-                              <strong>Dossier:</strong> {result.dossier.numero_dossier}
+                              <strong>{t('moderator.iaDossier')}:</strong> {result.dossier.numero_dossier}
                             </p>
                           )}
                           {result.signalement && (
@@ -585,7 +587,7 @@ export const IAResultsPage: React.FC = () => {
 
                       <button className={styles['ia-results__item-view-btn']}>
                         <Eye size={18} />
-                        Voir détails
+                        {t('moderator.iaViewDetails')}
                       </button>
                     </div>
                   );
@@ -593,7 +595,7 @@ export const IAResultsPage: React.FC = () => {
               ) : (
                 <div className={styles['ia-results__empty']}>
                   <Brain size={48} />
-                  <p>Aucun résultat d'analyse IA trouvé</p>
+                  <p>{t('moderator.iaNoResults')}</p>
                 </div>
               )}
             </div>
@@ -606,14 +608,14 @@ export const IAResultsPage: React.FC = () => {
                   onClick={() => setCurrentPage(prev => prev - 1)}
                 >
                   <ChevronLeft size={20} />
-                  Précédent
+                  {t('moderator.iaPagePrev')}
                 </button>
-                <span>Page {currentPage} / {totalPages}</span>
+                <span>{t('moderator.iaPageOf').replace('{{current}}', String(currentPage)).replace('{{total}}', String(totalPages))}</span>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
                 >
-                  Suivant
+                  {t('moderator.iaPageNext')}
                   <ChevronRight size={20} />
                 </button>
               </div>
@@ -661,54 +663,54 @@ export const IAResultsPage: React.FC = () => {
                     <span className={styles['ia-results__modal-score-value']}>
                       {Math.round(selectedResult.score_confiance)}%
                     </span>
-                    <span className={styles['ia-results__modal-score-label']}>Score de confiance</span>
+                    <span className={styles['ia-results__modal-score-label']}>{t('moderator.iaScoreConfiance')}</span>
                   </div>
                   <p className={styles['ia-results__modal-threshold']}>
-                    Seuil de décision: {selectedResult.seuil_decision}%
+                    {t('moderator.iaDecisionThreshold').replace('{{value}}', String(selectedResult.seuil_decision))}
                   </p>
                 </div>
 
                 {/* Informations */}
                 <div className={styles['ia-results__modal-info']}>
-                  <h4>Informations</h4>
+                  <h4>{t('moderator.iaInfo')}</h4>
                   <div className={styles['ia-results__modal-grid']}>
                     <div className={styles['ia-results__modal-row']}>
-                      <label>Date d'analyse</label>
+                      <label>{t('moderator.iaDateAnalyse')}</label>
                       <span>{new Date(selectedResult.date_analyse).toLocaleString('fr-FR')}</span>
                     </div>
                     {selectedResult.modele_ia_utilise && (
                       <div className={styles['ia-results__modal-row']}>
-                        <label>Modèle IA</label>
+                        <label>{t('moderator.iaModel')}</label>
                         <span>{selectedResult.modele_ia_utilise}</span>
                       </div>
                     )}
                     {selectedResult.version_algorithme && (
                       <div className={styles['ia-results__modal-row']}>
-                        <label>Version</label>
+                        <label>{t('moderator.iaVersion')}</label>
                         <span>{selectedResult.version_algorithme}</span>
                       </div>
                     )}
                     {selectedResult.temps_traitement_ms && (
                       <div className={styles['ia-results__modal-row']}>
-                        <label>Temps de traitement</label>
+                        <label>{t('moderator.iaProcessingTime')}</label>
                         <span>{selectedResult.temps_traitement_ms}ms</span>
                       </div>
                     )}
                     {selectedResult.dossier && (
                       <div className={styles['ia-results__modal-row']}>
-                        <label>Dossier</label>
+                        <label>{t('moderator.iaDossierLabel')}</label>
                         <span>{selectedResult.dossier.numero_dossier}</span>
                       </div>
                     )}
                     {selectedResult.signalement && (
                       <div className={styles['ia-results__modal-row']}>
-                        <label>Signalement</label>
+                        <label>{t('moderator.iaSignalementLabel')}</label>
                         <span>{selectedResult.signalement.lieu_observation}</span>
                       </div>
                     )}
                     {selectedResult.action_generee && (
                       <div className={styles['ia-results__modal-row']}>
-                        <label>Action générée</label>
+                        <label>{t('moderator.iaActionGeneree')}</label>
                         <span>{selectedResult.action_generee}</span>
                       </div>
                     )}
@@ -722,26 +724,26 @@ export const IAResultsPage: React.FC = () => {
                     <div className={styles['ia-results__modal-comparison-header']}>
                       <h4>
                         <Columns size={18} />
-                        Comparaison visuelle
+                        {t('moderator.iaVisualComparison')}
                       </h4>
                       <button
                         className={styles['ia-results__comparison-toggle']}
                         onClick={() => setShowComparison(!showComparison)}
                       >
-                        {showComparison ? 'Masquer' : 'Afficher la comparaison'}
+                        {showComparison ? t('common.hide') : t('moderator.iaShowComparison')}
                       </button>
                     </div>
                     
                     {showComparison && (
                       <div className={styles['ia-results__comparison-grid']}>
                         <div className={styles['ia-results__comparison-item']}>
-                          <span className={styles['ia-results__comparison-label']}>Photo analysée</span>
+                          <span className={styles['ia-results__comparison-label']}>{t('moderator.iaPhotoAnalyzed')}</span>
                           {comparisonPhotos.left ? (
-                            <img src={comparisonPhotos.left} alt="Sujet analysé" />
+                            <img src={comparisonPhotos.left} alt={t('moderator.iaPhotoAnalyzed')} />
                           ) : (
                             <div className={styles['ia-results__comparison-placeholder']}>
                               <Image size={32} />
-                              <span>Photo non disponible</span>
+                              <span>{t('moderator.iaPhotoNotAvailable')}</span>
                             </div>
                           )}
                         </div>
@@ -749,16 +751,16 @@ export const IAResultsPage: React.FC = () => {
                           <span className={styles['ia-results__comparison-score']}>
                             {Math.round(selectedResult.score_confiance)}%
                           </span>
-                          <span>similarité</span>
+                          <span>{t('moderator.iaSimilarity')}</span>
                         </div>
                         <div className={styles['ia-results__comparison-item']}>
-                          <span className={styles['ia-results__comparison-label']}>Photo de référence</span>
+                          <span className={styles['ia-results__comparison-label']}>{t('moderator.iaPhotoRef')}</span>
                           {comparisonPhotos.right ? (
-                            <img src={comparisonPhotos.right} alt="Sujet de référence" />
+                            <img src={comparisonPhotos.right} alt={t('moderator.iaPhotoRef')} />
                           ) : (
                             <div className={styles['ia-results__comparison-placeholder']}>
                               <Image size={32} />
-                              <span>Référence non disponible</span>
+                              <span>{t('moderator.iaRefNotAvailable')}</span>
                             </div>
                           )}
                         </div>
@@ -772,15 +774,15 @@ export const IAResultsPage: React.FC = () => {
                  selectedResult.type_analyse !== 'comparaison_photos' && 
                  selectedResult.type_analyse !== 'reconnaissance_faciale' && (
                   <div className={styles['ia-results__modal-photo']}>
-                    <h4>Photo analysée</h4>
-                    <img src={selectedResult.photo.url_cloudinary} alt="Sujet analysé" />
+                    <h4>{t('moderator.iaPhotoAnalyzed')}</h4>
+                    <img src={selectedResult.photo.url_cloudinary} alt={t('moderator.iaPhotoAnalyzed')} />
                   </div>
                 )}
 
                 {/* Facteurs clés */}
                 {selectedResult.facteurs_cles && (
                   <div className={styles['ia-results__modal-factors']}>
-                    <h4>Facteurs clés</h4>
+                    <h4>{t('moderator.iaKeyFactors')}</h4>
                     <pre>{JSON.stringify(selectedResult.facteurs_cles, null, 2)}</pre>
                   </div>
                 )}
@@ -788,7 +790,7 @@ export const IAResultsPage: React.FC = () => {
                 {/* Correspondances */}
                 {selectedResult.correspondances_trouvees && (
                   <div className={styles['ia-results__modal-matches']}>
-                    <h4>Correspondances trouvées</h4>
+                    <h4>{t('moderator.iaMatchesFound')}</h4>
                     <pre>{JSON.stringify(selectedResult.correspondances_trouvees, null, 2)}</pre>
                   </div>
                 )}
@@ -796,11 +798,11 @@ export const IAResultsPage: React.FC = () => {
                 {/* Commentaire de validation */}
                 {selectedResult.commentaire_validation && (
                   <div className={styles['ia-results__modal-comment']}>
-                    <h4>Commentaire de validation</h4>
+                    <h4>{t('moderator.iaValidationComment')}</h4>
                     <p>{selectedResult.commentaire_validation}</p>
                     {selectedResult.date_validation && (
                       <small>
-                        Validé le {new Date(selectedResult.date_validation).toLocaleString('fr-FR')}
+                        {t('moderator.iaValidatedOn')} {new Date(selectedResult.date_validation).toLocaleString('fr-FR')}
                       </small>
                     )}
                   </div>
@@ -812,7 +814,7 @@ export const IAResultsPage: React.FC = () => {
                     <div className={styles['ia-results__modal-fp-header']}>
                       <h4>
                         <Flag size={18} />
-                        Signaler un faux positif évident
+                        {t('moderator.iaReportFalsePositive')}
                       </h4>
                       {!showFalsePositiveForm && (
                         <button
@@ -820,7 +822,7 @@ export const IAResultsPage: React.FC = () => {
                           onClick={() => setShowFalsePositiveForm(true)}
                         >
                           <XCircle size={16} />
-                          Signaler
+                          {t('moderator.iaReportButton')}
                         </button>
                       )}
                     </div>
@@ -828,14 +830,12 @@ export const IAResultsPage: React.FC = () => {
                     {showFalsePositiveForm && (
                       <div className={styles['ia-results__fp-form']}>
                         <p className={styles['ia-results__fp-info']}>
-                          Si ce résultat est manifestement erroné (visages clairement différents, 
-                          mauvaise correspondance évidente...), vous pouvez le signaler pour 
-                          examen prioritaire par un officier.
+                          {t('moderator.iaFalsePositiveInfo')}
                         </p>
                         <textarea
                           value={falsePositiveReason}
                           onChange={(e) => setFalsePositiveReason(e.target.value)}
-                          placeholder="Décrivez pourquoi ce résultat est un faux positif évident..."
+                          placeholder={t('moderator.iaFalsePositivePlaceholder')}
                           rows={3}
                           className={styles['ia-results__fp-textarea']}
                         />
@@ -847,14 +847,14 @@ export const IAResultsPage: React.FC = () => {
                               setFalsePositiveReason('');
                             }}
                           >
-                            Annuler
+                            {t('common.cancel')}
                           </button>
                           <button
                             className={styles['ia-results__fp-submit']}
                             onClick={reportFalsePositive}
                             disabled={isSubmittingFlag || !falsePositiveReason.trim()}
                           >
-                            {isSubmittingFlag ? 'Envoi...' : 'Envoyer le signalement'}
+                            {isSubmittingFlag ? t('moderator.iaSubmittingReport') : t('moderator.iaSendReport')}
                           </button>
                         </div>
                       </div>
@@ -866,7 +866,7 @@ export const IAResultsPage: React.FC = () => {
                 {selectedResult.faux_positif && (
                   <div className={styles['ia-results__modal-flagged']}>
                     <Flag size={18} />
-                    <span>Ce résultat a été signalé comme faux positif potentiel</span>
+                    <span>{t('moderator.iaFlaggedAsFalsePositive')}</span>
                   </div>
                 )}
 
@@ -882,8 +882,7 @@ export const IAResultsPage: React.FC = () => {
                 <div className={styles['ia-results__modal-note']}>
                   <AlertTriangle size={18} />
                   <p>
-                    En tant que modérateur, vous pouvez consulter ces résultats et signaler les 
-                    faux positifs évidents. La validation finale est réservée aux autorités (niveau 4+).
+                    {t('moderator.iaModeratorNote')}
                   </p>
                 </div>
               </div>

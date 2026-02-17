@@ -6,13 +6,14 @@
  */
 
 import React, { useState } from 'react';
+import { useI18n } from '../../hooks';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { ModerationLayout } from './ModerationLayout';
 import { BarChart3, Clock, CheckCircle, XCircle, Archive, TrendingUp } from 'lucide-react';
 import styles from './ReportsPage.module.css';
 
 export const ReportsPage: React.FC = () => {
-  // Note: La vérification du rôle est gérée par RoleBasedRoute dans ModeratorRoutes.tsx
+  const { t } = useI18n();
   const { signalements, isLoading } = useSignalements();
   const [reportPeriod, setReportPeriod] = useState<'7days' | '30days' | 'all'>('7days');
 
@@ -87,7 +88,7 @@ export const ReportsPage: React.FC = () => {
   // Grouper par lieu
   const locationStats = filteredSignalements.reduce(
     (acc, sig) => {
-      const key: string = sig.lieu_observation || sig.ville_observation || 'Non spécifié';
+      const key: string = sig.lieu_observation || sig.ville_observation || t('moderator.unspecified');
       if (!acc[key]) {
         acc[key] = 0;
       }
@@ -115,41 +116,41 @@ export const ReportsPage: React.FC = () => {
   );
 
   const summaryCards = [
-    { icon: BarChart3, value: reportStats.total, label: 'Total Signalements' },
-    { icon: Clock, value: reportStats.nouveau, label: 'Nouveaux' },
-    { icon: CheckCircle, value: reportStats.valide, label: 'Validés' },
-    { icon: XCircle, value: reportStats.rejete, label: 'Rejetés' },
-    { icon: TrendingUp, value: `${reportStats.avgScore}%`, label: 'Score Moyen' },
-    { icon: Archive, value: reportStats.en_cours, label: 'En Cours' },
+    { icon: BarChart3, value: reportStats.total, labelKey: 'moderator.totalReports' as const },
+    { icon: Clock, value: reportStats.nouveau, labelKey: 'moderator.new' as const },
+    { icon: CheckCircle, value: reportStats.valide, labelKey: 'moderator.validated' as const },
+    { icon: XCircle, value: reportStats.rejete, labelKey: 'moderator.rejectedLabel' as const },
+    { icon: TrendingUp, value: `${reportStats.avgScore}%`, labelKey: 'moderator.averageScoreLabel' as const },
+    { icon: Archive, value: reportStats.en_cours, labelKey: 'moderator.inProgress' as const },
   ];
 
   return (
-    <ModerationLayout title="Rapports de Modération" activeNav="reports">
+    <ModerationLayout title={t('moderator.reportsPageTitle')} activeNav="reports">
       <div className={styles.reports}>
         {/* Header */}
         <div className={styles['reports__header']}>
-          <h1 className={styles['reports__header-title']}>Rapports de Modération</h1>
+          <h1 className={styles['reports__header-title']}>{t('moderator.reportsPageTitle')}</h1>
           <p className={styles['reports__header-subtitle']}>
-            Statistiques et analyses des signalements modérés.
+            {t('moderator.reportsPageSubtitle')}
           </p>
         </div>
 
         {isLoading ? (
-          <div className={styles['reports__loading']}>Chargement des rapports...</div>
+          <div className={styles['reports__loading']}>{t('moderator.loadingReports')}</div>
         ) : (
           <>
             {/* Period Filter */}
             <div className={styles['reports__filter-section']}>
               <div className={styles['reports__filter-group']}>
-                <label className={styles['reports__filter-label']}>Période</label>
+                <label className={styles['reports__filter-label']}>{t('moderator.period')}</label>
                 <select
                   value={reportPeriod}
                   onChange={(e) => setReportPeriod(e.target.value as any)}
                   className={styles['reports__filter-select']}
                 >
-                  <option value="7days">Derniers 7 jours</option>
-                  <option value="30days">Dernier mois</option>
-                  <option value="all">Tous les temps</option>
+                  <option value="7days">{t('moderator.last7Days')}</option>
+                  <option value="30days">{t('moderator.lastMonth')}</option>
+                  <option value="all">{t('moderator.allTimeReports')}</option>
                 </select>
               </div>
             </div>
@@ -165,7 +166,7 @@ export const ReportsPage: React.FC = () => {
                     </div>
                     <div className={styles['reports__card-content']}>
                       <div className={styles['reports__card-value']}>{card.value}</div>
-                      <div className={styles['reports__card-label']}>{card.label}</div>
+                      <div className={styles['reports__card-label']}>{t(card.labelKey)}</div>
                     </div>
                   </div>
                 );
@@ -174,10 +175,10 @@ export const ReportsPage: React.FC = () => {
 
             {/* Status Distribution */}
             <div className={styles['reports__section']}>
-              <h2 className={styles['reports__section-title']}>Distribution des Statuts</h2>
+              <h2 className={styles['reports__section-title']}>{t('moderator.statusDistribution')}</h2>
               <div className={styles['reports__status-table']}>
                 <div className={styles['reports__status-row']}>
-                  <span className={styles['reports__status-label']}>Nouveaux</span>
+                  <span className={styles['reports__status-label']}>{t('moderator.new')}</span>
                   <div className={styles['reports__status-bar']}>
                     <div
                       className={styles['reports__status-fill']}
@@ -193,7 +194,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
 
                 <div className={styles['reports__status-row']}>
-                  <span className={styles['reports__status-label']}>En Cours</span>
+                  <span className={styles['reports__status-label']}>{t('moderator.inProgress')}</span>
                   <div className={styles['reports__status-bar']}>
                     <div
                       className={styles['reports__status-fill']}
@@ -209,7 +210,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
 
                 <div className={styles['reports__status-row']}>
-                  <span className={styles['reports__status-label']}>Validés</span>
+                  <span className={styles['reports__status-label']}>{t('moderator.validated')}</span>
                   <div className={styles['reports__status-bar']}>
                     <div
                       className={styles['reports__status-fill']}
@@ -225,7 +226,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
 
                 <div className={styles['reports__status-row']}>
-                  <span className={styles['reports__status-label']}>Rejetés</span>
+                  <span className={styles['reports__status-label']}>{t('moderator.rejectedLabel')}</span>
                   <div className={styles['reports__status-bar']}>
                     <div
                       className={styles['reports__status-fill']}
@@ -241,7 +242,7 @@ export const ReportsPage: React.FC = () => {
                 </div>
 
                 <div className={styles['reports__status-row']}>
-                  <span className={styles['reports__status-label']}>Fermés</span>
+                  <span className={styles['reports__status-label']}>{t('moderator.closed')}</span>
                   <div className={styles['reports__status-bar']}>
                     <div
                       className={styles['reports__status-fill']}
@@ -258,25 +259,21 @@ export const ReportsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Top Locations */}
             <div className={styles['reports__section']}>
-              <h2 className={styles['reports__section-title']}>Top 10 Lieux de Signalement</h2>
+              <h2 className={styles['reports__section-title']}>{t('moderator.top10Locations')}</h2>
               <div className={styles['reports__location-list']}>
                 {topLocations.map(([location, count], index) => (
                   <div key={location} className={styles['reports__location-item']}>
                     <span className={styles['reports__rank']}>#{index + 1}</span>
                     <span className={styles['reports__location']}>{location}</span>
-                    <span className={styles['reports__count']}>{count} signalements</span>
+                    <span className={styles['reports__count']}>{t('moderator.reportsCount').replace('{{count}}', String(count))}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Recent Activity */}
             <div className={styles['reports__section']}>
-              <h2 className={styles['reports__section-title']}>
-                Activité par Date (Derniers 10 jours)
-              </h2>
+              <h2 className={styles['reports__section-title']}>{t('moderator.activityByDate')}</h2>
               <div className={styles['reports__activity-list']}>
                 {Object.entries(dateStats)
                   .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
@@ -290,7 +287,7 @@ export const ReportsPage: React.FC = () => {
                           style={{ width: `${Math.min(count * 10, 100)}%` }}
                         />
                       </div>
-                      <span className={styles['reports__activity-count']}>{count} signalements</span>
+                      <span className={styles['reports__activity-count']}>{t('moderator.reportsCount').replace('{{count}}', String(count))}</span>
                     </div>
                   ))}
               </div>

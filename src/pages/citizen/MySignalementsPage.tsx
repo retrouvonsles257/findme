@@ -13,6 +13,7 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useSignalements } from '../../features/signalements/hooks';
 import { CitizenLayout } from './CitizenLayout';
+import { supabase } from '../../config';
 import { Search, Plus, Eye, Trash2, Loader2, FileText, AlertCircle, MapPin, Calendar } from 'lucide-react';
 import styles from './MySignalementsPage.module.css';
 
@@ -26,6 +27,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [dossierPhotos, setDossierPhotos] = useState<Record<string, string>>({});
 
   // Hook pour récupérer les signalements
   const { 
@@ -54,6 +56,29 @@ export const CitizenMySignalementsPage: React.FC = () => {
   const userSignalements = signalements.filter(
     (s: any) => s.utilisateur_id === userId || s.id_utilisateur === userId
   );
+
+  const loadDossierPhotos = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    try {
+      const { data } = await (supabase as any)
+        .from('dossier_disparition')
+        .select('id, personne:id_personne(photo_principale)')
+        .in('id', ids);
+      const map: Record<string, string> = {};
+      (data || []).forEach((d: any) => {
+        const photo = d.personne?.photo_principale;
+        if (d.id && photo) map[d.id] = photo;
+      });
+      setDossierPhotos((prev) => ({ ...prev, ...map }));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const ids = [...new Set(userSignalements.map((s: any) => s.id_dossier).filter(Boolean))];
+    loadDossierPhotos(ids);
+  }, [userSignalements, loadDossierPhotos]);
 
   // Mapper les statuts de la DB vers les statuts d'affichage
   const mapStatus = (etat: string): 'approved' | 'pending' | 'rejected' => {
@@ -191,85 +216,72 @@ export const CitizenMySignalementsPage: React.FC = () => {
             <p>{t('common.loading')}</p>
           </div>
         ) : (
-          /* Liste des signalements */
+          /* Liste des signalements en cards avec photo */
           <div className={styles['signalements__list-container']}>
             {searchedSignalements.length > 0 ? (
-              <div className={styles['signalements__list']}>
+              <div className={styles['signalements__grid']}>
                 {searchedSignalements.map((sig: any) => {
                   const status = mapStatus(sig.etat || sig.statut_validation);
+                  const photo = sig.id_dossier ? dossierPhotos[sig.id_dossier] : null;
                   return (
                     <div key={sig.id} className={styles['signalements__card']}>
-                      <div className={styles['signalements__card-header']}>
-                        <div className={styles['signalements__card-title-wrapper']}>
-                          <h3 className={styles['signalements__card-title']}>
-                            {sig.numero_signalement || `#${sig.id.substring(0, 8)}`}
-                          </h3>
-                        </div>
-                        <span
-                          className={`${styles['signalements__status']} ${
-                            styles[`signalements__status--${status}`]
-                          }`}
-                        >
+                      <div className={styles['signalements__card-media']}>
+                        {photo ? (
+                          <img src={photo} alt="" />
+                        ) : (
+                          <div className={styles['signalements__card-media-placeholder']}>
+                            <FileText size={40} />
+                          </div>
+                        )}
+                        <span className={`${styles['signalements__card-status']} ${styles[`signalements__status--${status}`]}`}>
                           {getStatusText(sig.etat || sig.statut_validation)}
                         </span>
                       </div>
-                      
-                      <div className={styles['signalements__card-meta']}>
-                        <span className={styles['signalements__card-date']}>
-                          <Calendar size={14} />
-                          {formatDate(sig.date_observation || sig.date_observation || sig.created_at)}
-                        </span>
-                        {(sig.lieu_observation || sig.lieu_observation) && (
-                          <span className={styles['signalements__card-location']}>
-                            <MapPin size={14} />
-                            {sig.lieu_observation || sig.lieu_observation}
+                      <div className={styles['signalements__card-body']}>
+                        <h3 className={styles['signalements__card-title']}>
+                          {sig.numero_signalement || `#${sig.id.substring(0, 8)}`}
+                        </h3>
+                        <div className={styles['signalements__card-meta']}>
+                          <span className={styles['signalements__card-date']}>
+                            <Calendar size={14} />
+                            {formatDate(sig.date_observation || sig.created_at)}
                           </span>
-                        )}
-                      </div>
-                      
-                      <p className={styles['signalements__card-description']}>
-                        {sig.description ? 
-                          (sig.description.length > 150 ? 
-                            `${sig.description.substring(0, 150)}...` : 
-                            sig.description
-                          ) : t('citizen.noDescription')
-                        }
-                      </p>
-                      
-                      <div className={styles['signalements__card-actions']}>
-                        <button 
-                          className={styles['signalements__view-button']}
-                          onClick={() => handleView(sig.id)}
-                        >
-                          <Eye size={16} />
-                          {t('citizen.view')}
-                        </button>
-                        
-                        {deleteConfirm === sig.id ? (
-                          <div className={styles['signalements__delete-confirm']}>
-                            <span>{t('citizen.confirmDelete')}</span>
-                            <button 
-                              className={styles['signalements__confirm-yes']}
-                              onClick={() => handleDelete(sig.id)}
-                            >
-                              {t('common.yes')}
-                            </button>
-                            <button 
-                              className={styles['signalements__confirm-no']}
-                              onClick={() => setDeleteConfirm(null)}
-                            >
-                              {t('common.no')}
-                            </button>
-                          </div>
-                        ) : (
-                          <button 
-                            className={styles['signalements__delete-button']}
-                            onClick={() => setDeleteConfirm(sig.id)}
-                            title={t('citizen.delete')}
+                          {(sig.lieu_observation) && (
+                            <span className={styles['signalements__card-location']}>
+                              <MapPin size={14} />
+                              {sig.lieu_observation}
+                            </span>
+                          )}
+                        </div>
+                        <p className={styles['signalements__card-description']}>
+                          {sig.description
+                            ? (sig.description.length > 120 ? `${sig.description.substring(0, 120)}...` : sig.description)
+                            : t('citizen.noDescription')}
+                        </p>
+                        <div className={styles['signalements__card-actions']}>
+                          <button
+                            className={styles['signalements__view-button']}
+                            onClick={(e) => { e.stopPropagation(); handleView(sig.id); }}
                           >
-                            <Trash2 size={16} />
+                            <Eye size={16} />
+                            {t('citizen.view')}
                           </button>
-                        )}
+                          {deleteConfirm === sig.id ? (
+                            <div className={styles['signalements__delete-confirm']}>
+                              <span>{t('citizen.confirmDelete')}</span>
+                              <button className={styles['signalements__confirm-yes']} onClick={() => handleDelete(sig.id)}>{t('common.yes')}</button>
+                              <button className={styles['signalements__confirm-no']} onClick={() => setDeleteConfirm(null)}>{t('common.no')}</button>
+                            </div>
+                          ) : (
+                            <button
+                              className={styles['signalements__delete-button']}
+                              onClick={(e) => { e.stopPropagation(); setDeleteConfirm(sig.id); }}
+                              title={t('citizen.delete')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
