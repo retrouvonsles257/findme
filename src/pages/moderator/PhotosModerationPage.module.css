@@ -323,15 +323,17 @@
   margin: 0;
 }
 
-/* Actions */
+/* Actions (grille : en colonne sur petit écran) */
 .photos-moderation__actions {
   display: flex;
   gap: 0.5rem;
   padding: 0 1rem 1rem;
+  flex-wrap: wrap;
 }
 
 .photos-moderation__action-btn {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -454,6 +456,7 @@
   width: 100%;
   max-width: 1000px;
   max-height: 90vh;
+  max-height: min(90vh, 90dvh);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -630,11 +633,13 @@
   display: flex;
   gap: 0.75rem;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
 .photos-moderation__modal-actions .photos-moderation__action-btn {
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
+  min-width: 0;
 }
 
 /* Already Moderated */
@@ -686,16 +691,75 @@
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 
+  /* Cartes : boutons Approuver/Reject en colonne sur petit écran */
+  .photos-moderation__actions {
+    flex-direction: column;
+  }
+
+  .photos-moderation__action-btn {
+    flex: none;
+    width: 100%;
+  }
+
+  .photos-moderation__modal {
+    padding: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .photos-moderation__modal-content {
+    max-height: 95vh;
+    max-height: min(95vh, 95dvh);
+    border-radius: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .photos-moderation__modal-grid {
     grid-template-columns: 1fr;
   }
 
   .photos-moderation__modal-image-section {
-    min-height: 250px;
+    min-height: 220px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .photos-moderation__modal-info-section {
     padding: 1rem;
+    max-height: none;
+  }
+
+  /* Modal : boutons Approuver/Reject en colonne */
+  .photos-moderation__modal-actions {
+    flex-direction: column;
+  }
+
+  .photos-moderation__modal-actions .photos-moderation__action-btn {
+    width: 100%;
+  }
+
+  /* Blur editor : toolbar en colonne si besoin, canvas adapté */
+  .photos-moderation__blur-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .photos-moderation__blur-toolbar span {
+    justify-content: center;
+  }
+
+  .photos-moderation__blur-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .photos-moderation__blur-canvas {
+    min-height: 220px;
+  }
+
+  .photos-moderation__blur-canvas img {
+    max-height: 45vh;
   }
 }
 
@@ -714,6 +778,35 @@
 
   .photos-moderation__grid {
     grid-template-columns: 1fr;
+  }
+
+  .photos-moderation__modal-content {
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .photos-moderation__close-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 36px;
+    height: 36px;
+  }
+
+  .photos-moderation__blur-canvas {
+    min-height: 180px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .photos-moderation__blur-canvas img {
+    max-height: 40vh;
+  }
+
+  .photos-moderation__blur-editor {
+    min-width: 0;
   }
 }
 

@@ -52,6 +52,11 @@
   flex-shrink: 0;
 }
 
+.dashboard__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 /* Stats Grid Namespace */
 .dashboard__stats-grid {
   display: grid;

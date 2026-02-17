@@ -10,6 +10,11 @@
 }
 
 /* Loading */
+.dossierDetail__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .dossierDetail__loading {
   display: flex;
   flex-direction: column;

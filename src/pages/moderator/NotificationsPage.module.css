@@ -146,6 +146,11 @@
   overflow: hidden;
 }
 
+.skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .loading,
 .empty {
   display: flex;

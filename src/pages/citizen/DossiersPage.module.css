@@ -64,6 +64,11 @@
   background: transparent;
 }
 
+.skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .loading,
 .empty {
   padding: 2rem;

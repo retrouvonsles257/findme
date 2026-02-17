@@ -29,6 +29,7 @@ import {
   CheckCircle,
   AlertTriangle,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from '../authority/ProfilePage.module.css';
 import modStyles from './ProfilePage.module.css';
 
@@ -216,9 +217,8 @@ export const ModeratorProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <ModerationLayout title={t('common.profile')} activeNav="profile">
-        <div className={styles.loadingContainer}>
-          <Loader2 size={32} className={styles.spinner} />
-          <p>{t('authority.profilePage.loading')}</p>
+        <div className={styles.detailSkeletonWrap}>
+          <AdminDetailSkeleton blockCount={2} linesPerBlock={5} />
         </div>
       </ModerationLayout>
     );

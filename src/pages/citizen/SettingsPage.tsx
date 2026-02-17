@@ -30,6 +30,7 @@ import {
   Gauge,
   Activity,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './SettingsPage.module.css';
 
 interface InterestZone {
@@ -252,9 +253,8 @@ export const CitizenSettingsPage: React.FC = () => {
     return (
       <CitizenLayout activeNav="settings">
         <div className={styles.settings}>
-          <div className={styles['settings__loading']}>
-            <Loader2 size={32} className={styles['settings__spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['settings__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         </div>
       </CitizenLayout>
@@ -517,9 +517,9 @@ export const CitizenSettingsPage: React.FC = () => {
               <div key={zone.id} className={styles['settings__option']}>
                 <div className={styles['settings__option-info']}>
                   <MapPin size={18} />
-                  <div style={{ width: '100%' }}>
+                  <div className={styles['settings__zone-inner']}>
                     <h4>{zone.label || t('citizen.zoneLabelPlaceholder')}</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <div className={styles['settings__zone-fields']}>
                       <input
                         type="text"
                         placeholder={t('citizen.zoneLabel')}
@@ -542,7 +542,7 @@ export const CitizenSettingsPage: React.FC = () => {
                         className={styles['settings__select']}
                       />
                     </div>
-                    <div className={styles['settings__slider-container']} style={{ marginTop: '0.75rem' }}>
+                    <div className={styles['settings__slider-container'] + ' ' + styles['settings__slider-container--zone']}>
                       <input
                         type="range"
                         min="1"

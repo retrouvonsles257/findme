@@ -29,6 +29,7 @@ import {
   Phone,
   User
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './EditDossierPage.module.css';
 
 interface EditDossierFormData {
@@ -228,9 +229,8 @@ export const OperatorEditDossierPage: React.FC = () => {
         {/* Contenu principal */}
         <div className={styles.operatorEditDossier__content}>
           {detailLoading ? (
-            <div className={styles.operatorEditDossier__loadingState}>
-              <Loader2 className={styles.operatorEditDossier__spinner} />
-              <p>Chargement du dossier...</p>
+            <div className={styles.operatorEditDossier__skeletonWrap}>
+              <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
             </div>
           ) : accessDenied ? (
             <div className={styles.operatorEditDossier__notFound}>

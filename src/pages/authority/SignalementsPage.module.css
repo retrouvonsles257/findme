@@ -10,6 +10,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
+  min-width: 0;
   padding: 1rem 1.5rem;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -33,6 +34,7 @@
 
 .titleSection {
   flex: 1;
+  min-width: 0;
 }
 
 .pageTitle {
@@ -580,15 +582,18 @@
 @media (max-width: 768px) {
   .authoritySignalements {
     gap: 1rem;
+    padding: 0.75rem 1rem;
   }
   
   .pageHeader {
     padding: 1rem;
+    min-width: 0;
   }
   
   .headerContent {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
   
   .refreshButton {
@@ -598,28 +603,51 @@
   
   .statsBar {
     grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
   }
   
   .statCard {
     padding: 0.75rem;
+    min-width: 0;
   }
   
   .signalementsGrid {
     grid-template-columns: 1fr;
+    min-width: 0;
   }
 }
 
 @media (max-width: 480px) {
+  .authoritySignalements {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .pageHeader {
+    padding: 0.75rem;
+  }
+  
+  .pageTitle {
+    font-size: 1.25rem;
+  }
+  
   .statsBar {
     grid-template-columns: 1fr;
+    padding: 0.75rem;
   }
   
   .cardActions {
     flex-direction: column;
+    gap: 0.5rem;
   }
   
   .actionBtn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .authoritySignalements {
+    padding: 0.5rem;
   }
 }

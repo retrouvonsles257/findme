@@ -15,7 +15,8 @@ import { NomRole } from '../../@types/enums.types';
 import { CitizenLayout } from './CitizenLayout';
 import { useSignalements } from '../../features/signalements/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
-import { Plus, Eye, Bell, BarChart3, CheckCircle, Clock, AlertTriangle, Loader2, MapPin, BadgeCheck } from 'lucide-react';
+import { Plus, Eye, Bell, BarChart3, CheckCircle, Clock, AlertTriangle, MapPin, BadgeCheck } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './DashboardPage.module.css';
 
 export const CitizenDashboardPage: React.FC = () => {
@@ -193,60 +194,60 @@ export const CitizenDashboardPage: React.FC = () => {
           )}
         </section>
 
-        {/* Stats Cards */}
-        <div className={styles['dashboard__stats-grid']}>
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className={styles['dashboard__stat-card']}>
-                <div className={styles['dashboard__stat-header']}>
-                  <div className={styles['dashboard__stat-icon']}>
-                    {isLoading ? <Loader2 size={24} className={styles['dashboard__loading-spin']} /> : <Icon size={24} />}
+        {/* Stats + Actions + Activity : skeleton pendant le chargement */}
+        {isLoading ? (
+          <div className={styles['dashboard__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={2} linesPerBlock={5} />
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className={styles['dashboard__stats-grid']}>
+              {stats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className={styles['dashboard__stat-card']}>
+                    <div className={styles['dashboard__stat-header']}>
+                      <div className={styles['dashboard__stat-icon']}>
+                        <Icon size={24} />
+                      </div>
+                      <div className={styles['dashboard__stat-content']}>
+                        <h3 className={styles['dashboard__stat-value']}>{stat.value}</h3>
+                        <p className={styles['dashboard__stat-label']}>{stat.label}</p>
+                      </div>
+                    </div>
+                    <p className={styles['dashboard__stat-change']}>
+                      {stat.change} {stat.subtext}
+                    </p>
                   </div>
-                  <div className={styles['dashboard__stat-content']}>
-                    <h3 className={styles['dashboard__stat-value']}>
-                      {isLoading ? '...' : stat.value}
-                    </h3>
-                    <p className={styles['dashboard__stat-label']}>{stat.label}</p>
-                  </div>
-                </div>
-                <p className={styles['dashboard__stat-change']}>
-                  {stat.change} {stat.subtext}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Quick Actions */}
-        <div className={styles['dashboard__actions-grid']}>
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.title}
-                className={`${styles['dashboard__action-card']} ${
-                  action.primary ? styles['dashboard__action-card--primary'] : ''
-                }`}
-                onClick={action.onClick}
-              >
-                <Icon size={32} className={styles['dashboard__action-icon']} />
-                <p className={styles['dashboard__action-label']}>{action.title}</p>
-                <p className={styles['dashboard__action-description']}>{action.description}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Recent Activity */}
-        <section className={styles['dashboard__activity-section']}>
-          <h2 className={styles['dashboard__activity-title']}>{t('citizen.recentActivity')}</h2>
-          {isLoading ? (
-            <div className={styles['dashboard__loading']}>
-              <Loader2 size={32} className={styles['dashboard__loading-spin']} />
-              <p>{t('common.loading')}</p>
+                );
+              })}
             </div>
-          ) : recentActivities.length > 0 ? (
+
+            {/* Quick Actions */}
+            <div className={styles['dashboard__actions-grid']}>
+              {quickActions.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.title}
+                    className={`${styles['dashboard__action-card']} ${
+                      action.primary ? styles['dashboard__action-card--primary'] : ''
+                    }`}
+                    onClick={action.onClick}
+                  >
+                    <Icon size={32} className={styles['dashboard__action-icon']} />
+                    <p className={styles['dashboard__action-label']}>{action.title}</p>
+                    <p className={styles['dashboard__action-description']}>{action.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Recent Activity */}
+            <section className={styles['dashboard__activity-section']}>
+              <h2 className={styles['dashboard__activity-title']}>{t('citizen.recentActivity')}</h2>
+              {recentActivities.length > 0 ? (
             <ul className={styles['dashboard__activity-list']}>
               {recentActivities.map((activity, idx) => (
                 <li key={idx} className={styles['dashboard__activity-item']}>
@@ -264,8 +265,10 @@ export const CitizenDashboardPage: React.FC = () => {
               <Bell size={48} className={styles['dashboard__empty-icon']} />
               <p>{t('citizen.noRecentActivity')}</p>
             </div>
-          )}
-        </section>
+              )}
+            </section>
+          </>
+        )}
 
         {/* Prevention / Sensibilisation */}
         <section className={styles['dashboard__activity-section']}>

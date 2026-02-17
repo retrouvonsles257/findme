@@ -182,8 +182,13 @@
 }
 
 /* ============================================ */
-/* LOADING */
+/* LOADING / SKELETON */
 /* ============================================ */
+
+.ia-results__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
 
 .ia-results__loading {
   display: flex;

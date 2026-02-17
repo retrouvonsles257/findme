@@ -15,7 +15,6 @@ import { OperatorLayout } from './OperatorLayout';
 import { 
   FolderPlus, 
   FolderOpen, 
-  Loader2,
   Clock,
   CheckCircle2,
   FileText,
@@ -24,6 +23,7 @@ import {
   AlertCircle,
   Image
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './DashboardPage.module.css';
 
 export const OperatorDashboardPage: React.FC = () => {
@@ -177,9 +177,8 @@ export const OperatorDashboardPage: React.FC = () => {
         <div className={styles['operator-dashboard__section']}>
         <h2 className={styles['operator-dashboard__section-title']}>{t('operator.recentDossiers')}</h2>
         {isLoading ? (
-          <div className={styles['operator-dashboard__loading-state']}>
-            <Loader2 className={styles['operator-dashboard__spinner']} />
-            <p className={styles['operator-dashboard__loading-text']}>{t('common.loading')}</p>
+          <div className={styles['operator-dashboard__skeletonWrap']}>
+            <AdminListSkeleton cardCount={5} showFilters={false} />
           </div>
         ) : recentDossiers.length > 0 ? (
           <div className={styles['operator-dashboard__dossiers-grid']}>

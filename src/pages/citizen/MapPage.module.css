@@ -285,7 +285,34 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Loading */
+/* Skeleton carte : plein container, effet “carte en chargement” */
+.mapPage__mapSkeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--skeleton-base, #e2e8f0);
+  border-radius: 0;
+}
+
+.mapPage__mapSkeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, #e2e8f0) 25%,
+    var(--skeleton-shine, #f1f5f9) 50%,
+    var(--skeleton-base, #e2e8f0) 75%
+  );
+  background-size: 200% 100%;
+  animation: mapPageShimmer 1.5s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+@keyframes mapPageShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .mapPage__loading {
   position: absolute;
   top: 50%;

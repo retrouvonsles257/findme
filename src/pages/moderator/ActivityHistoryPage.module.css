@@ -210,6 +210,11 @@
   border: 1px solid #e5e7eb;
 }
 
+.skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .loading,
 .empty {
   display: flex;

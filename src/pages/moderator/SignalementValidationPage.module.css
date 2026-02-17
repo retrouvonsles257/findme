@@ -205,6 +205,11 @@
 /* LOADING */
 /* ============================================ */
 
+.validation__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .validation__loading {
   display: flex;
   justify-content: center;

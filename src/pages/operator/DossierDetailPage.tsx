@@ -45,6 +45,7 @@ import {
   ChevronDown,
   Trash2
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './DossierDetailPage.module.css';
 import { supabase } from '../../config';
 import { MapTilerView } from '../../components/maps/MapTilerView';
@@ -352,9 +353,8 @@ export const OperatorDossierDetailPage: React.FC = () => {
   return (
     <OperatorLayout title={dossier?.numero_dossier || t('operator.dossierDetailTitle')}>
       {isLoading ? (
-        <div className={styles['operator-dossier-detail__loading-state']}>
-          <Loader2 className={styles['operator-dossier-detail__spinner']} />
-          <p className={styles['operator-dossier-detail__loading-text']}>{t('common.loading')}</p>
+        <div className={styles['operator-dossier-detail__skeletonWrap']}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
         </div>
       ) : dossier ? (
         <>

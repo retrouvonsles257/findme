@@ -19,6 +19,10 @@
   --operator-sidebar-collapsed-width: 72px;
   --operator-nav-padding-x: 0.75rem;
   --operator-nav-item-padding-x: 1rem;
+
+  /* Skeleton (AdminListSkeleton / AdminDetailSkeleton) */
+  --skeleton-base: #e2e8f0;
+  --skeleton-shine: #f1f5f9;
 }
 
 /* ========== LAYOUT ========== */

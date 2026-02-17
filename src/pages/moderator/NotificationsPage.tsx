@@ -28,6 +28,7 @@ import {
   Brain,
   RefreshCw,
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './NotificationsPage.module.css';
 
 // Helper pour Supabase
@@ -395,9 +396,8 @@ export const NotificationsPage: React.FC = () => {
 
         <div className={styles.notificationsList}>
           {loading ? (
-            <div className={styles.loading}>
-              <RefreshCw className={styles.spinner} size={32} />
-              <p>{t('moderator.notifications.loading')}</p>
+            <div className={styles.skeletonWrap}>
+              <AdminListSkeleton cardCount={6} showFilters={false} />
             </div>
           ) : filteredNotifications.length === 0 ? (
             <div className={styles.empty}>

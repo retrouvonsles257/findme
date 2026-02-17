@@ -25,6 +25,7 @@ import {
   UserCheck,
   History,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './DashboardPage.module.css';
 
 // Helper pour Supabase
@@ -255,8 +256,8 @@ export const ModerationDashboardPage: React.FC = () => {
 
         {/* Stats Cards */}
         {isLoading ? (
-          <div className={styles['mod-dashboard__loading']}>
-            {t('common.loading')}
+          <div className={styles['mod-dashboard__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={2} linesPerBlock={5} />
           </div>
         ) : (
           <>

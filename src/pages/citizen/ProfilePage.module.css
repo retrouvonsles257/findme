@@ -196,6 +196,11 @@
 }
 
 /* Loading State */
+.profile__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .profile__loading {
   display: flex;
   flex-direction: column;

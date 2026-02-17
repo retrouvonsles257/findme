@@ -26,6 +26,7 @@ import {
   TrendingUp,
   BarChart3,
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './ActivityHistoryPage.module.css';
 
 // Helper pour Supabase
@@ -358,9 +359,8 @@ export const ActivityHistoryPage: React.FC = () => {
             {t('moderator.historyOfActions')}
           </h3>
           {loading ? (
-            <div className={styles.loading}>
-              <RefreshCw className={styles.spinner} size={32} />
-              <p>{t('moderator.loadingHistory')}</p>
+            <div className={styles.skeletonWrap}>
+              <AdminListSkeleton cardCount={6} showFilters={false} />
             </div>
           ) : activities.length === 0 ? (
             <div className={styles.empty}>

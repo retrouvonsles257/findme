@@ -24,6 +24,10 @@
   --sidebar-collapsed-width: 70px;
   --nav-padding-x: 0.75rem;
   --nav-item-padding-x: 1rem;
+
+  /* Skeleton (pour réutilisation AdminListSkeleton / AdminDetailSkeleton dans les pages citizen) */
+  --skeleton-base: #e2e8f0;
+  --skeleton-shine: #f1f5f9;
 }
 
 /* ========== LAYOUT PRINCIPAL ========== */

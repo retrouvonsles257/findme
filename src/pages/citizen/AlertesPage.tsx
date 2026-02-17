@@ -24,12 +24,12 @@ import {
   Navigation,
   Filter,
   RefreshCw,
-  Loader2,
   AlertCircle,
   Radio,
   Users,
   X,
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './AlertesPage.module.css';
 
 type FilterType = 'all' | 'active' | 'proximity' | 'closed';
@@ -284,9 +284,8 @@ export const CitizenAlertesPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className={styles['alertes__loading']}>
-            <Loader2 size={32} className={styles['alertes__loading-spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['alertes__skeletonWrap']}>
+            <AdminListSkeleton cardCount={6} showFilters={false} />
           </div>
         )}
 

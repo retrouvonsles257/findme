@@ -36,6 +36,7 @@ import {
   Columns,
   XCircle,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './IAResultsPage.module.css';
 
 // Helper to bypass Supabase typing issues
@@ -506,9 +507,8 @@ export const IAResultsPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className={styles['ia-results__loading']}>
-            <RefreshCw size={32} className={styles['ia-results__spinner']} />
-            {t('moderator.iaLoadingResults')}
+          <div className={styles['ia-results__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : (
           <>

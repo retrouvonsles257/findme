@@ -37,6 +37,11 @@
   line-height: 1.5;
 }
 
+.reports__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .reports__loading {
   text-align: center;
   padding: 3rem 2rem;

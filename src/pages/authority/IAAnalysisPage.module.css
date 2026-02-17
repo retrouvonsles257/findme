@@ -420,8 +420,9 @@
   background: white;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  color: #374151;
+  color: #1f2937;
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -686,6 +687,19 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+/* Garantir visibilité sur fond clair (éviter héritage color: white) */
+.viewDetailsBtn,
+.actionBtn,
+.filterBtn:not(.activeFilter),
+.refreshBtn {
+  color: #374151;
+}
+.viewDetailsBtn {
+  color: #1d4ed8;
+}
+.filterBtn.activeFilter {
+  color: white;
 }
 
 .viewDetailsBtn:hover {
@@ -1345,6 +1359,7 @@
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
+  color: #374151;
 }
 
 .filterBtn:hover {
@@ -1419,6 +1434,7 @@
   cursor: pointer;
   margin-left: auto;
   transition: all 0.2s;
+  color: #374151;
 }
 
 .refreshBtn:hover {

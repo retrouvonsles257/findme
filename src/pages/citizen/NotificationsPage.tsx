@@ -14,8 +14,9 @@ import { useNotifications } from '../../features/notifications/hooks';
 import { CitizenLayout } from './CitizenLayout';
 import { 
   CheckCircle, MessageCircle, Clock, Check, Trash2, Bell, 
-  Loader2, AlertTriangle, Info, CheckCheck, Settings
+  AlertTriangle, Info, CheckCheck, Settings
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './NotificationsPage.module.css';
 
 export const CitizenNotificationsPage: React.FC = () => {
@@ -177,9 +178,8 @@ export const CitizenNotificationsPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading ? (
-          <div className={styles['notifications__loading']}>
-            <Loader2 size={32} className={styles['notifications__loading-spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['notifications__skeletonWrap']}>
+            <AdminListSkeleton cardCount={6} showFilters={false} />
           </div>
         ) : (
           /* Notifications List */

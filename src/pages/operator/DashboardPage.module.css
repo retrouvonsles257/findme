@@ -281,6 +281,11 @@
 }
 
 /* Loading State */
+.operator-dashboard__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .operator-dashboard__loading-state {
   display: flex;
   flex-direction: column;

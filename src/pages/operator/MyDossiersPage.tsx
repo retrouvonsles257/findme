@@ -21,12 +21,12 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Loader2,
   MapPin,
   Calendar,
   AlertTriangle,
   Plus
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './MyDossierPage.module.css';
 
 export const OperatorMyDossiersPage: React.FC = () => {
@@ -183,9 +183,8 @@ export const OperatorMyDossiersPage: React.FC = () => {
         {/* Cards Grid */}
         <div className={styles['operator-my-dossiers__content']}>
           {isLoading ? (
-            <div className={styles['operator-my-dossiers__loading-state']}>
-              <Loader2 className={styles['operator-my-dossiers__spinner']} />
-              <p className={styles['operator-my-dossiers__loading-text']}>{t('common.loading')}</p>
+            <div className={styles['operator-my-dossiers__skeletonWrap']}>
+              <AdminListSkeleton cardCount={6} showFilters={true} />
             </div>
           ) : filteredDossiers.length > 0 ? (
             <div className={styles['operator-my-dossiers__cards-grid']}>

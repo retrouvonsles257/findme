@@ -14,7 +14,8 @@ import { selectUser } from '../../features/auth/store/authSelectors';
 import { useSignalements } from '../../features/signalements/hooks';
 import { CitizenLayout } from './CitizenLayout';
 import { supabase } from '../../config';
-import { Search, Plus, Eye, Trash2, Loader2, FileText, AlertCircle, MapPin, Calendar } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, FileText, AlertCircle, MapPin, Calendar } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './MySignalementsPage.module.css';
 
 export const CitizenMySignalementsPage: React.FC = () => {
@@ -211,9 +212,8 @@ export const CitizenMySignalementsPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading ? (
-          <div className={styles['signalements__loading']}>
-            <Loader2 size={32} className={styles['signalements__loading-spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['signalements__skeletonWrap']}>
+            <AdminListSkeleton cardCount={6} showFilters={false} />
           </div>
         ) : (
           /* Liste des signalements en cards avec photo */

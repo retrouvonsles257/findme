@@ -17,6 +17,7 @@ import {
   User, Mail, Phone, MapPin, CheckCircle, Camera, 
   Loader2, AlertCircle, Save, Shield, Settings, BadgeCheck
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './ProfilePage.module.css';
 import { NomRole, StatutCompte } from '../../@types/enums.types';
 
@@ -272,9 +273,8 @@ export const CitizenProfilePage: React.FC = () => {
     return (
       <CitizenLayout activeNav="profile">
         <div className={styles.profile}>
-          <div className={styles['profile__loading']}>
-            <Loader2 size={32} className={styles['profile__loading-spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['profile__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         </div>
       </CitizenLayout>

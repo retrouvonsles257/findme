@@ -139,3 +139,47 @@
   color: #334155;
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+  .operatorPersonDetail {
+    gap: 0.75rem;
+  }
+
+  .operatorPersonDetail__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .operatorPersonDetail__card {
+    padding: 0.875rem;
+  }
+
+  .operatorPersonDetail__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .operatorPersonDetail__btnRow {
+    width: 100%;
+  }
+
+  .operatorPersonDetail__btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .operatorPersonDetail__card {
+    padding: 0.75rem;
+  }
+
+  .operatorPersonDetail__btnRow {
+    flex-direction: column;
+  }
+
+  .operatorPersonDetail__btn {
+    width: 100%;
+  }
+}
+

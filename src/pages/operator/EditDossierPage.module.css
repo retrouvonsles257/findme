@@ -119,6 +119,11 @@
 }
 
 /* Loading State */
+.operatorEditDossier__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .operatorEditDossier__loadingState {
   display: flex;
   flex-direction: column;

@@ -10,6 +10,7 @@ import { useI18n } from '../../hooks';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { ModerationLayout } from './ModerationLayout';
 import { BarChart3, Clock, CheckCircle, XCircle, Archive, TrendingUp } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './ReportsPage.module.css';
 
 export const ReportsPage: React.FC = () => {
@@ -136,7 +137,9 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className={styles['reports__loading']}>{t('moderator.loadingReports')}</div>
+          <div className={styles['reports__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+          </div>
         ) : (
           <>
             {/* Period Filter */}

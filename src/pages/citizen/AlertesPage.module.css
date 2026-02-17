@@ -185,6 +185,11 @@
 }
 
 /* Loading State */
+.alertes__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .alertes__loading {
   display: flex;
   flex-direction: column;

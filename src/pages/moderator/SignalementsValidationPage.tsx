@@ -40,6 +40,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './SignalementValidationPage.module.css';
 
 // Helper to bypass Supabase typing issues
@@ -505,7 +506,9 @@ export const SignalementsValidationPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles['validation__loading']}>{t('common.loading')}</div>
+          <div className={styles['validation__skeletonWrap']}>
+            <AdminListSkeleton cardCount={6} showFilters={true} />
+          </div>
         ) : (
           <div className={styles['validation__content']}>
             {/* Left Panel - Liste */}

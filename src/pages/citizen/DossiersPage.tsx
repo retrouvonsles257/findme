@@ -11,7 +11,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { CitizenLayout } from './CitizenLayout';
-import { Search, Filter, MapPin, Calendar, Eye, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, Eye, MessageSquare, AlertCircle } from 'lucide-react';
+import { AdminListSkeleton } from '../admin/skeletons';
 import styles from './DossiersPage.module.css';
 import { StatutDossier } from '../../@types/enums.types';
 
@@ -261,9 +262,8 @@ export const CitizenDossiersPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles.loading}>
-            <Loader2 size={28} className={styles.spin} />
-            <span>{t('common.loading')}</span>
+          <div className={styles.skeletonWrap}>
+            <AdminListSkeleton cardCount={6} showFilters={true} />
           </div>
         ) : (
           <>

@@ -277,6 +277,11 @@
 }
 
 /* Loading State */
+.notifications__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .notifications__loading {
   display: flex;
   flex-direction: column;

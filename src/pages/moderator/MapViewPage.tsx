@@ -322,9 +322,24 @@ export const MapViewPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className={styles['map-view__loading']}>
-            <RefreshCw size={32} className={styles['map-view__spinner']} />
-            {t('moderator.mapLoading')}
+          <div className={styles['map-view__skeletonWrap']}>
+            <div className={styles['map-view__map-skeleton-container']} aria-hidden>
+              <div className={styles['map-view__map-skeleton']}>
+                <div className={styles['map-view__map-skeleton-inner']} />
+              </div>
+              <div className={styles['map-view__map-skeleton-panel']}>
+                <div className={styles['map-view__map-skeleton-panel-title']} />
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className={styles['map-view__map-skeleton-panel-item']}>
+                    <div className={styles['map-view__map-skeleton-panel-dot']} />
+                    <div className={styles['map-view__map-skeleton-panel-lines']}>
+                      <div className={styles['map-view__map-skeleton-panel-line']} />
+                      <div className={styles['map-view__map-skeleton-panel-line-short']} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <>

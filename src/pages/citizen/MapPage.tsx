@@ -456,11 +456,10 @@ export const CitizenMapPage: React.FC = () => {
 
         {/* Map Container */}
         <div className={styles['mapPage__container']}>
-          {/* Loading */}
+          {/* Chargement : placeholder carte (rectangle shimmer) */}
           {isLoading && (
-            <div className={styles['mapPage__loading']}>
-              <Loader2 size={32} className={styles['mapPage__spin']} />
-              <p>{t('common.loading')}</p>
+            <div className={styles['mapPage__mapSkeleton']} aria-hidden>
+              <div className={styles['mapPage__mapSkeleton-shimmer']} />
             </div>
           )}
 

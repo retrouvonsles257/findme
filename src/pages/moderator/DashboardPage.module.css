@@ -388,6 +388,11 @@
   background: #047857;
 }
 
+.mod-dashboard__skeletonWrap {
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
 .mod-dashboard__loading {
   text-align: center;
   padding: 3rem 2rem;

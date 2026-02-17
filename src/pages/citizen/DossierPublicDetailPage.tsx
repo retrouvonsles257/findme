@@ -28,6 +28,7 @@ import {
   CheckCircle,
   Info,
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './DossierPublicDetailPage.module.css';
 
 export const CitizenDossierPublicDetailPage: React.FC = () => {
@@ -166,9 +167,8 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
     return (
       <CitizenLayout activeNav="dossiers">
         <div className={styles.dossierDetail}>
-          <div className={styles['dossierDetail__loading']}>
-            <Loader2 size={32} className={styles['dossierDetail__spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['dossierDetail__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         </div>
       </CitizenLayout>

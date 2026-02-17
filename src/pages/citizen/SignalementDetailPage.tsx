@@ -12,8 +12,9 @@ import { supabase } from '../../config';
 import { CitizenLayout } from './CitizenLayout';
 import { 
   ArrowLeft, MapPin, Calendar, Clock, Eye, CheckCircle, 
-  XCircle, AlertCircle, Loader2, Image as ImageIcon
+  XCircle, AlertCircle, Image as ImageIcon
 } from 'lucide-react';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './SignalementDetailPage.module.css';
 
 interface SignalementDetail {
@@ -149,9 +150,8 @@ export const CitizenSignalementDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <CitizenLayout activeNav="signalements">
-        <div className={styles.loading}>
-          <Loader2 size={40} className={styles.spinner} />
-          <p>{t('common.loading')}</p>
+        <div className={styles.skeletonWrap}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
         </div>
       </CitizenLayout>
     );
