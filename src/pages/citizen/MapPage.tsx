@@ -12,6 +12,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { useSignalements } from '../../features/signalements/hooks';
+import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
 import { maptilerConfig } from '../../services/maptiler';
 import { useI18n } from '../../hooks';
@@ -27,13 +28,14 @@ import {
   Eye,
   ChevronRight,
   Target,
+  Bell,
 } from 'lucide-react';
 import styles from './MapPage.module.css';
 
 // Types pour les marqueurs
 interface MapMarker {
   id: string;
-  type: 'dossier' | 'signalement' | 'user';
+  type: 'dossier' | 'signalement' | 'alerte' | 'user';
   lat: number;
   lng: number;
   title: string;
@@ -52,6 +54,7 @@ export const CitizenMapPage: React.FC = () => {
   // Hooks
   const { dossiers, isLoading: loadingDossiers, fetchDossiers } = useDossiers();
   const { signalements, isLoading: loadingSignalements, fetchSignalements } = useSignalements();
+  const { alertes, loading: loadingAlertes, fetchAlertes } = useAlertes();
   const { currentLocation, getCurrentLocation } = useGeolocation();
   
   // State
@@ -59,15 +62,17 @@ export const CitizenMapPage: React.FC = () => {
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const [showDossiers, setShowDossiers] = useState(true);
   const [showSignalements, setShowSignalements] = useState(true);
+  const [showAlertes, setShowAlertes] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'actif' | 'resolu' | 'archive'>('all');
   const [regionFilter, setRegionFilter] = useState('');
   const [mapError, setMapError] = useState<string | null>(null);
 
-  // Charger les signalements (le hook dossiers se charge déjà au montage)
+  // Charger signalements et alertes
   useEffect(() => {
     fetchSignalements();
-  }, [fetchSignalements]);
+    fetchAlertes();
+  }, [fetchSignalements, fetchAlertes]);
 
   // Initialiser la carte
   useEffect(() => {
@@ -237,6 +242,25 @@ export const CitizenMapPage: React.FC = () => {
       });
     }
 
+    // Ajouter les alertes actives
+    if (showAlertes && alertes) {
+      (alertes as any[]).forEach((alerte: any) => {
+        const lat = alerte.latitude_centre;
+        const lng = alerte.longitude_centre;
+        if (!lat || !lng) return;
+        if (alerte.statut_alerte !== 'en_cours') return;
+        newMarkers.push({
+          id: `alerte-${alerte.id}`,
+          type: 'alerte',
+          lat,
+          lng,
+          title: alerte.titre || t('citizen.alerteLabel') || 'Alerte',
+          description: (alerte.message_court || alerte.message || '').substring(0, 80),
+          statut: alerte.statut_alerte,
+        });
+      });
+    }
+
     // Ajouter la position utilisateur
     if (currentLocation) {
       newMarkers.push({
@@ -249,7 +273,7 @@ export const CitizenMapPage: React.FC = () => {
     }
 
     setMarkers(newMarkers);
-  }, [dossiers, signalements, currentLocation, showDossiers, showSignalements, statusFilter, regionFilter, t]);
+  }, [dossiers, signalements, alertes, currentLocation, showDossiers, showSignalements, showAlertes, statusFilter, regionFilter, t]);
 
   // Filtrer les marqueurs par recherche
   const filteredMarkers = markers.filter((marker) => {
@@ -290,24 +314,21 @@ export const CitizenMapPage: React.FC = () => {
         align-items: center;
         justify-content: center;
       `;
-      el.innerHTML = marker.type === 'user' ? '📍' : marker.type === 'dossier' ? '👤' : '👁️';
+      el.innerHTML = marker.type === 'user' ? '📍' : marker.type === 'dossier' ? '👤' : marker.type === 'alerte' ? '🔔' : '👁️';
       el.style.fontSize = '14px';
 
-      // Créer le popup
+      const detailHref =
+        marker.type === 'user'
+          ? ''
+          : marker.type === 'alerte'
+            ? '/citizen/alerts'
+            : `/citizen/${marker.type === 'dossier' ? 'dossier' : 'signalement'}/${marker.id}`;
       const popup = new maplibregl.Popup({ offset: 25 })
         .setHTML(`
           <div style="padding: 8px;">
             <strong>${marker.title}</strong>
             ${marker.description ? `<p style="margin: 4px 0 0; font-size: 12px; color: #666;">${marker.description}</p>` : ''}
-            ${
-              marker.type !== 'user'
-                ? `<button onclick="window.location.href='/citizen/${
-                    marker.type === 'dossier' ? 'dossier' : 'signalement'
-                  }/${marker.id}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">${t(
-                    'common.viewDetails',
-                  )}</button>`
-                : ''
-            }
+            ${detailHref ? `<button onclick="window.location.href='${detailHref}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
           </div>
         `);
 
@@ -334,7 +355,7 @@ export const CitizenMapPage: React.FC = () => {
 
   // Rafraîchir les données
   const handleRefresh = async () => {
-    await Promise.all([fetchDossiers(), fetchSignalements()]);
+    await Promise.all([fetchDossiers(), fetchSignalements(), fetchAlertes()]);
   };
 
   // Naviguer vers les détails
@@ -345,6 +366,8 @@ export const CitizenMapPage: React.FC = () => {
       navigate(`/citizen/dossier/${selectedMarker.id}`);
     } else if (selectedMarker.type === 'signalement') {
       navigate(`/citizen/signalement/${selectedMarker.id}`);
+    } else if (selectedMarker.type === 'alerte') {
+      navigate('/citizen/alerts');
     }
     setSelectedMarker(null);
   };
@@ -367,7 +390,7 @@ export const CitizenMapPage: React.FC = () => {
     return '#8b5cf6';
   };
 
-  const isLoading = loadingDossiers || loadingSignalements;
+  const isLoading = loadingDossiers || loadingSignalements || loadingAlertes;
 
   return (
     <CitizenLayout>
@@ -409,6 +432,13 @@ export const CitizenMapPage: React.FC = () => {
             >
               <Eye size={16} />
               {t('citizen.sightings')}
+            </button>
+            <button
+              className={`${styles['mapPage__filter-btn']} ${showAlertes ? styles['mapPage__filter-btn--active'] : ''}`}
+              onClick={() => setShowAlertes(!showAlertes)}
+            >
+              <Bell size={16} />
+              {t('citizen.alerts')}
             </button>
           </div>
 

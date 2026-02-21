@@ -312,45 +312,89 @@ export const cancelAlerte = async (
 // ============================================
 
 /**
- * Diffuser une alerte
+ * Calcule la distance en km entre deux points (formule de Haversine).
+ */
+function distanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Diffuser une alerte aux citoyens dans le rayon de diffusion (aligné docs).
+ * Seuls les utilisateurs grand_public avec accepte_notifications, dans la zone
+ * de l'alerte (latitude_centre + rayon_km), reçoivent une notification.
  */
 export const diffuserAlerte = async (
   id: string,
   canaux?: string[],
 ): Promise<{ success: boolean; nombre_destinataires: number }> => {
   const alerte = await getAlerteById(id);
+  const alertLat = alerte.latitude_centre ?? null;
+  const alertLng = alerte.longitude_centre ?? null;
+  const alertRayonKm = alerte.rayon_km ?? 50;
 
-  // Récupérer les utilisateurs concernés
+  // Citoyens (grand_public) qui acceptent les notifications et ont un compte actif
   const { data: users, error: usersError } = await (supabase
     .from('utilisateur')
-    .select('id, preferences_notification')
+    .select('id, latitude_actuelle, longitude_actuelle')
     .eq('accepte_notifications', true)
-    .eq('statut_compte', 'actif') as any);
+    .eq('statut_compte', 'actif')
+    .eq('type_compte', 'grand_public') as any);
 
   if (usersError) throw usersError;
-  const destinataires = (users as any[])?.length || 0;
+  const rawUsers = (users as any[]) || [];
 
-  // Créer les enregistrements de notification
-  const notifications = ((users as any[]) || []).map((user: any) => ({
+  // Filtrer par rayon : uniquement les utilisateurs dans la zone de l'alerte
+  const destinataires =
+    alertLat != null && alertLng != null
+      ? rawUsers.filter((u: any) => {
+          const lat = u.latitude_actuelle;
+          const lng = u.longitude_actuelle;
+          if (lat == null || lng == null) return false;
+          return distanceKm(alertLat, alertLng, lat, lng) <= alertRayonKm;
+        })
+      : rawUsers;
+
+  const canal = (canaux && canaux[0]) || 'in_app';
+  const dateCreation = new Date().toISOString();
+
+  const notifications = destinataires.map((user: any) => ({
+    type_notification: 'nouvelle_alerte',
     titre: alerte.titre,
-    message: alerte.message,
-    type: 'nouvelle_alerte',
+    message: alerte.message_court || alerte.message?.substring(0, 500) || alerte.titre,
+    canal,
+    lue: false,
+    statut_envoi: 'en_attente',
+    date_creation: dateCreation,
     id_utilisateur: user.id,
     id_alerte: id,
-    statut_envoi: 'en_attente',
-    canal: (canaux || ['push'])[0],
   }));
 
-  const { error: notifError } = await supabase
-    .from('notification')
-    .insert(notifications as any);
-
-  if (notifError) throw notifError;
+  if (notifications.length > 0) {
+    const { error: notifError } = await supabase
+      .from('notification')
+      .insert(notifications as any);
+    if (notifError) throw notifError;
+  }
 
   // Mettre à jour l'alerte
   await updateAlerte(id, {
-    nombre_destinataires: destinataires,
-    nombre_envois_reussis: destinataires,
+    nombre_destinataires: destinataires.length,
+    nombre_envois_reussis: destinataires.length,
   });
 
   // Log diffusion action
@@ -359,7 +403,7 @@ export const diffuserAlerte = async (
     await (supabase as any).from('journal_activite').insert({
       type_action: 'diffusion_alerte',
       action_detaillee: 'Diffusion d\'alerte aux utilisateurs',
-      description: `Alerte "${alerte.titre}" diffusée à ${destinataires} utilisateur(s)`,
+      description: `Alerte "${alerte.titre}" diffusée à ${destinataires.length} utilisateur(s)`,
       id_utilisateur: user.id,
       id_alerte: id,
       id_dossier: alerte.id_dossier,
@@ -369,7 +413,7 @@ export const diffuserAlerte = async (
 
   return {
     success: true,
-    nombre_destinataires: destinataires,
+    nombre_destinataires: destinataires.length,
   };
 };
 

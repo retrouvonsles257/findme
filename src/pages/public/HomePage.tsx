@@ -140,8 +140,8 @@ export const HomePage: React.FC = () => {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <Link to="/" className={styles.logo}>
-            <Search className={styles.logoIcon} size={24} />
-            <span className={styles.logoText}>RETROUVONSLES</span>
+            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="RetrouvonsLes" className={styles.logoImg} />
+            <span className={`${styles.logoText} app-name-bold`}>RETROUVONSLES</span>
           </Link>
 
           <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
@@ -474,7 +474,7 @@ export const HomePage: React.FC = () => {
         <div className={styles.footerContent}>
           <div className={styles.footerSection}>
             <div className={styles.footerLogo}>
-              <Search size={20} />
+              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="RetrouvonsLes" className={styles.footerLogoImg} />
               <span>RETROUVONSLES</span>
             </div>
             <p>{t('public.footer.description')}</p>

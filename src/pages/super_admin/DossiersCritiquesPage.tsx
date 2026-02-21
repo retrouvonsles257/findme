@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminListSkeleton } from '../admin/skeletons';
 import { 
   AlertTriangle, User, Calendar, MapPin, Clock, Eye, Edit2,
   Loader2, AlertCircle, ChevronLeft, ChevronRight, Filter, Download, X, LayoutList, Tag
@@ -38,7 +39,7 @@ const ITEMS_PER_PAGE = 10;
 
 export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   const navigate = useNavigate();
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
 
   const [dossiers, setDossiers] = useState<DossierCritique[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,7 +132,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
             nom_personne: personne?.nom || '',
             prenom_personne: personne?.prenom || '',
             age_moment_disparition,
-            titre: dossier.circonstances?.substring(0, 100) || 'Disparition',
+            titre: dossier.circonstances?.substring(0, 100) || t('super_admin.dossiersCritiquesDisparition'),
             description: dossier.circonstances,
             _signalements: signalementsCount || 0,
           };
@@ -220,7 +221,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
       link.click();
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.dossiersCritiquesExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -238,22 +239,25 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
 
   const getUrgenceLabel = (niveau: string) => {
     const labels: Record<string, string> = {
-      critique: 'CRITIQUE',
-      elevee: 'Élevée',
-      normale: 'Normale',
-      basse: 'Basse',
+      critique: t('super_admin.dossiersUrgenceCritique').toUpperCase(),
+      elevee: t('super_admin.dossiersCritiquesUrgenceElevee'),
+      normale: t('super_admin.dossiersCritiquesUrgenceNormale'),
+      basse: t('super_admin.dossiersCritiquesUrgenceBasse'),
     };
     return labels[niveau] || niveau;
   };
 
   const getStatutLabel = (statut: string) => {
     const labels: Record<string, string> = {
-      en_cours: 'En cours',
-      retrouve_vivant: 'Retrouvé vivant',
-      retrouve_decede: 'Retrouvé décédé',
-      suspendu: 'Suspendu',
-      classe_sans_suite: 'Classé sans suite',
-      transfere: 'Transféré',
+      en_cours: t('super_admin.dossiersStatutEnCours'),
+      retrouve_vivant: t('super_admin.dossiersStatutRetrouveVivant'),
+      retrouve_decede: t('super_admin.dossiersStatutRetrouveDecede'),
+      suspendu: t('super_admin.dossiersStatutSuspendu'),
+      classe_sans_suite: t('super_admin.dossiersStatutClasseSansSuite'),
+      transfere: t('super_admin.dossiersStatutTransfere'),
+      resolu: t('super_admin.dossiersCritiquesStatutResolu'),
+      clos: t('super_admin.dossiersCritiquesStatutClos'),
+      archive: t('super_admin.dossiersCritiquesStatutArchive'),
     };
     return labels[statut] || statut;
   };
@@ -276,7 +280,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   };
 
   return (
-    <SuperAdminLayout title="Dossiers Critiques" activeNav="dossiers-critiques">
+    <SuperAdminLayout title={t('super_admin.dossiersCritiquesTitle')} activeNav="dossiers-critiques">
       <div className={styles['sa-dossiers-critiques']}>
         {/* Stats */}
         <div className={styles['sa-dossiers-critiques__stats']}>
@@ -285,7 +289,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
             <div>
               <span className={styles['sa-dossiers-critiques__stat-value']}>{totalCount}</span>
               <span className={styles['sa-dossiers-critiques__stat-label']}>
-                {filterUrgence === 'critique' ? 'Critiques' : 'Dossiers'}
+                {filterUrgence === 'critique' ? t('super_admin.dossiersCritiquesStatLabel') : t('super_admin.dossiersCritiquesStatDossiers')}
               </span>
             </div>
           </div>
@@ -296,26 +300,26 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
           <div className={styles['sa-dossiers-critiques__filter-group']}>
             <Filter size={16} />
             <select value={filterUrgence} onChange={(e) => { setFilterUrgence(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous niveaux</option>
-              <option value="critique">Critique</option>
-              <option value="elevee">Élevée</option>
-              <option value="normale">Normale</option>
-              <option value="basse">Basse</option>
+              <option value="">{t('super_admin.dossiersCritiquesFilterAllLevels')}</option>
+              <option value="critique">{t('super_admin.dossiersUrgenceCritique')}</option>
+              <option value="elevee">{t('super_admin.dossiersCritiquesUrgenceElevee')}</option>
+              <option value="normale">{t('super_admin.dossiersCritiquesUrgenceNormale')}</option>
+              <option value="basse">{t('super_admin.dossiersCritiquesUrgenceBasse')}</option>
             </select>
           </div>
           <div className={styles['sa-dossiers-critiques__filter-group']}>
             <Tag size={16} />
             <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous statuts</option>
-              <option value="en_cours">En cours</option>
-              <option value="resolu">Résolu</option>
-              <option value="clos">Clos</option>
-              <option value="archive">Archivé</option>
+              <option value="">{t('super_admin.dossiersCritiquesFilterAllStatuses')}</option>
+              <option value="en_cours">{t('super_admin.dossiersStatutEnCours')}</option>
+              <option value="resolu">{t('super_admin.dossiersCritiquesStatutResolu')}</option>
+              <option value="clos">{t('super_admin.dossiersCritiquesStatutClos')}</option>
+              <option value="archive">{t('super_admin.dossiersCritiquesStatutArchive')}</option>
             </select>
           </div>
           <button type="button" onClick={exportToCSV} disabled={isLoading} className={styles['sa-dossiers-critiques__btn-export']}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.dossiersCritiquesExportCsv')}
           </button>
         </div>
 
@@ -329,15 +333,15 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-dossiers-critiques__loading']}>
-            <Loader2 size={32} className={styles['sa-dossiers-critiques__spinner']} />
+          <div className={styles['sa-dossiers-critiques__skeletonWrap']}>
+            <AdminListSkeleton cardCount={6} showFilters={true} />
           </div>
         ) : (
           <div className={styles['sa-dossiers-critiques__list']}>
             {dossiers.length === 0 ? (
               <div className={styles['sa-dossiers-critiques__empty']}>
                 <AlertTriangle size={48} />
-                <p>Aucun dossier trouvé</p>
+                <p>{t('super_admin.dossiersCritiquesNoData')}</p>
               </div>
             ) : (
               dossiers.map((dossier) => (
@@ -354,14 +358,14 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
                     </div>
                     <div className={styles['sa-dossiers-critiques__days']}>
                       <Clock size={14} />
-                      {getDaysSince(dossier.date_disparition)} jours
+                      {t('super_admin.dossiersCritiquesDaysSince', { count: getDaysSince(dossier.date_disparition) })}
                     </div>
                   </div>
                   
                   <h3 className={styles['sa-dossiers-critiques__card-title']}>
                     <User size={18} />
                     {dossier.prenom_personne} {dossier.nom_personne}
-                    {dossier.age_moment_disparition && <small>({dossier.age_moment_disparition} ans)</small>}
+                    {dossier.age_moment_disparition != null && <small>({dossier.age_moment_disparition} {t('common.years')})</small>}
                   </h3>
                   
                   <p className={styles['sa-dossiers-critiques__card-subtitle']}>{dossier.titre}</p>
@@ -369,7 +373,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
                   <div className={styles['sa-dossiers-critiques__card-info']}>
                     <div className={styles['sa-dossiers-critiques__info-item']}>
                       <Calendar size={14} />
-                      <span>Disparu(e) le {new Date(dossier.date_disparition).toLocaleDateString('fr-FR')}</span>
+                      <span>{t('super_admin.dossiersCritiquesMissingSince', { date: new Date(dossier.date_disparition).toLocaleDateString('fr-FR') })}</span>
                     </div>
                     {dossier.lieu_disparition && (
                       <div className={styles['sa-dossiers-critiques__info-item']}>
@@ -379,18 +383,18 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
                     )}
                     <div className={styles['sa-dossiers-critiques__info-item']}>
                       <AlertCircle size={14} />
-                      <span>{dossier._signalements} signalement(s)</span>
+                      <span>{t('super_admin.dossiersCritiquesSignalementsCount', { count: dossier._signalements ?? 0 })}</span>
                     </div>
                   </div>
                   
                   <div className={styles['sa-dossiers-critiques__card-actions']}>
                     <button type="button" onClick={() => navigate(`/super-admin/dossiers/${dossier.id}`)}>
                       <Eye size={16} />
-                      Voir détail complet
+                      {t('super_admin.dossiersCritiquesViewDetailFull')}
                     </button>
                     <button type="button" onClick={() => setSelectedDossier(dossier)}>
                       <LayoutList size={16} />
-                      Aperçu rapide
+                      {t('super_admin.dossiersCritiquesQuickPreview')}
                     </button>
                   </div>
                 </div>
@@ -403,11 +407,11 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-dossiers-critiques__pagination']}>
             <button type="button" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button type="button" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -418,32 +422,32 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
             <div className={styles['sa-dossiers-critiques__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-dossiers-critiques__modal-header']}>
                 <h2>{selectedDossier.prenom_personne || ''} {selectedDossier.nom_personne}</h2>
-                <button type="button" onClick={() => setSelectedDossier(null)} className={styles['sa-dossiers-critiques__modal-close']} aria-label="Fermer">
+                <button type="button" onClick={() => setSelectedDossier(null)} className={styles['sa-dossiers-critiques__modal-close']} aria-label={t('super_admin.dossiersCritiquesModalClose')}>
                   <X size={20} />
                 </button>
               </div>
               <div className={styles['sa-dossiers-critiques__modal-body']}>
                 <div className={styles['sa-dossiers-critiques__details']}>
-                  <p><strong>Titre:</strong> {selectedDossier.titre || '—'}</p>
-                  <p><strong>Niveau urgence:</strong> {getUrgenceLabel(selectedDossier.niveau_urgence)}</p>
-                  <p><strong>Statut:</strong> {getStatutLabel(selectedDossier.statut)}</p>
-                  <p><strong>Date disparition:</strong> {new Date(selectedDossier.date_disparition).toLocaleDateString('fr-FR')}</p>
-                  {selectedDossier.lieu_disparition && <p><strong>Lieu:</strong> {selectedDossier.lieu_disparition}</p>}
-                  {selectedDossier.age_moment_disparition != null && <p><strong>Âge:</strong> {selectedDossier.age_moment_disparition} ans</p>}
-                  {selectedDossier.description && <p><strong>Description:</strong> {selectedDossier.description}</p>}
-                  {selectedDossier.declarant && <p><strong>Déclarant:</strong> {selectedDossier.declarant.nom} ({selectedDossier.declarant.email})</p>}
-                  <p><strong>Signalements:</strong> {selectedDossier._signalements ?? 0}</p>
-                  <p><strong>Créé le:</strong> {new Date(selectedDossier.created_at).toLocaleDateString('fr-FR')}</p>
+                  <p><strong>{t('super_admin.dossiersCritiquesModalTitle')}:</strong> {selectedDossier.titre || '—'}</p>
+                  <p><strong>{t('super_admin.dossiersCritiquesModalUrgence')}:</strong> {getUrgenceLabel(selectedDossier.niveau_urgence)}</p>
+                  <p><strong>{t('super_admin.dossiersCritiquesModalStatut')}:</strong> {getStatutLabel(selectedDossier.statut)}</p>
+                  <p><strong>{t('super_admin.dossiersCritiquesModalDateDisparition')}:</strong> {new Date(selectedDossier.date_disparition).toLocaleDateString('fr-FR')}</p>
+                  {selectedDossier.lieu_disparition && <p><strong>{t('super_admin.dossiersCritiquesModalLieu')}:</strong> {selectedDossier.lieu_disparition}</p>}
+                  {selectedDossier.age_moment_disparition != null && <p><strong>{t('super_admin.dossiersCritiquesModalAge')}:</strong> {selectedDossier.age_moment_disparition} {t('common.years')}</p>}
+                  {selectedDossier.description && <p><strong>{t('super_admin.dossiersCritiquesModalDescription')}:</strong> {selectedDossier.description}</p>}
+                  {selectedDossier.declarant && <p><strong>{t('super_admin.dossiersCritiquesModalDeclarant')}:</strong> {selectedDossier.declarant.nom} ({selectedDossier.declarant.email})</p>}
+                  <p><strong>{t('super_admin.dossiersCritiquesModalSignalements')}:</strong> {selectedDossier._signalements ?? 0}</p>
+                  <p><strong>{t('super_admin.dossiersCritiquesModalCreatedAt')}:</strong> {new Date(selectedDossier.created_at).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div className={styles['sa-dossiers-critiques__modal-actions']}>
                   <button type="button" className={styles['sa-dossiers-critiques__modal-btn-primary']} onClick={() => navigate(`/super-admin/dossiers/${selectedDossier.id}`)}>
-                    <Eye size={16} /> Voir détail complet
+                    <Eye size={16} /> {t('super_admin.dossiersCritiquesViewDetailFull')}
                   </button>
                   <button type="button" className={styles['sa-dossiers-critiques__modal-btn-secondary']} onClick={() => { setSelectedDossier(null); navigate(`/super-admin/dossiers?edit=${selectedDossier.id}`); }}>
-                    <Edit2 size={16} /> Modifier
+                    <Edit2 size={16} /> {t('common.edit')}
                   </button>
                   <button type="button" className={styles['sa-dossiers-critiques__modal-btn-close']} onClick={() => setSelectedDossier(null)}>
-                    <X size={16} /> Fermer
+                    <X size={16} /> {t('super_admin.dossiersCritiquesModalClose')}
                   </button>
                 </div>
               </div>

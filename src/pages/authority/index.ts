@@ -38,6 +38,7 @@ export { MapViewPage } from './MapViewPage';
 
 // Donations & Campagnes
 export { DonationsPage } from './DonationsPage';
+export { AuthorityDonatePage } from './AuthorityDonatePage';
 
 // Statistiques
 export { StatistiquesPage } from './StatistiquesPage';

@@ -56,7 +56,7 @@ export const HeaderNGO: React.FC<HeaderNGOProps> = ({
         {/* Logo et titre */}
         <div className={styles.logo}>
           <span className={styles.logoIcon}>🤝</span>
-          <span className={styles.logoText}>RETROUVONSLES - ONG</span>
+          <span className={`${styles.logoText} app-name-bold`}>RETROUVONSLES - ONG</span>
         </div>
 
         {/* Barre de recherche */}

@@ -34,6 +34,7 @@ import { useAppSelector } from '../../../store/types';
 import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { getLanguageName } from '../../../locales';
 import { useCoordinationMessages } from '../../../features/coordination';
+import { useAuth } from '../../../contexts';
 import styles from './AuthorityHeader.module.css';
 
 // Interface adaptée au modèle de données réel
@@ -70,6 +71,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectCurrentUser);
+  const { user: authUser } = useAuth();
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -114,8 +116,19 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     return 'U';
   };
 
-  // Hook pour les messages de coordination
-  const { messages, loading: messagesLoading } = useCoordinationMessages();
+  // Hook pour les messages de coordination (badge = non lus, marquer comme lu à l'ouverture)
+  const { messages, loading: messagesLoading, unreadCount: unreadMessagesCount, markAsRead: markMessagesAsRead } = useCoordinationMessages();
+
+  // À l'ouverture du dropdown messages : marquer comme lus les messages des autres (même id que CoordinationReadContext = useAuth)
+  const prevShowMessages = useRef(false);
+  useEffect(() => {
+    const userId = authUser?.id ?? currentUser?.id;
+    if (showMessages && !prevShowMessages.current && userId && messages.length > 0) {
+      const fromOthers = messages.filter((m) => m.author_id !== userId).map((m) => m.id);
+      if (fromOthers.length > 0) markMessagesAsRead(fromOthers);
+    }
+    prevShowMessages.current = showMessages;
+  }, [showMessages, authUser?.id, currentUser?.id, messages, markMessagesAsRead]);
 
   // Fermer les dropdowns quand on clique en dehors
   useEffect(() => {
@@ -388,7 +401,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 
   return (
     <header className={styles.header}>
-      {/* Left Section: Menu Toggle */}
+      {/* Left Section: Menu Toggle + App Name */}
       <div className={styles.leftSection}>
         {!sidebarOpen && (
           <button
@@ -399,6 +412,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
             <Menu size={22} />
           </button>
         )}
+        <span className={`${styles.headerAppName} app-name-bold`}>{t('authority.sidebar.appName')}</span>
       </div>
 
       {/* Center Section: Search */}
@@ -472,9 +486,9 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
             title={t('authority.header.coordinationMessages')}
           >
             <MessageSquare size={20} />
-            {messages.length > 0 && (
+            {unreadMessagesCount > 0 && (
               <span className={styles.messagesBadge}>
-                {messages.length > 9 ? '9+' : messages.length}
+                {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
               </span>
             )}
           </button>

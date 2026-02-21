@@ -26,7 +26,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAlertes } from '../../features/alertes/hooks/useAlertes';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import { 
   validateAlerte, 
   cancelAlerte, 
@@ -268,7 +268,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
         <div className={styles.alertesGrid}>
           {loading ? (
             <div className={styles.skeletonWrap}>
-              <AdminListSkeleton cardCount={6} showFilters={true} />
+              <AdminCardsGridSkeleton cardCount={6} />
             </div>
           ) : filteredAlertes.length > 0 ? (
             filteredAlertes.map((alerte: any) => {

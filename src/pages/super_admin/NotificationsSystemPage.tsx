@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   Bell, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, CheckCircle, Mail, Smartphone, MessageSquare
@@ -44,7 +45,7 @@ interface Notification {
 const ITEMS_PER_PAGE = 20;
 
 export const SuperAdminNotificationsSystemPage: React.FC = () => {
-  useI18n();
+  const { t } = useI18n();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,11 +155,10 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
   };
 
   return (
-    <SuperAdminLayout title="Notifications Système" activeNav="notifications-system">
+    <SuperAdminLayout title={t('super_admin.notificationsTitle')} activeNav="notifications-system">
       <div className={styles['sa-system-logs']}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Notifications Système</h2>
-          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>Consultez toutes les notifications du système</p>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>{t('super_admin.notificationsTitle')}</h2>
         </div>
 
         {/* Filtres */}
@@ -166,39 +166,39 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
           <div className={styles['sa-system-logs__filter-group']}>
             <Filter size={16} />
             <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous types</option>
-              <option value="nouvelle_alerte">Nouvelle alerte</option>
-              <option value="signalement_valide">Signalement validé</option>
-              <option value="mise_a_jour_dossier">Mise à jour dossier</option>
-              <option value="personne_retrouvee">Personne retrouvée</option>
-              <option value="correspondance_ia">Correspondance IA</option>
-              <option value="message_autorite">Message autorité</option>
-              <option value="rappel">Rappel</option>
-              <option value="autre">Autre</option>
+              <option value="">{t('super_admin.documentsAllTypes')}</option>
+              <option value="nouvelle_alerte">{t('super_admin.notificationsTypeNouvelleAlerte')}</option>
+              <option value="signalement_valide">{t('super_admin.notificationsTypeSignalementValide')}</option>
+              <option value="mise_a_jour_dossier">{t('super_admin.notificationsTypeMiseAJourDossier')}</option>
+              <option value="personne_retrouvee">{t('super_admin.notificationsTypePersonneRetrouvee')}</option>
+              <option value="correspondance_ia">{t('super_admin.notificationsTypeCorrespondanceIA')}</option>
+              <option value="message_autorite">{t('super_admin.notificationsTypeMessageAutorite')}</option>
+              <option value="rappel">{t('super_admin.notificationsTypeRappel')}</option>
+              <option value="autre">{t('super_admin.notificationsTypeAutre')}</option>
             </select>
           </div>
           <select value={filterCanal} onChange={(e) => { setFilterCanal(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous canaux</option>
+            <option value="">{t('super_admin.notificationsFilterAllChannels')}</option>
             <option value="push">Push</option>
             <option value="email">Email</option>
             <option value="sms">SMS</option>
             <option value="in_app">In-app</option>
           </select>
           <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous statuts</option>
-            <option value="en_attente">En attente</option>
-            <option value="envoyee">Envoyée</option>
-            <option value="echec">Échec</option>
-            <option value="annulee">Annulée</option>
+            <option value="">{t('super_admin.notificationsFilterAllStatuses')}</option>
+            <option value="en_attente">{t('super_admin.notificationsStatutEnAttente')}</option>
+            <option value="envoyee">{t('super_admin.notificationsStatutEnvoyee')}</option>
+            <option value="echec">{t('super_admin.notificationsStatutEchec')}</option>
+            <option value="annulee">{t('super_admin.notificationsStatutAnnulee')}</option>
           </select>
           <select value={filterLue} onChange={(e) => { setFilterLue(e.target.value); setCurrentPage(1); }}>
-            <option value="">Toutes</option>
-            <option value="true">Lues</option>
-            <option value="false">Non lues</option>
+            <option value="">{t('super_admin.notificationsFilterAllRead')}</option>
+            <option value="true">{t('super_admin.notificationsFilterRead')}</option>
+            <option value="false">{t('super_admin.notificationsFilterUnread')}</option>
           </select>
           <button onClick={exportToCSV} className={styles['sa-system-logs__export-btn']}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.notificationsExportCsv')}
           </button>
         </div>
 
@@ -213,15 +213,15 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-system-logs__loading']}>
-            <Loader2 size={32} className={styles['sa-system-logs__spinner']} />
+          <div className={styles['sa-system-logs__skeletonWrap']}>
+            <AdminTableSkeleton columns={9} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-logs__table-wrapper']}>
             {notifications.length === 0 ? (
               <div className={styles['sa-system-logs__empty']}>
                 <Bell size={48} />
-                <p>Aucune notification trouvée</p>
+                <p>{t('super_admin.notificationsNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-system-logs__table']}>
@@ -273,11 +273,11 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-system-logs__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -287,7 +287,7 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
           <div className={styles['sa-system-logs__modal-overlay']} onClick={() => setSelectedNotification(null)}>
             <div className={styles['sa-system-logs__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-logs__modal-header']}>
-                <h2>Détails de la notification</h2>
+                <h2>{t('super_admin.notificationsDetailsTitle')}</h2>
                 <button onClick={() => setSelectedNotification(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-logs__modal-body']}>
@@ -327,7 +327,7 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
                 </div>
               </div>
               <div className={styles['sa-system-logs__modal-footer']}>
-                <button onClick={() => setSelectedNotification(null)}>Fermer</button>
+                <button onClick={() => setSelectedNotification(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import { 
   Shield, Users, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, CheckCircle, Download
@@ -53,7 +54,7 @@ const ROLE_BADGE_IMAGES: Record<string, string> = {
 };
 
 export const SuperAdminRolesPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
   
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -196,7 +197,7 @@ export const SuperAdminRolesPage: React.FC = () => {
         try {
           permissionsJson = JSON.parse(formData.permissions);
         } catch (parseError) {
-          setError('Format JSON invalide pour les permissions');
+          setError(t('super_admin.rolesJsonInvalid'));
           return;
         }
       }
@@ -217,7 +218,7 @@ export const SuperAdminRolesPage: React.FC = () => {
           .insert(roleData);
 
         if (insertError) throw insertError;
-        setSuccess('Rôle créé avec succès');
+        setSuccess(t('super_admin.rolesCreateSuccess'));
       } else if (modalMode === 'edit' && selectedRole) {
         const { error: updateError } = await (supabase as any)
           .from('role')
@@ -225,7 +226,7 @@ export const SuperAdminRolesPage: React.FC = () => {
           .eq('id', selectedRole.id);
 
         if (updateError) throw updateError;
-        setSuccess('Rôle modifié avec succès');
+        setSuccess(t('super_admin.rolesUpdateSuccess'));
       }
 
       setShowModal(false);
@@ -248,7 +249,7 @@ export const SuperAdminRolesPage: React.FC = () => {
         .eq('id_role', id);
 
       if ((count || 0) > 0) {
-        setError('Impossible de supprimer: des utilisateurs utilisent ce rôle');
+        setError(t('super_admin.rolesDeleteErrorInUse'));
         setDeleteConfirm(null);
         return;
       }
@@ -334,14 +335,14 @@ export const SuperAdminRolesPage: React.FC = () => {
       link.click();
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.rolesExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <SuperAdminLayout title="Gestion des Rôles" activeNav="roles">
+    <SuperAdminLayout title={t('super_admin.rolesTitle')} activeNav="roles">
       <div className={styles['sa-roles']}>
         {/* Header */}
         <div className={styles['sa-roles__header']}>
@@ -349,7 +350,7 @@ export const SuperAdminRolesPage: React.FC = () => {
             <Search size={18} />
             <input
               type="text"
-              placeholder="Rechercher un rôle..."
+              placeholder={t('super_admin.rolesSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -371,7 +372,7 @@ export const SuperAdminRolesPage: React.FC = () => {
             </button>
             <button className={styles['sa-roles__add-btn']} onClick={openCreateModal}>
               <Plus size={20} />
-              Nouveau rôle
+              {t('super_admin.rolesNewRole')}
             </button>
           </div>
         </div>
@@ -405,15 +406,15 @@ export const SuperAdminRolesPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-roles__loading']}>
-            <Loader2 size={32} className={styles['sa-roles__spinner']} />
+          <div className={styles['sa-roles__skeletonWrap']}>
+            <AdminCardsGridSkeleton cardCount={9} />
           </div>
         ) : (
           <div className={styles['sa-roles__grid']}>
             {filteredRoles.length === 0 ? (
               <div className={styles['sa-roles__empty']}>
                 <Shield size={48} />
-                <p>Aucun rôle</p>
+                <p>{t('super_admin.rolesNoRole')}</p>
               </div>
             ) : (
               filteredRoles.map((role) => (
@@ -461,7 +462,7 @@ export const SuperAdminRolesPage: React.FC = () => {
 
                   {deleteConfirm === role.id && (
                     <div className={styles['sa-roles__delete-confirm']}>
-                      <p>Confirmer la suppression ?</p>
+                      <p>{t('super_admin.rolesConfirmDelete')}</p>
                       <div>
                         <button onClick={() => handleDelete(role.id)}><Check size={16} /></button>
                         <button onClick={() => setDeleteConfirm(null)}><X size={16} /></button>
@@ -479,7 +480,7 @@ export const SuperAdminRolesPage: React.FC = () => {
           <div className={styles['sa-roles__modal-overlay']} onClick={() => setShowModal(false)}>
             <div className={styles['sa-roles__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-roles__modal-header']}>
-                <h2>{modalMode === 'create' ? 'Nouveau rôle' : 'Modifier rôle'}</h2>
+                <h2>{modalMode === 'create' ? t('super_admin.rolesNewRole') : t('super_admin.rolesEditRole')}</h2>
                 <button onClick={() => setShowModal(false)}><X size={20} /></button>
               </div>
 
@@ -645,7 +646,7 @@ export const SuperAdminRolesPage: React.FC = () => {
               </div>
 
               <div className={styles['sa-roles__modal-footer']}>
-                <button type="button" onClick={() => setViewingRole(null)}>Fermer</button>
+                <button type="button" onClick={() => setViewingRole(null)}>{t('common.close')}</button>
                 <button type="button" onClick={() => { setViewingRole(null); openEditModal(viewingRole); }}>Modifier</button>
               </div>
             </div>

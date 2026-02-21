@@ -1386,7 +1386,14 @@
       "notAssigned": "Non attribué",
       "memberSince": "Membre depuis",
       "lastLogin": "Dernière connexion",
-      "changePassword": "Changer le mot de passe"
+      "changePassword": "Changer le mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "cancel": "Annuler",
+      "updatePassword": "Mettre à jour le mot de passe",
+      "passwordChanged": "Mot de passe mis à jour avec succès",
+      "passwordsMismatch": "Les mots de passe ne correspondent pas",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères"
     },
     "values": {
       "na": "N/A",
@@ -1512,6 +1519,9 @@
       "totalReach": "Portée totale",
       "completedCampaigns": "Campagnes terminées"
     },
+    "makeDonation": "Faire un don",
+    "ctaDonDescription": "Accédez à la page de don pour soutenir RetrouvonsLes et consulter votre historique de dons.",
+    "goToDonate": "Aller à la page de don",
     "modal": {
       "description": "Description",
       "objective": "Objectif",

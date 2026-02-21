@@ -20,3 +20,4 @@ export { NGOCreateCampagnePage } from './CreateCampagnePage';
 export { NGOIAAnalysisPage } from './IAAnalysisPage';
 export { NGOStatistiquesPage } from './StatistiquesPage';
 export { NGOProfilePage } from './ProfilePage';
+export { NGODonationsPage } from './DonationsPage';

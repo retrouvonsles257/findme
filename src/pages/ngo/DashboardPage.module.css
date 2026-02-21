@@ -232,7 +232,13 @@
   font-size: 0.875rem;
 }
 
-/* Loading (keep for loading state) */
+/* Loading skeleton wrapper */
+.ngoDashboardSkeletonWrap {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Loading (keep for loading state if needed) */
 .ngoDashboardLoading {
   display: flex;
   flex-direction: column;

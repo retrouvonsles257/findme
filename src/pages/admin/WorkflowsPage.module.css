@@ -387,3 +387,23 @@
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .workflows__container {
+    padding: 1rem;
+  }
+
+  .workflows__header {
+    gap: 0.75rem;
+  }
+
+  .workflows__title {
+    font-size: 1.25rem;
+  }
+
+  .workflows__table th,
+  .workflows__table td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}

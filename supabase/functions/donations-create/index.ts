@@ -131,6 +131,32 @@ function mustBeMultipleOfFive(currency: string): boolean {
   return currency.toUpperCase() !== 'USD';
 }
 
+/** Vérifie le JWT avec le JWKS Supabase. Retourne l'id utilisateur (sub) ou null si absent/invalide (don anonyme autorisé). */
+async function getUserIdFromJwt(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) return null;
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  if (!supabaseUrl) return null;
+
+  const issuer = Deno.env.get('SB_JWT_ISSUER') ?? `${supabaseUrl}/auth/v1`;
+  const jwksUrl = `${supabaseUrl}/auth/v1/.well-known/jwks.json`;
+
+  try {
+    const JWKS = jose.createRemoteJWKSet(new URL(jwksUrl));
+    const { payload } = await jose.jwtVerify(token, JWKS, {
+      issuer,
+      audience: 'authenticated',
+    });
+    const sub = payload.sub as string;
+    return sub && typeof sub === 'string' ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -164,7 +190,7 @@ serve(async (req: Request) => {
     const montant = normalizeAmount(rawMontant);
     if (mustBeMultipleOfFive(devise) && montant % 5 !== 0) {
       return jsonResponse(
-        { error: 'Invalid amount (must be a multiple of 5 for this currency)' },
+        { error: 'Le montant doit être un multiple de 5 pour la devise ' + devise + ' (ex: 5000, 10000).' },
         400,
       );
     }
@@ -245,6 +271,32 @@ serve(async (req: Request) => {
         { error: 'Failed to create donation', details: error.message },
         500,
       );
+    }
+
+    // Journalisation (audit) : best effort, ne pas faire échouer la requête
+    try {
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (serviceKey) {
+        const serviceClient = createClient(SUPABASE_URL, serviceKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        await (serviceClient as any).from('journal_activite').insert({
+          type_action: 'autre',
+          action_detaillee: 'don_created',
+          description: `Don ${(inserted as any)?.id} créé — ${montant} ${devise} (${mode})`,
+          id_utilisateur: userId ?? null,
+          donnees_apres: {
+            don_id: (inserted as any)?.id,
+            montant,
+            devise,
+            mode,
+            provider_reference: (inserted as any)?.provider_reference ?? (inserted as any)?.reference_transaction,
+          },
+          date_action: nowIso,
+        });
+      }
+    } catch (journalErr) {
+      console.error('[donations-create] journal_activite insert (non blocking)', journalErr);
     }
 
     // LIVE: initialize CinetPay payment and attach payment_url/payment_token to donation

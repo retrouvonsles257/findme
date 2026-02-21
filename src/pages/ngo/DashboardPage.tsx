@@ -18,6 +18,7 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { StatutDossier } from '../../@types/enums.types';
 import { NGOLayout } from './NGOLayout';
+import { DashboardSkeleton } from '../admin/skeletons';
 import styles from './DashboardPage.module.css';
 
 interface NGOStats {
@@ -147,9 +148,8 @@ export const NGODashboardPage: React.FC = () => {
   if (loading) {
     return (
       <NGOLayout>
-        <div className={styles.ngoDashboardLoading}>
-          <div className={styles.ngoDashboardSpinner} />
-          <p>{t('common.loading')}</p>
+        <div className={styles.ngoDashboardSkeletonWrap}>
+          <DashboardSkeleton statCount={4} actionCount={4} listRows={5} />
         </div>
       </NGOLayout>
     );

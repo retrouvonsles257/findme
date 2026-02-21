@@ -22,7 +22,6 @@ import {
   ScrollText,
   Settings,
   User,
-  Key,
   Search,
   ChevronRight,
   ChevronLeft,
@@ -43,6 +42,7 @@ import {
   ClipboardList,
   BookOpen,
   Handshake,
+  Heart,
 } from 'lucide-react';
 import './adminTheme.css';
 import styles from './AdminOrganisationLayout.module.css';
@@ -72,7 +72,8 @@ type ActiveNavType =
   | 'parametres'
   | 'workflows'
   | 'profile'
-  | 'api-keys';
+  | 'api-keys'
+  | 'donations';
 
 /** Structure de navigation stable (icônes hors rendu) pour éviter la disparition d’icône au changement de langue */
 interface AdminNavItem {
@@ -111,6 +112,7 @@ const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { id: 'cas', labelKey: 'admin.cas', path: '/admin/cas', icon: FileSearch },
       { id: 'ressources', labelKey: 'admin.ressources', path: '/admin/ressources', icon: BookOpen },
       { id: 'partenariats', labelKey: 'admin.partenariats', path: '/admin/partenariats', icon: Handshake },
+      { id: 'donations', labelKey: 'admin.donations', path: '/admin/donations', icon: Heart },
     ],
   },
   {
@@ -121,7 +123,6 @@ const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { id: 'roles', labelKey: 'admin.rolesManagement', path: '/admin/roles', icon: Shield },
       { id: 'parametres', labelKey: 'admin.parametres', path: '/admin/parametres', icon: Settings },
       { id: 'workflows', labelKey: 'admin.workflows', path: '/admin/workflows', icon: GitBranch },
-      { id: 'api-keys', labelKey: 'admin.apiKeys', path: '/admin/api-keys', icon: Key },
       { id: 'profile', labelKey: 'admin.profile', path: '/admin/profile', icon: User },
     ],
   },
@@ -139,12 +140,15 @@ interface AdminOrganisationLayoutProps {
   children: React.ReactNode;
   title: string;
   activeNav?: ActiveNavType;
+  /** Titre et contenu sur la même ligne (alignés verticalement) */
+  titleOnSameRow?: boolean;
 }
 
 export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = ({
   children,
   title,
   activeNav,
+  titleOnSameRow,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -278,9 +282,7 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <div className={styles.logoIcon}>
-                <span>{t('common.appName')}</span>
-              </div>
+              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
             </div>
           )}
           <button
@@ -384,7 +386,6 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
               </button>
               <button type="button" className={styles.userMenuItem} onClick={toggleLanguage} title={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')} aria-label={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')}>
                 <Globe size={18} />
-                <span>{language === 'fr' ? t('common.langCodeEn') : t('common.langCodeFr')}</span>
               </button>
               <div className={styles.userMenuDivider} />
               <button
@@ -401,6 +402,7 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
 
       <div className={`${styles.main} ${isCollapsed ? styles.mainExpanded : ''}`}>
         <header className={styles.topHeader}>
+          <span className={`${styles.topHeaderAppName} app-name-bold`}>{t('common.appName')}</span>
           <form className={styles.topHeaderSearchForm} onSubmit={handleHeaderSearch}>
             <Search size={18} className={styles.topHeaderSearchIcon} />
             <input
@@ -422,7 +424,6 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
             </button>
             <button type="button" className={styles.topHeaderIconBtn} onClick={toggleLanguage} title={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')} aria-label={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')}>
               <Globe size={18} />
-              <span>{language === 'fr' ? t('common.langCodeEn') : t('common.langCodeFr')}</span>
             </button>
             <button
               type="button"
@@ -452,7 +453,7 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
           >
             <Menu size={24} />
           </button>
-          <span className={styles.appName}>{t('common.appName')}</span>
+          <span className={`${styles.appName} app-name-bold`}>{t('common.appName')}</span>
           <div className={styles.mobileHeaderRight}>
             <button
               type="button"
@@ -464,7 +465,6 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
             </button>
             <button type="button" className={styles.mobileHeaderIconBtn} onClick={toggleLanguage} title={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')} aria-label={language === 'fr' ? t('common.switchToEnglish') : t('common.switchToFrench')}>
               <Globe size={18} />
-              <span>{language === 'fr' ? t('common.langCodeEn') : t('common.langCodeFr')}</span>
             </button>
             <button
               type="button"
@@ -484,9 +484,9 @@ export const AdminOrganisationLayout: React.FC<AdminOrganisationLayoutProps> = (
           </div>
         </header>
 
-        <main className={styles.content}>
+        <main className={`${styles.content} ${titleOnSameRow ? styles.contentTitleRow : ''}`}>
           <h1 className={styles.pageTitle}>{title}</h1>
-          {children}
+          {titleOnSameRow ? <div className={styles.contentBody}>{children}</div> : children}
         </main>
       </div>
     </div>

@@ -10,8 +10,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
-  FileText, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
+  FileText, Filter, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, Lock, FileDown
 } from 'lucide-react';
 import styles from './SystemLogsPage.module.css';
@@ -36,7 +37,7 @@ interface Document {
 const ITEMS_PER_PAGE = 20;
 
 export const SuperAdminDocumentsPage: React.FC = () => {
-  useI18n(); // i18n init only, t not used
+  const { t } = useI18n();
 
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,27 +125,27 @@ export const SuperAdminDocumentsPage: React.FC = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <SuperAdminLayout title="Gestion Documents" activeNav="documents">
+    <SuperAdminLayout title={t('super_admin.documentsTitle')} activeNav="documents">
       <div className={styles['sa-system-logs']}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Gestion des Documents</h2>
-          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>Consultez et gérez tous les documents joints</p>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>{t('super_admin.documentsTitle')}</h2>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>{t('super_admin.documentsSubtitle')}</p>
         </div>
 
         <div className={styles['sa-system-logs__filters']}>
           <div className={styles['sa-system-logs__filter-group']}>
             <Filter size={16} />
             <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous types</option>
-              <option value="plainte_officielle">Plainte officielle</option>
-              <option value="rapport_police">Rapport police</option>
-              <option value="temoignage_ecrit">Témoignage écrit</option>
-              <option value="certificat_medical">Certificat médical</option>
-              <option value="piece_identite">Pièce identité</option>
-              <option value="acte_naissance">Acte naissance</option>
-              <option value="photo_document">Photo document</option>
-              <option value="carte_geographique">Carte géographique</option>
-              <option value="autre">Autre</option>
+              <option value="">{t('super_admin.documentsAllTypes')}</option>
+              <option value="plainte_officielle">{t('super_admin.documentsTypePlainteOfficielle')}</option>
+              <option value="rapport_police">{t('super_admin.documentsTypeRapportPolice')}</option>
+              <option value="temoignage_ecrit">{t('super_admin.documentsTypeTemoignageEcrit')}</option>
+              <option value="certificat_medical">{t('super_admin.documentsTypeCertificatMedical')}</option>
+              <option value="piece_identite">{t('super_admin.documentsTypePieceIdentite')}</option>
+              <option value="acte_naissance">{t('super_admin.documentsTypeActeNaissance')}</option>
+              <option value="photo_document">{t('super_admin.documentsTypePhotoDocument')}</option>
+              <option value="carte_geographique">{t('super_admin.documentsTypeCarteGeographique')}</option>
+              <option value="autre">{t('super_admin.documentsTypeAutre')}</option>
             </select>
           </div>
           <select value={filterConfidentiel} onChange={(e) => { setFilterConfidentiel(e.target.value); setCurrentPage(1); }}>
@@ -154,7 +155,7 @@ export const SuperAdminDocumentsPage: React.FC = () => {
           </select>
           <button onClick={exportToCSV} className={styles['sa-system-logs__export-btn']}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.documentsExportCsv')}
           </button>
         </div>
 
@@ -167,29 +168,29 @@ export const SuperAdminDocumentsPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles['sa-system-logs__loading']}>
-            <Loader2 size={32} className={styles['sa-system-logs__spinner']} />
+          <div className={styles['sa-system-logs__skeletonWrap']}>
+            <AdminTableSkeleton columns={9} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-logs__table-wrapper']}>
             {documents.length === 0 ? (
               <div className={styles['sa-system-logs__empty']}>
                 <FileText size={48} />
-                <p>Aucun document trouvé</p>
+                <p>{t('super_admin.documentsNoDocuments')}</p>
               </div>
             ) : (
               <table className={styles['sa-system-logs__table']}>
                 <thead>
                   <tr>
-                    <th>Nom fichier</th>
-                    <th>Type</th>
-                    <th>Format</th>
-                    <th>Taille</th>
-                    <th>Confidentiel</th>
-                    <th>Dossier</th>
-                    <th>Uploadé par</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th>{t('super_admin.documentsColumnFile')}</th>
+                    <th>{t('super_admin.documentsColumnType')}</th>
+                    <th>{t('super_admin.documentsColumnFormat')}</th>
+                    <th>{t('super_admin.documentsColumnSize')}</th>
+                    <th>{t('super_admin.documentsColumnConfidential')}</th>
+                    <th>{t('super_admin.documentsColumnDossier')}</th>
+                    <th>{t('super_admin.documentsColumnUploadedBy')}</th>
+                    <th>{t('super_admin.documentsColumnDate')}</th>
+                    <th>{t('super_admin.documentsColumnActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -204,10 +205,10 @@ export const SuperAdminDocumentsPage: React.FC = () => {
                       <td>{doc.uploader?.email || '-'}</td>
                       <td>{new Date(doc.date_upload).toLocaleDateString('fr-FR')}</td>
                       <td>
-                        <button onClick={() => setSelectedDocument(doc)} title="Voir">
+                        <button onClick={() => setSelectedDocument(doc)} title={t('common.view')}>
                           <Eye size={16} />
                         </button>
-                        <a href={doc.url_fichier} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '0.5rem' }} title="Télécharger">
+                        <a href={doc.url_fichier} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '0.5rem' }} title={t('common.download')}>
                           <FileDown size={16} />
                         </a>
                       </td>
@@ -222,11 +223,11 @@ export const SuperAdminDocumentsPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-system-logs__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -235,35 +236,35 @@ export const SuperAdminDocumentsPage: React.FC = () => {
           <div className={styles['sa-system-logs__modal-overlay']} onClick={() => setSelectedDocument(null)}>
             <div className={styles['sa-system-logs__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-logs__modal-header']}>
-                <h2>Détails du document</h2>
+                <h2>{t('super_admin.documentsDetailsTitle')}</h2>
                 <button onClick={() => setSelectedDocument(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-logs__modal-body']}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div><strong>Nom fichier:</strong> {selectedDocument.nom_fichier}</div>
-                  <div><strong>Type:</strong> {selectedDocument.type_document}</div>
-                  <div><strong>Format:</strong> {selectedDocument.format_fichier || '-'}</div>
-                  <div><strong>Taille:</strong> {formatFileSize(selectedDocument.taille_octets)}</div>
-                  {selectedDocument.description && <div><strong>Description:</strong> {selectedDocument.description}</div>}
-                  <div><strong>Confidentiel:</strong> {selectedDocument.confidentiel ? 'Oui' : 'Non'}</div>
-                  <div><strong>Date upload:</strong> {new Date(selectedDocument.date_upload).toLocaleString('fr-FR')}</div>
+                  <div><strong>{t('super_admin.documentsDetailFileName')}:</strong> {selectedDocument.nom_fichier}</div>
+                  <div><strong>{t('super_admin.documentsDetailType')}:</strong> {selectedDocument.type_document}</div>
+                  <div><strong>{t('super_admin.documentsDetailFormat')}:</strong> {selectedDocument.format_fichier || '-'}</div>
+                  <div><strong>{t('super_admin.documentsDetailSize')}:</strong> {formatFileSize(selectedDocument.taille_octets)}</div>
+                  {selectedDocument.description && <div><strong>{t('super_admin.documentsDetailDescription')}:</strong> {selectedDocument.description}</div>}
+                  <div><strong>{t('super_admin.documentsDetailConfidential')}:</strong> {selectedDocument.confidentiel ? t('common.yes') : t('common.no')}</div>
+                  <div><strong>{t('super_admin.documentsDetailDateUpload')}:</strong> {new Date(selectedDocument.date_upload).toLocaleString('fr-FR')}</div>
                   {selectedDocument.dossier && (
-                    <div><strong>Dossier:</strong> {selectedDocument.dossier.numero_dossier}</div>
+                    <div><strong>{t('super_admin.documentsDetailDossier')}:</strong> {selectedDocument.dossier.numero_dossier}</div>
                   )}
                   {selectedDocument.signalement && (
-                    <div><strong>Signalement:</strong> {selectedDocument.signalement.numero_signalement}</div>
+                    <div><strong>{t('super_admin.documentsDetailSignalement')}:</strong> {selectedDocument.signalement.numero_signalement}</div>
                   )}
                   {selectedDocument.uploader && (
-                    <div><strong>Uploadé par:</strong> {selectedDocument.uploader.nom} ({selectedDocument.uploader.email})</div>
+                    <div><strong>{t('super_admin.documentsDetailUploadedBy')}:</strong> {selectedDocument.uploader.nom} ({selectedDocument.uploader.email})</div>
                   )}
                 </div>
               </div>
               <div className={styles['sa-system-logs__modal-footer']}>
                 <a href={selectedDocument.url_fichier} target="_blank" rel="noopener noreferrer" style={{ padding: '0.5rem 1rem', background: '#667eea', color: 'white', borderRadius: '0.375rem', textDecoration: 'none' }}>
                   <FileDown size={16} />
-                  Télécharger
+                  {t('super_admin.documentsDownload')}
                 </a>
-                <button onClick={() => setSelectedDocument(null)}>Fermer</button>
+                <button onClick={() => setSelectedDocument(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

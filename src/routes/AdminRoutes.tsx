@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import {
   AdminOrganisationDashboardPage,
   AdminOrganisationUsersPage,
@@ -24,7 +24,6 @@ import {
   AdminOrganisationRolesPage,
   AdminOrganisationAuditLogsPage,
   AdminOrganisationProfilePage,
-  AdminOrganisationApiKeysPage,
   AdminOrganisationAlertesPage,
   AdminOrganisationAlerteDetailPage,
   AdminOrganisationCreateAlertePage,
@@ -45,11 +44,18 @@ import {
   AdminOrganisationCreateCasePage,
   AdminOrganisationRessourcesPage,
   AdminOrganisationPartenariatsPage,
+  AdminOrganisationDonationsPage,
 } from '../pages/admin';
 
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
 import { NomRole } from '../@types/enums.types';
+
+/** Redirige /admin/ia-analysis vers /admin/ia en conservant la query string (ex. resultId). */
+const RedirectAdminIA: React.FC = () => {
+  const { search } = useLocation();
+  return <Navigate to={`/admin/ia${search}`} replace />;
+};
 
 /**
  * AdminRoutes Component
@@ -189,6 +195,7 @@ const AdminRoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+        <Route path="/ia-analysis" element={<RedirectAdminIA />} />
         <Route
           path="/coordination"
           element={
@@ -346,16 +353,6 @@ const AdminRoutes: React.FC = () => {
           }
         />
 
-        {/* API Keys - /admin/api-keys */}
-        <Route
-          path="/api-keys"
-          element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
-              <AdminOrganisationApiKeysPage />
-            </RoleBasedRoute>
-          }
-        />
-
         {/* Settings - /admin/parametres */}
         <Route
           path="/parametres"
@@ -392,6 +389,16 @@ const AdminRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={adminRoles}>
               <AdminOrganisationAuditLogsPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Dons (tous les acteurs peuvent faire un don) */}
+        <Route
+          path="/donations"
+          element={
+            <RoleBasedRoute requiredRoles={adminRoles}>
+              <AdminOrganisationDonationsPage />
             </RoleBasedRoute>
           }
         />

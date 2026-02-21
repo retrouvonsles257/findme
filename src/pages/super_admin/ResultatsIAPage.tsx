@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   Brain, User, Calendar, Filter, Loader2, AlertCircle, 
   Eye, ChevronLeft, ChevronRight, CheckCircle, Percent, X,
@@ -48,7 +49,7 @@ interface ResultatIA {
 const ITEMS_PER_PAGE = 15;
 
 export const SuperAdminResultatsIAPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
 
   const [resultats, setResultats] = useState<ResultatIA[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -187,7 +188,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
       loadResultats();
     } catch (err: any) {
       console.error('Erreur validation:', err);
-      setError('Erreur lors de la validation: ' + err.message);
+      setError(t('super_admin.resultatsIAValidationError', { message: err.message }));
     } finally {
       setIsProcessing(false);
     }
@@ -214,7 +215,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
 
   const handleMassValidate = async (newStatut: 'confirme' | 'infirme' | 'incertain') => {
     if (selectedIds.size === 0) {
-      setError('Veuillez sélectionner au moins un résultat');
+      setError(t('super_admin.resultatsIASelectOne'));
       return;
     }
 
@@ -239,11 +240,12 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
       setSelectedIds(new Set());
       setIsSelecting(false);
       loadResultats();
-      setSuccess(`${idsArray.length} résultat(s) ${newStatut === 'confirme' ? 'confirmé(s)' : newStatut === 'infirme' ? 'infirmé(s)' : 'marqué(s) comme incertain(s)'} avec succès`);
+      const statusKey = newStatut === 'confirme' ? 'resultatsIAConfirmes' : newStatut === 'infirme' ? 'resultatsIAInfirmes' : 'resultatsIAIncertains';
+      setSuccess(t('super_admin.resultatsIAMassSuccess', { count: idsArray.length, status: t(`super_admin.${statusKey}`) }));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       console.error('Erreur validation en masse:', err);
-      setError('Erreur lors de la validation en masse: ' + err.message);
+      setError(t('super_admin.resultatsIAMassError', { message: err.message }));
     } finally {
       setIsProcessingMass(false);
     }
@@ -334,7 +336,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
       link.click();
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.resultatsIAExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -342,24 +344,24 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      reconnaissance_faciale: 'Reconnaissance faciale',
-      comparaison_photos: 'Comparaison photos',
-      analyse_signalement: 'Analyse signalement',
-      detection_anomalie: 'Détection anomalie',
-      autre: 'Autre',
+      reconnaissance_faciale: t('super_admin.resultatsIATypeReconnaissanceFaciale'),
+      comparaison_photos: t('super_admin.resultatsIATypeComparaisonPhotos'),
+      analyse_signalement: t('super_admin.resultatsIATypeAnalyseSignalement'),
+      detection_anomalie: t('super_admin.resultatsIATypeDetectionAnomalie'),
+      autre: t('super_admin.resultatsIATypeAutre'),
     };
     return labels[type] || type;
   };
 
   const getStatutLabel = (statut: string) => {
     const labels: Record<string, string> = {
-      en_attente: 'En attente',
-      confirme: 'Confirmé',
-      infirme: 'Infirmé',
-      incertain: 'Incertain',
-      necessite_verification: 'Nécessite vérification',
+      en_attente: t('super_admin.resultatsIAStatutEnAttente'),
+      confirme: t('super_admin.resultatsIAStatutConfirme'),
+      infirme: t('super_admin.resultatsIAStatutInfirme'),
+      incertain: t('super_admin.resultatsIAStatutIncertain'),
+      necessite_verification: t('super_admin.resultatsIAStatutNecessiteVerification'),
     };
-    return labels[statut] || statut || 'En attente';
+    return labels[statut] || statut || t('super_admin.resultatsIAStatutEnAttente');
   };
 
   const getStatutColor = (statut: string) => {
@@ -380,7 +382,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
   };
 
   return (
-    <SuperAdminLayout title="Résultats IA" activeNav="resultats-ia">
+    <SuperAdminLayout title={t('super_admin.resultatsIATitle')} activeNav="resultats-ia">
       <div className={styles['sa-resultats-ia']}>
         {/* Stats Cards */}
         <div className={styles['sa-resultats-ia__stats']}>
@@ -388,28 +390,28 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
             <Brain size={24} />
             <div>
               <span className={styles['sa-resultats-ia__stat-value']}>{stats.total}</span>
-              <span className={styles['sa-resultats-ia__stat-label']}>Total analyses</span>
+              <span className={styles['sa-resultats-ia__stat-label']}>{t('super_admin.resultatsIAStatTotal')}</span>
             </div>
           </div>
           <div className={styles['sa-resultats-ia__stat-card']}>
             <CheckCircle size={24} />
             <div>
               <span className={styles['sa-resultats-ia__stat-value']}>{stats.validated}</span>
-              <span className={styles['sa-resultats-ia__stat-label']}>Validées</span>
+              <span className={styles['sa-resultats-ia__stat-label']}>{t('super_admin.resultatsIAStatValidated')}</span>
             </div>
           </div>
           <div className={styles['sa-resultats-ia__stat-card']}>
             <AlertCircle size={24} />
             <div>
               <span className={styles['sa-resultats-ia__stat-value']}>{stats.pending}</span>
-              <span className={styles['sa-resultats-ia__stat-label']}>En attente</span>
+              <span className={styles['sa-resultats-ia__stat-label']}>{t('super_admin.resultatsIAStatPending')}</span>
             </div>
           </div>
           <div className={styles['sa-resultats-ia__stat-card']}>
             <Percent size={24} />
             <div>
               <span className={styles['sa-resultats-ia__stat-value']}>{stats.avgScore}%</span>
-              <span className={styles['sa-resultats-ia__stat-label']}>Score moyen</span>
+              <span className={styles['sa-resultats-ia__stat-label']}>{t('super_admin.resultatsIAStatAvgScore')}</span>
             </div>
           </div>
         </div>
@@ -420,21 +422,21 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
             <div className={styles['sa-resultats-ia__filter-group']}>
               <Filter size={16} />
               <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-                <option value="">Tous types</option>
-                <option value="reconnaissance_faciale">Reconnaissance faciale</option>
-                <option value="comparaison_photos">Comparaison photos</option>
-                <option value="analyse_signalement">Analyse signalement</option>
-                <option value="detection_anomalie">Détection anomalie</option>
+                <option value="">{t('super_admin.resultatsIAFilterAllTypes')}</option>
+                <option value="reconnaissance_faciale">{t('super_admin.resultatsIATypeReconnaissanceFaciale')}</option>
+                <option value="comparaison_photos">{t('super_admin.resultatsIATypeComparaisonPhotos')}</option>
+                <option value="analyse_signalement">{t('super_admin.resultatsIATypeAnalyseSignalement')}</option>
+                <option value="detection_anomalie">{t('super_admin.resultatsIATypeDetectionAnomalie')}</option>
               </select>
             </div>
             <div className={styles['sa-resultats-ia__filter-group']}>
               <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-                <option value="">Tous statuts</option>
-                <option value="en_attente">En attente</option>
-                <option value="confirme">Confirmé</option>
-                <option value="infirme">Infirmé</option>
-                <option value="incertain">Incertain</option>
-                <option value="necessite_verification">Nécessite vérification</option>
+                <option value="">{t('super_admin.resultatsIAFilterAllStatuses')}</option>
+                <option value="en_attente">{t('super_admin.resultatsIAStatutEnAttente')}</option>
+                <option value="confirme">{t('super_admin.resultatsIAStatutConfirme')}</option>
+                <option value="infirme">{t('super_admin.resultatsIAStatutInfirme')}</option>
+                <option value="incertain">{t('super_admin.resultatsIAStatutIncertain')}</option>
+                <option value="necessite_verification">{t('super_admin.resultatsIAStatutNecessiteVerification')}</option>
               </select>
             </div>
           </div>
@@ -456,7 +458,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
               }}
             >
               <Download size={16} />
-              Exporter CSV
+              {t('common.exportCsv')}
             </button>
             {!isSelecting ? (
               <button 
@@ -473,7 +475,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                 }}
               >
                 <CheckSquare size={16} />
-                Sélection multiple
+                {t('super_admin.resultatsIASelectionMultiple')}
               </button>
             ) : (
               <>
@@ -491,7 +493,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                   }}
                 >
                   {selectedIds.size === resultats.length ? <Square size={16} /> : <CheckSquare size={16} />}
-                  {selectedIds.size === resultats.length ? 'Tout désélectionner' : 'Tout sélectionner'} ({selectedIds.size})
+                  {selectedIds.size === resultats.length ? t('super_admin.resultatsIADeselectAll') : t('super_admin.resultatsIASelectAll')} ({selectedIds.size})
                 </button>
                 {selectedIds.size > 0 && (
                   <>
@@ -511,7 +513,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                       }}
                     >
                       {isProcessingMass ? <Loader2 size={16} className={styles['sa-resultats-ia__spinner']} /> : <CheckCircle size={16} />}
-                      Valider ({selectedIds.size})
+                      {t('super_admin.resultatsIAValidate')} ({selectedIds.size})
                     </button>
                     <button 
                       onClick={() => handleMassValidate('infirme')}
@@ -529,7 +531,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                       }}
                     >
                       {isProcessingMass ? <Loader2 size={16} className={styles['sa-resultats-ia__spinner']} /> : <X size={16} />}
-                      Infirmer ({selectedIds.size})
+                      {t('super_admin.resultatsIAInfirm')} ({selectedIds.size})
                     </button>
                     <button 
                       onClick={() => { setIsSelecting(false); setSelectedIds(new Set()); }}
@@ -542,7 +544,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                         cursor: 'pointer'
                       }}
                     >
-                      Annuler
+                      {t('common.cancel')}
                     </button>
                   </>
                 )}
@@ -580,8 +582,8 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-resultats-ia__loading']}>
-            <Loader2 size={32} className={styles['sa-resultats-ia__spinner']} />
+          <div className={styles['sa-resultats-ia__skeletonWrap']}>
+            <AdminTableSkeleton columns={7} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-resultats-ia__table-wrapper']}>
@@ -656,14 +658,14 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                             <button 
                               onClick={() => handleValidate(resultat, 'confirme')}
                               className={styles['sa-resultats-ia__btn-validate']}
-                              title="Confirmer"
+                              title={t('common.confirm')}
                             >
                               <CheckCircle size={16} />
                             </button>
                             <button 
                               onClick={() => handleValidate(resultat, 'infirme')}
                               className={styles['sa-resultats-ia__btn-reject']}
-                              title="Infirmer"
+                              title={t('super_admin.resultatsIAInfirm')}
                             >
                               <X size={16} />
                             </button>
@@ -682,11 +684,11 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-resultats-ia__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.resultatsIAPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -696,73 +698,73 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
           <div className={styles['sa-resultats-ia__modal-overlay']} onClick={() => setSelectedResultat(null)}>
             <div className={styles['sa-resultats-ia__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-resultats-ia__modal-header']}>
-                <h2>Détails de l&apos;analyse IA</h2>
-                <button type="button" onClick={() => setSelectedResultat(null)} className={styles['sa-resultats-ia__modal-close']} aria-label="Fermer">
+                <h2>{t('super_admin.resultatsIAModalTitle')}</h2>
+                <button type="button" onClick={() => setSelectedResultat(null)} className={styles['sa-resultats-ia__modal-close']} aria-label={t('common.close')}>
                   <X size={20} />
                 </button>
               </div>
               <div className={styles['sa-resultats-ia__modal-body']}>
               <div className={styles['sa-resultats-ia__details']}>
-                <p><strong>Type:</strong> {getTypeLabel(selectedResultat.type_analyse)}</p>
-                <p><strong>Date analyse:</strong> {new Date(selectedResultat.date_analyse).toLocaleString('fr-FR')}</p>
-                <p><strong>Score confiance:</strong> {selectedResultat.score_confiance != null ? `${Math.round(selectedResultat.score_confiance * 100)}%` : '-'}</p>
-                <p><strong>Seuil décision:</strong> {selectedResultat.seuil_decision != null ? `${Math.round(selectedResultat.seuil_decision * 100)}%` : '-'}</p>
-                <p><strong>Statut:</strong> {getStatutLabel(selectedResultat.statut_validation || 'en_attente')}</p>
+                <p><strong>{t('super_admin.resultatsIADetailType')}:</strong> {getTypeLabel(selectedResultat.type_analyse)}</p>
+                <p><strong>{t('super_admin.resultatsIADetailDateAnalyse')}:</strong> {new Date(selectedResultat.date_analyse).toLocaleString('fr-FR')}</p>
+                <p><strong>{t('super_admin.resultatsIADetailScore')}:</strong> {selectedResultat.score_confiance != null ? `${Math.round(selectedResultat.score_confiance * 100)}%` : '-'}</p>
+                <p><strong>{t('super_admin.resultatsIADetailSeuil')}:</strong> {selectedResultat.seuil_decision != null ? `${Math.round(selectedResultat.seuil_decision * 100)}%` : '-'}</p>
+                <p><strong>{t('super_admin.resultatsIADetailStatut')}:</strong> {getStatutLabel(selectedResultat.statut_validation || 'en_attente')}</p>
                 {selectedResultat.dossier && (
-                  <p><strong>Dossier:</strong> {selectedResultat.dossier.numero_dossier} - {selectedResultat.dossier.personne ? `${selectedResultat.dossier.personne.prenom || ''} ${selectedResultat.dossier.personne.nom || ''}`.trim() : '-'}</p>
+                  <p><strong>{t('super_admin.resultatsIADetailDossier')}:</strong> {selectedResultat.dossier.numero_dossier} - {selectedResultat.dossier.personne ? `${selectedResultat.dossier.personne.prenom || ''} ${selectedResultat.dossier.personne.nom || ''}`.trim() : '-'}</p>
                 )}
                 {selectedResultat.signalement && (
-                  <p><strong>Signalement:</strong> {selectedResultat.signalement.numero_signalement || '-'}</p>
+                  <p><strong>{t('super_admin.resultatsIADetailSignalement')}:</strong> {selectedResultat.signalement.numero_signalement || '-'}</p>
                 )}
                 {selectedResultat.demandeur && (
-                  <p><strong>Déclenché par:</strong> {selectedResultat.demandeur.nom} ({selectedResultat.demandeur.email})</p>
+                  <p><strong>{t('super_admin.resultatsIADetailDeclenchePar')}:</strong> {selectedResultat.demandeur.nom} ({selectedResultat.demandeur.email})</p>
                 )}
                 {selectedResultat.validateur && (
-                  <p><strong>Validé par:</strong> {selectedResultat.validateur.nom} ({selectedResultat.validateur.email})</p>
+                  <p><strong>{t('super_admin.resultatsIADetailValidePar')}:</strong> {selectedResultat.validateur.nom} ({selectedResultat.validateur.email})</p>
                 )}
                 {selectedResultat.date_validation && (
-                  <p><strong>Date validation:</strong> {new Date(selectedResultat.date_validation).toLocaleString('fr-FR')}</p>
+                  <p><strong>{t('super_admin.resultatsIADetailDateValidation')}:</strong> {new Date(selectedResultat.date_validation).toLocaleString('fr-FR')}</p>
                 )}
                 {selectedResultat.commentaire_validation && (
-                  <p><strong>Commentaire validation:</strong> {selectedResultat.commentaire_validation}</p>
+                  <p><strong>{t('super_admin.resultatsIADetailCommentaireValidation')}:</strong> {selectedResultat.commentaire_validation}</p>
                 )}
                 {selectedResultat.modele_ia_utilise && (
-                  <p><strong>Modèle IA:</strong> {selectedResultat.modele_ia_utilise} {selectedResultat.version_modele ? `(v${selectedResultat.version_modele})` : ''}</p>
+                  <p><strong>{t('super_admin.resultatsIADetailModeleIA')}:</strong> {selectedResultat.modele_ia_utilise} {selectedResultat.version_modele ? `(v${selectedResultat.version_modele})` : ''}</p>
                 )}
                 {selectedResultat.temps_traitement_ms != null && (
-                  <p><strong>Temps traitement:</strong> {selectedResultat.temps_traitement_ms}ms</p>
+                  <p><strong>{t('super_admin.resultatsIADetailTempsTraitement')}:</strong> {selectedResultat.temps_traitement_ms}ms</p>
                 )}
                 <div className={styles['sa-resultats-ia__json']}>
-                  <strong>Données brutes:</strong>
+                  <strong>{t('super_admin.resultatsIADonneesBrutes')}:</strong>
                   <pre>{JSON.stringify(selectedResultat.donnees_brutes, null, 2)}</pre>
                 </div>
                 {selectedResultat.donnees_interpretees && (
                   <div className={styles['sa-resultats-ia__json']}>
-                    <strong>Données interprétées:</strong>
+                    <strong>{t('super_admin.resultatsIADonneesInterpretees')}:</strong>
                     <pre>{JSON.stringify(selectedResultat.donnees_interpretees, null, 2)}</pre>
                   </div>
                 )}
                 {selectedResultat.correspondances_trouvees && (
                   <div className={styles['sa-resultats-ia__json']}>
-                    <strong>Correspondances trouvées:</strong>
+                    <strong>{t('super_admin.resultatsIACorrespondancesTrouvees')}:</strong>
                     <pre>{JSON.stringify(selectedResultat.correspondances_trouvees, null, 2)}</pre>
                   </div>
                 )}
                 {selectedResultat.zones_predites && (
                   <div className={styles['sa-resultats-ia__json']}>
-                    <strong>Zones prédites:</strong>
+                    <strong>{t('super_admin.resultatsIAZonesPredites')}:</strong>
                     <pre>{JSON.stringify(selectedResultat.zones_predites, null, 2)}</pre>
                   </div>
                 )}
                 {selectedResultat.facteurs_cles && (
                   <div className={styles['sa-resultats-ia__json']}>
-                    <strong>Facteurs clés:</strong>
+                    <strong>{t('super_admin.resultatsIAFacteursCles')}:</strong>
                     <pre>{JSON.stringify(selectedResultat.facteurs_cles, null, 2)}</pre>
                   </div>
                 )}
                 {selectedResultat.recommandations && (
                   <div className={styles['sa-resultats-ia__json']}>
-                    <strong>Recommandations:</strong>
+                    <strong>{t('super_admin.resultatsIARecommandations')}:</strong>
                     <pre>{JSON.stringify(selectedResultat.recommandations, null, 2)}</pre>
                   </div>
                 )}
@@ -778,7 +780,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                       disabled={isProcessing}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-resultats-ia__spinner']} /> : <X size={16} />}
-                      Infirmer
+                      {t('super_admin.resultatsIAInfirm')}
                     </button>
                     <button 
                       type="button"
@@ -787,7 +789,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                       disabled={isProcessing}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-resultats-ia__spinner']} /> : <AlertCircle size={16} />}
-                      Incertain
+                      {t('super_admin.resultatsIAIncertain')}
                     </button>
                     <button 
                       type="button"
@@ -796,11 +798,11 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
                       disabled={isProcessing}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-resultats-ia__spinner']} /> : <CheckCircle size={16} />}
-                      Confirmer
+                      {t('common.confirm')}
                     </button>
                   </>
                 )}
-                <button type="button" onClick={() => setSelectedResultat(null)} className={styles['sa-resultats-ia__btn-close']}>Fermer</button>
+                <button type="button" onClick={() => setSelectedResultat(null)} className={styles['sa-resultats-ia__btn-close']}>{t('common.close')}</button>
               </div>
             </div>
           </div>

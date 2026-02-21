@@ -236,12 +236,10 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <div className={styles.logoIcon}>
-                <span>RetrouvonsLes</span>
-              </div>
+              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
             </div>
           )}
-          
+
           {/* Bouton toggle desktop */}
           <button 
             className={styles.toggleBtn}
@@ -371,6 +369,7 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
       <div className={`${styles.main} ${isCollapsed ? styles.mainExpanded : ''}`}>
         {/* Header desktop (search + langue + notifications + user) */}
         <header className={styles.topHeader}>
+          <span className={`${styles.topHeaderAppName} app-name-bold`}>{t('common.appName')}</span>
           <form className={styles.topHeaderSearchForm} onSubmit={handleHeaderSearch}>
             <Search size={18} className={styles.topHeaderSearchIcon} />
             <input
@@ -427,7 +426,7 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
           >
             <Menu size={24} />
           </button>
-          <span className={styles.appName}>RetrouvonsLes</span>
+          <span className={`${styles.appName} app-name-bold`}>{t('common.appName')}</span>
           <div className={styles.mobileHeaderRight}>
             <button
               type="button"

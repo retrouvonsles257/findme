@@ -56,8 +56,9 @@
   padding: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   background: var(--ngo-bg-main);
-  min-height: calc(100vh - var(--ngo-header-height));
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
 }

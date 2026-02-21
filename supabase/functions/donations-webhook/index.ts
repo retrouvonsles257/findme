@@ -44,19 +44,25 @@ function timingSafeEqual(a: string, b: string): boolean {
   return out === 0;
 }
 
-async function hmacSha256Hex(secret: string, data: string): Promise<string> {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const signature = await crypto.subtle.sign('HMAC', key, enc.encode(data));
-  return Array.from(new Uint8Array(signature))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+const FINAL_STATUTS: string[] = ['reussi', 'echoue', 'annule', 'rembourse'];
+
+async function getDonByProviderReference(
+  supabase: ReturnType<typeof createClient>,
+  providerReference: string,
+): Promise<{ id: string; statut_paiement: string; id_utilisateur?: string } | null> {
+  const byProviderRef = await (supabase as any)
+    .from('don')
+    .select('id, statut_paiement, id_utilisateur')
+    .eq('provider_reference', providerReference)
+    .maybeSingle();
+  if (!byProviderRef.error && byProviderRef.data) return byProviderRef.data;
+  const byLegacyRef = await (supabase as any)
+    .from('don')
+    .select('id, statut_paiement, id_utilisateur')
+    .eq('reference_transaction', providerReference)
+    .maybeSingle();
+  if (!byLegacyRef.error && byLegacyRef.data) return byLegacyRef.data;
+  return null;
 }
 
 async function updateDonationByReference(
@@ -231,6 +237,12 @@ serve(async (req: Request) => {
       else if (statusFromCinetPay === 'CANCELED' || (checkJson as any)?.message === 'TRANSACTION_CANCEL') mapped = 'annule';
       else if (statusFromCinetPay === 'WAITING_FOR_CUSTOMER') mapped = 'en_attente';
 
+      const existing = await getDonByProviderReference(supabase, cpm_trans_id);
+      if (existing && FINAL_STATUTS.includes(existing.statut_paiement)) {
+        return new Response('ok', { status: 200, headers: corsHeaders });
+      }
+      const ancienStatut = existing?.statut_paiement ?? 'inconnu';
+
       const nowIso = new Date().toISOString();
       const update: Record<string, unknown> = {
         statut_paiement: mapped,
@@ -241,9 +253,26 @@ serve(async (req: Request) => {
       const updated = await updateDonationByReference(supabase, cpm_trans_id, update);
       if (updated.error) {
         console.error('[donations-webhook] Donation update failed', updated.error);
+      } else if (updated.data) {
+        try {
+          await (supabase as any).from('journal_activite').insert({
+            type_action: 'autre',
+            action_detaillee: 'don_statut_webhook',
+            description: `Webhook don ${(updated.data as any)?.id} — ${ancienStatut} → ${mapped}`,
+            id_utilisateur: (existing as any)?.id_utilisateur ?? null,
+            donnees_apres: {
+              don_id: (updated.data as any)?.id,
+              provider_reference: cpm_trans_id,
+              ancien_statut: ancienStatut,
+              nouveau_statut: mapped,
+            },
+            date_action: nowIso,
+          });
+        } catch (journalErr) {
+          console.error('[donations-webhook] journal_activite insert (non blocking)', journalErr);
+        }
       }
 
-      // Always 200 OK for CinetPay
       return new Response('ok', { status: 200, headers: corsHeaders });
     }
 
@@ -259,10 +288,16 @@ serve(async (req: Request) => {
       return jsonResponse({ error: 'provider_reference is required' }, 400);
     }
 
+    const existing = await getDonByProviderReference(supabase, providerReference);
+    if (existing && FINAL_STATUTS.includes(existing.statut_paiement)) {
+      return jsonResponse({ ok: true, donation: existing, idempotent: true });
+    }
+    const ancienStatut = existing?.statut_paiement ?? 'inconnu';
+
     const nowIso = new Date().toISOString();
     const update: Record<string, unknown> = {
       statut_paiement: status,
-      updated_at: nowIso, // column may not exist yet (migration optional)
+      updated_at: nowIso,
     };
     if (status === 'reussi') update.date_traitement = nowIso;
 
@@ -272,6 +307,24 @@ serve(async (req: Request) => {
         { error: 'Donation not found', details: updated.error.message },
         404,
       );
+    }
+
+    try {
+      await (supabase as any).from('journal_activite').insert({
+        type_action: 'autre',
+        action_detaillee: 'don_statut_webhook',
+        description: `Webhook don ${(updated.data as any)?.id} — ${ancienStatut} → ${status}`,
+        id_utilisateur: (existing as any)?.id_utilisateur ?? null,
+        donnees_apres: {
+          don_id: (updated.data as any)?.id,
+          provider_reference: providerReference,
+          ancien_statut: ancienStatut,
+          nouveau_statut: status,
+        },
+        date_action: nowIso,
+      });
+    } catch (journalErr) {
+      console.error('[donations-webhook] journal_activite insert (non blocking)', journalErr);
     }
 
     return jsonResponse({ ok: true, donation: updated.data });

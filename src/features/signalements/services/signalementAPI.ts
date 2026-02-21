@@ -93,6 +93,20 @@ export async function createSignalement(
     .single();
 
   if (error) throw error;
+
+  // Confirmation de réception (docs : citoyens "Reçoivent juste confirmation de réception")
+  const dateCreation = new Date().toISOString();
+  await (supabase.from('notification') as any).insert({
+    type_notification: 'autre',
+    titre: 'Signalement reçu',
+    message: 'Votre signalement a bien été enregistré et sera examiné par nos équipes. Vous serez notifié en cas de mise à jour.',
+    canal: 'in_app',
+    lue: false,
+    date_creation: dateCreation,
+    id_utilisateur: userId,
+    donnees_supplementaires: data?.id ? { signalement_id: data.id } : undefined,
+  });
+
   return data;
 }
 

@@ -25,6 +25,7 @@ import {
   CoordinationPage,
   MapViewPage,
   DonationsPage,
+  AuthorityDonatePage,
   StatistiquesPage,
   ProfilePage,
   NotificationsPage,
@@ -33,10 +34,12 @@ import {
 import PrivateRoute from './PrivateRoutes';
 import RoleBasedRoute from './RoleBasedRoute';
 import { NomRole } from '../@types/enums.types';
+import { CoordinationReadProvider } from '../features/coordination/context/CoordinationReadContext';
 
 /**
  * AuthorityRoutes Component
  * Routes protégées pour les autorités (niveau 4) et admin d'organisation (niveau 6, héritage création dossiers, alertes, IA)
+ * CoordinationReadProvider ici pour qu'il ne se démonte pas à chaque changement de page (badge messages de coordination persistant).
  */
 const AuthorityRoutes: React.FC = () => {
   const authorityRoles = [
@@ -47,7 +50,8 @@ const AuthorityRoutes: React.FC = () => {
 
   return (
     <PrivateRoute>
-      <Routes>
+      <CoordinationReadProvider>
+        <Routes>
         {/* Default redirect */}
         <Route
           path="/"
@@ -225,6 +229,16 @@ const AuthorityRoutes: React.FC = () => {
           }
         />
 
+        {/* Page dédiée Faire un don (accès depuis Dons et campagnes uniquement, pas dans la sidebar) */}
+        <Route
+          path="/donations/faire-un-don"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <AuthorityDonatePage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* ==================== STATISTIQUES ==================== */}
         
         <Route
@@ -286,6 +300,7 @@ const AuthorityRoutes: React.FC = () => {
           element={<Navigate to="/authority/dashboard" replace />}
         />
       </Routes>
+      </CoordinationReadProvider>
     </PrivateRoute>
   );
 };

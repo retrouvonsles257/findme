@@ -292,7 +292,7 @@ export const useDons = (): UseDonsReturn => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const history = await donService.getDonorDonationHistory(email);
+      const history = await donService.getDonorDonationHistory({ email });
       setState((prev) => ({
         ...prev,
         loading: false,

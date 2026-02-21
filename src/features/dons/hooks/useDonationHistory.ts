@@ -23,7 +23,8 @@ export interface UseDonationHistoryState {
 }
 
 export interface UseDonationHistoryActions {
-  fetchDonorHistory: (email: string) => Promise<void>;
+  /** Charge "Mes dons" : priorité userId (connecté), sinon email. */
+  fetchDonorHistory: (options: { userId?: string | null; email?: string | null; limit?: number }) => Promise<void>;
   fetchRecentDonations: (limit?: number) => Promise<void>;
   fetchStatistics: () => Promise<void>;
   clearHistory: () => void;
@@ -51,7 +52,7 @@ export const useDonationHistory = (): UseDonationHistoryReturn => {
 
   // ========== DONOR HISTORY ==========
 
-  const fetchDonorHistory = useCallback(async (email: string) => {
+  const fetchDonorHistory = useCallback(async (options: { userId?: string | null; email?: string | null; limit?: number }) => {
     try {
       setState((prev) => ({
         ...prev,
@@ -59,7 +60,7 @@ export const useDonationHistory = (): UseDonationHistoryReturn => {
         error: null,
       }));
 
-      const history = await donService.getDonorDonationHistory(email);
+      const history = await donService.getDonorDonationHistory(options);
 
       setState((prev) => ({
         ...prev,

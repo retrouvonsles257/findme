@@ -399,7 +399,7 @@ export async function getAdminOrganisationUrgencyCounts(
   const { data, error } = await db('dossier_disparition')
     .select('niveau_urgence')
     .eq('id_organisation_responsable', organisationId)
-    .in('statut_dossier', ['en_cours', 'en_analyse']);
+    .in('statut_dossier', ['en_cours']);
   if (error) throw error;
   const counts: AdminUrgencyCounts = { critique: 0, urgent: 0, normal: 0, faible: 0 };
   (data || []).forEach((r: { niveau_urgence?: string }) => {
@@ -628,7 +628,7 @@ export async function getAdminOrganisationSignalements(
       created_at,
       id_dossier,
       dossier:dossier_disparition(numero_dossier),
-      utilisateur:utilisateur(nom, prenom)
+      utilisateur:utilisateur!signalement_id_utilisateur_fkey(nom, prenom)
     `)
     .in('id_dossier', dossierIds)
     .order('created_at', { ascending: false });
@@ -1114,6 +1114,17 @@ export async function traiterDemandeVerificationIdentite(
           commentaire: commentaire || 'Identité vérifiée',
         }, { onConflict: 'id_utilisateur,id_role' });
       }
+
+      // Notification de validation du compte (docs : étape 8 - "L'utilisateur reçoit une notification de validation")
+      await db('notification').insert({
+        type_notification: 'autre',
+        titre: 'Compte vérifié',
+        message: 'Votre demande de vérification d\'identité a été acceptée. Vous avez maintenant le statut Citoyen vérifié.',
+        canal: 'in_app',
+        lue: false,
+        date_creation: traiteLe,
+        id_utilisateur: demande.id_utilisateur,
+      });
     }
   }
 }

@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FolderOpen,
   AlertTriangle,
@@ -47,6 +47,7 @@ interface DashboardStats {
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = useAppSelector(selectCurrentUser);
   const { dossiers, isLoading: dossiersLoading, fetchDossiers } = useDossiers();
   const { signalements, isLoading: signalementsLoading, fetchSignalements } = useSignalements();
@@ -73,6 +74,15 @@ export const DashboardPage: React.FC = () => {
       navigate('/');
     }
   }, [currentUser, navigate]);
+
+  // Recharger dossiers, signalements et alertes à chaque entrée sur le dashboard (badge et listes à jour)
+  const isDashboard = location.pathname === '/authority/dashboard' || location.pathname.endsWith('/dashboard');
+  useEffect(() => {
+    if (!isDashboard) return;
+    fetchDossiers();
+    fetchSignalements(undefined, 1);
+    fetchAlertes();
+  }, [isDashboard, fetchDossiers, fetchSignalements, fetchAlertes]);
 
   // Calculate statistics from real data
   useEffect(() => {
@@ -148,6 +158,50 @@ export const DashboardPage: React.FC = () => {
           </div>
         </header>
 
+        {isLoading ? (
+          /* Skeleton : grille stats + actions + blocs récents */
+          <div className={styles.dashboardSkeleton}>
+            <div className={styles.dashboardSkeleton__statsGrid}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className={styles.dashboardSkeleton__statCard}>
+                  <div className={styles.dashboardSkeleton__statIcon} />
+                  <div className={styles.dashboardSkeleton__statValue} />
+                  <div className={styles.dashboardSkeleton__statLabel} />
+                </div>
+              ))}
+            </div>
+            <div className={styles.dashboardSkeleton__sectionTitle} />
+            <div className={styles.dashboardSkeleton__actionsGrid}>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className={styles.dashboardSkeleton__actionCard}>
+                  <div className={styles.dashboardSkeleton__actionIcon} />
+                  <div className={styles.dashboardSkeleton__actionLabel} />
+                </div>
+              ))}
+            </div>
+            <div className={styles.dashboardSkeleton__recentGrid}>
+              <div className={styles.dashboardSkeleton__recentSection}>
+                <div className={styles.dashboardSkeleton__sectionTitle} />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={styles.dashboardSkeleton__listItem}>
+                    <div className={styles.dashboardSkeleton__line} />
+                    <div className={styles.dashboardSkeleton__lineShort} />
+                  </div>
+                ))}
+              </div>
+              <div className={styles.dashboardSkeleton__recentSection}>
+                <div className={styles.dashboardSkeleton__sectionTitle} />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={styles.dashboardSkeleton__listItem}>
+                    <div className={styles.dashboardSkeleton__line} />
+                    <div className={styles.dashboardSkeleton__lineShort} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Statistics Grid */}
         <section className={styles.statsSection}>
           <div className={styles.statsGrid}>
@@ -453,6 +507,8 @@ export const DashboardPage: React.FC = () => {
                 ))}
             </div>
           </section>
+        )}
+          </>
         )}
       </div>
     </AuthorityLayout>

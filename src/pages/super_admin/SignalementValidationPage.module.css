@@ -125,7 +125,14 @@
   cursor: pointer;
 }
 
-/* Loading */
+/* Loading / Skeleton */
+.sa-signalement-validation__skeletonWrap {
+  padding: 0.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .sa-signalement-validation__loading {
   display: flex;
   justify-content: center;
@@ -567,5 +574,16 @@
   .sa-signalement-validation__modal-footer button {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sa-signalement-validation {
+    padding: 0.75rem;
+  }
+
+  .sa-signalement-validation__stats {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 }

@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   Bell, Plus, Edit2, Trash2, X, Minus, Check,
   Loader2, AlertCircle, Search, Eye, Calendar,
@@ -100,7 +101,7 @@ const DEFAULT_ALERTE_CONFIG: AlerteGlobalConfig = {
 };
 
 const SuperAdminAlertesPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
   
   const [alertes, setAlertes] = useState<Alerte[]>([]);
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
@@ -295,7 +296,7 @@ const SuperAdminAlertesPage: React.FC = () => {
       if (upsertError) throw upsertError;
 
       setOriginalGlobalConfig(globalConfig);
-      setSuccess('Configuration globale des alertes sauvegardée avec succès');
+      setSuccess(t('super_admin.alertesConfigSaved'));
       setTimeout(() => setSuccess(null), 3000);
       setShowGlobalConfig(false);
     } catch (err: any) {
@@ -438,7 +439,7 @@ const SuperAdminAlertesPage: React.FC = () => {
         if (updateError) throw updateError;
       }
 
-      setSuccess(modalMode === 'create' ? 'Alerte créée avec succès' : 'Alerte modifiée avec succès');
+      setSuccess(modalMode === 'create' ? t('super_admin.alertesCreateSuccess') : t('super_admin.alertesUpdateSuccess'));
       setTimeout(() => setSuccess(null), 3000);
       setShowModal(false);
       loadData();
@@ -584,7 +585,7 @@ const SuperAdminAlertesPage: React.FC = () => {
       link.click();
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.alertesExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -603,14 +604,25 @@ const SuperAdminAlertesPage: React.FC = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      amber_alert: 'Alerte Amber',
-      disparition_enfant: 'Disparition enfant',
-      disparition_adulte_vulnerable: 'Disparition adulte vulnérable',
-      disparition_standard: 'Disparition standard',
-      mise_a_jour: 'Mise à jour',
-      personne_retrouvee: 'Personne retrouvée',
+      amber_alert: t('super_admin.alertesTypeAmberAlert'),
+      disparition_enfant: t('super_admin.alertesTypeDisparitionEnfant'),
+      disparition_adulte_vulnerable: t('super_admin.alertesTypeDisparitionAdulteVulnerable'),
+      disparition_standard: t('super_admin.alertesTypeDisparitionStandard'),
+      mise_a_jour: t('super_admin.alertesTypeMiseAJour'),
+      personne_retrouvee: t('super_admin.alertesTypePersonneRetrouvee'),
     };
     return labels[type] || type;
+  };
+
+  const getStatutLabel = (statut: string) => {
+    const labels: Record<string, string> = {
+      brouillon: t('super_admin.alertesStatutBrouillon'),
+      programmee: t('super_admin.alertesStatutProgrammee'),
+      en_cours: t('super_admin.alertesStatutEnCours'),
+      terminee: t('super_admin.alertesStatutTerminee'),
+      annulee: t('super_admin.alertesStatutAnnulee'),
+    };
+    return labels[statut] || statut;
   };
 
   const roundStep = (v: number, s: number) => (s >= 1 ? Math.round(v) : Math.round(v * 100) / 100);
@@ -619,24 +631,24 @@ const SuperAdminAlertesPage: React.FC = () => {
     { value: number; onChange: (v: number) => void; min: number; max: number; step?: number }
   ) => (
     <div className={styles['sa-alertes__stepper']}>
-      <button type="button" className={styles['sa-alertes__stepper-btn']} onClick={() => onChange(roundStep(Math.max(min, value - step), step))} disabled={value <= min} aria-label="Diminuer">
+      <button type="button" className={styles['sa-alertes__stepper-btn']} onClick={() => onChange(roundStep(Math.max(min, value - step), step))} disabled={value <= min} aria-label={t('super_admin.systemSettingsAriaDecrease')}>
         <Minus size={14} />
       </button>
       <input type="number" value={value} onChange={(e) => onChange(roundStep(Math.min(max, Math.max(min, parseFloat(e.target.value) || min)), step))} min={min} max={max} step={step} className={styles['sa-alertes__stepper-input']} />
-      <button type="button" className={styles['sa-alertes__stepper-btn']} onClick={() => onChange(roundStep(Math.min(max, value + step), step))} disabled={value >= max} aria-label="Augmenter">
+      <button type="button" className={styles['sa-alertes__stepper-btn']} onClick={() => onChange(roundStep(Math.min(max, value + step), step))} disabled={value >= max} aria-label={t('super_admin.systemSettingsAriaIncrease')}>
         <Plus size={14} />
       </button>
     </div>
   );
 
   return (
-    <SuperAdminLayout title="Gestion des Alertes" activeNav="alertes">
+    <SuperAdminLayout title={t('super_admin.alertesTitle')} activeNav="alertes">
       <div className={styles['sa-alertes']}>
         {/* Header avec bouton créer */}
         <div className={styles['sa-alertes__header']}>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Gestion des Alertes</h2>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>Créez, modifiez et gérez toutes les alertes système</p>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>{t('super_admin.alertesTitle')}</h2>
+            <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>{t('super_admin.alertesSubtitle')}</p>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button onClick={() => setShowGlobalConfig(true)} className={styles['sa-alertes__btn-config']} style={{ 
@@ -651,7 +663,7 @@ const SuperAdminAlertesPage: React.FC = () => {
               cursor: 'pointer'
             }}>
               <Settings size={18} />
-              Configuration globale
+              {t('super_admin.alertesConfigGlobal')}
             </button>
             <button onClick={exportToCSV} disabled={isLoading} style={{
               background: '#f1f5f9',
@@ -665,11 +677,11 @@ const SuperAdminAlertesPage: React.FC = () => {
               cursor: 'pointer'
             }}>
               <Download size={18} />
-              Exporter CSV
+              {t('common.exportCsv')}
             </button>
             <button onClick={openCreateModal} className={styles['sa-alertes__btn-create']}>
               <Plus size={20} />
-              Créer une alerte
+              {t('super_admin.alertesCreateAlerte')}
             </button>
           </div>
         </div>
@@ -680,27 +692,27 @@ const SuperAdminAlertesPage: React.FC = () => {
             <Search size={16} />
             <input
               type="text"
-              placeholder="Rechercher par titre ou message..."
+              placeholder={t('super_admin.alertesSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
           </div>
           <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous les statuts</option>
-            <option value="brouillon">Brouillon</option>
-            <option value="programmee">Programmée</option>
-            <option value="en_cours">En cours</option>
-            <option value="terminee">Terminée</option>
-            <option value="annulee">Annulée</option>
+            <option value="">{t('super_admin.alertesFilterAllStatuses')}</option>
+            <option value="brouillon">{t('super_admin.alertesStatutBrouillon')}</option>
+            <option value="programmee">{t('super_admin.alertesStatutProgrammee')}</option>
+            <option value="en_cours">{t('super_admin.alertesStatutEnCours')}</option>
+            <option value="terminee">{t('super_admin.alertesStatutTerminee')}</option>
+            <option value="annulee">{t('super_admin.alertesStatutAnnulee')}</option>
           </select>
           <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous les types</option>
-            <option value="amber_alert">Alerte Amber</option>
-            <option value="disparition_enfant">Disparition enfant</option>
-            <option value="disparition_adulte_vulnerable">Disparition adulte vulnérable</option>
-            <option value="disparition_standard">Disparition standard</option>
-            <option value="mise_a_jour">Mise à jour</option>
-            <option value="personne_retrouvee">Personne retrouvée</option>
+            <option value="">{t('super_admin.alertesFilterAllTypes')}</option>
+            <option value="amber_alert">{t('super_admin.alertesTypeAmberAlert')}</option>
+            <option value="disparition_enfant">{t('super_admin.alertesTypeDisparitionEnfant')}</option>
+            <option value="disparition_adulte_vulnerable">{t('super_admin.alertesTypeDisparitionAdulteVulnerable')}</option>
+            <option value="disparition_standard">{t('super_admin.alertesTypeDisparitionStandard')}</option>
+            <option value="mise_a_jour">{t('super_admin.alertesTypeMiseAJour')}</option>
+            <option value="personne_retrouvee">{t('super_admin.alertesTypePersonneRetrouvee')}</option>
           </select>
         </div>
 
@@ -724,28 +736,28 @@ const SuperAdminAlertesPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-alertes__loading']}>
-            <Loader2 size={32} className={styles['sa-alertes__spinner']} />
+          <div className={styles['sa-alertes__skeletonWrap']}>
+            <AdminTableSkeleton columns={8} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-alertes__table-wrapper']}>
             {alertes.length === 0 ? (
               <div className={styles['sa-alertes__empty']}>
                 <Bell size={48} />
-                <p>Aucune alerte trouvée</p>
+                <p>{t('super_admin.alertesNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-alertes__table']}>
                 <thead>
                   <tr>
-                    <th>Numéro</th>
-                    <th>Titre</th>
-                    <th>Type</th>
-                    <th><Calendar size={16} /> Date diffusion</th>
-                    <th>Rayon</th>
-                    <th>Statut</th>
-                    <th>Dossier</th>
-                    <th>Actions</th>
+                    <th>{t('super_admin.alertesTableNumero')}</th>
+                    <th>{t('super_admin.alertesTableTitre')}</th>
+                    <th>{t('super_admin.alertesTableType')}</th>
+                    <th><Calendar size={16} /> {t('super_admin.alertesTableDateDiffusion')}</th>
+                    <th>{t('super_admin.alertesTableRayon')}</th>
+                    <th>{t('super_admin.alertesTableStatut')}</th>
+                    <th>{t('super_admin.alertesTableDossier')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -758,24 +770,24 @@ const SuperAdminAlertesPage: React.FC = () => {
                       <td>{alerte.rayon_km} km</td>
                       <td>
                         <span className={`${styles['sa-alertes__badge']} ${styles[`sa-alertes__badge--${getStatutColor(alerte.statut_alerte)}`]}`}>
-                          {alerte.statut_alerte}
+                          {getStatutLabel(alerte.statut_alerte)}
                         </span>
                       </td>
                       <td>{alerte.dossier?.numero_dossier || '-'}</td>
                       <td className={styles['sa-alertes__actions']}>
-                        <button type="button" onClick={() => openViewModal(alerte)} title="Voir" className={styles['sa-alertes__btn-view']}>
-                          <Eye size={16} /><span>Voir</span>
+                        <button type="button" onClick={() => openViewModal(alerte)} title={t('common.view')} className={styles['sa-alertes__btn-view']}>
+                          <Eye size={16} /><span>{t('common.view')}</span>
                         </button>
-                        <button type="button" onClick={() => openEditModal(alerte)} title="Modifier" className={styles['sa-alertes__btn-edit']}>
-                          <Edit2 size={16} /><span>Modifier</span>
+                        <button type="button" onClick={() => openEditModal(alerte)} title={t('common.edit')} className={styles['sa-alertes__btn-edit']}>
+                          <Edit2 size={16} /><span>{t('common.edit')}</span>
                         </button>
                         {alerte.statut_alerte === 'en_cours' && (
-                          <button type="button" onClick={() => handleCancel(alerte.id)} title="Annuler" className={styles['sa-alertes__btn-cancel']}>
-                            <X size={16} /><span>Annuler</span>
+                          <button type="button" onClick={() => handleCancel(alerte.id)} title={t('common.cancel')} className={styles['sa-alertes__btn-cancel']}>
+                            <X size={16} /><span>{t('common.cancel')}</span>
                           </button>
                         )}
-                        <button type="button" onClick={() => setDeleteConfirm(alerte.id)} title="Supprimer" className={styles['sa-alertes__btn-delete']}>
-                          <Trash2 size={16} /><span>Supprimer</span>
+                        <button type="button" onClick={() => setDeleteConfirm(alerte.id)} title={t('common.delete')} className={styles['sa-alertes__btn-delete']}>
+                          <Trash2 size={16} /><span>{t('common.delete')}</span>
                         </button>
                       </td>
                     </tr>
@@ -790,11 +802,11 @@ const SuperAdminAlertesPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-alertes__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.alertesPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -804,14 +816,14 @@ const SuperAdminAlertesPage: React.FC = () => {
           <div className={styles['sa-alertes__modal-overlay']} onClick={() => setShowModal(false)}>
             <div className={styles['sa-alertes__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-alertes__modal-header']}>
-                <h2>{modalMode === 'create' ? 'Créer une alerte' : 'Modifier l\'alerte'}</h2>
-                <button type="button" onClick={() => setShowModal(false)} aria-label="Fermer"><X size={20} /></button>
+                <h2>{modalMode === 'create' ? t('super_admin.alertesModalCreate') : t('super_admin.alertesModalEdit')}</h2>
+                <button type="button" onClick={() => setShowModal(false)} aria-label={t('common.close')}><X size={20} /></button>
               </div>
               
               <div className={styles['sa-alertes__modal-body']}>
                 <div className={styles['sa-alertes__form-grid']}>
                   <div className={styles['sa-alertes__form-full']}>
-                    <label>Titre *</label>
+                    <label>{t('super_admin.alertesFormTitre')} *</label>
                     <input
                       type="text"
                       value={formData.titre}
@@ -820,7 +832,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div className={styles['sa-alertes__form-full']}>
-                    <label>Message *</label>
+                    <label>{t('super_admin.alertesFormMessage')} *</label>
                     <textarea
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -829,7 +841,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div className={styles['sa-alertes__form-full']}>
-                    <label>Message court</label>
+                    <label>{t('super_admin.alertesFormMessageCourt')}</label>
                     <input
                       type="text"
                       value={formData.message_court}
@@ -838,7 +850,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Type d'alerte *</label>
+                    <label>{t('super_admin.alertesFormTypeAlerte')} *</label>
                     <select
                       value={formData.type_alerte}
                       onChange={(e) => {
@@ -869,35 +881,35 @@ const SuperAdminAlertesPage: React.FC = () => {
                       }}
                       required
                     >
-                      <option value="amber_alert">Alerte Amber</option>
-                      <option value="disparition_enfant">Disparition enfant</option>
-                      <option value="disparition_adulte_vulnerable">Disparition adulte vulnérable</option>
-                      <option value="disparition_standard">Disparition standard</option>
-                      <option value="mise_a_jour">Mise à jour</option>
-                      <option value="personne_retrouvee">Personne retrouvée</option>
+                      <option value="amber_alert">{t('super_admin.alertesTypeAmberAlert')}</option>
+                      <option value="disparition_enfant">{t('super_admin.alertesTypeDisparitionEnfant')}</option>
+                      <option value="disparition_adulte_vulnerable">{t('super_admin.alertesTypeDisparitionAdulteVulnerable')}</option>
+                      <option value="disparition_standard">{t('super_admin.alertesTypeDisparitionStandard')}</option>
+                      <option value="mise_a_jour">{t('super_admin.alertesTypeMiseAJour')}</option>
+                      <option value="personne_retrouvee">{t('super_admin.alertesTypePersonneRetrouvee')}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Statut *</label>
+                    <label>{t('super_admin.alertesFormStatut')} *</label>
                     <select
                       value={formData.statut_alerte}
                       onChange={(e) => setFormData({ ...formData, statut_alerte: e.target.value as StatutAlerte })}
                       required
                     >
-                      <option value="brouillon">Brouillon</option>
-                      <option value="programmee">Programmée</option>
-                      <option value="en_cours">En cours</option>
-                      <option value="terminee">Terminée</option>
-                      <option value="annulee">Annulée</option>
+                      <option value="brouillon">{t('super_admin.alertesStatutBrouillon')}</option>
+                      <option value="programmee">{t('super_admin.alertesStatutProgrammee')}</option>
+                      <option value="en_cours">{t('super_admin.alertesStatutEnCours')}</option>
+                      <option value="terminee">{t('super_admin.alertesStatutTerminee')}</option>
+                      <option value="annulee">{t('super_admin.alertesStatutAnnulee')}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Dossier</label>
+                    <label>{t('super_admin.alertesFormDossier')}</label>
                     <select
                       value={formData.id_dossier}
                       onChange={(e) => setFormData({ ...formData, id_dossier: e.target.value })}
                     >
-                      <option value="">Aucun</option>
+                      <option value="">{t('super_admin.alertesFormAucun')}</option>
                       {dossiers.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.numero_dossier} - {d.personne ? `${d.personne.prenom || ''} ${d.personne.nom}`.trim() : '-'}
@@ -906,7 +918,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label>Date de diffusion *</label>
+                    <label>{t('super_admin.alertesFormDateDiffusion')} *</label>
                     <input
                       type="datetime-local"
                       value={formData.date_diffusion}
@@ -915,7 +927,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Date d'expiration</label>
+                    <label>{t('super_admin.alertesFormDateExpiration')}</label>
                     <input
                       type="datetime-local"
                       value={formData.date_expiration}
@@ -923,7 +935,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Latitude centre</label>
+                    <label>{t('super_admin.alertesFormLatitudeCentre')}</label>
                     <input
                       type="number"
                       step="any"
@@ -932,7 +944,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Longitude centre</label>
+                    <label>{t('super_admin.alertesFormLongitudeCentre')}</label>
                     <input
                       type="number"
                       step="any"
@@ -941,17 +953,17 @@ const SuperAdminAlertesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Rayon (km) *</label>
+                    <label>{t('super_admin.alertesFormRayonKm')} *</label>
                     <Stepper value={formData.rayon_km} onChange={(v) => setFormData({ ...formData, rayon_km: v })} min={1} max={500} />
                   </div>
                 </div>
               </div>
 
               <div className={styles['sa-alertes__modal-footer']}>
-                <button type="button" onClick={() => setShowModal(false)}>Annuler</button>
+                <button type="button" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
                 <button type="button" onClick={handleSave} disabled={isSaving} className={styles['sa-alertes__btn-save']}>
                   {isSaving ? <Loader2 size={18} className={styles['sa-alertes__spinner']} /> : <Save size={18} />}
-                  {modalMode === 'create' ? 'Créer' : 'Enregistrer'}
+                  {modalMode === 'create' ? t('common.create') : t('common.save')}
                 </button>
               </div>
             </div>
@@ -963,67 +975,67 @@ const SuperAdminAlertesPage: React.FC = () => {
           <div className={styles['sa-alertes__modal-overlay']} onClick={() => { setShowModal(false); setSelectedAlerte(null); }}>
             <div className={styles['sa-alertes__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-alertes__modal-header']}>
-                <h2>Détails de l&apos;alerte</h2>
-                <button type="button" onClick={() => { setShowModal(false); setSelectedAlerte(null); }} aria-label="Fermer"><X size={20} /></button>
+                <h2>{t('super_admin.alertesModalViewTitle')}</h2>
+                <button type="button" onClick={() => { setShowModal(false); setSelectedAlerte(null); }} aria-label={t('common.close')}><X size={20} /></button>
               </div>
               
               <div className={styles['sa-alertes__modal-body']}>
                 <div className={styles['sa-alertes__detail-grid']}>
-                  <div><label>Numéro:</label><span>{selectedAlerte.numero_alerte || '-'}</span></div>
-                  <div><label>Titre:</label><span>{selectedAlerte.titre}</span></div>
-                  <div><label>Type:</label><span>{getTypeLabel(selectedAlerte.type_alerte)}</span></div>
-                  <div><label>Statut:</label><span className={`${styles['sa-alertes__badge']} ${styles[`sa-alertes__badge--${getStatutColor(selectedAlerte.statut_alerte)}`]}`}>{selectedAlerte.statut_alerte}</span></div>
-                  <div><label>Date diffusion:</label><span>{new Date(selectedAlerte.date_diffusion).toLocaleString('fr-FR')}</span></div>
-                  <div><label>Date expiration:</label><span>{selectedAlerte.date_expiration ? new Date(selectedAlerte.date_expiration).toLocaleString('fr-FR') : '-'}</span></div>
-                  <div><label>Rayon:</label><span>{selectedAlerte.rayon_km} km</span></div>
-                  <div><label>Coordonnées:</label><span>{selectedAlerte.latitude_centre != null && selectedAlerte.longitude_centre != null ? `${selectedAlerte.latitude_centre}, ${selectedAlerte.longitude_centre}` : '-'}</span></div>
-                  <div><label>Dossier:</label><span>{selectedAlerte.dossier?.numero_dossier || '-'}</span></div>
-                  <div><label>Niveau urgence min:</label><span>{selectedAlerte.niveau_urgence_min ?? '-'}</span></div>
-                  <div><label>Nombre destinataires:</label><span>{selectedAlerte.nombre_destinataires ?? 0}</span></div>
-                  <div><label>Nombre envois réussis:</label><span>{selectedAlerte.nombre_envois_reussis ?? 0}</span></div>
-                  <div><label>Nombre vues:</label><span>{selectedAlerte.nombre_vues ?? 0}</span></div>
-                  <div><label>Nombre partages:</label><span>{selectedAlerte.nombre_partages ?? 0}</span></div>
-                  <div><label>Nombre signalements générés:</label><span>{selectedAlerte.nombre_signalements_generes ?? 0}</span></div>
-                  <div><label>Validée:</label><span>{selectedAlerte.validee ? 'Oui' : 'Non'}</span></div>
+                  <div><label>{t('super_admin.alertesViewNumero')}:</label><span>{selectedAlerte.numero_alerte || '-'}</span></div>
+                  <div><label>{t('super_admin.alertesViewTitre')}:</label><span>{selectedAlerte.titre}</span></div>
+                  <div><label>{t('super_admin.alertesViewType')}:</label><span>{getTypeLabel(selectedAlerte.type_alerte)}</span></div>
+                  <div><label>{t('super_admin.alertesViewStatut')}:</label><span className={`${styles['sa-alertes__badge']} ${styles[`sa-alertes__badge--${getStatutColor(selectedAlerte.statut_alerte)}`]}`}>{getStatutLabel(selectedAlerte.statut_alerte)}</span></div>
+                  <div><label>{t('super_admin.alertesViewDateDiffusion')}:</label><span>{new Date(selectedAlerte.date_diffusion).toLocaleString('fr-FR')}</span></div>
+                  <div><label>{t('super_admin.alertesViewDateExpiration')}:</label><span>{selectedAlerte.date_expiration ? new Date(selectedAlerte.date_expiration).toLocaleString('fr-FR') : '-'}</span></div>
+                  <div><label>{t('super_admin.alertesViewRayon')}:</label><span>{selectedAlerte.rayon_km} km</span></div>
+                  <div><label>{t('super_admin.alertesViewCoordonnees')}:</label><span>{selectedAlerte.latitude_centre != null && selectedAlerte.longitude_centre != null ? `${selectedAlerte.latitude_centre}, ${selectedAlerte.longitude_centre}` : '-'}</span></div>
+                  <div><label>{t('super_admin.alertesViewDossier')}:</label><span>{selectedAlerte.dossier?.numero_dossier || '-'}</span></div>
+                  <div><label>{t('super_admin.alertesViewNiveauUrgenceMin')}:</label><span>{selectedAlerte.niveau_urgence_min ?? '-'}</span></div>
+                  <div><label>{t('super_admin.alertesViewNombreDestinataires')}:</label><span>{selectedAlerte.nombre_destinataires ?? 0}</span></div>
+                  <div><label>{t('super_admin.alertesViewNombreEnvoisReussis')}:</label><span>{selectedAlerte.nombre_envois_reussis ?? 0}</span></div>
+                  <div><label>{t('super_admin.alertesViewNombreVues')}:</label><span>{selectedAlerte.nombre_vues ?? 0}</span></div>
+                  <div><label>{t('super_admin.alertesViewNombrePartages')}:</label><span>{selectedAlerte.nombre_partages ?? 0}</span></div>
+                  <div><label>{t('super_admin.alertesViewNombreSignalementsGeneres')}:</label><span>{selectedAlerte.nombre_signalements_generes ?? 0}</span></div>
+                  <div><label>{t('super_admin.alertesViewValidee')}:</label><span>{selectedAlerte.validee ? t('common.yes') : t('common.no')}</span></div>
                   {selectedAlerte.createur && (
-                    <div><label>Créée par:</label><span>{selectedAlerte.createur.nom} ({selectedAlerte.createur.email})</span></div>
+                    <div><label>{t('super_admin.alertesViewCreeePar')}:</label><span>{selectedAlerte.createur.nom} ({selectedAlerte.createur.email})</span></div>
                   )}
-                  <div><label>Date création:</label><span>{new Date(selectedAlerte.created_at).toLocaleString('fr-FR')}</span></div>
+                  <div><label>{t('super_admin.alertesViewDateCreation')}:</label><span>{new Date(selectedAlerte.created_at).toLocaleString('fr-FR')}</span></div>
                   {selectedAlerte.validateur && (
-                    <div><label>Validateur:</label><span>{selectedAlerte.validateur.nom} ({selectedAlerte.validateur.email})</span></div>
+                    <div><label>{t('super_admin.alertesViewValidateur')}:</label><span>{selectedAlerte.validateur.nom} ({selectedAlerte.validateur.email})</span></div>
                   )}
                   {selectedAlerte.date_validation && (
-                    <div><label>Date validation:</label><span>{new Date(selectedAlerte.date_validation).toLocaleString('fr-FR')}</span></div>
+                    <div><label>{t('super_admin.alertesViewDateValidation')}:</label><span>{new Date(selectedAlerte.date_validation).toLocaleString('fr-FR')}</span></div>
                   )}
                   {selectedAlerte.commentaire_validation && (
-                    <div className={styles['sa-alertes__form-full']}><label>Commentaire validation:</label><p>{selectedAlerte.commentaire_validation}</p></div>
+                    <div className={styles['sa-alertes__form-full']}><label>{t('super_admin.alertesViewCommentaireValidation')}:</label><p>{selectedAlerte.commentaire_validation}</p></div>
                   )}
                   {selectedAlerte.zones_specifiques && (
-                    <div className={styles['sa-alertes__form-full']}><label>Zones spécifiques:</label><pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem' }}>{JSON.stringify(selectedAlerte.zones_specifiques, null, 2)}</pre></div>
+                    <div className={styles['sa-alertes__form-full']}><label>{t('super_admin.alertesViewZonesSpecifiques')}:</label><pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem' }}>{JSON.stringify(selectedAlerte.zones_specifiques, null, 2)}</pre></div>
                   )}
                   {selectedAlerte.canaux_diffusion && (
-                    <div className={styles['sa-alertes__form-full']}><label>Canaux diffusion:</label><pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem' }}>{JSON.stringify(selectedAlerte.canaux_diffusion, null, 2)}</pre></div>
+                    <div className={styles['sa-alertes__form-full']}><label>{t('super_admin.alertesViewCanauxDiffusion')}:</label><pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem' }}>{JSON.stringify(selectedAlerte.canaux_diffusion, null, 2)}</pre></div>
                   )}
                   {selectedAlerte.types_utilisateurs && (
-                    <div className={styles['sa-alertes__form-full']}><label>Types utilisateurs:</label><pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem' }}>{JSON.stringify(selectedAlerte.types_utilisateurs, null, 2)}</pre></div>
+                    <div className={styles['sa-alertes__form-full']}><label>{t('super_admin.alertesViewTypesUtilisateurs')}:</label><pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem' }}>{JSON.stringify(selectedAlerte.types_utilisateurs, null, 2)}</pre></div>
                   )}
-                  <div className={styles['sa-alertes__form-full']}><label>Message:</label><p>{selectedAlerte.message}</p></div>
+                  <div className={styles['sa-alertes__form-full']}><label>{t('super_admin.alertesViewMessage')}:</label><p>{selectedAlerte.message}</p></div>
                   {selectedAlerte.message_court && (
-                    <div className={styles['sa-alertes__form-full']}><label>Message court:</label><p>{selectedAlerte.message_court}</p></div>
+                    <div className={styles['sa-alertes__form-full']}><label>{t('super_admin.alertesViewMessageCourt')}:</label><p>{selectedAlerte.message_court}</p></div>
                   )}
                 </div>
               </div>
 
               <div className={styles['sa-alertes__modal-footer']}>
                 <button type="button" onClick={() => { setShowModal(false); openEditModal(selectedAlerte); }} className={styles['sa-alertes__btn-save']}>
-                  <Edit2 size={16} /> Modifier
+                  <Edit2 size={16} /> {t('common.edit')}
                 </button>
                 {(selectedAlerte.statut_alerte === 'brouillon' || selectedAlerte.statut_alerte === 'en_cours') && (
                   <button type="button" onClick={() => { setShowModal(false); setSelectedAlerte(null); setDeleteConfirm(selectedAlerte.id); }} className={styles['sa-alertes__btn-delete']}>
-                    <Trash2 size={16} /> Supprimer
+                    <Trash2 size={16} /> {t('common.delete')}
                   </button>
                 )}
-                <button type="button" onClick={() => { setShowModal(false); setSelectedAlerte(null); }}>Fermer</button>
+                <button type="button" onClick={() => { setShowModal(false); setSelectedAlerte(null); }}>{t('common.close')}</button>
               </div>
             </div>
           </div>
@@ -1034,16 +1046,16 @@ const SuperAdminAlertesPage: React.FC = () => {
           <div className={styles['sa-alertes__modal-overlay']} onClick={() => setDeleteConfirm(null)}>
             <div className={styles['sa-alertes__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-alertes__modal-header']}>
-                <h2>Confirmer la suppression</h2>
-                <button type="button" onClick={() => setDeleteConfirm(null)} aria-label="Fermer"><X size={20} /></button>
+                <h2>{t('super_admin.alertesConfirmDeleteTitle')}</h2>
+                <button type="button" onClick={() => setDeleteConfirm(null)} aria-label={t('common.close')}><X size={20} /></button>
               </div>
               <div className={styles['sa-alertes__modal-body']}>
-                <p>Êtes-vous sûr de vouloir supprimer cette alerte ? Cette action est irréversible.</p>
+                <p>{t('super_admin.alertesConfirmDeleteMessage')}</p>
               </div>
               <div className={styles['sa-alertes__modal-footer']}>
-                <button type="button" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+                <button type="button" onClick={() => setDeleteConfirm(null)}>{t('common.cancel')}</button>
                 <button type="button" onClick={() => handleDelete(deleteConfirm)} className={styles['sa-alertes__btn-delete']}>
-                  Supprimer
+                  {t('common.delete')}
                 </button>
               </div>
             </div>
@@ -1055,40 +1067,40 @@ const SuperAdminAlertesPage: React.FC = () => {
           <div className={styles['sa-alertes__modal-overlay']} onClick={() => setShowGlobalConfig(false)}>
             <div className={styles['sa-alertes__modal']} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
               <div className={styles['sa-alertes__modal-header']}>
-                <h2>Configuration globale des alertes</h2>
+                <h2>{t('super_admin.alertesConfigTitle')}</h2>
                 <button onClick={() => setShowGlobalConfig(false)}><X size={20} /></button>
               </div>
               
               <div className={styles['sa-alertes__modal-body']}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>Rayons de diffusion par défaut (km)</h3>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>{t('super_admin.alertesConfigRayonsTitle')}</h3>
                 <div className={styles['sa-alertes__form-grid']} style={{ marginBottom: '1.5rem' }}>
                   <div>
-                    <label>Alerte Amber</label>
+                    <label>{t('super_admin.alertesTypeAmberAlert')}</label>
                     <Stepper value={globalConfig.rayon_diffusion_defaut_amber_alert} onChange={(v) => setGlobalConfig({ ...globalConfig, rayon_diffusion_defaut_amber_alert: v })} min={1} max={500} />
                   </div>
                   <div>
-                    <label>Disparition enfant</label>
+                    <label>{t('super_admin.alertesTypeDisparitionEnfant')}</label>
                     <Stepper value={globalConfig.rayon_diffusion_defaut_disparition_enfant} onChange={(v) => setGlobalConfig({ ...globalConfig, rayon_diffusion_defaut_disparition_enfant: v })} min={1} max={500} />
                   </div>
                   <div>
-                    <label>Disparition adulte vulnérable</label>
+                    <label>{t('super_admin.alertesTypeDisparitionAdulteVulnerable')}</label>
                     <Stepper value={globalConfig.rayon_diffusion_defaut_disparition_adulte_vulnerable} onChange={(v) => setGlobalConfig({ ...globalConfig, rayon_diffusion_defaut_disparition_adulte_vulnerable: v })} min={1} max={500} />
                   </div>
                   <div>
-                    <label>Disparition standard</label>
+                    <label>{t('super_admin.alertesTypeDisparitionStandard')}</label>
                     <Stepper value={globalConfig.rayon_diffusion_defaut_disparition_standard} onChange={(v) => setGlobalConfig({ ...globalConfig, rayon_diffusion_defaut_disparition_standard: v })} min={1} max={500} />
                   </div>
                   <div>
-                    <label>Mise à jour</label>
+                    <label>{t('super_admin.alertesTypeMiseAJour')}</label>
                     <Stepper value={globalConfig.rayon_diffusion_defaut_mise_a_jour} onChange={(v) => setGlobalConfig({ ...globalConfig, rayon_diffusion_defaut_mise_a_jour: v })} min={1} max={500} />
                   </div>
                   <div>
-                    <label>Personne retrouvée</label>
+                    <label>{t('super_admin.alertesTypePersonneRetrouvee')}</label>
                     <Stepper value={globalConfig.rayon_diffusion_defaut_personne_retrouvee} onChange={(v) => setGlobalConfig({ ...globalConfig, rayon_diffusion_defaut_personne_retrouvee: v })} min={1} max={500} />
                   </div>
                 </div>
 
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>Paramètres généraux</h3>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>{t('super_admin.alertesConfigParamsTitle')}</h3>
                 <div className={styles['sa-alertes__form-grid']} style={{ marginBottom: '1.5rem' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
@@ -1097,16 +1109,16 @@ const SuperAdminAlertesPage: React.FC = () => {
                         checked={globalConfig.validation_obligatoire}
                         onChange={(e) => setGlobalConfig({ ...globalConfig, validation_obligatoire: e.target.checked })}
                       />
-                      Validation obligatoire avant diffusion
+                      {t('super_admin.alertesConfigValidationObligatoire')}
                     </label>
                   </div>
                   <div>
-                    <label>Délai d&apos;expiration par défaut (heures)</label>
+                    <label>{t('super_admin.alertesConfigDelaiExpiration')}</label>
                     <Stepper value={globalConfig.delai_expiration_defaut_heures} onChange={(v) => setGlobalConfig({ ...globalConfig, delai_expiration_defaut_heures: v })} min={1} max={720} />
                   </div>
                 </div>
 
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>Canaux de diffusion par défaut</h3>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>{t('super_admin.alertesConfigCanauxTitle')}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                     <input
@@ -1117,7 +1129,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                         canaux_diffusion_defaut: { ...globalConfig.canaux_diffusion_defaut, push: e.target.checked }
                       })}
                     />
-                    Notifications push
+                    {t('super_admin.alertesConfigPush')}
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                     <input
@@ -1128,7 +1140,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                         canaux_diffusion_defaut: { ...globalConfig.canaux_diffusion_defaut, email: e.target.checked }
                       })}
                     />
-                    Email
+                    {t('super_admin.alertesConfigEmail')}
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                     <input
@@ -1139,7 +1151,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                         canaux_diffusion_defaut: { ...globalConfig.canaux_diffusion_defaut, sms: e.target.checked }
                       })}
                     />
-                    SMS
+                    {t('super_admin.alertesConfigSms')}
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                     <input
@@ -1150,13 +1162,13 @@ const SuperAdminAlertesPage: React.FC = () => {
                         canaux_diffusion_defaut: { ...globalConfig.canaux_diffusion_defaut, in_app: e.target.checked }
                       })}
                     />
-                    Notification in-app
+                    {t('super_admin.alertesConfigInApp')}
                   </label>
                 </div>
               </div>
 
               <div className={styles['sa-alertes__modal-footer']}>
-                <button type="button" onClick={() => { setShowGlobalConfig(false); setGlobalConfig(originalGlobalConfig); }}>Annuler</button>
+                <button type="button" onClick={() => { setShowGlobalConfig(false); setGlobalConfig(originalGlobalConfig); }}>{t('common.cancel')}</button>
                 <button 
                   type="button"
                   onClick={handleSaveGlobalConfig} 
@@ -1164,7 +1176,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                   className={styles['sa-alertes__btn-save']}
                 >
                   {isSavingConfig ? <Loader2 size={18} className={styles['sa-alertes__spinner']} /> : <Save size={18} />}
-                  Enregistrer
+                  {t('common.save')}
                 </button>
               </div>
             </div>

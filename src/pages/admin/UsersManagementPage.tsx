@@ -282,7 +282,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                 <div className={styles.usersManagement__tableBody}>
                   {filteredUsers.map(user => (
                     <div key={user.id} className={styles.usersManagement__tableRow}>
-                      <div className={styles.usersManagement__tableCell}>
+                      <div className={styles.usersManagement__tableCell} data-label={t('common.name')}>
                         <div className={styles.usersManagement__userInfo}>
                           <Avatar
                             initials={user.nom_complet
@@ -295,15 +295,15 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                           <span className={styles.usersManagement__userName}>{user.nom_complet}</span>
                         </div>
                       </div>
-                      <div className={styles.usersManagement__tableCell}>
+                      <div className={styles.usersManagement__tableCell} data-label={t('common.email')}>
                         <span className={styles.usersManagement__email}>{user.email}</span>
                       </div>
-                      <div className={styles.usersManagement__tableCell}>
+                      <div className={styles.usersManagement__tableCell} data-label={t('common.role')}>
                         <Badge variant={getRoleBadgeColor(user.role) as any}>
                           {t(`admin.role.${user.role}`, t('common.unknown'))}
                         </Badge>
                       </div>
-                      <div className={styles.usersManagement__tableCell}>
+                      <div className={styles.usersManagement__tableCell} data-label={t('common.status')}>
                         <div className={`${styles.usersManagement__statusBadge} ${
                           user.statut === 'actif' 
                             ? styles['usersManagement__statusBadge--active']
@@ -315,7 +315,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                           <span>{t(`admin.status.${user.statut}`, t('common.unknown'))}</span>
                         </div>
                       </div>
-                      <div className={styles.usersManagement__tableCell}>
+                      <div className={styles.usersManagement__tableCell} data-label={t('admin.joinDate')}>
                         {user.date_creation}
                       </div>
                       <div className={styles.usersManagement__tableCell}>

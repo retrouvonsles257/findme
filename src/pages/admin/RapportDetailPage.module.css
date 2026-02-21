@@ -158,3 +158,37 @@
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
 }
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+  .title {
+    font-size: 1.25rem;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .titleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actions,
+  .footer {
+    flex-direction: column;
+  }
+  .actions button,
+  .footer button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem 0.75rem 1.25rem;
+  }
+  .title {
+    font-size: 1.125rem;
+  }
+}

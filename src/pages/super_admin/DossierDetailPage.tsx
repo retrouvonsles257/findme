@@ -13,6 +13,7 @@ import { useSignalementsForDossier } from '../../features/signalements/hooks/use
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
 import { useHistoriqueDossier } from '../../features/dossiers/hooks/useHistoriqueDossier';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import { supabase } from '../../config';
 import { useI18n } from '../../hooks';
 import {
@@ -182,19 +183,18 @@ export const SuperAdminDossierDetailPage: React.FC = () => {
     { id: 'signalements', label: t('authority.dossierDetail.tabs.reports') || 'Signalements', icon: <AlertCircle size={16} /> },
     { id: 'localisations', label: t('authority.dossierDetail.tabs.locations') || 'Localisations', icon: <MapPin size={16} /> },
     { id: 'historique', label: t('authority.dossierDetail.tabs.history') || 'Historique', icon: <History size={16} /> },
-    { id: 'commentaires', label: 'Commentaires', icon: <MessageSquare size={16} /> },
-    { id: 'documents', label: 'Documents', icon: <FileText size={16} /> },
-    { id: 'alertes', label: 'Alertes', icon: <Bell size={16} /> },
-    { id: 'resultats_ia', label: 'Résultats IA', icon: <Brain size={16} /> },
+    { id: 'commentaires', label: t('super_admin.dossierDetailTabComments'), icon: <MessageSquare size={16} /> },
+    { id: 'documents', label: t('authority.dossierDetail.tabs.documents') || 'Documents', icon: <FileText size={16} /> },
+    { id: 'alertes', label: t('authority.dossierDetail.tabs.alerts') || 'Alertes', icon: <Bell size={16} /> },
+    { id: 'resultats_ia', label: t('super_admin.dossierDetailTabResultatsIA'), icon: <Brain size={16} /> },
   ];
 
   return (
-    <SuperAdminLayout title={dossier ? `Dossier — ${dossier.numero_dossier}` : 'Détail dossier'} activeNav="dossiers">
+    <SuperAdminLayout title={dossier ? t('super_admin.dossierDetailTitle', { numero: dossier.numero_dossier }) : t('super_admin.dossierDetailDetail')} activeNav="dossiers">
       <div className={styles.container}>
         {isLoading ? (
-          <div className={styles.loading}>
-            <Loader2 size={24} style={{ verticalAlign: 'middle', marginRight: 8 }} />
-            {t('authority.dossierDetail.loading')}
+          <div style={{ padding: '0.5rem 0' }}>
+            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         ) : error ? (
           <div className={styles.error}>

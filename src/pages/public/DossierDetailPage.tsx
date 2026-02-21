@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { StatutDossier } from '../../@types/enums.types';
 import styles from './DossierDetailPage.module.css';
@@ -36,7 +36,7 @@ interface Signalement {
 }
 
 export const DossierDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -53,7 +53,7 @@ export const DossierDetailPage: React.FC = () => {
         setError(null);
 
         if (!id) {
-          setError(t('detail.dossier_not_found'));
+          setError(t('public.detail.dossier_not_found'));
           return;
         }
 
@@ -86,7 +86,7 @@ export const DossierDetailPage: React.FC = () => {
 
         if (dossierErr) throw dossierErr;
         if (!dossierData) {
-          setError(t('detail.dossier_not_found'));
+          setError(t('public.detail.dossier_not_found'));
           return;
         }
 
@@ -105,7 +105,7 @@ export const DossierDetailPage: React.FC = () => {
 
       } catch (err) {
         console.error('Error loading dossier details:', err);
-        setError(t('detail.error_loading'));
+        setError(t('public.detail.error_loading'));
       } finally {
         setLoading(false);
       }
@@ -133,14 +133,14 @@ export const DossierDetailPage: React.FC = () => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case StatutDossier.EN_COURS:
-        return t('status.active');
+        return t('public.status.active');
       case StatutDossier.RETROUVE_VIVANT:
       case StatutDossier.RETROUVE_DECEDE:
-        return t('status.resolved');
+        return t('public.status.resolved');
       case StatutDossier.CLASSE_SANS_SUITE:
       case StatutDossier.SUSPENDU:
       case StatutDossier.TRANSFERE:
-        return t('status.closed');
+        return t('public.status.closed');
       default:
         return status;
     }
@@ -152,7 +152,7 @@ export const DossierDetailPage: React.FC = () => {
         <div className={styles.container}>
           <div className={styles.loadingContainer}>
             <div className={styles.spinner}></div>
-            <p>{t('detail.loading')}</p>
+            <p>{t('public.detail.loading')}</p>
           </div>
         </div>
       </div>
@@ -169,7 +169,7 @@ export const DossierDetailPage: React.FC = () => {
               className={styles.backBtn}
               onClick={() => navigate('/disparitions')}
             >
-              {t('detail.back')}
+              {t('public.detail.back')}
             </button>
           </div>
         </div>
@@ -184,7 +184,7 @@ export const DossierDetailPage: React.FC = () => {
           className={styles.backBtn}
           onClick={() => navigate('/disparitions')}
         >
-          ← {t('detail.back')}
+          ← {t('public.detail.back')}
         </button>
 
         <div className={styles.detailContent}>
@@ -215,7 +215,7 @@ export const DossierDetailPage: React.FC = () => {
 
             <div className={styles.basicInfo}>
               <div className={styles.infoRow}>
-                <strong>{t('detail.age')}:</strong>
+                <strong>{t('public.detail.age')}:</strong>
                 <span>
                   {dossier.personne?.date_naissance
                     ? `${Math.max(0, Math.floor((Date.now() - new Date(dossier.personne.date_naissance).getTime()) / 31557600000))} ans`
@@ -223,7 +223,7 @@ export const DossierDetailPage: React.FC = () => {
                 </span>
               </div>
               <div className={styles.infoRow}>
-                <strong>{t('detail.location')}:</strong>
+                <strong>{t('public.detail.location')}:</strong>
                 <span>
                   {[dossier.lieu_disparition, dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
                     .filter(Boolean)
@@ -231,24 +231,24 @@ export const DossierDetailPage: React.FC = () => {
                 </span>
               </div>
               <div className={styles.infoRow}>
-                <strong>{t('detail.missing_date')}:</strong>
+                <strong>{t('public.detail.missing_date')}:</strong>
                 <span>{new Date(dossier.date_disparition).toLocaleDateString()}</span>
               </div>
             </div>
 
             {dossier.circonstances && (
               <div className={styles.description}>
-                <h3>{t('detail.description')}</h3>
+                <h3>{t('public.detail.description')}</h3>
                 <p>{dossier.circonstances}</p>
               </div>
             )}
 
             <div className={styles.actionButtons}>
               <button className={styles.reportBtn} onClick={() => navigate('/auth/login')}>
-                {t('detail.report_sighting')}
+                {t('public.detail.report_sighting')}
               </button>
               <button className={styles.shareBtn}>
-                {t('detail.share')}
+                {t('public.detail.share')}
               </button>
             </div>
           </div>
@@ -260,27 +260,27 @@ export const DossierDetailPage: React.FC = () => {
               className={`${styles.tab} ${activeTab === 'details' ? styles.active : ''}`}
               onClick={() => setActiveTab('details')}
             >
-              {t('detail.tabs.details')}
+              {t('public.detail.tabs.details')}
             </button>
             <button 
               className={`${styles.tab} ${activeTab === 'signals' ? styles.active : ''}`}
               onClick={() => setActiveTab('signals')}
             >
-              {t('detail.tabs.signals')} ({signalements.length})
+              {t('public.detail.tabs.signals')} ({signalements.length})
             </button>
           </div>
 
           <div className={styles.tabContent}>
             {activeTab === 'details' && (
               <div className={styles.detailsTab}>
-                <h3>{t('detail.full_details')}</h3>
+                <h3>{t('public.detail.full_details')}</h3>
                 <div className={styles.detailsList}>
                   <div className={styles.detailItem}>
-                    <strong>{t('detail.id')}:</strong>
+                    <strong>{t('public.detail.id')}:</strong>
                     <span>{dossier.id}</span>
                   </div>
                   <div className={styles.detailItem}>
-                    <strong>{t('detail.status')}:</strong>
+                    <strong>{t('public.detail.status')}:</strong>
                     <span>{getStatusLabel(dossier.statut_dossier)}</span>
                   </div>
                 </div>
@@ -289,9 +289,9 @@ export const DossierDetailPage: React.FC = () => {
 
             {activeTab === 'signals' && (
               <div className={styles.signalsTab}>
-                <h3>{t('detail.reports')} ({signalements.length})</h3>
+                <h3>{t('public.detail.reports')} ({signalements.length})</h3>
                 {signalements.length === 0 ? (
-                  <p className={styles.emptyMessage}>{t('detail.no_signals')}</p>
+                  <p className={styles.emptyMessage}>{t('public.detail.no_signals')}</p>
                 ) : (
                   <div className={styles.signalsList}>
                     {signalements.map(signal => (
@@ -302,7 +302,7 @@ export const DossierDetailPage: React.FC = () => {
                           </p>
                         </div>
                         <p className={styles.signalLocation}>
-                          <strong>{t('detail.location')}:</strong>{' '}
+                          <strong>{t('public.detail.location')}:</strong>{' '}
                           {[signal.lieu_observation, signal.ville_observation, signal.region_observation]
                             .filter(Boolean)
                             .join(', ') || '—'}

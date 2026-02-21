@@ -106,21 +106,16 @@ export const useDonationCreate = (): UseDonationCreateReturn => {
           error: null,
         }));
 
-        // Créer le don via Edge Function (Mobile Money), fallback si non déployé
+        // Création uniquement via Edge Function pour Mobile Money (pas d'INSERT direct en base)
         let don: Don;
         if (data.methode_paiement === 'mobile_money') {
-          try {
-            const created = await donationsFunctions.createDonation(data);
-            gatewayContextRef.current = {
-              mode: created.mode,
-              confirmToken: created.payment?.confirmToken,
-              checkoutUrl: created.payment?.checkoutUrl ?? null,
-            };
-            don = created.donation;
-          } catch (e) {
-            gatewayContextRef.current = { mode: 'mock' };
-            don = await donService.createDraftDon(data);
-          }
+          const created = await donationsFunctions.createDonation(data);
+          gatewayContextRef.current = {
+            mode: created.mode,
+            confirmToken: created.payment?.confirmToken,
+            checkoutUrl: created.payment?.checkoutUrl ?? null,
+          };
+          don = created.donation;
         } else {
           gatewayContextRef.current = null;
           don = await donService.createDraftDon(data);

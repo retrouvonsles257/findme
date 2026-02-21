@@ -9,11 +9,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LanguageCode, SUPPORTED_LANGUAGES, Namespace } from '../locales';
 
+/** Options for t(): either a default value string or interpolation key-value map */
+export type TOptions = string | Record<string, any>;
+
 export interface UseI18nResult {
   /**
-   * Translation function with namespace and key
+   * Translation function. Second arg: default value (string) or interpolation object (e.g. { count: 5, name: 'X' }).
    */
-  t: (key: string, defaultValue?: string) => string;
+  t: (key: string, optionsOrDefault?: TOptions) => string;
 
   /**
    * Translation function for specific namespace
@@ -80,15 +83,18 @@ export const useI18n = (namespace?: Namespace): UseI18nResult => {
   }, [i18n, isLanguageSupported]);
 
   /**
-   * Translation function
+   * Translation function. Supports interpolation: t('key', { count: 5 }) and default value: t('key', 'Fallback').
    */
   const t = useCallback(
-    (key: string, defaultValue: string = ''): string => {
+    (key: string, optionsOrDefault: TOptions = ''): string => {
       try {
-        const result = tBase(key);
-        return result === key && defaultValue ? defaultValue : result;
+        if (typeof optionsOrDefault === 'string') {
+          const result = tBase(key);
+          return result === key && optionsOrDefault ? optionsOrDefault : result;
+        }
+        return tBase(key, optionsOrDefault as Record<string, unknown>);
       } catch {
-        return defaultValue || key;
+        return (typeof optionsOrDefault === 'string' ? optionsOrDefault : key) || key;
       }
     },
     [tBase]

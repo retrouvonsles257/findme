@@ -88,6 +88,7 @@
 }
 
 .header__logoText {
+  font-family: var(--app-name-font);
   background: linear-gradient(135deg, #1e3a8a 0%, #1e90ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

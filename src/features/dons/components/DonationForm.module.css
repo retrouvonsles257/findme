@@ -9,13 +9,25 @@
   flex-direction: column;
   gap: 1.5rem;
   max-width: 600px;
+  width: 100%;
+  min-width: 0;
   color: var(--don-text, #0f172a);
+  box-sizing: border-box;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
+}
+
+.donorFields .formGroup input,
+.donorFields .formGroup textarea,
+.formRow .formGroup input,
+.formRow .formGroup textarea {
+  width: 100%;
+  max-width: 100%;
 }
 
 .formGroup label {
@@ -35,6 +47,8 @@
   transition: border-color 0.3s, box-shadow 0.3s;
   background: var(--don-input-bg, #ffffff);
   color: var(--don-text, #0f172a);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .formGroup input:focus,
@@ -127,7 +141,306 @@
   cursor: not-allowed;
 }
 
+/* ========== Unified form (same everywhere) ========== */
+.donationForm.unified {
+  max-width: 100%;
+  gap: 0.85rem;
+}
+
+/* Lignes 2 colonnes (Type+Montant, Paiement+Tél) */
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.formRow > * {
+  min-width: 0;
+}
+
+.donorFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.donorFields > * {
+  min-width: 0;
+}
+
+.typeDonRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.typeDonBtn {
+  padding: 0.45rem 0.85rem;
+  border: 2px solid #e0e6ed;
+  background: #fff;
+  color: #333;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.typeDonBtn:hover:not(:disabled) {
+  border-color: #1e3c72;
+  color: #1e3c72;
+}
+
+.typeDonBtnActive {
+  border-color: #1e3c72;
+  color: #1e3c72;
+  background: rgba(30, 60, 114, 0.06);
+}
+
+.errorText {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.messageInput {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 2px solid #e0e6ed;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.messageInput:focus {
+  outline: none;
+  border-color: #1e3c72;
+}
+
+.maquetteLabel {
+  font-weight: 600;
+  color: #1e3c72;
+  font-size: 0.875rem;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.amountPresets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.presetBtn {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e0e6ed;
+  background: #fff;
+  color: #333;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.presetBtn:hover:not(:disabled) {
+  border-color: #1e3c72;
+  color: #1e3c72;
+}
+
+.presetBtnActive {
+  border-color: #1e3c72;
+  color: #1e3c72;
+  background: rgba(30, 60, 114, 0.06);
+}
+
+.otherAmountRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.otherAmountInput {
+  flex: 1;
+  padding: 0.5rem 0.65rem;
+  border: 2px solid #e0e6ed;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+}
+
+.otherAmountInput:focus {
+  outline: none;
+  border-color: #1e3c72;
+}
+
+.xafSuffix {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.paymentCards {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.paymentCard {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.65rem 0.75rem;
+  border: 2px solid #e0e6ed;
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.paymentCard:hover:not(:disabled) {
+  border-color: #1e3c72;
+}
+
+.paymentCardActive {
+  border-color: #1e3c72;
+  background: rgba(30, 60, 114, 0.04);
+}
+
+.paymentCardCheck {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #1e3c72;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.paymentCardLogo {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.paymentCardDisabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.comingSoon {
+  display: block;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.paymentHint {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.phonePrefixGroup {
+  display: flex;
+  border: 2px solid #e0e6ed;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.phonePrefix {
+  padding: 0.5rem 0.65rem;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-right: 2px solid #e0e6ed;
+}
+
+.phonePrefixGroup input {
+  flex: 1;
+  border: none;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9375rem;
+  min-width: 0;
+}
+
+.phonePrefixGroup input:focus {
+  outline: none;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+}
+
+.maquetteSubmitBtn {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(30, 60, 114, 0.3);
+}
+
+.maquetteSubmitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+}
+
+.maquetteSubmitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.heartIcon {
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.maquetteDisclaimer {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+/* ---- Unified form responsive ---- */
+@media (max-width: 768px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .donorFields {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
+  .donationForm.unified {
+    gap: 1rem;
+  }
+
   .donationForm {
     gap: 1rem;
   }
@@ -139,5 +452,29 @@
   .submitBtn,
   .cancelBtn {
     width: 100%;
+  }
+
+  .paymentCards {
+    flex-direction: column;
+  }
+
+  .presetBtn {
+    min-height: 44px;
+    flex: 1 1 calc(50% - 0.25rem);
+  }
+
+  .paymentCard {
+    min-width: 0;
+  }
+
+  .maquetteSubmitBtn {
+    min-height: 48px;
+    padding: 0.875rem 1.25rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .presetBtn {
+    flex: 1 1 100%;
   }
 }

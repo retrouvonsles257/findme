@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   Users, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, CheckCircle
@@ -36,7 +37,7 @@ interface LienFiliation {
 const ITEMS_PER_PAGE = 20;
 
 export const SuperAdminLiensFiliationPage: React.FC = () => {
-  useI18n();
+  const { t } = useI18n();
 
   const [liens, setLiens] = useState<LienFiliation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,13 +93,27 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      pere_biologique: 'Père biologique',
-      mere_biologique: 'Mère biologique',
-      enfant_biologique: 'Enfant biologique',
-      frere_biologique: 'Frère biologique',
-      soeur_biologique: 'Sœur biologique',
+      pere_biologique: t('super_admin.liensFiliationTypePereBiologique'),
+      mere_biologique: t('super_admin.liensFiliationTypeMereBiologique'),
+      enfant_biologique: t('super_admin.liensFiliationTypeEnfantBiologique'),
+      frere_biologique: t('super_admin.liensFiliationTypeFrereBiologique'),
+      soeur_biologique: t('super_admin.liensFiliationTypeSoeurBiologique'),
+      conjoint: t('super_admin.liensFiliationTypeConjoint'),
     };
     return labels[type] || type;
+  };
+
+  const getStatutLabel = (statut: string) => {
+    const labels: Record<string, string> = {
+      confirme_officiellement: t('super_admin.liensFiliationStatutConfirmeOfficiellement'),
+      confirme_genetiquement: t('super_admin.liensFiliationStatutConfirmeGenetiquement'),
+      declare_famille: t('super_admin.liensFiliationStatutDeclareFamille'),
+      suppose_ia: t('super_admin.liensFiliationStatutSupposeIa'),
+      en_verification: t('super_admin.liensFiliationStatutEnVerification'),
+      conteste: t('super_admin.liensFiliationStatutConteste'),
+      invalide: t('super_admin.liensFiliationStatutInvalide'),
+    };
+    return labels[statut] || statut;
   };
 
   const exportToCSV = () => {
@@ -128,39 +143,39 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <SuperAdminLayout title="Liens de Filiation" activeNav="liens-filiation">
+    <SuperAdminLayout title={t('super_admin.liensFiliationTitle')} activeNav="liens-filiation">
       <div className={styles['sa-system-logs']}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Gestion des Liens de Filiation</h2>
-          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>Consultez et gérez tous les liens de filiation</p>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>{t('super_admin.liensFiliationSubtitle')}</h2>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>{t('super_admin.liensFiliationSubtitle2')}</p>
         </div>
 
         <div className={styles['sa-system-logs__filters']}>
           <div className={styles['sa-system-logs__filter-group']}>
             <Filter size={16} />
             <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous types</option>
-              <option value="pere_biologique">Père biologique</option>
-              <option value="mere_biologique">Mère biologique</option>
-              <option value="enfant_biologique">Enfant biologique</option>
-              <option value="frere_biologique">Frère biologique</option>
-              <option value="soeur_biologique">Sœur biologique</option>
-              <option value="conjoint">Conjoint</option>
+              <option value="">{t('super_admin.liensFiliationAllTypes')}</option>
+              <option value="pere_biologique">{t('super_admin.liensFiliationTypePereBiologique')}</option>
+              <option value="mere_biologique">{t('super_admin.liensFiliationTypeMereBiologique')}</option>
+              <option value="enfant_biologique">{t('super_admin.liensFiliationTypeEnfantBiologique')}</option>
+              <option value="frere_biologique">{t('super_admin.liensFiliationTypeFrereBiologique')}</option>
+              <option value="soeur_biologique">{t('super_admin.liensFiliationTypeSoeurBiologique')}</option>
+              <option value="conjoint">{t('super_admin.liensFiliationTypeConjoint')}</option>
             </select>
           </div>
           <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous statuts</option>
-            <option value="confirme_officiellement">Confirmé officiellement</option>
-            <option value="confirme_genetiquement">Confirmé génétiquement</option>
-            <option value="declare_famille">Déclaré famille</option>
-            <option value="suppose_ia">Supposé IA</option>
-            <option value="en_verification">En vérification</option>
-            <option value="conteste">Contesté</option>
-            <option value="invalide">Invalide</option>
+            <option value="">{t('super_admin.liensFiliationFilterAllStatuses')}</option>
+            <option value="confirme_officiellement">{t('super_admin.liensFiliationStatutConfirmeOfficiellement')}</option>
+            <option value="confirme_genetiquement">{t('super_admin.liensFiliationStatutConfirmeGenetiquement')}</option>
+            <option value="declare_famille">{t('super_admin.liensFiliationStatutDeclareFamille')}</option>
+            <option value="suppose_ia">{t('super_admin.liensFiliationStatutSupposeIa')}</option>
+            <option value="en_verification">{t('super_admin.liensFiliationStatutEnVerification')}</option>
+            <option value="conteste">{t('super_admin.liensFiliationStatutConteste')}</option>
+            <option value="invalide">{t('super_admin.liensFiliationStatutInvalide')}</option>
           </select>
           <button onClick={exportToCSV} className={styles['sa-system-logs__export-btn']}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.systemLogsExportCsv')}
           </button>
         </div>
 
@@ -173,28 +188,28 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles['sa-system-logs__loading']}>
-            <Loader2 size={32} className={styles['sa-system-logs__spinner']} />
+          <div className={styles['sa-system-logs__skeletonWrap']}>
+            <AdminTableSkeleton columns={8} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-logs__table-wrapper']}>
             {liens.length === 0 ? (
               <div className={styles['sa-system-logs__empty']}>
                 <Users size={48} />
-                <p>Aucun lien trouvé</p>
+                <p>{t('super_admin.liensFiliationNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-system-logs__table']}>
                 <thead>
                   <tr>
-                    <th>Type</th>
-                    <th>Personne source</th>
-                    <th>Personne cible</th>
-                    <th>Nature</th>
-                    <th>Statut</th>
-                    <th>Score</th>
-                    <th>Ligne directe</th>
-                    <th>Actions</th>
+                    <th>{t('super_admin.liensFiliationTableType')}</th>
+                    <th>{t('super_admin.liensFiliationTablePersonneSource')}</th>
+                    <th>{t('super_admin.liensFiliationTablePersonneCible')}</th>
+                    <th>{t('super_admin.liensFiliationTableNature')}</th>
+                    <th>{t('super_admin.liensFiliationTableStatut')}</th>
+                    <th>{t('super_admin.liensFiliationTableScore')}</th>
+                    <th>{t('super_admin.liensFiliationTableLigneDirecte')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -212,13 +227,13 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
                             ? styles['sa-system-logs__badge--warning']
                             : styles['sa-system-logs__badge--danger']
                         }`}>
-                          {lien.statut_verification}
+                          {getStatutLabel(lien.statut_verification)}
                         </span>
                       </td>
                       <td>{lien.score_compatibilite_physique ? `${lien.score_compatibilite_physique}%` : '-'}</td>
                       <td>{lien.ligne_directe ? <CheckCircle size={16} style={{ color: '#10b981' }} /> : '-'}</td>
                       <td>
-                        <button onClick={() => setSelectedLien(lien)} title="Voir">
+                        <button onClick={() => setSelectedLien(lien)} title={t('common.view')}>
                           <Eye size={16} />
                         </button>
                       </td>
@@ -233,11 +248,11 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-system-logs__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -246,7 +261,7 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
           <div className={styles['sa-system-logs__modal-overlay']} onClick={() => setSelectedLien(null)}>
             <div className={styles['sa-system-logs__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-logs__modal-header']}>
-                <h2>Détails du lien de filiation</h2>
+                <h2>{t('super_admin.liensFiliationDetailsTitle')}</h2>
                 <button onClick={() => setSelectedLien(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-logs__modal-body']}>
@@ -266,7 +281,7 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
                 </div>
               </div>
               <div className={styles['sa-system-logs__modal-footer']}>
-                <button onClick={() => setSelectedLien(null)}>Fermer</button>
+                <button onClick={() => setSelectedLien(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

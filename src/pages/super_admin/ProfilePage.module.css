@@ -7,9 +7,18 @@
 .sa-profile {
   max-width: 800px;
   margin: 0 auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
-/* Loading */
+/* Loading / Skeleton */
+.sa-profile__skeletonWrap {
+  padding: 0.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .sa-profile__loading {
   display: flex;
   flex-direction: column;
@@ -459,5 +468,15 @@
   .sa-profile__password-actions button {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sa-profile {
+    padding: 0.75rem 1rem;
+  }
+
+  .sa-profile__header {
+    padding: 1rem;
   }
 }

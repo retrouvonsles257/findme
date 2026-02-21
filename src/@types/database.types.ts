@@ -440,6 +440,14 @@ export interface Commentaire {
   updated_at: Timestamp;
 }
 
+/** Lecture d'un message de coordination par un utilisateur (table commentaire_vue) */
+export interface CommentaireVue {
+  id: UUID;
+  id_commentaire: UUID;
+  id_utilisateur: UUID;
+  date_lecture: Timestamp;
+}
+
 export interface Document {
   id: UUID;
   nom_fichier: string;
@@ -504,6 +512,7 @@ export interface Don {
   date_remerciement: Timestamp | null;
   recu_fiscal_genere: boolean;
   numero_recu: string | null;
+  recu_pdf_url: string | null;
   // Champs gateway (optionnels selon migration)
   id_utilisateur: UUID | null;
   provider: string | null;
@@ -616,6 +625,11 @@ export interface Database {
         Row: Commentaire;
         Insert: Omit<Commentaire, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Commentaire, 'id' | 'created_at'>>;
+      };
+      commentaire_vue: {
+        Row: CommentaireVue;
+        Insert: Omit<CommentaireVue, 'id' | 'date_lecture'>;
+        Update: Partial<Omit<CommentaireVue, 'id'>>;
       };
       document: {
         Row: Document;

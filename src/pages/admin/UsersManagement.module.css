@@ -156,6 +156,7 @@
 .usersManagement__table {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .usersManagement__tableHeader {
@@ -388,12 +389,86 @@
     max-width: 100%;
   }
 
+  /* Vue cartes sur mobile : plus de scroll horizontal */
   .usersManagement__table {
-    overflow-x: auto;
+    overflow-x: visible;
   }
 
-  .usersManagement__tableHeader,
+  .usersManagement__tableHeader {
+    display: none;
+  }
+
   .usersManagement__tableRow {
-    min-width: 800px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem 1rem;
+    align-items: start;
+    min-width: 0;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: white;
+  }
+
+  .usersManagement__tableRow:last-child {
+    margin-bottom: 0;
+  }
+
+  .usersManagement__tableRow:hover {
+    background: #f8fafc;
+  }
+
+  .usersManagement__tableCell {
+    display: block;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+
+  .usersManagement__tableCell:nth-child(1) {
+    grid-column: 1;
+  }
+
+  .usersManagement__tableCell:nth-child(6) {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .usersManagement__tableCell:nth-child(2),
+  .usersManagement__tableCell:nth-child(3),
+  .usersManagement__tableCell:nth-child(4),
+  .usersManagement__tableCell:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .usersManagement__tableCell[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .usersManagement__actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .usersManagement__container {
+    padding: 1rem;
+  }
+
+  .usersManagement__title {
+    font-size: 1.25rem;
+  }
+
+  .usersManagement__tableRow {
+    padding: 0.75rem;
   }
 }

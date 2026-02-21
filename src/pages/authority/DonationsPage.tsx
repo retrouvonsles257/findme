@@ -7,6 +7,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Heart,
   DollarSign,
@@ -22,11 +23,13 @@ import {
   BarChart3,
   Filter,
   X,
+  ArrowRight,
 } from 'lucide-react';
 import { AuthorityLayout } from '../../components/layout';
 import { supabase } from '../../config';
 import { useAuth, useNotification } from '../../contexts';
 import { useI18n } from '../../hooks';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import styles from './DonationsPage.module.css';
 
 // Types basés sur le modèle de données
@@ -85,6 +88,7 @@ type DonFilterType = 'all' | 'reussi' | 'en_attente' | 'echoue';
 type CampagneFilterType = 'all' | 'en_cours' | 'terminee' | 'planifiee';
 
 export const DonationsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
@@ -285,6 +289,29 @@ export const DonationsPage: React.FC = () => {
           </div>
         </header>
 
+        {/* CTA vers la page dédiée Faire un don (pas dans la sidebar) */}
+        <div className={styles.ctaDonWrapper} style={{ marginBottom: 24 }}>
+          <section className={styles.ctaDonCard}>
+            <div className={styles.ctaDonContent}>
+              <Heart size={32} className={styles.ctaDonIcon} />
+              <div>
+                <h2 className={styles.ctaDonTitle}>{t('authority.donations.makeDonation') || 'Faire un don'}</h2>
+                <p className={styles.ctaDonText}>
+                  {t('authority.donations.ctaDonDescription') || 'Accédez à la page de don pour soutenir RetrouvonsLes et consulter votre historique de dons.'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.ctaDonButton}
+              onClick={() => navigate('/authority/donations/faire-un-don')}
+            >
+              {t('authority.donations.goToDonate') || 'Aller à la page de don'}
+              <ArrowRight size={18} />
+            </button>
+          </section>
+        </div>
+
         {/* Tabs */}
         <div className={styles.tabs}>
           <button
@@ -313,9 +340,8 @@ export const DonationsPage: React.FC = () => {
         {/* Content */}
         <div className={styles.content}>
           {loading ? (
-            <div className={styles.loadingState}>
-              <RefreshCw size={32} className={styles.spinning} />
-              <p>{t('authority.donations.loading')}</p>
+            <div className={styles.skeletonWrap}>
+              <AdminCardsGridSkeleton cardCount={6} />
             </div>
           ) : (
             <>

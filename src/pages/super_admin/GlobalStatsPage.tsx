@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { StatistiquesSkeleton } from '../admin/skeletons';
 import { 
   BarChart3, 
   Users, 
@@ -19,7 +20,6 @@ import {
   MapPin,
   Bell,
   Building2,
-  Loader2,
   AlertCircle,
   User,
   FileText,
@@ -166,42 +166,71 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
       setRegionalData(regionalArray);
 
-      // Données mensuelles (6 derniers mois)
+      // Données mensuelles (6 derniers mois) + 30 jours + âge/sexe/type en un seul batch parallèle
       const now = new Date();
-      const months: MonthlyData[] = [];
-      
+      const monthStarts: string[] = [];
+      const monthEnds: string[] = [];
+      const monthNames: string[] = [];
       for (let i = 5; i >= 0; i--) {
         const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
-        const monthName = monthDate.toLocaleString('fr-FR', { month: 'short', year: '2-digit' });
-        
-        const startStr = monthDate.toISOString();
-        const endStr = monthEnd.toISOString();
-        
-        const [dossiersMonth, signalementsMonth] = await Promise.all([
-          (supabase as any).from('dossier_disparition')
-            .select('id', { count: 'exact', head: true })
-            .gte('created_at', startStr)
-            .lte('created_at', endStr),
-          (supabase as any).from('signalement')
-            .select('id', { count: 'exact', head: true })
-            .gte('created_at', startStr)
-            .lte('created_at', endStr),
-        ]);
-        
-        months.push({
-          month: monthName,
-          dossiers: dossiersMonth.count || 0,
-          signalements: signalementsMonth.count || 0,
-        });
+        monthStarts.push(monthDate.toISOString());
+        monthEnds.push(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString());
+        monthNames.push(monthDate.toLocaleString('fr-FR', { month: 'short', year: '2-digit' }));
       }
-      
+
+      const dayDateStrs: string[] = [];
+      const dayNextDateStrs: string[] = [];
+      const dayLabels: string[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        dayDateStrs.push(date.toISOString().split('T')[0]);
+        dayNextDateStrs.push(new Date(date.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+        dayLabels.push(date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+      }
+
+      const monthPromises: Promise<any>[] = [];
+      for (let i = 0; i < 6; i++) {
+        monthPromises.push(
+          (supabase as any).from('dossier_disparition').select('id', { count: 'exact', head: true }).gte('created_at', monthStarts[i]).lte('created_at', monthEnds[i]),
+          (supabase as any).from('signalement').select('id', { count: 'exact', head: true }).gte('created_at', monthStarts[i]).lte('created_at', monthEnds[i])
+        );
+      }
+
+      const dayPromises: Promise<any>[] = [];
+      for (let i = 0; i < 30; i++) {
+        dayPromises.push(
+          (supabase as any).from('dossier_disparition').select('id', { count: 'exact', head: true }).gte('created_at', dayDateStrs[i]).lt('created_at', dayNextDateStrs[i]),
+          (supabase as any).from('signalement').select('id', { count: 'exact', head: true }).gte('created_at', dayDateStrs[i]).lt('created_at', dayNextDateStrs[i]),
+          (supabase as any).from('dossier_disparition').select('id', { count: 'exact', head: true }).gte('date_resolution', dayDateStrs[i]).lt('date_resolution', dayNextDateStrs[i]).in('statut_dossier', ['retrouve_vivant', 'retrouve_decede'])
+        );
+      }
+
+      const secondBatch = await Promise.all([
+        ...monthPromises,
+        ...dayPromises,
+        (supabase as any).from('dossier_disparition').select('id, statut_dossier, personne:personne(date_naissance, age_estime_min, age_estime_max)'),
+        (supabase as any).from('dossier_disparition').select('id, statut_dossier, personne:personne(sexe)'),
+        (supabase as any).from('dossier_disparition').select('id, type_disparition, statut_dossier'),
+      ]);
+
+      const months: MonthlyData[] = monthNames.map((monthName, i) => ({
+        month: monthName,
+        dossiers: (secondBatch[i * 2] as any)?.count ?? 0,
+        signalements: (secondBatch[i * 2 + 1] as any)?.count ?? 0,
+      }));
       setMonthlyData(months);
 
+      const dailyTrends: DailyTrendData[] = dayLabels.map((_, i) => ({
+        date: dayLabels[i],
+        dossiers: (secondBatch[12 + i * 3] as any)?.count ?? 0,
+        signalements: (secondBatch[12 + i * 3 + 1] as any)?.count ?? 0,
+        found: (secondBatch[12 + i * 3 + 2] as any)?.count ?? 0,
+      }));
+      setDailyTrendData(dailyTrends);
+
       // Analyse par âge
-      const { data: dossiersWithPersonne } = await (supabase as any)
-        .from('dossier_disparition')
-        .select('id, statut_dossier, personne:personne(date_naissance, age_estime_min, age_estime_max)');
+      const dossiersWithPersonne = (secondBatch[102] as any)?.data ?? [];
       
       const ageGroups: Record<string, { total: number; found: number }> = {
         '0-5': { total: 0, found: 0 },
@@ -211,7 +240,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
         '26-40': { total: 0, found: 0 },
         '41-60': { total: 0, found: 0 },
         '60+': { total: 0, found: 0 },
-        'Inconnu': { total: 0, found: 0 },
+        [t('super_admin.globalStatsInconnu')]: { total: 0, found: 0 },
       };
 
       (dossiersWithPersonne || []).forEach((d: any) => {
@@ -264,11 +293,8 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
       setAgeGroupData(ageArray);
 
-      // Analyse par sexe
-      const { data: dossiersWithSexe } = await (supabase as any)
-        .from('dossier_disparition')
-        .select('id, statut_dossier, personne:personne(sexe)');
-      
+      // Analyse par sexe (données déjà chargées dans secondBatch)
+      const dossiersWithSexe = (secondBatch[103] as any)?.data ?? [];
       const sexeMap: Record<string, { total: number; found: number }> = {
         'masculin': { total: 0, found: 0 },
         'feminin': { total: 0, found: 0 },
@@ -287,7 +313,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
       const sexeArray: SexeData[] = Object.entries(sexeMap)
         .map(([sexe, data]) => ({
-          sexe: sexe === 'masculin' ? 'Masculin' : sexe === 'feminin' ? 'Féminin' : sexe === 'inconnu' ? 'Inconnu' : 'Non précisé',
+          sexe: sexe === 'masculin' ? t('super_admin.globalStatsMasculin') : sexe === 'feminin' ? t('super_admin.globalStatsFeminin') : sexe === 'inconnu' ? t('super_admin.globalStatsInconnu') : t('super_admin.globalStatsNonPrecise'),
           total: data.total,
           found: data.found,
           percentage: data.total > 0 ? Math.round((data.found / data.total) * 100) : 0,
@@ -297,11 +323,8 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
       setSexeData(sexeArray);
 
-      // Analyse par type de disparition
-      const { data: dossiersByType } = await (supabase as any)
-        .from('dossier_disparition')
-        .select('id, type_disparition, statut_dossier');
-      
+      // Analyse par type de disparition (données déjà chargées dans secondBatch)
+      const dossiersByType = (secondBatch[104] as any)?.data ?? [];
       const typeMap: Record<string, { total: number; found: number }> = {};
 
       (dossiersByType || []).forEach((d: any) => {
@@ -314,15 +337,15 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
       });
 
       const typeLabels: Record<string, string> = {
-        'fugue': 'Fugue',
-        'enlevement_presume': 'Enlèvement présumé',
-        'accident': 'Accident',
-        'conflit_arme': 'Conflit armé',
-        'migration': 'Migration',
-        'catastrophe_naturelle': 'Catastrophe naturelle',
-        'disparition_volontaire': 'Disparition volontaire',
-        'inconnue': 'Inconnue',
-        'autre': 'Autre',
+        'fugue': t('super_admin.globalStatsTypeFugue'),
+        'enlevement_presume': t('super_admin.globalStatsTypeEnlevement'),
+        'accident': t('super_admin.globalStatsTypeAccident'),
+        'conflit_arme': t('super_admin.globalStatsTypeConflit'),
+        'migration': t('super_admin.globalStatsTypeMigration'),
+        'catastrophe_naturelle': t('super_admin.globalStatsTypeCatastrophe'),
+        'disparition_volontaire': t('super_admin.globalStatsTypeDisparitionVolontaire'),
+        'inconnue': t('super_admin.globalStatsTypeInconnue'),
+        'autre': t('super_admin.globalStatsTypeAutre'),
       };
 
       const typeArray: TypeDisparitionData[] = Object.entries(typeMap)
@@ -337,40 +360,6 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
       setTypeDisparitionData(typeArray);
 
-      // Tendances temporelles détaillées (30 derniers jours)
-      const dailyTrends: DailyTrendData[] = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        const nextDateStr = new Date(date.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        
-        const [dossiersDay, signalementsDay, foundDay] = await Promise.all([
-          (supabase as any).from('dossier_disparition')
-            .select('id', { count: 'exact', head: true })
-            .gte('created_at', dateStr)
-            .lt('created_at', nextDateStr),
-          (supabase as any).from('signalement')
-            .select('id', { count: 'exact', head: true })
-            .gte('created_at', dateStr)
-            .lt('created_at', nextDateStr),
-          (supabase as any).from('dossier_disparition')
-            .select('id', { count: 'exact', head: true })
-            .gte('date_resolution', dateStr)
-            .lt('date_resolution', nextDateStr)
-            .in('statut_dossier', ['retrouve_vivant', 'retrouve_decede']),
-        ]);
-
-        dailyTrends.push({
-          date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-          dossiers: dossiersDay.count || 0,
-          signalements: signalementsDay.count || 0,
-          found: foundDay.count || 0,
-        });
-      }
-
-      setDailyTrendData(dailyTrends);
-
     } catch (err: any) {
       console.error('Erreur chargement stats:', err);
       setError(err.message);
@@ -384,49 +373,19 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
   }, [loadStats]);
 
   const statCards = [
-    {
-      label: 'Total dossiers',
-      value: stats.totalDossiers.toString(),
-      icon: Users,
-      color: 'primary',
-    },
-    {
-      label: 'Retrouvés',
-      value: stats.dossiersRetrouves.toString(),
-      icon: CheckCircle2,
-      color: 'success',
-    },
-    {
-      label: 'En cours',
-      value: stats.dossiersEnCours.toString(),
-      icon: Clock,
-      color: 'warning',
-    },
-    {
-      label: 'Taux de succès',
-      value: `${stats.successRate}%`,
-      icon: TrendingUp,
-      color: 'info',
-    },
-    {
-      label: 'Signalements',
-      value: stats.totalSignalements.toString(),
-      icon: Bell,
-      color: 'secondary',
-    },
-    {
-      label: 'Organisations',
-      value: stats.totalOrganisations.toString(),
-      icon: Building2,
-      color: 'tertiary',
-    },
+    { label: t('super_admin.globalStatsTotalDossiers'), value: stats.totalDossiers.toString(), icon: Users, color: 'primary' },
+    { label: t('super_admin.globalStatsRetrouves'), value: stats.dossiersRetrouves.toString(), icon: CheckCircle2, color: 'success' },
+    { label: t('super_admin.globalStatsEnCours'), value: stats.dossiersEnCours.toString(), icon: Clock, color: 'warning' },
+    { label: t('super_admin.globalStatsTauxSucces'), value: `${stats.successRate}%`, icon: TrendingUp, color: 'info' },
+    { label: t('super_admin.globalStatsSignalements'), value: stats.totalSignalements.toString(), icon: Bell, color: 'secondary' },
+    { label: t('super_admin.globalStatsOrganisations'), value: stats.totalOrganisations.toString(), icon: Building2, color: 'tertiary' },
   ];
 
   const maxMonthlyValue = Math.max(...monthlyData.map(m => Math.max(m.dossiers, m.signalements)), 1);
 
   return (
     <SuperAdminLayout
-      title={t('super_admin.globalStatistics') || 'Statistiques globales'}
+      title={t('super_admin.globalStatistics') || t('super_admin.globalStatsFallback')}
       activeNav="global-stats"
     >
       <div className={styles['sa-global-stats']}>
@@ -440,8 +399,8 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-global-stats__loading']}>
-            <Loader2 size={32} className={styles['sa-global-stats__spinner']} />
+          <div className={styles['sa-global-stats__skeletonWrap']}>
+            <StatistiquesSkeleton />
           </div>
         ) : (
           <>
@@ -471,14 +430,15 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
             <section className={styles['sa-global-stats__section']}>
               <h2 className={styles['sa-global-stats__section-title']}>
                 <BarChart3 size={20} />
-                Évolution mensuelle
+                {t('super_admin.globalStatsEvolutionMensuelle')}
               </h2>
               <div className={styles['sa-global-stats__chart']}>
                 <div className={styles['sa-global-stats__chart-legend']}>
-                  <span><span className={styles['sa-global-stats__legend-dossiers']}></span> Dossiers</span>
-                  <span><span className={styles['sa-global-stats__legend-signalements']}></span> Signalements</span>
+                  <span><span className={styles['sa-global-stats__legend-dossiers']}></span> {t('super_admin.globalStatsLegendDossiers')}</span>
+                  <span><span className={styles['sa-global-stats__legend-signalements']}></span> {t('super_admin.globalStatsLegendSignalements')}</span>
                 </div>
-                <div className={styles['sa-global-stats__chart-bars']}>
+                <div className={styles['sa-global-stats__chart-wrap']}>
+                  <div className={styles['sa-global-stats__chart-bars']}>
                   {monthlyData.map((month) => (
                     <div key={month.month} className={styles['sa-global-stats__chart-month']}>
                       <div className={styles['sa-global-stats__chart-bar-group']}>
@@ -498,6 +458,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
                       <span className={styles['sa-global-stats__chart-label']}>{month.month}</span>
                     </div>
                   ))}
+                  </div>
                 </div>
               </div>
             </section>
@@ -506,25 +467,25 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
             <section className={styles['sa-global-stats__section']}>
               <h2 className={styles['sa-global-stats__section-title']}>
                 <MapPin size={20} />
-                Analyse par région
+                {t('super_admin.globalStatsAnalyseRegion')}
               </h2>
               <div className={styles['sa-global-stats__table-wrapper']}>
                 {regionalData.length === 0 ? (
-                  <p className={styles['sa-global-stats__empty']}>Aucune donnée régionale disponible</p>
+                  <p className={styles['sa-global-stats__empty']}>{t('super_admin.globalStatsNoDataRegion')}</p>
                 ) : (
                   <table className={styles['sa-global-stats__table']}>
                     <thead>
                       <tr>
-                        <th>Région</th>
-                        <th>Total</th>
-                        <th>Retrouvés</th>
-                        <th>Taux</th>
+                        <th>{t('super_admin.globalStatsTableRegion')}</th>
+                        <th>{t('super_admin.globalStatsTableTotal')}</th>
+                        <th>{t('super_admin.globalStatsRetrouves')}</th>
+                        <th>{t('super_admin.globalStatsTableTaux')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {regionalData.map((region) => (
                         <tr key={region.region}>
-                          <td>{region.region}</td>
+                          <td>{region.region === 'Non spécifié' ? t('super_admin.globalStatsNonSpecifie') : region.region}</td>
                           <td>{region.total}</td>
                           <td>{region.found}</td>
                           <td>
@@ -548,25 +509,25 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
             <section className={styles['sa-global-stats__section']}>
               <h2 className={styles['sa-global-stats__section-title']}>
                 <User size={20} />
-                Analyse par tranche d'âge
+                {t('super_admin.globalStatsAnalyseAge')}
               </h2>
               <div className={styles['sa-global-stats__table-wrapper']}>
                 {ageGroupData.length === 0 ? (
-                  <p className={styles['sa-global-stats__empty']}>Aucune donnée d'âge disponible</p>
+                  <p className={styles['sa-global-stats__empty']}>{t('super_admin.globalStatsNoDataAge')}</p>
                 ) : (
                   <table className={styles['sa-global-stats__table']}>
                     <thead>
                       <tr>
-                        <th>Tranche d'âge</th>
-                        <th>Total</th>
-                        <th>Retrouvés</th>
-                        <th>Taux</th>
+                        <th>{t('super_admin.globalStatsTableAge')}</th>
+                        <th>{t('super_admin.globalStatsTableTotal')}</th>
+                        <th>{t('super_admin.globalStatsRetrouves')}</th>
+                        <th>{t('super_admin.globalStatsTableTaux')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {ageGroupData.map((age) => (
                         <tr key={age.group}>
-                          <td>{age.group} ans</td>
+                          <td>{age.group === 'Inconnu' ? t('super_admin.globalStatsInconnu') : `${age.group} ans`}</td>
                           <td>{age.total}</td>
                           <td>{age.found}</td>
                           <td>
@@ -590,19 +551,19 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
             <section className={styles['sa-global-stats__section']}>
               <h2 className={styles['sa-global-stats__section-title']}>
                 <Users size={20} />
-                Analyse par sexe
+                {t('super_admin.globalStatsAnalyseSexe')}
               </h2>
               <div className={styles['sa-global-stats__table-wrapper']}>
                 {sexeData.length === 0 ? (
-                  <p className={styles['sa-global-stats__empty']}>Aucune donnée de sexe disponible</p>
+                  <p className={styles['sa-global-stats__empty']}>{t('super_admin.globalStatsNoDataSexe')}</p>
                 ) : (
                   <table className={styles['sa-global-stats__table']}>
                     <thead>
                       <tr>
-                        <th>Sexe</th>
-                        <th>Total</th>
-                        <th>Retrouvés</th>
-                        <th>Taux</th>
+                        <th>{t('super_admin.globalStatsTableSexe')}</th>
+                        <th>{t('super_admin.globalStatsTableTotal')}</th>
+                        <th>{t('super_admin.globalStatsRetrouves')}</th>
+                        <th>{t('super_admin.globalStatsTableTaux')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -632,19 +593,19 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
             <section className={styles['sa-global-stats__section']}>
               <h2 className={styles['sa-global-stats__section-title']}>
                 <FileText size={20} />
-                Analyse par type de disparition
+                {t('super_admin.globalStatsAnalyseType')}
               </h2>
               <div className={styles['sa-global-stats__table-wrapper']}>
                 {typeDisparitionData.length === 0 ? (
-                  <p className={styles['sa-global-stats__empty']}>Aucune donnée de type disponible</p>
+                  <p className={styles['sa-global-stats__empty']}>{t('super_admin.globalStatsNoDataType')}</p>
                 ) : (
                   <table className={styles['sa-global-stats__table']}>
                     <thead>
                       <tr>
-                        <th>Type</th>
-                        <th>Total</th>
-                        <th>Retrouvés</th>
-                        <th>Taux</th>
+                        <th>{t('super_admin.globalStatsTableType')}</th>
+                        <th>{t('super_admin.globalStatsTableTotal')}</th>
+                        <th>{t('super_admin.globalStatsRetrouves')}</th>
+                        <th>{t('super_admin.globalStatsTableTaux')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -674,13 +635,13 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
             <section className={styles['sa-global-stats__section']}>
               <h2 className={styles['sa-global-stats__section-title']}>
                 <Activity size={20} />
-                Tendances quotidiennes (30 derniers jours)
+                {t('super_admin.globalStatsTendancesQuotidiennes')}
               </h2>
               <div className={styles['sa-global-stats__chart']}>
                 <div className={styles['sa-global-stats__chart-legend']}>
-                  <span><span className={styles['sa-global-stats__legend-dossiers']}></span> Dossiers créés</span>
-                  <span><span className={styles['sa-global-stats__legend-signalements']}></span> Signalements</span>
-                  <span style={{ color: '#10b981' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#10b981', borderRadius: '2px', marginRight: '4px' }}></span> Retrouvés</span>
+                  <span><span className={styles['sa-global-stats__legend-dossiers']}></span> {t('super_admin.globalStatsLegendDossiersCreated')}</span>
+                  <span><span className={styles['sa-global-stats__legend-signalements']}></span> {t('super_admin.globalStatsLegendSignalements')}</span>
+                  <span style={{ color: '#10b981' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#10b981', borderRadius: '2px', marginRight: '4px' }}></span> {t('super_admin.globalStatsLegendRetrouves')}</span>
                 </div>
                 <div className={styles['sa-global-stats__chart-bars']} style={{ maxHeight: '300px', overflowX: 'auto', display: 'flex', gap: '2px' }}>
                   {dailyTrendData.map((day) => {
@@ -697,7 +658,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
                               left: '0%',
                               width: '30%'
                             }}
-                            title={`${day.dossiers} dossiers`}
+                            title={t('super_admin.globalStatsTitleDossiers', { count: day.dossiers })}
                           >
                             {day.dossiers > 0 && <span className={styles['sa-global-stats__chart-value']}>{day.dossiers}</span>}
                           </div>
@@ -710,7 +671,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
                               left: '33%',
                               width: '30%'
                             }}
-                            title={`${day.signalements} signalements`}
+                            title={t('super_admin.globalStatsTitleSignalements', { count: day.signalements })}
                           >
                             {day.signalements > 0 && <span className={styles['sa-global-stats__chart-value']}>{day.signalements}</span>}
                           </div>
@@ -724,7 +685,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
                               background: '#10b981',
                               borderRadius: '2px 2px 0 0'
                             }}
-                            title={`${day.found} retrouvés`}
+                            title={t('super_admin.globalStatsTitleRetrouves', { count: day.found })}
                           >
                             {day.found > 0 && <span className={styles['sa-global-stats__chart-value']} style={{ color: 'white' }}>{day.found}</span>}
                           </div>

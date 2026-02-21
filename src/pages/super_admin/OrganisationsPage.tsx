@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import { 
   Building2, Users, MapPin, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, ToggleLeft, ToggleRight, Download, CheckCircle,
@@ -265,7 +266,7 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
       if (upsertError) throw upsertError;
 
       setOriginalOrgsConfig(orgsConfig);
-      setSuccess('Configuration des types d\'organisations sauvegardée avec succès');
+      setSuccess(t('super_admin.organisationsSaveSuccess'));
       setTimeout(() => setSuccess(null), 3000);
       setShowTypesConfig(false);
     } catch (err: any) {
@@ -627,15 +628,15 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-organisations__loading']}>
-            <Loader2 size={32} className={styles['sa-organisations__spinner']} />
+          <div className={styles['sa-organisations__skeletonWrap']}>
+            <AdminCardsGridSkeleton cardCount={8} />
           </div>
         ) : (
           <div className={styles['sa-organisations__grid']}>
             {filteredOrgs.length === 0 ? (
               <div className={styles['sa-organisations__empty']}>
                 <Building2 size={48} />
-                <p>{t('common.noData') || 'Aucune organisation'}</p>
+                <p>{t('common.noData')}</p>
               </div>
             ) : (
               filteredOrgs.map((org) => (

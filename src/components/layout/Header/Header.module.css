@@ -1,3 +1,7 @@
+.logoSection {
+  font-family: var(--app-name-font);
+}
+
 .desktopHeader {
   display: block;
 }

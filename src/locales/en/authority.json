@@ -1385,7 +1385,14 @@
       "notAssigned": "Not assigned",
       "memberSince": "Member since",
       "lastLogin": "Last login",
-      "changePassword": "Change password"
+      "changePassword": "Change password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "cancel": "Cancel",
+      "updatePassword": "Update password",
+      "passwordChanged": "Password updated successfully",
+      "passwordsMismatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 8 characters"
     },
     "values": {
       "na": "N/A",
@@ -1511,6 +1518,9 @@
       "totalReach": "Total reach",
       "completedCampaigns": "Completed campaigns"
     },
+    "makeDonation": "Make a donation",
+    "ctaDonDescription": "Go to the donation page to support RetrouvonsLes and view your donation history.",
+    "goToDonate": "Go to donation page",
     "modal": {
       "description": "Description",
       "objective": "Objective",

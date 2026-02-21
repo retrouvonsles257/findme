@@ -142,6 +142,7 @@
 .tableWrap {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tableHeader {
@@ -535,9 +536,160 @@
 }
 
 /* ----- Responsive ----- */
-@media (max-width: 560px) {
+@media (max-width: 1024px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .header .title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
   .page {
     padding: 1rem 1rem 2rem;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .headerContent {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header .title {
+    font-size: 1.35rem;
+  }
+
+  .header .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .tableHeaderRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .tableHeaderRow .cardTitle {
+    font-size: 1rem;
+  }
+
+  .tableHeaderRow button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Vue cartes : plus de tableau horizontal */
+  .tableWrap {
+    overflow-x: visible;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .tableRow {
+    display: block;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fafafa;
+  }
+
+  .tableRow:hover {
+    background: #f8fafc;
+  }
+
+  .tableRow:last-child {
+    margin-bottom: 0;
+  }
+
+  .tableRow .tdEmail,
+  .tableRow .tdRole,
+  .tableRow .tdType,
+  .tableRow .tdPassword,
+  .tableRow .tdActions {
+    display: block;
+    padding: 0.5rem 0 0;
+    border: none;
+  }
+
+  .tableRow .tdEmail {
+    padding-top: 0;
+  }
+
+  .tableRow .tdActions {
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .tableRow .tdEmail[data-label]::before,
+  .tableRow .tdRole[data-label]::before,
+  .tableRow .tdType[data-label]::before,
+  .tableRow .tdPassword[data-label]::before,
+  .tableRow .tdActions[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+  }
+
+  .footerActions {
+    flex-direction: column;
+    padding: 1rem 1rem 0;
+  }
+
+  .footerActions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Bloc résultat (après envoi) */
+  .resultBlock {
+    padding: 1.5rem 1rem;
+  }
+
+  .resultTitle {
+    font-size: 1.125rem;
+  }
+
+  .resultStats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .resultStat {
+    justify-content: center;
+  }
+
+  .resultFailedList {
+    max-width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .resultActions {
+    flex-direction: column;
+  }
+
+  .resultActions button {
+    width: 100%;
+    justify-content: center;
   }
 
   .modeSwitch {
@@ -549,12 +701,8 @@
     padding: 0.875rem 1rem;
   }
 
-  .header {
-    padding: 1.25rem 1.25rem 0;
-  }
-
   .form {
-    padding: 1.25rem 1.25rem 1.5rem;
+    padding: 1.25rem 1rem 1.5rem;
   }
 
   .title {
@@ -564,5 +712,111 @@
   .titleIconWrap {
     width: 40px;
     height: 40px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .header {
+    padding: 1.25rem 1rem 0;
+  }
+
+  .form {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .titleIconWrap {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 0.75rem 0.75rem 1.5rem;
+  }
+
+  .container {
+    padding: 0.75rem;
+  }
+
+  .header {
+    padding: 1rem 0.75rem 0;
+  }
+
+  .header .title {
+    font-size: 1.2rem;
+  }
+
+  .headerIcon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .headerIcon svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .tableRow {
+    padding: 0.75rem;
+  }
+
+  .tableRow .tdEmail,
+  .tableRow .tdRole,
+  .tableRow .tdType,
+  .tableRow .tdPassword {
+    padding: 0.4rem 0 0;
+  }
+
+  .tableRow .input,
+  .tableRow .select {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .footerActions {
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .resultBlock {
+    padding: 1rem 0.75rem;
+  }
+
+  .resultTitle {
+    font-size: 1rem;
+  }
+
+  .resultStat {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .success {
+    padding: 1.5rem 1rem;
+  }
+
+  .successIconWrap {
+    width: 64px;
+    height: 64px;
+  }
+
+  .success h2 {
+    font-size: 1.125rem;
+  }
+
+  .form {
+    padding: 1rem 0.75rem 1.25rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
   }
 }

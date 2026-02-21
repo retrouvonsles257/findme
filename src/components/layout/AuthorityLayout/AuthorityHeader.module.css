@@ -46,6 +46,16 @@
   background: #f1f5f9;
 }
 
+.headerAppName {
+  font-family: var(--app-name-font);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--authority-text-dark, #1e293b);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* Search Form */
 .searchForm {
   display: flex;

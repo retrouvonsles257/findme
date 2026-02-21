@@ -13,6 +13,7 @@ import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import { 
   RefreshCw, 
   AlertTriangle, 
@@ -211,9 +212,8 @@ export const EditDossierPage: React.FC = () => {
   if (isLoading) {
     return (
       <AuthorityLayout>
-        <div className={styles.loadingState}>
-          <RefreshCw size={24} className={styles.spinning} />
-          {t('authority.editDossier.loading')}
+        <div className={styles.skeletonWrap}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
         </div>
       </AuthorityLayout>
     );

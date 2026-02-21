@@ -10,14 +10,13 @@ import { Routes, Route } from 'react-router-dom';
 import {
   SuperAdminDashboardPage,
   SuperAdminGlobalStatsPage,
-  SuperAdminIAConfigurationPage,
   SuperAdminOrganisationsPage,
-  SuperAdminSecurityPage,
   SuperAdminSystemLogsPage,
   SuperAdminSystemSettingsPage,
   SuperAdminSystemUsersPage,
   SuperAdminCampagnesPage,
   SuperAdminDonsPage,
+  SuperAdminDonatePage,
   SuperAdminRolesPage,
   SuperAdminDossiersCritiquesPage,
   SuperAdminResultatsIAPage,
@@ -26,7 +25,6 @@ import {
   SuperAdminDossiersPage,
   SuperAdminDossierDetailPage,
   SuperAdminAlertesPage,
-  SuperAdminMaintenancePage
 } from '../pages/super_admin';
 
 import PrivateRoute from './PrivateRoutes';
@@ -36,14 +34,11 @@ import { NomRole } from '../@types/enums.types';
 /**
  * SuperAdminRoutes Component
  * Routes protégées pour le super admin
- * - Dashboard
- * - Global Statistics
- * - IA Configuration
- * - Organisations Management
- * - Security
- * - System Logs
- * - System Settings
- * - System Users
+ * - Dashboard, Global Statistics
+ * - Organisations, System Users, Roles
+ * - System Logs, System Settings
+ * - Campagnes, Dons, Dossiers, Alertes, Résultats IA, Signalement validation
+ * - Profile, Documents, Photos, Commentaires, Notifications, Liens filiation
  */
 const SuperAdminRoutes: React.FC = () => {
   const superAdminRoles = [NomRole.SUPER_ADMIN];
@@ -71,32 +66,12 @@ const SuperAdminRoutes: React.FC = () => {
           }
         />
 
-        {/* IA Configuration */}
-        <Route
-          path="/ia-configuration"
-          element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
-              <SuperAdminIAConfigurationPage />
-            </RoleBasedRoute>
-          }
-        />
-
         {/* Organisations */}
         <Route
           path="/organisations"
           element={
             <RoleBasedRoute requiredRoles={superAdminRoles}>
               <SuperAdminOrganisationsPage />
-            </RoleBasedRoute>
-          }
-        />
-
-        {/* Security */}
-        <Route
-          path="/security"
-          element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
-              <SuperAdminSecurityPage />
             </RoleBasedRoute>
           }
         />
@@ -147,6 +122,15 @@ const SuperAdminRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={superAdminRoles}>
               <SuperAdminDonsPage />
+            </RoleBasedRoute>
+          }
+        />
+        {/* Page dédiée Faire un don (accès depuis Dons uniquement) */}
+        <Route
+          path="/dons/faire-un-don"
+          element={
+            <RoleBasedRoute requiredRoles={superAdminRoles}>
+              <SuperAdminDonatePage />
             </RoleBasedRoute>
           }
         />
@@ -231,15 +215,6 @@ const SuperAdminRoutes: React.FC = () => {
           }
         />
 
-        {/* Maintenance */}
-        <Route
-          path="/maintenance"
-          element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
-              <SuperAdminMaintenancePage />
-            </RoleBasedRoute>
-          }
-        />
       </Routes>
     </PrivateRoute>
   );

@@ -84,6 +84,12 @@ serve(async (req: Request) => {
       }
     }
 
+    const FINAL_STATUTS = ['reussi', 'echoue', 'annule', 'rembourse'];
+    const currentStatut = String((don as any)?.statut_paiement || '');
+    if (FINAL_STATUTS.includes(currentStatut)) {
+      return jsonResponse({ ok: true, donation: don, idempotent: true });
+    }
+
     const nowIso = new Date().toISOString();
     const update: Record<string, unknown> = {
       statut_paiement: status,
@@ -118,6 +124,23 @@ serve(async (req: Request) => {
         { error: 'Failed to update donation', details: updateResult.error.message },
         500,
       );
+    }
+
+    try {
+      await (supabase as any).from('journal_activite').insert({
+        type_action: 'autre',
+        action_detaillee: 'don_mock_confirm',
+        description: `Mock confirm don ${donId} — ${currentStatut || 'en_attente'} → ${status}`,
+        id_utilisateur: (don as any)?.id_utilisateur ?? null,
+        donnees_apres: {
+          don_id: donId,
+          ancien_statut: currentStatut || 'en_attente',
+          nouveau_statut: status,
+        },
+        date_action: nowIso,
+      });
+    } catch (journalErr) {
+      console.error('[donations-mock-confirm] journal_activite insert (non blocking)', journalErr);
     }
 
     return jsonResponse({ ok: true, donation: updateResult.data });

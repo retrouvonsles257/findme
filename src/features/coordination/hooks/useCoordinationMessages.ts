@@ -5,9 +5,10 @@
  * =====================================================
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../../../contexts';
 import { supabase } from '../../../config/supabase.config';
+import { useCoordinationRead } from '../context/CoordinationReadContext';
 
 // ============================================
 // TYPES
@@ -25,6 +26,10 @@ export interface CoordinationMessage {
 
 export interface UseCoordinationMessagesState {
   messages: CoordinationMessage[];
+  /** Ids des commentaires déjà lus par l'utilisateur connecté (table commentaire_vue) */
+  readCommentIds: Set<string>;
+  /** Nombre de messages non lus (des autres, non présents dans readCommentIds) */
+  unreadCount: number;
   loading: boolean;
   error: string | null;
 }
@@ -32,6 +37,8 @@ export interface UseCoordinationMessagesState {
 export interface UseCoordinationMessagesActions {
   sendMessage: (text: string, dossierId?: string) => Promise<void>;
   fetchMessages: (dossierId?: string) => Promise<void>;
+  /** Marquer des commentaires comme lus pour l'utilisateur connecté */
+  markAsRead: (commentIds: string[]) => Promise<void>;
   clearError: () => void;
 }
 
@@ -47,11 +54,21 @@ export type UseCoordinationMessagesReturn = UseCoordinationMessagesState & UseCo
  */
 export const useCoordinationMessages = (dossierId?: string): UseCoordinationMessagesReturn => {
   const { user } = useAuth();
+  const { readCommentIds, markAsRead } = useCoordinationRead();
   const [state, setState] = useState<UseCoordinationMessagesState>({
     messages: [],
+    readCommentIds: new Set(),
+    unreadCount: 0,
     loading: false,
     error: null,
   });
+  const unreadCount = useMemo(
+    () =>
+      state.messages.filter(
+        (m) => m.author_id !== user?.id && !readCommentIds.has(m.id)
+      ).length,
+    [state.messages, readCommentIds, user?.id]
+  );
 
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
@@ -211,8 +228,11 @@ export const useCoordinationMessages = (dossierId?: string): UseCoordinationMess
 
   return {
     ...state,
+    readCommentIds,
+    unreadCount,
     sendMessage,
     fetchMessages,
+    markAsRead,
     clearError,
   };
 };

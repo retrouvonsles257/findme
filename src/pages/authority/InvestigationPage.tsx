@@ -15,6 +15,7 @@ import { supabase } from '../../config';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import {
   Search,
   Calendar,
@@ -269,7 +270,9 @@ export const InvestigationPage: React.FC = () => {
             <h2>{t('authority.investigation.activeDossiers')}</h2>
             <div className={styles.dossiersList}>
               {isLoading ? (
-                <p>{t('authority.investigation.loading')}</p>
+                <div className={styles.skeletonWrapLeft}>
+                  <AdminDetailSkeleton blockCount={1} linesPerBlock={5} />
+                </div>
               ) : dossiers.filter((d: any) => d.statut_dossier === 'en_cours').length > 0 ? (
                 dossiers
                   .filter((d: any) => d.statut_dossier === 'en_cours')
@@ -308,7 +311,11 @@ export const InvestigationPage: React.FC = () => {
 
           {/* Right Panel - Investigation View */}
           <div className={styles.rightPanel}>
-            {dossier ? (
+            {isLoading ? (
+              <div className={styles.skeletonWrapRight}>
+                <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+              </div>
+            ) : dossier ? (
               <>
                 {/* Investigation Header */}
                 <div className={styles.investigationHeader}>

@@ -28,7 +28,7 @@ import {
   X,
   Loader2,
 } from 'lucide-react';
-import { AdminListSkeleton } from './skeletons';
+import { AdminCardsGridSkeleton } from './skeletons';
 import styles from './RolesManagement.module.css';
 
 interface Role {
@@ -77,8 +77,8 @@ export const AdminOrganisationRolesPage: React.FC = () => {
         ? await getAdminRolesWithCounts(orgId)
         : (await getAdminRoles()).map((r) => ({ ...r, nombre_utilisateurs: 0 as number }));
       setRoles(rows.map((r) => mapRowToRole(r as Parameters<typeof mapRowToRole>[0])));
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Erreur lors du chargement des rôles';
+    } catch (err: any) {
+      const errMsg = (err?.message && String(err.message).trim()) || err?.error_description || err?.code || 'Erreur lors du chargement des rôles';
       console.error('Erreur chargement rôles:', err);
       setLoadError(errMsg);
       try {
@@ -179,7 +179,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
         {/* Loading */}
         {loading && (
           <div className={styles.rolesManagement__skeletonWrap}>
-            <AdminListSkeleton cardCount={6} showFilters={false} />
+            <AdminCardsGridSkeleton cardCount={6} />
           </div>
         )}
 

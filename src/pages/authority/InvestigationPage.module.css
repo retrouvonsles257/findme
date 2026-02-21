@@ -125,6 +125,13 @@
   min-height: 500px;
 }
 
+.skeletonWrapLeft,
+.skeletonWrapRight {
+  padding: var(--space-3, 0.75rem);
+  min-height: 200px;
+  width: 100%;
+}
+
 .investigationHeader {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;

@@ -253,7 +253,7 @@ export const DisparitionsPage: React.FC = () => {
       <nav className={styles.navbar}>
         <div className={styles.navContainer}>
           <Link to="/" className={styles.logo}>
-            <Search size={24} />
+            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="RetrouvonsLes" className={styles.logoImg} />
             <span>RETROUVONSLES</span>
           </Link>
 

@@ -9,6 +9,12 @@
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
+.skeletonWrap {
+  padding: 1rem 1.5rem;
+  min-height: 400px;
+  width: 100%;
+}
+
 .header {
   display: flex;
   justify-content: space-between;

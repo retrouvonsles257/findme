@@ -1,0 +1,436 @@
+/**
+ * DonationPageContent - Style unique pour tous (connecté / non connecté).
+ * Aligné 100 % maquette donation-page-form.png + responsive.
+ */
+
+/* ---- Main : pleine largeur, pas d’espace vide ---- */
+.titleBlock {
+  width: 100%;
+  min-width: 0;
+}
+
+.pageTitleTop {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1rem 0;
+  line-height: 1.3;
+}
+
+/* Aligné comme le dashboard : pas de padding horizontal, le layout .content gère la colonne */
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0 1.5rem 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 900px) {
+  .main {
+    padding: 0 0 2rem 0;
+  }
+}
+
+/* Footer : même largeur que le contenu, pas de padding horizontal supplémentaire */
+.footerInner {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.grid.gridThree {
+  grid-template-columns: 0.95fr 1.1fr 0.95fr;
+  gap: 1.25rem;
+}
+
+.center {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.formCard {
+  min-width: 0;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.imageWrap {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #e2e8f0;
+  aspect-ratio: 4/3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.imageWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.heroHighlight {
+  color: #1e3c72;
+}
+
+.mission {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.benefitCards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+}
+
+.benefitCard {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.125rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.benefitIconGreen {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.benefitIconBlue {
+  flex-shrink: 0;
+  font-size: 1.375rem;
+}
+
+.benefitCard strong {
+  display: block;
+  color: #1e3c72;
+  font-size: 0.9375rem;
+  margin-bottom: 0.25rem;
+}
+
+.benefitCard p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+/* ---- Right column (historique) ---- */
+.right {
+  min-width: 0;
+}
+
+.formCard {
+  min-width: 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+
+.historyCard {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.historyTitle {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e3c72;
+}
+
+/* ---- Success ---- */
+.successWrap {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.loadError {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+
+/* ---- Impact ---- */
+.impactSection {
+  margin-top: 2rem;
+  text-align: center;
+  width: 100%;
+}
+
+.impactTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e3c72;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.impactDesc {
+  margin: 0 0 1.5rem;
+  color: #64748b;
+  font-size: 0.9375rem;
+}
+
+.impactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  text-align: center;
+  width: 100%;
+}
+
+.impactCard {
+  padding: 1.5rem 1.25rem;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.impactIcon {
+  display: block;
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.impactCard strong {
+  display: block;
+  color: #1e3c72;
+  font-size: 1.0625rem;
+  margin-bottom: 0.5rem;
+}
+
+.impactCard p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ---- Footer ---- */
+.footer {
+  background: #e0f2fe;
+  padding: 1.5rem 0;
+  margin-top: auto;
+  width: 100%;
+}
+
+.footerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.footerLogo {
+  font-weight: 800;
+  color: #1e3c72;
+  font-size: 0.9375rem;
+}
+
+.footerNav {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.footerNav a {
+  color: #1e40af;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.footerNav a:hover {
+  text-decoration: underline;
+}
+
+.footerSocial a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1e40af;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.footerCopy {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1.1fr;
+    gap: 1.5rem;
+  }
+
+  .grid.gridThree {
+    grid-template-columns: 1fr 1.05fr 0.9fr;
+    gap: 1.25rem;
+  }
+
+  .formCard {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .pageTitleTop {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .grid,
+  .grid.gridThree {
+    grid-template-columns: 1fr;
+  }
+
+  .left {
+    order: 1;
+  }
+
+  .center {
+    order: 2;
+  }
+
+  .right {
+    order: 3;
+  }
+
+  .benefitCards {
+    grid-template-columns: 1fr;
+  }
+
+  .impactGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .imageWrap {
+    max-height: 280px;
+    aspect-ratio: 16/9;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 0 0.75rem 1.25rem;
+  }
+
+  .footerInner {
+    padding: 0 0.75rem;
+  }
+
+  .heroTitle {
+    font-size: 1.5rem;
+  }
+
+  .mission {
+    font-size: 0.875rem;
+  }
+
+  .formCard {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .historyCard {
+    padding: 1.25rem;
+  }
+
+  .impactTitle {
+    font-size: 1.25rem;
+  }
+
+  .impactGrid {
+    gap: 1rem;
+  }
+
+  .impactCard {
+    padding: 1.25rem 1rem;
+  }
+
+  .footerRow {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footerNav {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .main {
+    padding: 0.75rem 0.75rem 1.25rem;
+  }
+
+  .footerInner {
+    padding: 0 0.75rem;
+  }
+
+  .formCard {
+    padding: 1rem;
+  }
+}

@@ -70,7 +70,11 @@ async function invokeFunction<TResponse>(
   const json = await res.json().catch(() => null);
 
   if (!res.ok) {
-    const details = (json as any)?.error || (json as any)?.message || res.statusText;
+    const errMsg = (json as any)?.error ?? (json as any)?.message;
+    const details = typeof errMsg === 'string' ? errMsg : res.statusText;
+    if (res.status >= 400 && res.status < 500 && typeof errMsg === 'string') {
+      throw new Error(errMsg);
+    }
     throw new Error(`Edge function ${functionName} failed: ${details}`);
   }
 
@@ -85,8 +89,14 @@ export async function createDonation(formData: DonFormData): Promise<DonationsCr
       : '';
   const notifyUrl = `${envConfig.REACT_APP_SUPABASE_URL}/functions/v1/donations-webhook`;
 
+  const devise = (formData.devise || 'XAF').toUpperCase();
+  const montant =
+    devise === 'USD'
+      ? Number(formData.montant)
+      : Math.round(Number(formData.montant));
+
   const payload = {
-    montant: formData.montant,
+    montant,
     devise: formData.devise,
     type_don: formData.type_don,
     methode_paiement: formData.methode_paiement,

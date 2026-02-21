@@ -1,15 +1,15 @@
 /* ===================================
    DisparitionsPage - Styles
    Primary: #1d4ed8 (Blue)
-   Font: Inter
+   Aligné visuel HomePage / public
    =================================== */
 
 .disparitionsPage {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #f9fafb;
+  font-family: var(--font-sans, 'Manrope', 'Inter', system-ui, sans-serif);
+  background: var(--color-bg, #f8fafc);
   overflow-x: hidden;
 }
 
@@ -39,8 +39,17 @@
   gap: 0.5rem;
   text-decoration: none;
   color: #1d4ed8;
+  font-family: var(--app-name-font, 'Inter', sans-serif);
   font-weight: 700;
   font-size: 1.125rem;
+}
+
+.logoImg {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .navLinks {
@@ -132,11 +141,15 @@
 
 .pageHeader h1 svg {
   color: #1d4ed8;
+  flex-shrink: 0;
 }
 
 .pageHeader p {
   color: #6b7280;
   font-size: 1.0625rem;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Filters Section */
@@ -147,8 +160,9 @@
   margin-bottom: 1.5rem;
   padding: 1.5rem;
   background: #fff;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .searchBox {
@@ -275,15 +289,17 @@
 
 .resultCard {
   background: #fff;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .resultCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.15);
 }
 
 .cardPhoto {
@@ -320,7 +336,7 @@
 }
 
 .cardContent {
-  padding: 1.25rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .cardContent h3 {
@@ -331,6 +347,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
 }
 
 .cardInfo {

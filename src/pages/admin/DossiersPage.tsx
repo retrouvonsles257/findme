@@ -24,7 +24,7 @@ import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NomRole, StatutDossier, NiveauUrgence } from '../../@types/enums.types';
 import { getAdminOrganisationDossiers } from '../../features/admin-organisation/services';
-import { AdminListSkeleton } from './skeletons';
+import { AdminCardsGridSkeleton } from './skeletons';
 
 import styles from './DossiersPage.module.css';
 
@@ -97,7 +97,7 @@ export const AdminOrganisationDossiersPage: React.FC = () => {
     <AdminOrganisationLayout title={t('admin.dossiers')} activeNav="dossiers">
       <div className={styles.dossiers}>
         {loading ? (
-          <AdminListSkeleton cardCount={6} showFilters={true} />
+          <AdminCardsGridSkeleton cardCount={6} />
         ) : (
           <>
             {loadError && (

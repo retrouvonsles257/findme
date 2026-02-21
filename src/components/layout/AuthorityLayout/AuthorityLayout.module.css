@@ -23,6 +23,9 @@
   --authority-header-height: 56px;
   --authority-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --authority-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* Skeleton (AdminListSkeleton / AdminDetailSkeleton / AdminTableSkeleton / AdminCardsGridSkeleton) */
+  --skeleton-base: #e2e8f0;
+  --skeleton-shine: #f1f5f9;
 }
 
 /* Main Layout Container - Full Width */

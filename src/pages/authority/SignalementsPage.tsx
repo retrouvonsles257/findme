@@ -33,7 +33,7 @@ import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import styles from './SignalementsPage.module.css';
 
 type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide';
@@ -295,7 +295,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
         <div className={styles.signalementsGrid}>
           {isLoading ? (
             <div className={styles.skeletonWrap}>
-              <AdminListSkeleton cardCount={6} showFilters={true} />
+              <AdminCardsGridSkeleton cardCount={6} />
             </div>
           ) : filteredSignalements.length > 0 ? (
             filteredSignalements.map((signalement: any) => {

@@ -14,11 +14,13 @@ import { selectUser } from '../../features/auth/store/authSelectors';
 import { useSignalementCreate } from '../../features/signalements/hooks';
 import { useGeolocation } from '../../features/geolocalisation/hooks';
 import { uploadMultipleFiles } from '../../services/cloudinary';
+import { geocodingService } from '../../services/maptiler';
 import { supabase } from '../../config';
 import { CitizenLayout } from './CitizenLayout';
+import { MapTilerView } from '../../components/maps/MapTilerView/MapTilerView';
 import { 
   Upload, Check, MapPin, Camera, X, Loader2, AlertCircle, 
-  Navigation, FileText 
+  Navigation, FileText, Search 
 } from 'lucide-react';
 import styles from './NewSignalementPage.module.css';
 import { NomRole } from '../../@types/enums.types';
@@ -76,6 +78,9 @@ export const CitizenNewSignalementPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [step, setStep] = useState<'form' | 'uploading' | 'success'>('form');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [searchPlace, setSearchPlace] = useState('');
+  const [searchPlaceLoading, setSearchPlaceLoading] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([3.848, 11.5021]);
 
   // Gérer les changements de formulaire
   const handleInputChange = (
@@ -93,9 +98,77 @@ export const CitizenNewSignalementPage: React.FC = () => {
         ...prev,
         latitude: location.latitude,
         longitude: location.longitude,
+        lieu_observation: prev.lieu_observation || `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`,
       }));
+      setMapCenter([location.latitude, location.longitude]);
     }
   }, [getCurrentLocation]);
+
+  // Recherche d'un lieu sur la carte (géocodage)
+  const handleSearchPlace = useCallback(async () => {
+    const query = searchPlace.trim();
+    if (!query) return;
+    setSearchPlaceLoading(true);
+    setLocalError(null);
+    try {
+      const results = await geocodingService.forwardGeocode(query, { limit: 1 });
+      if (results.length > 0) {
+        const r = results[0];
+        const coords = r.geometry?.coordinates ?? r.center;
+        if (coords) {
+          const lng = coords[0];
+          const lat = coords[1];
+          setFormData((prev) => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+            lieu_observation: r.name || query,
+          }));
+          setMapCenter([lat, lng]);
+        }
+      } else {
+        setLocalError(t('citizen.placeNotFound') || 'Lieu non trouvé.');
+      }
+    } catch (err) {
+      console.error('Geocode error:', err);
+      setLocalError(t('citizen.searchError') || 'Erreur de recherche.');
+    } finally {
+      setSearchPlaceLoading(false);
+    }
+  }, [searchPlace, t]);
+
+  // Clic sur la carte : définir la position
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+    setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+    setMapCenter([lat, lng]);
+    try {
+      const results = await geocodingService.reverseGeocode([lng, lat], { limit: 1 });
+      if (results.length > 0 && results[0].name) {
+        setFormData((prev) => ({ ...prev, lieu_observation: results[0].name }));
+      }
+    } catch {
+      // ignore reverse geocode failure
+    }
+  }, []);
+
+  // Centre carte pour affichage (position choisie ou défaut)
+  const displayCenter: [number, number] =
+    formData.latitude && formData.longitude
+      ? [formData.latitude, formData.longitude]
+      : currentLocation
+        ? [currentLocation.latitude, currentLocation.longitude]
+        : mapCenter;
+
+  const locationMarker =
+    formData.latitude && formData.longitude
+      ? [{
+          id: 'selected',
+          lat: formData.latitude,
+          lng: formData.longitude,
+          label: t('citizen.selectedLocation') || 'Position choisie',
+          type: 'sighting' as const,
+        }]
+      : [];
 
   // Gérer la sélection de fichiers
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -345,22 +418,37 @@ export const CitizenNewSignalementPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Localisation */}
+            {/* Localisation : recherche, position actuelle, carte */}
             <div className={styles['new-signalement__form-group']}>
               <label className={styles['new-signalement__label']}>
                 <MapPin size={18} />
                 {t('citizen.reportLocation')} *
               </label>
+              <p className={styles['new-signalement__hint']}>
+                {t('citizen.locationMapHint') || 'Recherchez un lieu, utilisez votre position ou cliquez sur la carte.'}
+              </p>
               <div className={styles['new-signalement__location-row']}>
                 <input
                   type="text"
-                  name="lieu_observation"
-                  value={formData.lieu_observation}
-                  onChange={handleInputChange}
-                  placeholder={t('citizen.locationPlaceholder')}
+                  value={searchPlace}
+                  onChange={(e) => setSearchPlace(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchPlace())}
+                  placeholder={t('citizen.searchOnMap') || 'Rechercher un lieu...'}
                   className={styles['new-signalement__input']}
-                  required
                 />
+                <button
+                  type="button"
+                  className={styles['new-signalement__geo-button']}
+                  onClick={handleSearchPlace}
+                  disabled={searchPlaceLoading}
+                  title={t('citizen.searchPlace') || 'Rechercher'}
+                >
+                  {searchPlaceLoading ? (
+                    <Loader2 size={18} className={styles['new-signalement__loading-spin']} />
+                  ) : (
+                    <Search size={18} />
+                  )}
+                </button>
                 <button
                   type="button"
                   className={styles['new-signalement__geo-button']}
@@ -375,11 +463,35 @@ export const CitizenNewSignalementPage: React.FC = () => {
                   )}
                 </button>
               </div>
-              {currentLocation && (
+              {localError && (
+                <p className={styles['new-signalement__coords']} style={{ color: '#dc2626' }}>{localError}</p>
+              )}
+              <div className={styles['new-signalement__map-wrap']}>
+                <MapTilerView
+                  center={displayCenter}
+                  zoom={formData.latitude && formData.longitude ? 14 : 10}
+                  height="280px"
+                  showControls={true}
+                  interactive={true}
+                  markers={locationMarker}
+                  onMapClick={handleMapClick}
+                />
+              </div>
+              {(formData.latitude && formData.longitude) && (
                 <p className={styles['new-signalement__coords']}>
-                  📍 {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
+                  📍 {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                  {formData.lieu_observation && ` — ${formData.lieu_observation}`}
                 </p>
               )}
+              <input
+                type="text"
+                name="lieu_observation"
+                value={formData.lieu_observation}
+                onChange={handleInputChange}
+                placeholder={t('citizen.locationPlaceholder')}
+                className={styles['new-signalement__input']}
+                aria-label={t('citizen.reportLocation')}
+              />
             </div>
 
             {/* Ville et Région */}
@@ -533,7 +645,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
               <button 
                 type="submit" 
                 className={styles['new-signalement__submit-button']}
-                disabled={isLoading || !formData.description || !formData.lieu_observation}
+                disabled={isLoading || !formData.description || (!formData.lieu_observation && !(formData.latitude && formData.longitude))}
               >
                 {isLoading ? (
                   <>

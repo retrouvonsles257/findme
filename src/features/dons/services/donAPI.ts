@@ -69,7 +69,8 @@ export interface DonStats {
 // ============================================
 
 /**
- * Créer un nouveau don
+ * Créer un nouveau don (INSERT direct en base).
+ * @deprecated Pour Mobile Money, utiliser l'Edge Function donations-create (donationsFunctions.createDonation). Réservé aux autres méthodes de paiement en attendant migration.
  */
 export const createDon = async (input: DonCreateInput): Promise<Don> => {
   const { data, error } = await supabase
@@ -340,7 +341,27 @@ export const getRecentDons = async (limit: number = 10): Promise<Don[]> => {
 };
 
 /**
- * Récupérer l'historique des dons pour un email
+ * Récupérer les dons d'un utilisateur connecté (par id_utilisateur).
+ * Aligné avec la doc : "Mes dons" basé sur don.id_utilisateur = auth.uid().
+ */
+export const getDonsByUserId = async (userId: string, limit?: number): Promise<Don[]> => {
+  let query = supabase
+    .from('don')
+    .select('*')
+    .eq('id_utilisateur', userId)
+    .order('date_don', { ascending: false });
+
+  if (limit !== undefined && limit > 0) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+};
+
+/**
+ * Récupérer l'historique des dons pour un email (fallback si utilisateur non connecté)
  */
 export const getDonationHistory = async (emailDonateur: string): Promise<Don[]> => {
   const { data, error } = await supabase

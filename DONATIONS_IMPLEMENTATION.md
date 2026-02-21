@@ -35,8 +35,10 @@ Actions :
 Entrée : événement provider (paiement réussi/échoué…).
 Actions :
 1. vérifie signature webhook (obligatoire)
-2. met à jour `don.statut_paiement`, `date_traitement`, `provider_reference`, etc.
-3. déclenche post-traitements :
+2. **Idempotence** : si le don a déjà un statut final (`reussi`, `echoue`, `annule`, `rembourse`), répond 200 sans modifier (évite les doublons).
+3. met à jour `don.statut_paiement`, `date_traitement`, `provider_reference`, etc.
+4. **Journalisation** : chaque création de don et chaque mise à jour de statut via webhook sont enregistrés dans `journal_activite` (type_action `autre`, action_detaillee `don_created` / `don_statut_webhook`) pour audit.
+5. déclenche post-traitements :
    - reçu (PDF/numéro), email, remerciement
    - badge donateur (si user lié)
    - notification in-app (si user lié)
@@ -59,12 +61,12 @@ Page `CitizenDonate` :
 
 ### 3.2 “Mes dons” (citoyen connecté)
 Page `CitizenMyDonations` (ou section dans profil) :
-- liste des dons du user (`don.id_utilisateur = auth.uid()`)
+- liste des dons du user : **priorité `don.id_utilisateur = auth.uid()`** (filtre par `id_utilisateur`), fallback par `email_donateur` si non connecté ou pour compatibilité.
 - filtre par statut/date
-- accès reçu (si généré)
+- accès reçu : lien « Télécharger le reçu » si `recu_pdf_url` est renseigné.
 - badge “Donateur” (minimal pour MVP)
 
-> Sans `id_utilisateur` en DB, “mes dons” devient fragile (matching par email). À éviter.
+> Sans `id_utilisateur` en DB, “mes dons” devient fragile (matching par email). L’implémentation utilise `id_utilisateur` en priorité quand l’utilisateur est connecté.
 
 ### 3.3 Sollicitations non intrusives (conforme doc)
 Pour le MVP, limiter à 2–3 points d’entrée :
@@ -92,8 +94,9 @@ Stocker le cooldown dans `utilisateur.preferences_notification` ou équivalent.
 
 ## 5) Sécurité / conformité (essentiel)
 - Jamais de “paiement réussi” décidé par le front.
+- **Création des dons** : pour Mobile Money, uniquement via l’Edge Function `donations-create` (pas d’INSERT direct côté client en base).
 - Vérification de signature webhook.
-- Idempotence (un webhook peut arriver plusieurs fois).
-- Journalisation (`journal_activite`) pour audit.
+- Idempotence du webhook : si le don a déjà un statut final, le webhook répond 200 sans réécrire.
+- Journalisation (`journal_activite`) pour audit : `don_created` à la création, `don_statut_webhook` à chaque mise à jour de statut par le webhook.
 - Pas de stockage de données carte (PCI géré par provider).
 

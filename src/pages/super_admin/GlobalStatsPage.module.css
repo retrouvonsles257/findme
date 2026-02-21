@@ -139,6 +139,13 @@
 }
 
 /* Loading & Error */
+.sa-global-stats__skeletonWrap {
+  padding: 0.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .sa-global-stats__loading {
   display: flex;
   justify-content: center;
@@ -218,12 +225,20 @@
 .sa-global-stats__legend-dossiers { background: #6366f1; }
 .sa-global-stats__legend-signalements { background: #10b981; }
 
+.sa-global-stats__chart-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
+}
+
 .sa-global-stats__chart-bars {
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
   height: 200px;
   gap: 1rem;
+  min-width: min-content;
 }
 
 .sa-global-stats__chart-month {
@@ -289,15 +304,56 @@
     font-size: 1.5rem;
   }
 
+  .sa-global-stats__chart {
+    padding: 1rem;
+  }
+
+  .sa-global-stats__chart-bars {
+    gap: 0.5rem;
+    height: 160px;
+  }
+
   .sa-global-stats__chart-bar {
-    grid-template-columns: 60px 1fr 50px;
+    width: 16px;
+  }
+
+  .sa-global-stats__chart-legend {
+    flex-wrap: wrap;
     gap: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
+  .sa-global-stats {
+    padding: 0.75rem;
+  }
+
+  .sa-global-stats__skeletonWrap {
+    padding: 0.25rem 0;
+  }
+
   .sa-global-stats__section-title {
     font-size: 1.125rem;
+  }
+
+  .sa-global-stats__chart {
+    padding: 0.75rem;
+  }
+
+  .sa-global-stats__chart-bars {
+    height: 140px;
+  }
+
+  .sa-global-stats__chart-bar {
+    width: 14px;
+  }
+
+  .sa-global-stats__chart-value {
+    font-size: 0.5625rem;
+  }
+
+  .sa-global-stats__chart-label {
+    font-size: 0.65rem;
   }
 
   .sa-global-stats__table th,

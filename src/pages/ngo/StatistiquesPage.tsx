@@ -30,7 +30,7 @@ import {
   Download,
   TrendingUp,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { StatistiquesSkeleton } from '../admin/skeletons';
 import styles from './StatistiquesPage.module.css';
 
 export const NGOStatistiquesPage: React.FC = () => {
@@ -142,7 +142,7 @@ export const NGOStatistiquesPage: React.FC = () => {
     return (
       <NGOLayout>
         <div className={styles.skeletonWrap}>
-          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+          <StatistiquesSkeleton />
         </div>
       </NGOLayout>
     );

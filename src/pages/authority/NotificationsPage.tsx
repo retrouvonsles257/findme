@@ -11,6 +11,7 @@ import { AuthorityLayout } from '../../components/layout';
 import { useAuth } from '../../contexts';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import {
   Bell,
   FileSearch,
@@ -310,9 +311,8 @@ export const NotificationsPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className={styles.loading}>
-            <Loader2 size={32} className={styles.spinner} />
-            <p>{t('authority.notificationsPage.loading')}</p>
+          <div className={styles.skeletonWrap}>
+            <AdminCardsGridSkeleton cardCount={6} />
           </div>
         ) : filteredNotifications.length > 0 ? (
           <div className={styles.notificationsList}>

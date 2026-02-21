@@ -7,12 +7,14 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
-  DollarSign, Calendar, User, Search, Loader2, AlertCircle, 
-  Eye, ChevronLeft, ChevronRight, TrendingUp, CreditCard, Filter, Download
+  DollarSign, Calendar, User, Search, AlertCircle, 
+  Eye, ChevronLeft, ChevronRight, TrendingUp, CreditCard, Filter, Download, Heart
 } from 'lucide-react';
 import styles from './DonsPage.module.css';
 
@@ -45,7 +47,7 @@ interface Don {
 const ITEMS_PER_PAGE = 15;
 
 export const SuperAdminDonsPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
 
   const [dons, setDons] = useState<Don[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,7 +167,7 @@ export const SuperAdminDonsPage: React.FC = () => {
         new Date(don.date_don).toLocaleDateString('fr-FR'),
         don.montant.toString(),
         don.devise,
-        don.donateur_anonyme ? 'Anonyme' : (don.nom_donateur || '-'),
+        don.donateur_anonyme ? t('super_admin.donsAnonymous') : (don.nom_donateur || '-'),
         don.donateur_anonyme ? '-' : (don.email_donateur || '-'),
         don.type_don,
         don.methode_paiement,
@@ -190,7 +192,7 @@ export const SuperAdminDonsPage: React.FC = () => {
       document.body.removeChild(link);
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.donsExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -222,11 +224,11 @@ export const SuperAdminDonsPage: React.FC = () => {
 
   const getModeLabel = (mode: string) => {
     const labels: Record<string, string> = {
-      carte_bancaire: 'Carte bancaire',
-      mobile_money: 'Mobile Money',
-      virement: 'Virement',
-      paypal: 'PayPal',
-      autre: 'Autre',
+      carte_bancaire: t('super_admin.donsModeCarteBancaire'),
+      mobile_money: t('super_admin.donsModeMobileMoney'),
+      virement: t('super_admin.donsModeVirement'),
+      paypal: t('super_admin.donsModePaypal'),
+      autre: t('super_admin.donsModeAutre'),
     };
     return labels[mode] || mode;
   };
@@ -239,36 +241,47 @@ export const SuperAdminDonsPage: React.FC = () => {
   };
 
   return (
-    <SuperAdminLayout title="Gestion des Dons" activeNav="dons">
+    <SuperAdminLayout title={t('super_admin.donsTitle')} activeNav="dons">
       <div className={styles['sa-dons']}>
+        {/* Lien vers la page publique Faire un don (tout le monde peut faire un don) */}
+        <div className={styles['sa-dons__action-bar']}>
+          <Link
+            to="/super-admin/dons/faire-un-don"
+            className={styles['sa-dons__make-donation-link']}
+          >
+            <Heart size={20} />
+            {t('super_admin.donsMakeDonation') || 'Faire un don'}
+          </Link>
+        </div>
+
         {/* Stats Cards */}
         <div className={styles['sa-dons__stats']}>
           <div className={styles['sa-dons__stat-card']}>
             <DollarSign size={24} />
             <div>
               <span className={styles['sa-dons__stat-value']}>{stats.total}</span>
-              <span className={styles['sa-dons__stat-label']}>Total dons</span>
+              <span className={styles['sa-dons__stat-label']}>{t('super_admin.donsTotal')}</span>
             </div>
           </div>
           <div className={styles['sa-dons__stat-card']}>
             <TrendingUp size={24} />
             <div>
               <span className={styles['sa-dons__stat-value']}>{stats.completed}</span>
-              <span className={styles['sa-dons__stat-label']}>Complétés</span>
+              <span className={styles['sa-dons__stat-label']}>{t('super_admin.donsCompleted')}</span>
             </div>
           </div>
           <div className={styles['sa-dons__stat-card']}>
             <CreditCard size={24} />
             <div>
               <span className={styles['sa-dons__stat-value']}>{stats.pending}</span>
-              <span className={styles['sa-dons__stat-label']}>En attente</span>
+              <span className={styles['sa-dons__stat-label']}>{t('super_admin.donsPending')}</span>
             </div>
           </div>
           <div className={styles['sa-dons__stat-card']}>
             <DollarSign size={24} />
             <div>
               <span className={styles['sa-dons__stat-value']}>{formatMontant(stats.average, 'XAF')}</span>
-              <span className={styles['sa-dons__stat-label']}>Moyenne</span>
+              <span className={styles['sa-dons__stat-label']}>{t('super_admin.donsAverage')}</span>
             </div>
           </div>
         </div>
@@ -279,7 +292,7 @@ export const SuperAdminDonsPage: React.FC = () => {
             <Search size={18} />
             <input
               type="text"
-              placeholder="Rechercher donateur, référence..."
+              placeholder={t('super_admin.donsSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -290,28 +303,28 @@ export const SuperAdminDonsPage: React.FC = () => {
             className={styles['sa-dons__export-btn']}
           >
             <Download size={18} />
-            Exporter CSV
+            {t('super_admin.systemLogsExportCsv')}
           </button>
           <div className={styles['sa-dons__filter-group']}>
             <Filter size={16} />
             <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous statuts</option>
-              <option value="en_attente">En attente</option>
-              <option value="reussi">Réussi</option>
-              <option value="echoue">Échoué</option>
-              <option value="rembourse">Remboursé</option>
-              <option value="annule">Annulé</option>
+              <option value="">{t('super_admin.donsFilterAllStatuses')}</option>
+              <option value="en_attente">{t('super_admin.donsStatutEnAttente')}</option>
+              <option value="reussi">{t('super_admin.donsStatutReussi')}</option>
+              <option value="echoue">{t('super_admin.donsStatutEchoue')}</option>
+              <option value="rembourse">{t('super_admin.donsStatutRembourse')}</option>
+              <option value="annule">{t('super_admin.donsStatutAnnule')}</option>
             </select>
           </div>
           <div className={styles['sa-dons__filter-group']}>
             <CreditCard size={16} />
             <select value={filterMode} onChange={(e) => { setFilterMode(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous modes</option>
-              <option value="carte_bancaire">Carte bancaire</option>
-              <option value="mobile_money">Mobile Money</option>
-              <option value="virement">Virement</option>
-              <option value="paypal">PayPal</option>
-              <option value="autre">Autre</option>
+              <option value="">{t('super_admin.donsFilterAllModes')}</option>
+              <option value="carte_bancaire">{t('super_admin.donsModeCarteBancaire')}</option>
+              <option value="mobile_money">{t('super_admin.donsModeMobileMoney')}</option>
+              <option value="virement">{t('super_admin.donsModeVirement')}</option>
+              <option value="paypal">{t('super_admin.donsModePaypal')}</option>
+              <option value="autre">{t('super_admin.donsModeAutre')}</option>
             </select>
           </div>
         </div>
@@ -326,27 +339,27 @@ export const SuperAdminDonsPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-dons__loading']}>
-            <Loader2 size={32} className={styles['sa-dons__spinner']} />
+          <div className={styles['sa-dons__skeletonWrap']}>
+            <AdminTableSkeleton columns={7} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-dons__table-wrapper']}>
             {dons.length === 0 ? (
               <div className={styles['sa-dons__empty']}>
                 <DollarSign size={48} />
-                <p>Aucun don trouvé</p>
+                <p>{t('super_admin.donsNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-dons__table']}>
                 <thead>
                   <tr>
-                    <th><Calendar size={16} /> Date</th>
-                    <th><User size={16} /> Donateur</th>
-                    <th><DollarSign size={16} /> Montant</th>
-                    <th>Mode</th>
-                    <th>Statut</th>
-                    <th>Dossier</th>
-                    <th>Actions</th>
+                    <th><Calendar size={16} /> {t('super_admin.donsTableDate')}</th>
+                    <th><User size={16} /> {t('super_admin.donsTableDonateur')}</th>
+                    <th><DollarSign size={16} /> {t('super_admin.donsTableMontant')}</th>
+                    <th>{t('super_admin.donsTableMode')}</th>
+                    <th>{t('super_admin.donsTableStatut')}</th>
+                    <th>{t('super_admin.donsTableDossier')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -355,7 +368,7 @@ export const SuperAdminDonsPage: React.FC = () => {
                       <td>{new Date(don.date_don).toLocaleDateString('fr-FR')}</td>
                       <td>
                         {don.donateur_anonyme ? (
-                          <span className={styles['sa-dons__anonymous']}>Anonyme</span>
+                          <span className={styles['sa-dons__anonymous']}>{t('super_admin.donsAnonymous')}</span>
                         ) : don.nom_donateur ? (
                           <span>{don.nom_donateur}</span>
                         ) : '-'}
@@ -385,11 +398,11 @@ export const SuperAdminDonsPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-dons__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -398,20 +411,20 @@ export const SuperAdminDonsPage: React.FC = () => {
         {selectedDon && (
           <div className={styles['sa-dons__modal-overlay']} onClick={() => setSelectedDon(null)}>
             <div className={styles['sa-dons__modal']} onClick={(e) => e.stopPropagation()}>
-              <h2>Détails du don</h2>
+              <h2>{t('super_admin.donsDetailsTitle')}</h2>
               <div className={styles['sa-dons__details']}>
-                <p><strong>Date:</strong> {new Date(selectedDon.date_don).toLocaleString('fr-FR')}</p>
-                <p><strong>Montant:</strong> {formatMontant(selectedDon.montant, selectedDon.devise)}</p>
-                <p><strong>Mode:</strong> {getModeLabel(selectedDon.methode_paiement)}</p>
-                <p><strong>Statut:</strong> {getStatutLabel(selectedDon.statut_paiement)}</p>
-                <p><strong>Type:</strong> {selectedDon.type_don}</p>
-                <p><strong>Référence:</strong> {selectedDon.reference_transaction || '-'}</p>
-                <p><strong>Donateur:</strong> {selectedDon.donateur_anonyme ? 'Anonyme' : selectedDon.nom_donateur ? `${selectedDon.nom_donateur} (${selectedDon.email_donateur || ''})` : '-'}</p>
+                <p><strong>{t('super_admin.donsDetailDate')}:</strong> {new Date(selectedDon.date_don).toLocaleString('fr-FR')}</p>
+                <p><strong>{t('super_admin.donsDetailMontant')}:</strong> {formatMontant(selectedDon.montant, selectedDon.devise)}</p>
+                <p><strong>{t('super_admin.donsDetailMode')}:</strong> {getModeLabel(selectedDon.methode_paiement)}</p>
+                <p><strong>{t('super_admin.donsDetailStatut')}:</strong> {getStatutLabel(selectedDon.statut_paiement)}</p>
+                <p><strong>{t('super_admin.donsDetailType')}:</strong> {selectedDon.type_don}</p>
+                <p><strong>{t('super_admin.donsDetailReference')}:</strong> {selectedDon.reference_transaction || '-'}</p>
+                <p><strong>{t('super_admin.donsDetailDonateur')}:</strong> {selectedDon.donateur_anonyme ? t('super_admin.donsAnonymous') : selectedDon.nom_donateur ? `${selectedDon.nom_donateur} (${selectedDon.email_donateur || ''})` : '-'}</p>
                 {selectedDon.message_donateur && (
-                  <p><strong>Message:</strong> {selectedDon.message_donateur}</p>
+                  <p><strong>{t('super_admin.donsDetailMessage')}:</strong> {selectedDon.message_donateur}</p>
                 )}
               </div>
-              <button onClick={() => setSelectedDon(null)}>Fermer</button>
+              <button onClick={() => setSelectedDon(null)}>{t('common.close')}</button>
             </div>
           </div>
         )}

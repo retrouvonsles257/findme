@@ -23,7 +23,6 @@ import {
   LogOut,
   Settings,
   User,
-  Shield,
   X,
   Edit,
   KeyRound,
@@ -239,8 +238,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
         {/* Header with Logo and Toggle */}
         <div className={styles.sidebarHeader}>
           <div className={styles.logoSection}>
-            <Shield className={styles.logoIcon} size={28} />
-            <span className={styles.logoText}>{t('authority.sidebar.appName')}</span>
+            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.logoImg} />
           </div>
           <button 
             className={styles.toggleBtn}

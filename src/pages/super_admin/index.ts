@@ -13,13 +13,12 @@ export { SuperAdminSystemUsersPage } from './SystemUsersPage';
 export { SuperAdminSystemLogsPage } from './SystemLogsPage';
 
 // Configuration pages
-export { SuperAdminIAConfigurationPage } from './IAConfigurationPage';
-export { SuperAdminSecurityPage } from './SecurityPage';
 export { SuperAdminSystemSettingsPage } from './SystemSettingsPage';
 
 // New pages - Campagnes, Dons, Roles, Dossiers critiques, Résultats IA
 export { SuperAdminCampagnesPage } from './CampagnesPage';
 export { SuperAdminDonsPage } from './DonsPage';
+export { SuperAdminDonatePage } from './SuperAdminDonatePage';
 export { SuperAdminRolesPage } from './RolesPage';
 export { SuperAdminDossiersCritiquesPage } from './DossiersCritiquesPage';
 export { SuperAdminResultatsIAPage } from './ResultatsIAPage';
@@ -32,9 +31,6 @@ export { SuperAdminProfilePage } from './ProfilePage';
 export { default as SuperAdminDossiersPage } from './DossiersPage';
 export { SuperAdminDossierDetailPage } from './DossierDetailPage';
 export { default as SuperAdminAlertesPage } from './AlertesPage';
-
-// Maintenance
-export { default as SuperAdminMaintenancePage } from './MaintenancePage';
 
 // Nouvelles pages - Notifications, Photos, Commentaires, Documents, Liens Filiation
 export { SuperAdminNotificationsSystemPage } from './NotificationsSystemPage';

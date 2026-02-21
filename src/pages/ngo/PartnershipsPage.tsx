@@ -3,7 +3,7 @@ import { Search, AlertTriangle, ChevronLeft, ChevronRight, Handshake } from 'luc
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
 import { getPartenariatsOrganisation } from '../../features/admin-organisation/services';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import styles from './PartnershipsPage.module.css';
 
 interface Partnership {
@@ -83,7 +83,7 @@ export const NGOPartnershipsPage: React.FC<NGOPartnershipsPageProps> = ({ noLayo
 
   const loadingContent = (
     <div className={styles.skeletonWrap}>
-      <AdminListSkeleton cardCount={6} showFilters={false} />
+      <AdminTableSkeleton columns={5} rows={8} />
     </div>
   );
   if (loading) {

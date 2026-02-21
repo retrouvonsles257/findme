@@ -4,6 +4,7 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { getResultatsIA, type ResultatIA } from '../../features/ia-analysis/services/iaAPI';
 import { confirmIAResult, rejectIAResult, markNeedsVerification } from '../../features/ia-analysis';
+import { IAAnalysisSkeleton } from '../admin/skeletons';
 
 type StatusFilter = 'all' | ResultatIA['statut_validation'];
 
@@ -85,6 +86,16 @@ export const NGOIAAnalysisPage: React.FC = () => {
     },
     [comment, load, selected, userId],
   );
+
+  if (loading) {
+    return (
+      <NGOLayout>
+        <div style={{ padding: '1rem 1.5rem' }}>
+          <IAAnalysisSkeleton />
+        </div>
+      </NGOLayout>
+    );
+  }
 
   return (
     <NGOLayout>

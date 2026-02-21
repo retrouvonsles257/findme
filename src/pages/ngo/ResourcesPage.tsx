@@ -3,7 +3,7 @@ import { FileText, Wrench, BookOpen, GraduationCap, Library, AlertTriangle, Exte
 import { useI18n } from '../../hooks';
 import { NGOLayout } from './NGOLayout';
 import { getRessourcesOrganisation } from '../../features/admin-organisation/services';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import styles from './ResourcesPage.module.css';
 
 interface Resource {
@@ -92,7 +92,7 @@ export const NGOResourcesPage: React.FC<NGOResourcesPageProps> = ({ noLayout, or
 
   const loadingContent = (
     <div className={styles.skeletonWrap}>
-      <AdminListSkeleton cardCount={6} showFilters={false} />
+      <AdminCardsGridSkeleton cardCount={6} />
     </div>
   );
   if (loading) {

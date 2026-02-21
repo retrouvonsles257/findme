@@ -257,7 +257,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
               <div className={styles.tableBody}>
                 {rows.map((row) => (
                   <div key={row.id} className={styles.tableRow}>
-                    <div className={styles.tdEmail}>
+                    <div className={styles.tdEmail} data-label={t('admin.fieldEmail')}>
                       <input
                         type="email"
                         value={row.email}
@@ -266,7 +266,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                         className={styles.input}
                       />
                     </div>
-                    <div className={styles.tdRole}>
+                    <div className={styles.tdRole} data-label={t('common.role')}>
                       <select
                         value={row.role}
                         onChange={(e) => updateRow(row.id, { role: e.target.value as NomRole })}
@@ -277,7 +277,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                         ))}
                       </select>
                     </div>
-                    <div className={styles.tdType}>
+                    <div className={styles.tdType} data-label={`${t('admin.typeInvite')} / ${t('admin.typeCreate')}`}>
                       <select
                         value={row.mode}
                         onChange={(e) => updateRow(row.id, { mode: e.target.value as RowMode, password: '' })}
@@ -287,7 +287,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                         <option value="create">{t('admin.createManuallyOption')}</option>
                       </select>
                     </div>
-                    <div className={styles.tdPassword}>
+                    <div className={styles.tdPassword} data-label={t('admin.temporaryPassword')}>
                       {row.mode === 'create' ? (
                         <input
                           type="password"
@@ -302,7 +302,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                         <span className={styles.passwordPlaceholder}>—</span>
                       )}
                     </div>
-                    <div className={styles.tdActions}>
+                    <div className={styles.tdActions} data-label={t('common.actions')}>
                       <button
                         type="button"
                         className={styles.actionBtn}

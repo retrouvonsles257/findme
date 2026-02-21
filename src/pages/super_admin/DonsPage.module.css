@@ -15,6 +15,30 @@
   min-height: 100vh;
 }
 
+.sa-dons__action-bar {
+  margin-bottom: 1.5rem;
+}
+
+.sa-dons__make-donation-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--sa-primary);
+  color: white;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.sa-dons__make-donation-link:hover {
+  background: #1e40af;
+  color: white;
+  transform: translateY(-1px);
+}
+
 .sa-dons__stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -142,6 +166,13 @@
   padding: 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.sa-dons__skeletonWrap {
+  padding: 0.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .sa-dons__loading {
@@ -376,4 +407,9 @@
   .sa-dons__stats { grid-template-columns: repeat(2, 1fr); }
   .sa-dons__filters { flex-direction: column; }
   .sa-dons__search { min-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .sa-dons { padding: 0.75rem; }
+  .sa-dons__stats { grid-template-columns: 1fr; gap: 0.75rem; }
 }

@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { DashboardSkeleton } from '../admin/skeletons';
 import {
   Building2,
   Users,
@@ -20,7 +21,6 @@ import {
   Heart,
   Globe,
   Shield,
-  Loader2,
   AlertCircle,
   DollarSign,
   Brain,
@@ -134,25 +134,25 @@ export const SuperAdminDashboardPage: React.FC = () => {
     { label: t('super_admin.totalDossiers'), value: stats.totalDossiers.toString(), icon: FolderOpen, color: '#f59e0b' },
     { label: t('super_admin.activeDossiers'), value: stats.activeDossiers.toString(), icon: Zap, color: '#ef4444' },
     { label: t('super_admin.totalAlerts'), value: stats.totalAlerts.toString(), icon: Bell, color: '#8b5cf6' },
-    { label: t('super_admin.totalSignalements') || 'Signalements', value: stats.totalSignalements.toString(), icon: Globe, color: '#06b6d4' },
-    { label: t('super_admin.pendingValidations') || 'En attente', value: stats.pendingValidations.toString(), icon: AlertCircle, color: '#f97316' },
-    { label: 'Notifications système', value: stats.totalNotifications.toString(), icon: Bell, color: '#9333ea' },
-    { label: 'Notifications non lues', value: stats.unreadNotifications.toString(), icon: AlertCircle, color: '#dc2626' },
-    { label: 'Photos en attente', value: stats.pendingPhotos.toString(), icon: Image, color: '#ea580c' },
-    { label: 'Commentaires confidentiels', value: stats.confidentialComments.toString(), icon: MessageSquare, color: '#7c3aed' },
-    { label: 'Documents joints', value: stats.totalDocuments.toString(), icon: FileText, color: '#059669' },
+    { label: t('super_admin.totalSignalements'), value: stats.totalSignalements.toString(), icon: Globe, color: '#06b6d4' },
+    { label: t('super_admin.pendingValidations'), value: stats.pendingValidations.toString(), icon: AlertCircle, color: '#f97316' },
+    { label: t('super_admin.dashboardNotificationsSystem'), value: stats.totalNotifications.toString(), icon: Bell, color: '#9333ea' },
+    { label: t('super_admin.dashboardNotificationsUnread'), value: stats.unreadNotifications.toString(), icon: AlertCircle, color: '#dc2626' },
+    { label: t('super_admin.dashboardPhotosPending'), value: stats.pendingPhotos.toString(), icon: Image, color: '#ea580c' },
+    { label: t('super_admin.dashboardCommentsConfidential'), value: stats.confidentialComments.toString(), icon: MessageSquare, color: '#7c3aed' },
+    { label: t('super_admin.dashboardDocumentsAttached'), value: stats.totalDocuments.toString(), icon: FileText, color: '#059669' },
     { label: t('super_admin.systemHealth'), value: '99%', icon: Heart, color: '#22c55e' },
   ];
 
   const quickActions = [
     { title: t('super_admin.viewAllOrganisations'), description: t('super_admin.manageOrganisations'), icon: Building2, onClick: () => navigate('/super-admin/organisations'), primary: true },
     { title: t('super_admin.viewSystemUsers'), description: t('super_admin.manageSystemUsers'), icon: Users, onClick: () => navigate('/super-admin/system-users'), primary: false },
-    { title: t('super_admin.manageRoles') || 'Gérer les rôles', description: t('super_admin.rolesDescription') || 'Permissions', icon: Shield, onClick: () => navigate('/super-admin/roles'), primary: false },
+    { title: t('super_admin.manageRoles'), description: t('super_admin.rolesDescription'), icon: Shield, onClick: () => navigate('/super-admin/roles'), primary: false },
     { title: t('super_admin.globalStatistics'), description: t('super_admin.viewGlobalStatistics'), icon: Globe, onClick: () => navigate('/super-admin/global-stats'), primary: false },
-    { title: t('super_admin.criticalDossiers') || 'Dossiers critiques', description: t('super_admin.criticalDossiersDesc') || 'Cas urgents', icon: Zap, onClick: () => navigate('/super-admin/dossiers-critiques'), primary: true },
-    { title: t('super_admin.iaResults') || 'Résultats IA', description: t('super_admin.iaResultsDesc') || 'Validation', icon: Brain, onClick: () => navigate('/super-admin/resultats-ia'), primary: false },
-    { title: t('super_admin.donations') || 'Dons', description: t('super_admin.donationsDesc') || 'Finances', icon: DollarSign, onClick: () => navigate('/super-admin/dons'), primary: false },
-    { title: t('super_admin.campaigns') || 'Campagnes', description: t('super_admin.campaignsDesc') || 'Sensibilisation', icon: Megaphone, onClick: () => navigate('/super-admin/campagnes'), primary: false },
+    { title: t('super_admin.criticalDossiers'), description: t('super_admin.criticalDossiersDesc'), icon: Zap, onClick: () => navigate('/super-admin/dossiers-critiques'), primary: true },
+    { title: t('super_admin.iaResults'), description: t('super_admin.iaResultsDesc'), icon: Brain, onClick: () => navigate('/super-admin/resultats-ia'), primary: false },
+    { title: t('super_admin.donations'), description: t('super_admin.donationsDesc'), icon: DollarSign, onClick: () => navigate('/super-admin/dons'), primary: false },
+    { title: t('super_admin.campaigns'), description: t('super_admin.campaignsDesc'), icon: Megaphone, onClick: () => navigate('/super-admin/campagnes'), primary: false },
   ];
 
   return (
@@ -183,9 +183,8 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading ? (
-          <div className={styles['dashboard__loading']}>
-            <Loader2 size={32} className={styles['dashboard__loading-spin']} />
-            <p>{t('common.loading')}</p>
+          <div className={styles['dashboard__skeletonWrap']}>
+            <DashboardSkeleton statCount={12} actionCount={8} listRows={5} />
           </div>
         ) : (
           <>

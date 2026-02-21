@@ -63,6 +63,14 @@ export const validateDonForm = (data: DonFormData): DonValidationErrors => {
   if (data.montant && data.montant > 1000000) {
     errors.montant = 'Le montant ne peut pas dépasser 1 000 000';
   }
+  // Aligné avec l'Edge Function : pour XAF (et autres hors USD), le montant doit être un multiple de 5
+  const devise = (data.devise || '').toUpperCase();
+  if (data.montant && devise && devise !== 'USD') {
+    const montantEntier = Math.round(data.montant);
+    if (montantEntier % 5 !== 0) {
+      errors.montant = 'Pour la devise ' + devise + ', le montant doit être un multiple de 5 (ex: 5000, 10000).';
+    }
+  }
 
   if (!data.devise || data.devise.trim().length === 0) {
     errors.devise = 'La devise est requise';
@@ -200,7 +208,7 @@ export const getRelativeDate = (days: number, hours: number): string => {
 // ============================================
 
 /**
- * Créer un don brouillon (validation seule)
+ * Créer un don brouillon (INSERT direct). À ne pas utiliser pour mobile_money : la création doit passer par l'Edge Function donations-create.
  */
 export const createDraftDon = async (formData: DonFormData): Promise<Don> => {
   const errors = validateDonForm(formData);
@@ -288,11 +296,26 @@ export const getRecentDonsForDisplay = async (limit?: number): Promise<DonDispla
 };
 
 /**
- * Obtenir l'historique des dons d'un donateur
+ * Obtenir l'historique des dons d'un donateur.
+ * Priorité : id_utilisateur (utilisateur connecté) puis email (fallback).
+ * Aligné avec la doc : "Mes dons" basé sur don.id_utilisateur quand connecté.
  */
-export const getDonorDonationHistory = async (
-  email: string,
-): Promise<DonDisplayData[]> => {
-  const dons = await donAPI.getDonationHistory(email);
+export const getDonorDonationHistory = async (options: {
+  userId?: string | null;
+  email?: string | null;
+  limit?: number;
+}): Promise<DonDisplayData[]> => {
+  const { userId, email, limit } = options;
+  let dons: Don[];
+  if (userId && userId.trim()) {
+    dons = await donAPI.getDonsByUserId(userId.trim(), limit);
+  } else if (email && email.trim()) {
+    dons = await donAPI.getDonationHistory(email.trim());
+    if (limit !== undefined && limit > 0) {
+      dons = dons.slice(0, limit);
+    }
+  } else {
+    dons = [];
+  }
   return enrichDonsForDisplay(dons);
 };

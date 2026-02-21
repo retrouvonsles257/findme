@@ -34,7 +34,7 @@ import {
   Download,
   UsersRound,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from './skeletons';
+import { StatistiquesSkeleton } from './skeletons';
 import styles from './StatistiquesPage.module.css';
 
 export const AdminOrganisationStatistiquesPage: React.FC = () => {
@@ -174,7 +174,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
       <div className={styles.statistiques__container}>
         {loading ? (
           <div className={styles.statistiques__skeletonWrap}>
-            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+            <StatistiquesSkeleton />
           </div>
         ) : (
           <>

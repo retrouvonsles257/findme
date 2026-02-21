@@ -16,6 +16,7 @@ import { usePerformanceMetrics } from '../../features/statistiques/hooks/usePerf
 import { exportStatistics } from '../../features/statistiques/services/statistiqueAPI';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import {
   BarChart2,
   FolderOpen,
@@ -195,9 +196,8 @@ export const StatistiquesPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <Loader2 size={40} className={styles.spinner} />
-            <span>{t('authority.statistiques.loading')}</span>
+          <div className={styles.skeletonWrap}>
+            <AdminDetailSkeleton blockCount={4} linesPerBlock={4} />
           </div>
         ) : (
           <>

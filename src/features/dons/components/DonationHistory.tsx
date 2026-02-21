@@ -14,7 +14,10 @@ import styles from './DonationHistory.module.css';
 // ============================================
 
 export interface DonationHistoryProps {
-  email?: string;
+  /** Utilisateur connecté : priorité pour "Mes dons" (don.id_utilisateur). */
+  userId?: string | null;
+  /** Fallback si non connecté : filtre par email donateur. */
+  email?: string | null;
   limit?: number;
   showRecent?: boolean;
   className?: string;
@@ -28,6 +31,7 @@ export interface DonationHistoryProps {
  * Composant historique des dons
  */
 export const DonationHistory: React.FC<DonationHistoryProps> = ({
+  userId,
   email,
   limit = 10,
   showRecent = true,
@@ -42,15 +46,17 @@ export const DonationHistory: React.FC<DonationHistoryProps> = ({
     fetchRecentDonations,
   } = useDonationHistory();
 
+  const hasDonorIdentity = Boolean(userId || email);
+
   useEffect(() => {
-    if (email) {
-      fetchDonorHistory(email);
+    if (hasDonorIdentity) {
+      fetchDonorHistory({ userId, email, limit });
     } else if (showRecent) {
       fetchRecentDonations(limit);
     }
-  }, [email, showRecent, limit, fetchDonorHistory, fetchRecentDonations]);
+  }, [userId, email, hasDonorIdentity, showRecent, limit, fetchDonorHistory, fetchRecentDonations]);
 
-  const displayData = email ? donationHistory : recentDonations;
+  const displayData = hasDonorIdentity ? donationHistory : recentDonations;
 
   if (isLoading) {
     return (
@@ -72,8 +78,8 @@ export const DonationHistory: React.FC<DonationHistoryProps> = ({
     return (
       <div className={`${styles.donationHistory} ${className}`}>
         <div className={styles.empty}>
-          {email
-            ? 'Aucun don trouvé pour cet email'
+          {hasDonorIdentity
+            ? 'Aucun don trouvé pour votre compte'
             : 'Aucun don n\'a été enregistré'}
         </div>
       </div>
@@ -83,7 +89,7 @@ export const DonationHistory: React.FC<DonationHistoryProps> = ({
   return (
     <div className={`${styles.donationHistory} ${className}`}>
       <div className={styles.header}>
-        <h3>{email ? 'Mon historique de dons' : 'Dons récents'}</h3>
+        <h3>{hasDonorIdentity ? 'Mon historique de dons' : 'Dons récents'}</h3>
         <span className={styles.count}>{displayData.length}</span>
       </div>
 
@@ -101,6 +107,17 @@ export const DonationHistory: React.FC<DonationHistoryProps> = ({
               <span className={styles.type}>{don.type_don}</span>
               <span className={styles.date}>{don.date_relative}</span>
             </div>
+
+            {(don as any).recu_pdf_url && (
+              <a
+                href={(don as any).recu_pdf_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.receiptLink}
+              >
+                📥 Télécharger le reçu (PDF)
+              </a>
+            )}
 
             {don.message_donateur && (
               <div className={styles.itemMessage}>{don.message_donateur}</div>

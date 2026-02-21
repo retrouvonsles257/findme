@@ -14,7 +14,6 @@ import {
   Bell,
   Shield,
   Lock,
-  Key,
   AlertTriangle,
   Trash2,
   Save,
@@ -891,22 +890,6 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
                 </div>
                 <button type="button" className={styles.settings__btnSecondary} title={t('admin.enable')} aria-label={t('admin.enable')}>
                   {t('admin.enable')}
-                </button>
-              </div>
-
-              <div className={styles.settings__securityItem}>
-                <Key className={styles.settings__securityIcon} />
-                <div>
-                  <h4>{t('admin.apiKeys')}</h4>
-                  <p className={styles.settings__description}>
-                    {t('admin.manageApiKeys')}
-                  </p>
-                </div>
-                <button
-                  className={styles.settings__btnSecondary}
-                  onClick={() => navigate('/admin/api-keys')}
-                >
-                  {t('admin.manageApiKeys')}
                 </button>
               </div>
 

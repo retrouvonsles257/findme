@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   AlertTriangle, MapPin, Calendar, User, Check, X, Eye, Edit2, Trash2,
   Loader2, AlertCircle, ChevronLeft, ChevronRight, Filter,
@@ -69,7 +70,7 @@ interface Signalement {
 const ITEMS_PER_PAGE = 15;
 
 export const SuperAdminSignalementValidationPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
 
   const [signalements, setSignalements] = useState<Signalement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -386,12 +387,12 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
 
   const getStatutLabel = (statut: string) => {
     const labels: Record<string, string> = {
-      en_attente: 'En attente',
-      valide: 'Validé',
-      invalide: 'Invalide',
-      spam: 'Spam',
-      doublonne: 'Doublon',
-      en_cours_verification: 'En vérification',
+      en_attente: t('super_admin.signalementStatutEnAttente'),
+      valide: t('super_admin.signalementStatutValide'),
+      invalide: t('super_admin.signalementStatutInvalide'),
+      spam: t('super_admin.signalementStatutSpam'),
+      doublonne: t('super_admin.signalementStatutDoublon'),
+      en_cours_verification: t('super_admin.signalementStatutEnVerification'),
     };
     return labels[statut] || statut;
   };
@@ -403,7 +404,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
   };
 
   return (
-    <SuperAdminLayout title="Validation des Signalements" activeNav="signalement-validation">
+    <SuperAdminLayout title={t('super_admin.signalementValidationTitle')} activeNav="signalement-validation">
       <div className={styles['sa-signalement-validation']}>
         {/* Stats Cards */}
         <div className={styles['sa-signalement-validation__stats']}>
@@ -411,28 +412,28 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
             <AlertTriangle size={24} />
             <div>
               <span className={styles['sa-signalement-validation__stat-value']}>{stats.total}</span>
-              <span className={styles['sa-signalement-validation__stat-label']}>Total signalements</span>
+              <span className={styles['sa-signalement-validation__stat-label']}>{t('super_admin.signalementTotal')}</span>
             </div>
           </div>
           <div className={`${styles['sa-signalement-validation__stat-card']} ${styles['sa-signalement-validation__stat-card--warning']}`}>
             <Clock size={24} />
             <div>
               <span className={styles['sa-signalement-validation__stat-value']}>{stats.pending}</span>
-              <span className={styles['sa-signalement-validation__stat-label']}>En attente</span>
+              <span className={styles['sa-signalement-validation__stat-label']}>{t('super_admin.signalementPending')}</span>
             </div>
           </div>
           <div className={`${styles['sa-signalement-validation__stat-card']} ${styles['sa-signalement-validation__stat-card--success']}`}>
             <CheckCircle size={24} />
             <div>
               <span className={styles['sa-signalement-validation__stat-value']}>{stats.validated}</span>
-              <span className={styles['sa-signalement-validation__stat-label']}>Validés</span>
+              <span className={styles['sa-signalement-validation__stat-label']}>{t('super_admin.signalementValidated')}</span>
             </div>
           </div>
           <div className={`${styles['sa-signalement-validation__stat-card']} ${styles['sa-signalement-validation__stat-card--danger']}`}>
             <XCircle size={24} />
             <div>
               <span className={styles['sa-signalement-validation__stat-value']}>{stats.rejected}</span>
-              <span className={styles['sa-signalement-validation__stat-label']}>Rejetés</span>
+              <span className={styles['sa-signalement-validation__stat-label']}>{t('super_admin.signalementRejected')}</span>
             </div>
           </div>
         </div>
@@ -442,13 +443,13 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
           <div className={styles['sa-signalement-validation__filter-group']}>
             <Filter size={16} />
             <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous les statuts</option>
-              <option value="en_attente">En attente</option>
-              <option value="en_cours_verification">En cours de vérification</option>
-              <option value="valide">Validé</option>
-              <option value="invalide">Invalide</option>
-              <option value="spam">Spam</option>
-              <option value="doublonne">Doublon</option>
+              <option value="">{t('super_admin.signalementFilterAllStatuses')}</option>
+              <option value="en_attente">{t('super_admin.signalementStatutEnAttente')}</option>
+              <option value="en_cours_verification">{t('super_admin.signalementStatutEnCoursVerification')}</option>
+              <option value="valide">{t('super_admin.signalementStatutValide')}</option>
+              <option value="invalide">{t('super_admin.signalementStatutInvalide')}</option>
+              <option value="spam">{t('super_admin.signalementStatutSpam')}</option>
+              <option value="doublonne">{t('super_admin.signalementStatutDoublon')}</option>
             </select>
           </div>
           <button onClick={exportToCSV} disabled={isLoading} style={{
@@ -464,7 +465,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
             marginLeft: 'auto'
           }}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.signalementExportCsv')}
           </button>
         </div>
 
@@ -479,27 +480,27 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-signalement-validation__loading']}>
-            <Loader2 size={32} className={styles['sa-signalement-validation__spinner']} />
+          <div className={styles['sa-signalement-validation__skeletonWrap']}>
+            <AdminTableSkeleton columns={7} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-signalement-validation__table-wrapper']}>
             {signalements.length === 0 ? (
               <div className={styles['sa-signalement-validation__empty']}>
                 <AlertTriangle size={48} />
-                <p>Aucun signalement trouvé</p>
+                <p>{t('super_admin.signalementNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-signalement-validation__table']}>
                 <thead>
                   <tr>
-                    <th><Calendar size={16} /> Date</th>
-                    <th><User size={16} /> Signaleur</th>
-                    <th>Dossier</th>
-                    <th><MapPin size={16} /> Lieu</th>
-                    <th>Fiabilité</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
+                    <th><Calendar size={16} /> {t('super_admin.signalementTableDate')}</th>
+                    <th><User size={16} /> {t('super_admin.signalementTableSignaleur')}</th>
+                    <th>{t('super_admin.signalementTableDossier')}</th>
+                    <th><MapPin size={16} /> {t('super_admin.signalementTableLieu')}</th>
+                    <th>{t('super_admin.signalementTableFiabilite')}</th>
+                    <th>{t('super_admin.signalementTableStatut')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -535,7 +536,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                         </span>
                       </td>
                       <td className={styles['sa-signalement-validation__actions']}>
-                        <button type="button" onClick={() => setSelectedSignalement(signalement)} title="Voir détails">
+                        <button type="button" onClick={() => setSelectedSignalement(signalement)} title={t('super_admin.signalementViewDetails')}>
                           <Eye size={16} />
                         </button>
                         <button
@@ -545,7 +546,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                             setEditStatut(signalement.statut_validation);
                             setEditCommentaire(signalement.commentaire_verification || '');
                           }}
-                          title="Modifier"
+                          title={t('common.edit')}
                         >
                           <Edit2 size={16} />
                         </button>
@@ -555,7 +556,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                               type="button"
                               onClick={() => handleValidate(signalement, 'valide')}
                               className={styles['sa-signalement-validation__btn-validate']}
-                              title="Valider"
+                              title={t('super_admin.signalementValidate')}
                             >
                               <Check size={16} />
                             </button>
@@ -563,7 +564,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                               type="button"
                               onClick={() => handleValidate(signalement, 'invalide')}
                               className={styles['sa-signalement-validation__btn-reject']}
-                              title="Invalider"
+                              title={t('super_admin.signalementInvalidate')}
                             >
                               <X size={16} />
                             </button>
@@ -573,7 +574,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                           type="button"
                           onClick={() => setDeleteConfirm(signalement.id)}
                           className={styles['sa-signalement-validation__btn-delete']}
-                          title="Supprimer"
+                          title={t('super_admin.signalementDelete')}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -590,11 +591,11 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-signalement-validation__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -604,50 +605,50 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
           <div className={styles['sa-signalement-validation__modal-overlay']} onClick={() => setSelectedSignalement(null)}>
             <div className={styles['sa-signalement-validation__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-signalement-validation__modal-header']}>
-                <h2>Détails du signalement</h2>
+                <h2>{t('super_admin.signalementDetailsTitle')}</h2>
                 <button onClick={() => setSelectedSignalement(null)}><X size={20} /></button>
               </div>
               
               <div className={styles['sa-signalement-validation__modal-body']}>
                 <div className={styles['sa-signalement-validation__detail-grid']}>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Numéro signalement</label>
+                    <label>{t('super_admin.signalementLabelNumeroSignalement')}</label>
                     <span>{selectedSignalement.numero_signalement || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Date de création</label>
+                    <label>{t('super_admin.signalementLabelDateCreation')}</label>
                     <span>{new Date(selectedSignalement.created_at).toLocaleString('fr-FR')}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Date d'observation</label>
+                    <label>{t('super_admin.signalementLabelDateObservation')}</label>
                     <span>{selectedSignalement.date_observation ? new Date(selectedSignalement.date_observation).toLocaleString('fr-FR') : '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Signaleur</label>
-                    <span>{selectedSignalement.signaleur ? `${selectedSignalement.signaleur.nom} (${selectedSignalement.signaleur.email})` : 'Anonyme'}</span>
+                    <label>{t('super_admin.signalementLabelSignaleur')}</label>
+                    <span>{selectedSignalement.signaleur ? `${selectedSignalement.signaleur.nom} (${selectedSignalement.signaleur.email})` : t('super_admin.signalementAnonymous')}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Dossier</label>
+                    <label>{t('super_admin.signalementLabelDossier')}</label>
                     <span>{selectedSignalement.dossier ? `${selectedSignalement.dossier.numero_dossier} - ${selectedSignalement.dossier.personne_nom}` : '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Lieu d'observation</label>
+                    <label>{t('super_admin.signalementLabelLieuObservation')}</label>
                     <span>{selectedSignalement.lieu_observation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Ville</label>
+                    <label>{t('super_admin.signalementLabelVille')}</label>
                     <span>{selectedSignalement.ville_observation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Région</label>
+                    <label>{t('super_admin.signalementLabelRegion')}</label>
                     <span>{selectedSignalement.region_observation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Pays</label>
+                    <label>{t('super_admin.signalementLabelPays')}</label>
                     <span>{selectedSignalement.pays_observation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Coordonnées</label>
+                    <label>{t('super_admin.signalementLabelCoordonnees')}</label>
                     <span>
                       {selectedSignalement.latitude_observation && selectedSignalement.longitude_observation 
                         ? `${selectedSignalement.latitude_observation}, ${selectedSignalement.longitude_observation}` 
@@ -655,116 +656,116 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                     </span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Précision localisation</label>
+                    <label>{t('super_admin.signalementLabelPrecisionLocalisation')}</label>
                     <span>{selectedSignalement.precision_localisation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Niveau certitude</label>
+                    <label>{t('super_admin.signalementLabelNiveauCertitude')}</label>
                     <span>{selectedSignalement.niveau_certitude || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Distance observation</label>
+                    <label>{t('super_admin.signalementLabelDistanceObservation')}</label>
                     <span>{selectedSignalement.distance_observation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Durée observation</label>
+                    <label>{t('super_admin.signalementLabelDureeObservation')}</label>
                     <span>{selectedSignalement.duree_observation || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Priorité traitement</label>
+                    <label>{t('super_admin.signalementLabelPrioriteTraitement')}</label>
                     <span>{selectedSignalement.priorite_traitement || '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Score de pertinence</label>
+                    <label>{t('super_admin.signalementLabelScorePertinence')}</label>
                     <span>{selectedSignalement.score_pertinence != null ? `${Math.round(selectedSignalement.score_pertinence * 100)}%` : '-'}</span>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Statut</label>
+                    <label>{t('super_admin.signalementLabelStatut')}</label>
                     <span className={`${styles['sa-signalement-validation__badge']} ${styles[`sa-signalement-validation__badge--${getStatutColor(selectedSignalement.statut_validation)}`]}`}>
                       {getStatutLabel(selectedSignalement.statut_validation)}
                     </span>
                   </div>
                   {selectedSignalement.verificateur && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Vérifié par</label>
+                      <label>{t('super_admin.signalementLabelVerifiePar')}</label>
                       <span>{selectedSignalement.verificateur.nom} ({selectedSignalement.verificateur.email})</span>
                     </div>
                   )}
                   {selectedSignalement.date_verification && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Date vérification</label>
+                      <label>{t('super_admin.signalementLabelDateVerification')}</label>
                       <span>{new Date(selectedSignalement.date_verification).toLocaleString('fr-FR')}</span>
                     </div>
                   )}
                   {selectedSignalement.commentaire_verification && (
                     <div className={styles['sa-signalement-validation__detail-item']} style={{ gridColumn: '1 / -1' }}>
-                      <label>Commentaire vérification</label>
+                      <label>{t('super_admin.signalementLabelCommentaireVerification')}</label>
                       <span>{selectedSignalement.commentaire_verification}</span>
                     </div>
                   )}
                   {selectedSignalement.transmis_autorites && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Transmis aux autorités</label>
-                      <span>{selectedSignalement.transmis_autorites ? 'Oui' : 'Non'}</span>
+                      <label>{t('super_admin.signalementLabelTransmisAutorites')}</label>
+                      <span>{selectedSignalement.transmis_autorites ? t('common.yes') : t('common.no')}</span>
                     </div>
                   )}
                   {selectedSignalement.date_transmission && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Date transmission</label>
+                      <label>{t('super_admin.signalementLabelDateTransmission')}</label>
                       <span>{new Date(selectedSignalement.date_transmission).toLocaleString('fr-FR')}</span>
                     </div>
                   )}
                   {selectedSignalement.autorite_destinataire && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Autorité destinataire</label>
+                      <label>{t('super_admin.signalementLabelAutoriteDestinataire')}</label>
                       <span>{selectedSignalement.autorite_destinataire}</span>
                     </div>
                   )}
                   {selectedSignalement.actions_entreprises && (
                     <div className={styles['sa-signalement-validation__detail-item']} style={{ gridColumn: '1 / -1' }}>
-                      <label>Actions entreprises</label>
+                      <label>{t('super_admin.signalementLabelActionsEntreprises')}</label>
                       <span>{selectedSignalement.actions_entreprises}</span>
                     </div>
                   )}
                   {selectedSignalement.temoin_anonyme !== undefined && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Témoin anonyme</label>
-                      <span>{selectedSignalement.temoin_anonyme ? 'Oui' : 'Non'}</span>
+                      <label>{t('super_admin.signalementLabelTemoinAnonyme')}</label>
+                      <span>{selectedSignalement.temoin_anonyme ? t('common.yes') : t('common.no')}</span>
                     </div>
                   )}
                   {selectedSignalement.nom_temoin && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Nom témoin</label>
+                      <label>{t('super_admin.signalementLabelNomTemoin')}</label>
                       <span>{selectedSignalement.nom_temoin}</span>
                     </div>
                   )}
                   {selectedSignalement.telephone_temoin && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Téléphone témoin</label>
+                      <label>{t('super_admin.signalementLabelTelephoneTemoin')}</label>
                       <span>{selectedSignalement.telephone_temoin}</span>
                     </div>
                   )}
                   {selectedSignalement.email_temoin && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Email témoin</label>
+                      <label>{t('super_admin.signalementLabelEmailTemoin')}</label>
                       <span>{selectedSignalement.email_temoin}</span>
                     </div>
                   )}
                   {selectedSignalement.accepte_contact_suivi !== undefined && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Accepte contact suivi</label>
-                      <span>{selectedSignalement.accepte_contact_suivi ? 'Oui' : 'Non'}</span>
+                      <label>{t('super_admin.signalementLabelAccepteContactSuivi')}</label>
+                      <span>{selectedSignalement.accepte_contact_suivi ? t('common.yes') : t('common.no')}</span>
                     </div>
                   )}
                   {selectedSignalement.source_signalement && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Source signalement</label>
+                      <label>{t('super_admin.signalementLabelSourceSignalement')}</label>
                       <span>{selectedSignalement.source_signalement}</span>
                     </div>
                   )}
                   {selectedSignalement.raisons_score && (
                     <div className={styles['sa-signalement-validation__detail-item']} style={{ gridColumn: '1 / -1' }}>
-                      <label>Raisons du score</label>
+                      <label>{t('super_admin.signalementLabelRaisonsScore')}</label>
                       <pre style={{ fontSize: '0.875rem', background: '#f1f5f9', padding: '0.5rem', borderRadius: '0.25rem', marginTop: '0.25rem' }}>
                         {JSON.stringify(selectedSignalement.raisons_score, null, 2)}
                       </pre>
@@ -772,49 +773,49 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                   )}
                   {selectedSignalement.contexte_observation && (
                     <div className={styles['sa-signalement-validation__detail-item']} style={{ gridColumn: '1 / -1' }}>
-                      <label>Contexte observation</label>
+                      <label>{t('super_admin.signalementLabelContexteObservation')}</label>
                       <span>{selectedSignalement.contexte_observation}</span>
                     </div>
                   )}
                   {selectedSignalement.etat_personne_observee && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>État personne observée</label>
+                      <label>{t('super_admin.signalementLabelEtatPersonneObservee')}</label>
                       <span>{selectedSignalement.etat_personne_observee}</span>
                     </div>
                   )}
                   {selectedSignalement.accompagnement && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Accompagnement</label>
+                      <label>{t('super_admin.signalementLabelAccompagnement')}</label>
                       <span>{selectedSignalement.accompagnement}</span>
                     </div>
                   )}
                   {selectedSignalement.direction_deplacement && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Direction déplacement</label>
+                      <label>{t('super_admin.signalementLabelDirectionDeplacement')}</label>
                       <span>{selectedSignalement.direction_deplacement}</span>
                     </div>
                   )}
                   {selectedSignalement.moyen_deplacement && (
                     <div className={styles['sa-signalement-validation__detail-item']}>
-                      <label>Moyen déplacement</label>
+                      <label>{t('super_admin.signalementLabelMoyenDeplacement')}</label>
                       <span>{selectedSignalement.moyen_deplacement}</span>
                     </div>
                   )}
                 </div>
 
                 <div className={styles['sa-signalement-validation__description']}>
-                  <label>Description</label>
-                  <p>{selectedSignalement.description || 'Aucune description'}</p>
+                  <label>{t('super_admin.signalementDescription')}</label>
+                  <p>{selectedSignalement.description || t('super_admin.signalementNoDescription')}</p>
                 </div>
 
                 {selectedSignalement.statut_validation === 'en_attente' && (
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Commentaire vérification (optionnel)</label>
+                    <label>{t('super_admin.signalementCommentaireVerificationOptional')}</label>
                     <textarea
                       value={commentaireVerification}
                       onChange={(e) => setCommentaireVerification(e.target.value)}
                       rows={2}
-                      placeholder="Ajouter un commentaire avant de valider/invalider..."
+                      placeholder={t('super_admin.signalementPlaceholderCommentaireValidation')}
                     />
                   </div>
                 )}
@@ -830,7 +831,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                       disabled={isProcessing}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-signalement-validation__spinner']} /> : <X size={16} />}
-                      Invalider
+                      {t('super_admin.signalementInvalidate')}
                     </button>
                     <button 
                       type="button"
@@ -840,7 +841,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                       style={{ backgroundColor: '#dc2626' }}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-signalement-validation__spinner']} /> : <X size={16} />}
-                      Marquer Spam
+                      {t('super_admin.signalementButtonMarquerSpam')}
                     </button>
                     <button 
                       type="button"
@@ -850,7 +851,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                       style={{ backgroundColor: '#64748b' }}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-signalement-validation__spinner']} /> : <X size={16} />}
-                      Marquer Doublon
+                      {t('super_admin.signalementButtonMarquerDoublon')}
                     </button>
                     <button 
                       type="button"
@@ -859,11 +860,11 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                       disabled={isProcessing}
                     >
                       {isProcessing ? <Loader2 size={16} className={styles['sa-signalement-validation__spinner']} /> : <Check size={16} />}
-                      Valider
+                      {t('super_admin.signalementValidate')}
                     </button>
                   </>
                 )}
-                <button type="button" onClick={() => setSelectedSignalement(null)}>Fermer</button>
+                <button type="button" onClick={() => setSelectedSignalement(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>
@@ -874,33 +875,33 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
           <div className={styles['sa-signalement-validation__modal-overlay']} onClick={() => { setEditingSignalement(null); setEditStatut(''); setEditCommentaire(''); }}>
             <div className={styles['sa-signalement-validation__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-signalement-validation__modal-header']}>
-                <h2>Modifier le signalement</h2>
+                <h2>{t('super_admin.signalementEditModalTitle')}</h2>
                 <button type="button" onClick={() => { setEditingSignalement(null); setEditStatut(''); setEditCommentaire(''); }}><X size={20} /></button>
               </div>
               <div className={styles['sa-signalement-validation__modal-body']}>
                 <div className={styles['sa-signalement-validation__detail-grid']}>
                   <div className={styles['sa-signalement-validation__detail-item']}>
-                    <label>Statut</label>
+                    <label>{t('super_admin.signalementEditStatutLabel')}</label>
                     <select value={editStatut} onChange={(e) => setEditStatut(e.target.value)}>
-                      <option value="en_attente">En attente</option>
-                      <option value="en_cours_verification">En cours de vérification</option>
-                      <option value="valide">Validé</option>
-                      <option value="invalide">Invalide</option>
-                      <option value="spam">Spam</option>
-                      <option value="doublonne">Doublon</option>
+                      <option value="en_attente">{t('super_admin.signalementStatutEnAttente')}</option>
+                      <option value="en_cours_verification">{t('super_admin.signalementStatutEnCoursVerification')}</option>
+                      <option value="valide">{t('super_admin.signalementStatutValide')}</option>
+                      <option value="invalide">{t('super_admin.signalementStatutInvalide')}</option>
+                      <option value="spam">{t('super_admin.signalementStatutSpam')}</option>
+                      <option value="doublonne">{t('super_admin.signalementStatutDoublon')}</option>
                     </select>
                   </div>
                   <div className={styles['sa-signalement-validation__detail-item']} style={{ gridColumn: '1 / -1' }}>
-                    <label>Commentaire vérification</label>
-                    <textarea value={editCommentaire} onChange={(e) => setEditCommentaire(e.target.value)} rows={3} placeholder="Optionnel" />
+                    <label>{t('super_admin.signalementEditCommentaireLabel')}</label>
+                    <textarea value={editCommentaire} onChange={(e) => setEditCommentaire(e.target.value)} rows={3} placeholder={t('super_admin.signalementPlaceholderOptional')} />
                   </div>
                 </div>
               </div>
               <div className={styles['sa-signalement-validation__modal-footer']}>
-                <button type="button" onClick={() => { setEditingSignalement(null); setEditStatut(''); setEditCommentaire(''); }}>Annuler</button>
+                <button type="button" onClick={() => { setEditingSignalement(null); setEditStatut(''); setEditCommentaire(''); }}>{t('common.cancel')}</button>
                 <button type="button" onClick={handleUpdate} disabled={isProcessing || !editStatut} className={styles['sa-signalement-validation__btn-validate-large']}>
                   {isProcessing ? <Loader2 size={16} className={styles['sa-signalement-validation__spinner']} /> : <Check size={16} />}
-                  Enregistrer
+                  {t('common.save')}
                 </button>
               </div>
             </div>
@@ -912,17 +913,17 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
           <div className={styles['sa-signalement-validation__modal-overlay']} onClick={() => setDeleteConfirm(null)}>
             <div className={styles['sa-signalement-validation__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-signalement-validation__modal-header']}>
-                <h2>Supprimer le signalement</h2>
+                <h2>{t('super_admin.signalementDeleteModalTitle')}</h2>
                 <button type="button" onClick={() => setDeleteConfirm(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-signalement-validation__modal-body']}>
-                <p>Êtes-vous sûr de vouloir supprimer ce signalement ? Cette action est irréversible.</p>
+                <p>{t('super_admin.signalementDeleteConfirmMessage')}</p>
               </div>
               <div className={styles['sa-signalement-validation__modal-footer']}>
-                <button type="button" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+                <button type="button" onClick={() => setDeleteConfirm(null)}>{t('common.cancel')}</button>
                 <button type="button" onClick={() => handleDelete(deleteConfirm)} disabled={isProcessing} className={styles['sa-signalement-validation__btn-reject-large']}>
                   {isProcessing ? <Loader2 size={16} className={styles['sa-signalement-validation__spinner']} /> : <Trash2 size={16} />}
-                  Supprimer
+                  {t('super_admin.signalementDelete')}
                 </button>
               </div>
             </div>

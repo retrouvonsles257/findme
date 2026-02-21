@@ -29,6 +29,7 @@ import { NomRole } from '../../@types/enums.types';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import styles from './DossiersPage.module.css';
 
 export const DossiersPage: React.FC = () => {
@@ -237,9 +238,8 @@ export const DossiersPage: React.FC = () => {
         {/* Dossiers Table */}
         <div className={styles.tableContainer}>
           {isLoading ? (
-            <div className={styles.loadingState}>
-              <RefreshCw size={24} className={styles.spinning} />
-              <span>{t('authority.dossiers.loading')}</span>
+            <div className={styles.skeletonWrap}>
+              <AdminTableSkeleton columns={7} rows={8} />
             </div>
           ) : filteredDossiers.length > 0 ? (
             <table className={styles.table}>

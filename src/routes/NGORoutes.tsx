@@ -23,6 +23,7 @@ import {
   NGOIAAnalysisPage,
   NGOStatistiquesPage,
   NGOProfilePage,
+  NGODonationsPage,
 } from '../pages/ngo';
 
 import PrivateRoute from './PrivateRoutes';
@@ -210,6 +211,16 @@ const NGORoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={ngoRoles}>
               <NGOProfilePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Dons (tous les acteurs peuvent faire un don) */}
+        <Route
+          path="donations"
+          element={
+            <RoleBasedRoute requiredRoles={ngoRoles}>
+              <NGODonationsPage />
             </RoleBasedRoute>
           }
         />

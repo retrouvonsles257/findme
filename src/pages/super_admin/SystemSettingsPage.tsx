@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import { Settings, Save, Loader2, AlertCircle, CheckCircle, Globe, Database, Mail, Bell, Minus, Plus, RefreshCw } from 'lucide-react';
 import styles from './SystemSettingsPage.module.css';
 
@@ -107,7 +108,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
       if (upsertError) throw upsertError;
 
       setOriginalConfig(config);
-      setSuccess('Configuration système sauvegardée avec succès');
+      setSuccess(t('super_admin.systemSettingsSaveSuccess'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       console.error('Erreur sauvegarde config système:', err);
@@ -130,11 +131,11 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
     { value: number; onChange: (v: number) => void; min: number; max: number; step?: number; disabled?: boolean }
   ) => (
     <div className={styles['sa-system-settings__stepper']}>
-      <button type="button" className={styles['sa-system-settings__stepper-btn']} onClick={() => onChange(roundStep(Math.max(min, value - step), step))} disabled={disabled || value <= min} aria-label="Diminuer">
+      <button type="button" className={styles['sa-system-settings__stepper-btn']} onClick={() => onChange(roundStep(Math.max(min, value - step), step))} disabled={disabled || value <= min} aria-label={t('super_admin.systemSettingsAriaDecrease')}>
         <Minus size={14} />
       </button>
       <input type="number" value={value} onChange={(e) => onChange(roundStep(Math.min(max, Math.max(min, parseFloat(e.target.value) || min)), step))} min={min} max={max} step={step} disabled={disabled} className={styles['sa-system-settings__stepper-input']} />
-      <button type="button" className={styles['sa-system-settings__stepper-btn']} onClick={() => onChange(roundStep(Math.min(max, value + step), step))} disabled={disabled || value >= max} aria-label="Augmenter">
+      <button type="button" className={styles['sa-system-settings__stepper-btn']} onClick={() => onChange(roundStep(Math.min(max, value + step), step))} disabled={disabled || value >= max} aria-label={t('super_admin.systemSettingsAriaIncrease')}>
         <Plus size={14} />
       </button>
     </div>
@@ -162,8 +163,8 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-system-settings__loading']}>
-            <Loader2 size={32} className={styles['sa-system-settings__spinner']} />
+          <div className={styles['sa-system-settings__skeletonWrap']}>
+            <AdminDetailSkeleton blockCount={4} linesPerBlock={4} />
           </div>
         ) : (
           <>
@@ -175,7 +176,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
               </div>
               <div className={styles['sa-system-settings__form']}>
                 <div className={styles['sa-system-settings__field']}>
-                  <label>Nom du système</label>
+                  <label>{t('super_admin.systemSettingsSystemName')}</label>
                   <input 
                     type="text" 
                     value={config.system_name}
@@ -183,7 +184,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                   />
                 </div>
                 <div className={styles['sa-system-settings__field']}>
-                  <label>Version</label>
+                  <label>{t('super_admin.systemSettingsVersion')}</label>
                   <input 
                     type="text" 
                     value={config.system_version}
@@ -209,11 +210,11 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
             <div className={styles['sa-system-settings__card']}>
               <div className={styles['sa-system-settings__header']}>
                 <Bell size={24} />
-                <h3>Mode maintenance</h3>
+                <h3>{t('super_admin.systemSettingsMaintenanceMode')}</h3>
               </div>
               <div className={styles['sa-system-settings__form']}>
                 <div className={styles['sa-system-settings__field-toggle']}>
-                  <label>Mode maintenance activé</label>
+                  <label>{t('super_admin.systemSettingsMaintenanceEnabled')}</label>
                   <label className={styles['sa-system-settings__toggle']}>
                     <input 
                       type="checkbox" 
@@ -224,7 +225,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                   </label>
                 </div>
                 <div className={styles['sa-system-settings__field']}>
-                  <label>Message de maintenance</label>
+                  <label>{t('super_admin.systemSettingsMaintenanceMessage')}</label>
                   <textarea 
                     value={config.maintenance_message}
                     onChange={(e) => setConfig({ ...config, maintenance_message: e.target.value })}

@@ -18,9 +18,7 @@ import {
   Building2,
   Users,
   Settings,
-  Shield,
   FileText,
-  Cpu,
   LogOut,
   Menu,
   X,
@@ -36,7 +34,6 @@ import {
   ChevronLeft,
   Bell,
   FolderOpen,
-  Database,
 } from 'lucide-react';
 import styles from './SuperAdminLayout.module.css';
 
@@ -45,8 +42,6 @@ type ActiveNavType =
   | 'global-stats'
   | 'organisations'
   | 'system-users'
-  | 'ia-config'
-  | 'security'
   | 'system-logs'
   | 'system-settings'
   | 'campagnes'
@@ -58,7 +53,6 @@ type ActiveNavType =
   | 'profile'
   | 'dossiers'
   | 'alertes'
-  | 'maintenance'
   | 'notifications-system'
   | 'photos'
   | 'commentaires'
@@ -100,11 +94,8 @@ const SUPER_ADMIN_NAV_GROUPS: SuperAdminNavGroup[] = [
     groupKey: 'system',
     labelKey: 'super_admin.nav.system',
     items: [
-      { id: 'ia-config', labelKey: 'super_admin.iaConfigMenu', path: '/super-admin/ia-configuration', icon: Cpu },
-      { id: 'security', labelKey: 'super_admin.securityMenu', path: '/super-admin/security', icon: Shield },
       { id: 'system-logs', labelKey: 'super_admin.systemLogsMenu', path: '/super-admin/system-logs', icon: FileText },
       { id: 'system-settings', labelKey: 'super_admin.systemSettingsMenu', path: '/super-admin/system-settings', icon: Settings },
-      { id: 'maintenance', labelKey: 'super_admin.maintenanceMenu', path: '/super-admin/maintenance', icon: Database },
     ],
   },
   {
@@ -214,7 +205,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
 
   const getUserLabel = () => {
     const user = currentUser as any;
-    return user?.prenom || user?.nom_complet || user?.email || 'Super Admin';
+    return user?.prenom || user?.nom_complet || user?.email || t('super_admin.layoutSuperAdminFallback');
   };
 
   const handleHeaderSearch = (event: FormEvent) => {
@@ -275,16 +266,14 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <div className={styles.logoIcon}>
-                <span>RetrouvonsLes</span>
-              </div>
+              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
             </div>
           )}
 
           <button
             className={styles.toggleBtn}
             onClick={() => setIsCollapsed(!isCollapsed)}
-            title={isCollapsed ? 'Ouvrir le menu' : 'Réduire le menu'}
+            title={isCollapsed ? t('super_admin.layoutOpenMenu') : t('super_admin.layoutReduceMenu')}
           >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
@@ -384,7 +373,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
                 onClick={toggleLanguage}
               >
                 <Globe size={18} />
-                <span>{language === 'fr' ? 'English' : 'Français'}</span>
+                <span>{language === 'fr' ? t('super_admin.layoutLanguageEn') : t('super_admin.layoutLanguageFr')}</span>
               </button>
               <div className={styles.userMenuDivider} />
               <button
@@ -403,11 +392,12 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
       <div className={`${styles.main} ${isCollapsed ? styles.mainExpanded : ''}`}>
         {/* Header desktop */}
         <header className={styles.topHeader}>
+          <span className={`${styles.topHeaderAppName} app-name-bold`}>{t('super_admin.layoutAppName')}</span>
           <form className={styles.topHeaderSearchForm} onSubmit={handleHeaderSearch}>
             <Search size={18} className={styles.topHeaderSearchIcon} />
             <input
               type="text"
-              placeholder={t('common.search') || 'Search...'}
+              placeholder={t('common.search') || t('super_admin.layoutSearchPlaceholder')}
               value={headerSearch}
               onChange={(e) => setHeaderSearch(e.target.value)}
               className={styles.topHeaderSearchInput}
@@ -418,7 +408,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
             <button
               type="button"
               className={styles.topHeaderIconBtn}
-              title={t('common.notifications') || 'Notifications'}
+              title={t('common.notifications') || t('super_admin.layoutNotifications')}
               onClick={() => navigate('/super-admin/system-logs')}
             >
               <Bell size={18} />
@@ -458,12 +448,12 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
           >
             <Menu size={24} />
           </button>
-          <span className={styles.appName}>RetrouvonsLes</span>
+          <span className={`${styles.appName} app-name-bold`}>{t('super_admin.layoutAppName')}</span>
           <div className={styles.mobileHeaderRight}>
             <button
               type="button"
               className={styles.mobileHeaderIconBtn}
-              title={t('common.notifications') || 'Notifications'}
+              title={t('common.notifications') || t('super_admin.layoutNotifications')}
               onClick={() => navigate('/super-admin/system-logs')}
             >
               <Bell size={18} />

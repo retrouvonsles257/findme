@@ -85,6 +85,12 @@
 }
 
 /* Loading State */
+.skeletonWrap {
+  padding: var(--space-4, 1rem);
+  min-height: 400px;
+  width: 100%;
+}
+
 .loadingState {
   display: flex;
   flex-direction: column;

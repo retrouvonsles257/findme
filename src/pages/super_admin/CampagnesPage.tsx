@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import { 
   Megaphone, Calendar, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, MapPin, CheckCircle, Download
@@ -44,7 +45,7 @@ type TypeCampagne = 'sensibilisation' | 'recherche_active' | 'prevention' | 'for
 type StatutCampagne = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
 
 export const SuperAdminCampagnesPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
   
   const [campagnes, setCampagnes] = useState<Campagne[]>([]);
   const [organisations, setOrganisations] = useState<{ id: string; nom: string }[]>([]);
@@ -243,7 +244,7 @@ export const SuperAdminCampagnesPage: React.FC = () => {
         if (updateError) throw updateError;
       }
 
-      setSuccess(modalMode === 'create' ? 'Campagne créée avec succès' : 'Campagne modifiée avec succès');
+      setSuccess(modalMode === 'create' ? t('super_admin.campagnesCreateSuccess') : t('super_admin.campagnesUpdateSuccess'));
       setTimeout(() => setSuccess(null), 3000);
       setShowModal(false);
       loadCampagnes();
@@ -275,21 +276,21 @@ export const SuperAdminCampagnesPage: React.FC = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      sensibilisation: 'Sensibilisation',
-      recherche_active: 'Recherche Active',
-      prevention: 'Prévention',
-      formation: 'Formation',
-      autre: 'Autre',
+      sensibilisation: t('super_admin.campagnesTypeSensibilisation'),
+      recherche_active: t('super_admin.campagnesTypeRechercheActive'),
+      prevention: t('super_admin.campagnesTypePrevention'),
+      formation: t('super_admin.campagnesTypeFormation'),
+      autre: t('super_admin.campagnesTypeAutre'),
     };
     return labels[type] || type;
   };
 
   const getStatutLabel = (statut: string) => {
     const labels: Record<string, string> = {
-      planifiee: 'Planifiée',
-      en_cours: 'En cours',
-      terminee: 'Terminée',
-      annulee: 'Annulée',
+      planifiee: t('super_admin.campagnesStatutPlanifiee'),
+      en_cours: t('super_admin.campagnesStatutEnCours'),
+      terminee: t('super_admin.campagnesStatutTerminee'),
+      annulee: t('super_admin.campagnesStatutAnnulee'),
     };
     return labels[statut] || statut;
   };
@@ -362,14 +363,14 @@ export const SuperAdminCampagnesPage: React.FC = () => {
       link.click();
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.campagnesExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <SuperAdminLayout title="Campagnes de Sensibilisation" activeNav="campagnes">
+    <SuperAdminLayout title={t('super_admin.campagnesTitle')} activeNav="campagnes">
       <div className={styles['sa-campagnes']}>
         {/* Header */}
         <div className={styles['sa-campagnes__header']}>
@@ -377,7 +378,7 @@ export const SuperAdminCampagnesPage: React.FC = () => {
             <Search size={18} />
             <input
               type="text"
-              placeholder="Rechercher une campagne..."
+              placeholder={t('super_admin.campagnesSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -395,11 +396,11 @@ export const SuperAdminCampagnesPage: React.FC = () => {
               cursor: 'pointer'
             }}>
               <Download size={18} />
-              Exporter CSV
+              {t('common.exportCsv')}
             </button>
             <button className={styles['sa-campagnes__add-btn']} onClick={openCreateModal}>
               <Plus size={20} />
-              Nouvelle campagne
+              {t('super_admin.campagnesNewCampagne')}
             </button>
           </div>
         </div>
@@ -424,15 +425,15 @@ export const SuperAdminCampagnesPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-campagnes__loading']}>
-            <Loader2 size={32} className={styles['sa-campagnes__spinner']} />
+          <div className={styles['sa-campagnes__skeletonWrap']}>
+            <AdminCardsGridSkeleton cardCount={8} />
           </div>
         ) : (
           <div className={styles['sa-campagnes__grid']}>
             {filteredCampagnes.length === 0 ? (
               <div className={styles['sa-campagnes__empty']}>
                 <Megaphone size={48} />
-                <p>Aucune campagne</p>
+                <p>{t('super_admin.campagnesNoData')}</p>
               </div>
             ) : (
               filteredCampagnes.map((campagne) => (
@@ -461,14 +462,14 @@ export const SuperAdminCampagnesPage: React.FC = () => {
                     )}
                   </div>
                   <div className={styles['sa-campagnes__card-actions']}>
-                    <button onClick={() => openViewModal(campagne)} title="Voir"><Eye size={16} /></button>
-                    <button onClick={() => openEditModal(campagne)} title="Modifier"><Edit2 size={16} /></button>
-                    <button onClick={() => setDeleteConfirm(campagne.id)} className={styles['sa-campagnes__btn-delete']} title="Supprimer"><Trash2 size={16} /></button>
+                    <button onClick={() => openViewModal(campagne)} title={t('common.view')}><Eye size={16} /></button>
+                    <button onClick={() => openEditModal(campagne)} title={t('common.edit')}><Edit2 size={16} /></button>
+                    <button onClick={() => setDeleteConfirm(campagne.id)} className={styles['sa-campagnes__btn-delete']} title={t('common.delete')}><Trash2 size={16} /></button>
                   </div>
 
                   {deleteConfirm === campagne.id && (
                     <div className={styles['sa-campagnes__delete-confirm']}>
-                      <p>Confirmer la suppression ?</p>
+                      <p>{t('super_admin.campagnesConfirmDelete')}</p>
                       <div>
                         <button onClick={() => handleDelete(campagne.id)}><Check size={16} /></button>
                         <button onClick={() => setDeleteConfirm(null)}><X size={16} /></button>
@@ -487,8 +488,8 @@ export const SuperAdminCampagnesPage: React.FC = () => {
             <div className={styles['sa-campagnes__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-campagnes__modal-header']}>
                 <h2>
-                  {modalMode === 'create' && 'Nouvelle campagne'}
-                  {modalMode === 'edit' && 'Modifier campagne'}
+                  {modalMode === 'create' && t('super_admin.campagnesNewCampagne')}
+                  {modalMode === 'edit' && t('super_admin.campagnesEditCampagne')}
                   {modalMode === 'view' && selectedCampagne?.titre}
                 </h2>
                 <button onClick={() => setShowModal(false)}><X size={20} /></button>
@@ -497,21 +498,21 @@ export const SuperAdminCampagnesPage: React.FC = () => {
               <div className={styles['sa-campagnes__modal-body']}>
                 {modalMode === 'view' && selectedCampagne ? (
                   <div className={styles['sa-campagnes__view-details']} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                    <div><label>Type:</label><span>{getTypeLabel(selectedCampagne.type_campagne)}</span></div>
-                    <div><label>Statut:</label><span>{getStatutLabel(selectedCampagne.statut_campagne)}</span></div>
-                    <div><label>Date début:</label><span>{new Date(selectedCampagne.date_debut).toLocaleDateString('fr-FR')}</span></div>
-                    {selectedCampagne.date_fin && <div><label>Date fin:</label><span>{new Date(selectedCampagne.date_fin).toLocaleDateString('fr-FR')}</span></div>}
-                    {selectedCampagne.public_cible && <div><label>Public cible:</label><span>{selectedCampagne.public_cible}</span></div>}
-                    {selectedCampagne.organisation && <div><label>Organisation:</label><span>{selectedCampagne.organisation.nom}</span></div>}
-                    {selectedCampagne.budget_alloue && <div><label>Budget alloué:</label><span>{selectedCampagne.budget_alloue.toLocaleString()} XAF</span></div>}
-                    {selectedCampagne.budget_depense && <div><label>Budget dépensé:</label><span>{selectedCampagne.budget_depense.toLocaleString()} XAF</span></div>}
-                    {selectedCampagne.nombre_personnes_touchees !== undefined && <div><label>Personnes touchées:</label><span>{selectedCampagne.nombre_personnes_touchees}</span></div>}
-                    {selectedCampagne.nombre_interactions !== undefined && <div><label>Interactions:</label><span>{selectedCampagne.nombre_interactions}</span></div>}
-                    {selectedCampagne.objectif && <div style={{ gridColumn: '1 / -1' }}><label>Objectif:</label><span>{selectedCampagne.objectif}</span></div>}
-                    {selectedCampagne.description && <div style={{ gridColumn: '1 / -1' }}><label>Description:</label><span>{selectedCampagne.description}</span></div>}
+                    <div><label>{t('super_admin.campagnesViewType')}:</label><span>{getTypeLabel(selectedCampagne.type_campagne)}</span></div>
+                    <div><label>{t('super_admin.campagnesViewStatut')}:</label><span>{getStatutLabel(selectedCampagne.statut_campagne)}</span></div>
+                    <div><label>{t('super_admin.campagnesViewDateDebut')}:</label><span>{new Date(selectedCampagne.date_debut).toLocaleDateString('fr-FR')}</span></div>
+                    {selectedCampagne.date_fin && <div><label>{t('super_admin.campagnesViewDateFin')}:</label><span>{new Date(selectedCampagne.date_fin).toLocaleDateString('fr-FR')}</span></div>}
+                    {selectedCampagne.public_cible && <div><label>{t('super_admin.campagnesViewPublicCible')}:</label><span>{selectedCampagne.public_cible}</span></div>}
+                    {selectedCampagne.organisation && <div><label>{t('super_admin.campagnesViewOrganisation')}:</label><span>{selectedCampagne.organisation.nom}</span></div>}
+                    {selectedCampagne.budget_alloue && <div><label>{t('super_admin.campagnesViewBudgetAlloue')}:</label><span>{selectedCampagne.budget_alloue.toLocaleString()} XAF</span></div>}
+                    {selectedCampagne.budget_depense && <div><label>{t('super_admin.campagnesViewBudgetDepense')}:</label><span>{selectedCampagne.budget_depense.toLocaleString()} XAF</span></div>}
+                    {selectedCampagne.nombre_personnes_touchees !== undefined && <div><label>{t('super_admin.campagnesViewPersonnesTouchees')}:</label><span>{selectedCampagne.nombre_personnes_touchees}</span></div>}
+                    {selectedCampagne.nombre_interactions !== undefined && <div><label>{t('super_admin.campagnesViewInteractions')}:</label><span>{selectedCampagne.nombre_interactions}</span></div>}
+                    {selectedCampagne.objectif && <div style={{ gridColumn: '1 / -1' }}><label>{t('super_admin.campagnesViewObjectif')}:</label><span>{selectedCampagne.objectif}</span></div>}
+                    {selectedCampagne.description && <div style={{ gridColumn: '1 / -1' }}><label>{t('super_admin.campagnesViewDescription')}:</label><span>{selectedCampagne.description}</span></div>}
                     {selectedCampagne.zones_geographiques && (
                       <div style={{ gridColumn: '1 / -1' }}>
-                        <label>Zones géographiques:</label>
+                        <label>{t('super_admin.campagnesViewZonesGeo')}:</label>
                         <pre style={{ fontSize: '0.875rem', padding: '0.75rem', background: '#f1f5f9', borderRadius: '0.5rem', overflow: 'auto', maxHeight: '150px' }}>
                           {JSON.stringify(selectedCampagne.zones_geographiques, null, 2)}
                         </pre>
@@ -519,7 +520,7 @@ export const SuperAdminCampagnesPage: React.FC = () => {
                     )}
                     {selectedCampagne.canaux_diffusion && (
                       <div style={{ gridColumn: '1 / -1' }}>
-                        <label>Canaux de diffusion:</label>
+                        <label>{t('super_admin.campagnesViewCanauxDiffusion')}:</label>
                         <pre style={{ fontSize: '0.875rem', padding: '0.75rem', background: '#f1f5f9', borderRadius: '0.5rem', overflow: 'auto', maxHeight: '150px' }}>
                           {JSON.stringify(selectedCampagne.canaux_diffusion, null, 2)}
                         </pre>
@@ -527,95 +528,95 @@ export const SuperAdminCampagnesPage: React.FC = () => {
                     )}
                     {selectedCampagne.contenu_campagne && (
                       <div style={{ gridColumn: '1 / -1' }}>
-                        <label>Contenu campagne:</label>
+                        <label>{t('super_admin.campagnesViewContenuCampagne')}:</label>
                         <pre style={{ fontSize: '0.875rem', padding: '0.75rem', background: '#f1f5f9', borderRadius: '0.5rem', overflow: 'auto', maxHeight: '150px' }}>
                           {JSON.stringify(selectedCampagne.contenu_campagne, null, 2)}
                         </pre>
                       </div>
                     )}
-                    {selectedCampagne.createur && <div><label>Créateur:</label><span>{selectedCampagne.createur.nom} ({selectedCampagne.createur.email})</span></div>}
+                    {selectedCampagne.createur && <div><label>{t('super_admin.campagnesViewCreateur')}:</label><span>{selectedCampagne.createur.nom} ({selectedCampagne.createur.email})</span></div>}
                   </div>
                 ) : (
                   <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
                     <div className={styles['sa-campagnes__form-grid']}>
                       <div className={styles['sa-campagnes__form-field']} style={{ gridColumn: '1 / -1' }}>
-                        <label>Titre *</label>
+                        <label>{t('super_admin.campagnesFormTitle')} *</label>
                         <input type="text" value={formData.titre} onChange={(e) => setFormData({ ...formData, titre: e.target.value })} required />
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Type *</label>
+                        <label>{t('super_admin.campagnesFormType')} *</label>
                         <select value={formData.type_campagne} onChange={(e) => setFormData({ ...formData, type_campagne: e.target.value as TypeCampagne })}>
-                          <option value="sensibilisation">Sensibilisation</option>
-                          <option value="recherche_active">Recherche Active</option>
-                          <option value="prevention">Prévention</option>
-                          <option value="formation">Formation</option>
-                          <option value="autre">Autre</option>
+                          <option value="sensibilisation">{t('super_admin.campagnesTypeSensibilisation')}</option>
+                          <option value="recherche_active">{t('super_admin.campagnesTypeRechercheActive')}</option>
+                          <option value="prevention">{t('super_admin.campagnesTypePrevention')}</option>
+                          <option value="formation">{t('super_admin.campagnesTypeFormation')}</option>
+                          <option value="autre">{t('super_admin.campagnesTypeAutre')}</option>
                         </select>
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Statut *</label>
+                        <label>{t('super_admin.campagnesFormStatut')} *</label>
                         <select value={formData.statut_campagne} onChange={(e) => setFormData({ ...formData, statut_campagne: e.target.value as StatutCampagne })}>
-                          <option value="planifiee">Planifiée</option>
-                          <option value="en_cours">En cours</option>
-                          <option value="terminee">Terminée</option>
-                          <option value="annulee">Annulée</option>
+                          <option value="planifiee">{t('super_admin.campagnesStatutPlanifiee')}</option>
+                          <option value="en_cours">{t('super_admin.campagnesStatutEnCours')}</option>
+                          <option value="terminee">{t('super_admin.campagnesStatutTerminee')}</option>
+                          <option value="annulee">{t('super_admin.campagnesStatutAnnulee')}</option>
                         </select>
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Date début *</label>
+                        <label>{t('super_admin.campagnesFormDateDebut')} *</label>
                         <input type="date" value={formData.date_debut} onChange={(e) => setFormData({ ...formData, date_debut: e.target.value })} required />
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Date fin</label>
+                        <label>{t('super_admin.campagnesFormDateFin')}</label>
                         <input type="date" value={formData.date_fin} onChange={(e) => setFormData({ ...formData, date_fin: e.target.value })} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Public cible</label>
-                        <input type="text" value={formData.public_cible} onChange={(e) => setFormData({ ...formData, public_cible: e.target.value })} placeholder="Ex: Jeunes, Parents, etc." />
+                        <label>{t('super_admin.campagnesFormPublicCible')}</label>
+                        <input type="text" value={formData.public_cible} onChange={(e) => setFormData({ ...formData, public_cible: e.target.value })} placeholder={t('super_admin.campagnesPlaceholderPublicCible')} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Budget alloué (XAF)</label>
+                        <label>{t('super_admin.campagnesFormBudgetAlloue')}</label>
                         <input type="number" value={formData.budget_alloue} onChange={(e) => setFormData({ ...formData, budget_alloue: parseFloat(e.target.value) || 0 })} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Budget dépensé (XAF)</label>
+                        <label>{t('super_admin.campagnesFormBudgetDepense')}</label>
                         <input type="number" value={formData.budget_depense} onChange={(e) => setFormData({ ...formData, budget_depense: parseFloat(e.target.value) || 0 })} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']}>
-                        <label>Organisation</label>
+                        <label>{t('super_admin.campagnesFormOrganisation')}</label>
                         <select value={formData.id_organisation} onChange={(e) => setFormData({ ...formData, id_organisation: e.target.value })}>
-                          <option value="">Aucune</option>
+                          <option value="">{t('super_admin.campagnesFormNone')}</option>
                           {organisations.map(org => (
                             <option key={org.id} value={org.id}>{org.nom}</option>
                           ))}
                         </select>
                       </div>
                       <div className={styles['sa-campagnes__form-field']} style={{ gridColumn: '1 / -1' }}>
-                        <label>Zones géographiques (JSON)</label>
-                        <textarea value={formData.zones_geographiques} onChange={(e) => setFormData({ ...formData, zones_geographiques: e.target.value })} rows={3} placeholder='{"regions": ["Centre", "Littoral"]}' />
+                        <label>{t('super_admin.campagnesFormZonesGeo')}</label>
+                        <textarea value={formData.zones_geographiques} onChange={(e) => setFormData({ ...formData, zones_geographiques: e.target.value })} rows={3} placeholder={t('super_admin.campagnesPlaceholderZones')} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']} style={{ gridColumn: '1 / -1' }}>
-                        <label>Canaux de diffusion (JSON)</label>
-                        <textarea value={formData.canaux_diffusion} onChange={(e) => setFormData({ ...formData, canaux_diffusion: e.target.value })} rows={3} placeholder='{"canaux": ["web", "mobile"]}' />
+                        <label>{t('super_admin.campagnesFormCanauxDiffusion')}</label>
+                        <textarea value={formData.canaux_diffusion} onChange={(e) => setFormData({ ...formData, canaux_diffusion: e.target.value })} rows={3} placeholder={t('super_admin.campagnesPlaceholderCanaux')} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']} style={{ gridColumn: '1 / -1' }}>
-                        <label>Contenu campagne (JSON)</label>
-                        <textarea value={formData.contenu_campagne} onChange={(e) => setFormData({ ...formData, contenu_campagne: e.target.value })} rows={3} placeholder='{"messages": ["Message 1", "Message 2"]}' />
+                        <label>{t('super_admin.campagnesFormContenuCampagne')}</label>
+                        <textarea value={formData.contenu_campagne} onChange={(e) => setFormData({ ...formData, contenu_campagne: e.target.value })} rows={3} placeholder={t('super_admin.campagnesPlaceholderContenu')} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']} style={{ gridColumn: '1 / -1' }}>
-                        <label>Objectif</label>
+                        <label>{t('super_admin.campagnesFormObjectif')}</label>
                         <input type="text" value={formData.objectif} onChange={(e) => setFormData({ ...formData, objectif: e.target.value })} />
                       </div>
                       <div className={styles['sa-campagnes__form-field']} style={{ gridColumn: '1 / -1' }}>
-                        <label>Description</label>
+                        <label>{t('super_admin.campagnesFormDescription')}</label>
                         <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} />
                       </div>
                     </div>
                     <div className={styles['sa-campagnes__modal-footer']}>
-                      <button type="button" onClick={() => setShowModal(false)}>Annuler</button>
+                      <button type="button" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
                       <button type="submit" disabled={isSaving || !formData.titre}>
                         {isSaving ? <Loader2 size={16} className={styles['sa-campagnes__spinner']} /> : <Check size={16} />}
-                        Enregistrer
+                        {t('common.save')}
                       </button>
                     </div>
                   </form>

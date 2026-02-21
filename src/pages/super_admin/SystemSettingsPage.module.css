@@ -36,6 +36,13 @@
 }
 
 /* Loading */
+.sa-system-settings__skeletonWrap {
+  padding: 0.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .sa-system-settings__loading {
   display: flex;
   justify-content: center;
@@ -292,4 +299,56 @@
 .sa-system-settings__save-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sa-system-settings {
+    padding: 1rem;
+  }
+
+  .sa-system-settings__card {
+    padding: 1.25rem;
+  }
+
+  .sa-system-settings__field-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .sa-system-settings__stepper {
+    max-width: 100%;
+  }
+
+  .sa-system-settings__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sa-system-settings__reset-btn,
+  .sa-system-settings__save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sa-system-settings {
+    padding: 0.75rem;
+  }
+
+  .sa-system-settings__card {
+    padding: 1rem;
+  }
+
+  .sa-system-settings__header h3 {
+    font-size: 1.125rem;
+  }
+
+  .sa-system-settings__field input,
+  .sa-system-settings__field select,
+  .sa-system-settings__field textarea {
+    padding: 0.625rem;
+  }
 }

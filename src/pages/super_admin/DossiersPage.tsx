@@ -11,6 +11,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   FolderOpen, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, MapPin, Calendar,
@@ -100,7 +101,7 @@ type TypeDisparition = 'fugue' | 'enlevement_presume' | 'accident' | 'conflit_ar
 const ITEMS_PER_PAGE = 15;
 
 const SuperAdminDossiersPage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
   
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [personnes, setPersonnes] = useState<Personne[]>([]);
@@ -643,7 +644,7 @@ const SuperAdminDossiersPage: React.FC = () => {
       link.click();
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.dossiersExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -671,23 +672,60 @@ const SuperAdminDossiersPage: React.FC = () => {
     return colors[urgence] || 'default';
   };
 
+  const getStatutLabel = (statut: string) => {
+    const labels: Record<string, string> = {
+      en_cours: t('super_admin.dossiersStatutEnCours'),
+      retrouve_vivant: t('super_admin.dossiersStatutRetrouveVivant'),
+      retrouve_decede: t('super_admin.dossiersStatutRetrouveDecede'),
+      suspendu: t('super_admin.dossiersStatutSuspendu'),
+      classe_sans_suite: t('super_admin.dossiersStatutClasseSansSuite'),
+      transfere: t('super_admin.dossiersStatutTransfere'),
+    };
+    return labels[statut] || statut;
+  };
+
+  const getUrgenceLabel = (urgence: string) => {
+    const labels: Record<string, string> = {
+      critique: t('super_admin.dossiersUrgenceCritique'),
+      urgent: t('super_admin.dossiersUrgenceUrgent'),
+      normal: t('super_admin.dossiersUrgenceNormal'),
+      faible: t('super_admin.dossiersUrgenceFaible'),
+    };
+    return labels[urgence] || urgence;
+  };
+
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      fugue: t('super_admin.dossiersTypeFugue'),
+      enlevement_presume: t('super_admin.dossiersTypeEnlevementPresume'),
+      accident: t('super_admin.dossiersTypeAccident'),
+      conflit_arme: t('super_admin.dossiersTypeConflitArme'),
+      migration: t('super_admin.dossiersTypeMigration'),
+      catastrophe_naturelle: t('super_admin.dossiersTypeCatastropheNaturelle'),
+      disparition_volontaire: t('super_admin.dossiersTypeDisparitionVolontaire'),
+      inconnue: t('super_admin.dossiersTypeInconnue'),
+      autre: t('super_admin.dossiersTypeAutre'),
+    };
+    return labels[type] || type;
+  };
+
   return (
-    <SuperAdminLayout title="Gestion des Dossiers" activeNav="dossiers">
+    <SuperAdminLayout title={t('super_admin.dossiersTitle')} activeNav="dossiers">
       <div className={styles['sa-dossiers']}>
         {/* Header avec bouton créer */}
         <div className={styles['sa-dossiers__header']}>
           <div>
-            <h2>Gestion des Dossiers</h2>
-            <p>Créez, modifiez et gérez tous les dossiers de disparition</p>
+            <h2>{t('super_admin.dossiersTitle')}</h2>
+            <p>{t('super_admin.dossiersSubtitle')}</p>
           </div>
           <div className={styles['sa-dossiers__header-actions']}>
             <button type="button" onClick={exportToCSV} disabled={isLoading} className={styles['sa-dossiers__btn-export']}>
               <Download size={18} />
-              Exporter CSV
+              {t('super_admin.systemLogsExportCsv')}
             </button>
             <button type="button" onClick={openCreateModal} className={styles['sa-dossiers__btn-create']}>
               <Plus size={20} />
-              Créer un dossier
+              {t('super_admin.dossiersCreateDossier')}
             </button>
           </div>
         </div>
@@ -698,30 +736,30 @@ const SuperAdminDossiersPage: React.FC = () => {
             <Search size={16} />
             <input
               type="text"
-              placeholder="Rechercher par numéro ou lieu..."
+              placeholder={t('super_admin.dossiersSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
           </div>
           <select value={filterStatut} onChange={(e) => { setFilterStatut(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous les statuts</option>
-            <option value="en_cours">En cours</option>
-            <option value="retrouve_vivant">Retrouvé vivant</option>
-            <option value="retrouve_decede">Retrouvé décédé</option>
-            <option value="suspendu">Suspendu</option>
-            <option value="classe_sans_suite">Archivés (classés sans suite)</option>
-            <option value="transfere">Transféré</option>
+            <option value="">{t('super_admin.dossiersFilterAllStatuses')}</option>
+            <option value="en_cours">{t('super_admin.dossiersStatutEnCours')}</option>
+            <option value="retrouve_vivant">{t('super_admin.dossiersStatutRetrouveVivant')}</option>
+            <option value="retrouve_decede">{t('super_admin.dossiersStatutRetrouveDecede')}</option>
+            <option value="suspendu">{t('super_admin.dossiersStatutSuspendu')}</option>
+            <option value="classe_sans_suite">{t('super_admin.dossiersStatutArchives')}</option>
+            <option value="transfere">{t('super_admin.dossiersStatutTransfere')}</option>
           </select>
           <select value={filterUrgence} onChange={(e) => { setFilterUrgence(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous les niveaux</option>
-            <option value="critique">Critique</option>
-            <option value="urgent">Urgent</option>
-            <option value="normal">Normal</option>
-            <option value="faible">Faible</option>
+            <option value="">{t('super_admin.dossiersFilterAllLevels')}</option>
+            <option value="critique">{t('super_admin.dossiersUrgenceCritique')}</option>
+            <option value="urgent">{t('super_admin.dossiersUrgenceUrgent')}</option>
+            <option value="normal">{t('super_admin.dossiersUrgenceNormal')}</option>
+            <option value="faible">{t('super_admin.dossiersUrgenceFaible')}</option>
           </select>
         </div>
         <p className={styles['sa-dossiers__archives-hint']}>
-          Les dossiers archivés restent dans cette liste. Filtrez par « Archivés (classés sans suite) » pour les afficher.
+          {t('super_admin.dossiersArchivesHint')}
         </p>
 
         {/* Error */}
@@ -729,7 +767,7 @@ const SuperAdminDossiersPage: React.FC = () => {
           <div className={styles['sa-dossiers__error']}>
             <AlertCircle size={20} />
             <span>{error}</span>
-            <button type="button" onClick={() => setError(null)} aria-label="Fermer"><X size={16} /></button>
+            <button type="button" onClick={() => setError(null)} aria-label={t('super_admin.dossiersAriaClose')}><X size={16} /></button>
           </div>
         )}
 
@@ -744,28 +782,28 @@ const SuperAdminDossiersPage: React.FC = () => {
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-dossiers__loading']}>
-            <Loader2 size={32} className={styles['sa-dossiers__spinner']} />
+          <div className={styles['sa-dossiers__skeletonWrap']}>
+            <AdminTableSkeleton columns={8} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-dossiers__table-wrapper']}>
             {dossiers.length === 0 ? (
               <div className={styles['sa-dossiers__empty']}>
                 <FolderOpen size={48} />
-                <p>Aucun dossier trouvé</p>
+                <p>{t('super_admin.dossiersNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-dossiers__table']}>
                 <thead>
                   <tr>
-                    <th>Numéro</th>
-                    <th>Personne</th>
-                    <th><span className={styles['sa-dossiers__th-icon']}><Calendar size={14} /> Date</span></th>
-                    <th><span className={styles['sa-dossiers__th-icon']}><MapPin size={14} /> Lieu</span></th>
-                    <th>Type</th>
-                    <th>Statut</th>
-                    <th>Urgence</th>
-                    <th>Actions</th>
+                    <th>{t('super_admin.dossiersTableNumero')}</th>
+                    <th>{t('super_admin.dossiersTablePersonne')}</th>
+                    <th><span className={styles['sa-dossiers__th-icon']}><Calendar size={14} /> {t('super_admin.dossiersTableDate')}</span></th>
+                    <th><span className={styles['sa-dossiers__th-icon']}><MapPin size={14} /> {t('super_admin.dossiersTableLieu')}</span></th>
+                    <th>{t('super_admin.dossiersTableType')}</th>
+                    <th>{t('super_admin.dossiersTableStatut')}</th>
+                    <th>{t('super_admin.dossiersTableUrgence')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -776,7 +814,7 @@ const SuperAdminDossiersPage: React.FC = () => {
                           type="button"
                           className={styles['sa-dossiers__num-link']}
                           onClick={() => navigate(`/super-admin/dossiers/${dossier.id}`)}
-                          title="Voir le détail complet"
+                          title={t('super_admin.dossiersViewDetailFull')}
                         >
                           {dossier.numero_dossier}
                         </button>
@@ -788,15 +826,15 @@ const SuperAdminDossiersPage: React.FC = () => {
                       </td>
                       <td>{new Date(dossier.date_disparition).toLocaleDateString('fr-FR')}</td>
                       <td>{dossier.lieu_disparition || dossier.ville_disparition || '-'}</td>
-                      <td>{dossier.type_disparition}</td>
+                      <td>{getTypeLabel(dossier.type_disparition)}</td>
                       <td>
                         <span className={`${styles['sa-dossiers__badge']} ${styles[`sa-dossiers__badge--${getStatutColor(dossier.statut_dossier)}`]}`}>
-                          {dossier.statut_dossier}
+                          {getStatutLabel(dossier.statut_dossier)}
                         </span>
                       </td>
                       <td>
                         <span className={`${styles['sa-dossiers__badge']} ${styles[`sa-dossiers__badge--${getUrgenceColor(dossier.niveau_urgence)}`]}`}>
-                          {dossier.niveau_urgence}
+                          {getUrgenceLabel(dossier.niveau_urgence)}
                         </span>
                       </td>
                       <td className={styles['sa-dossiers__actions']}>
@@ -804,26 +842,26 @@ const SuperAdminDossiersPage: React.FC = () => {
                           type="button"
                           className={styles['sa-dossiers__btn-modifier']}
                           onClick={() => openEditModal(dossier)}
-                          title="Modifier le dossier"
+                          title={t('super_admin.dossiersEditDossier')}
                         >
                           <Edit2 size={16} />
-                          Modifier
+                          {t('common.edit')}
                         </button>
                         <button
                           type="button"
                           className={styles['sa-dossiers__btn-voir']}
                           onClick={() => navigate(`/super-admin/dossiers/${dossier.id}`)}
-                          title="Voir le détail complet (page dédiée)"
+                          title={t('super_admin.dossiersViewDetailFullPage')}
                         >
                           <Eye size={16} />
-                          Voir détail
+                          {t('super_admin.dossiersViewDetail')}
                         </button>
                         {dossier.statut_dossier !== 'classe_sans_suite' && (
-                          <button type="button" onClick={() => handleArchive(dossier.id)} className={styles['sa-dossiers__btn-archive']} title="Archiver">
+                          <button type="button" onClick={() => handleArchive(dossier.id)} className={styles['sa-dossiers__btn-archive']} title={t('super_admin.dossiersArchive')}>
                             <Archive size={16} />
                           </button>
                         )}
-                        <button type="button" onClick={() => setDeleteConfirm(dossier.id)} className={styles['sa-dossiers__btn-delete']} title="Supprimer">
+                        <button type="button" onClick={() => setDeleteConfirm(dossier.id)} className={styles['sa-dossiers__btn-delete']} title={t('common.delete')}>
                           <Trash2 size={16} />
                         </button>
                       </td>
@@ -839,11 +877,11 @@ const SuperAdminDossiersPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-dossiers__pagination']}>
             <button type="button" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button type="button" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -853,23 +891,23 @@ const SuperAdminDossiersPage: React.FC = () => {
           <div className={styles['sa-dossiers__modal-overlay']} onClick={() => setShowModal(false)}>
             <div className={styles['sa-dossiers__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-dossiers__modal-header']}>
-                <h2>{modalMode === 'create' ? 'Créer un dossier' : 'Modifier le dossier'}</h2>
-                <button type="button" onClick={() => setShowModal(false)} aria-label="Fermer"><X size={20} /></button>
+                <h2>{modalMode === 'create' ? t('super_admin.dossiersCreateDossierModal') : t('super_admin.dossiersEditDossierModal')}</h2>
+                <button type="button" onClick={() => setShowModal(false)} aria-label={t('super_admin.dossiersAriaClose')}><X size={20} /></button>
               </div>
               
               <div className={styles['sa-dossiers__modal-body']}>
                 <div className={styles['sa-dossiers__form-grid']}>
                   <div>
-                    <label>Numéro de dossier</label>
+                    <label>{t('super_admin.dossiersFormNumeroDossier')}</label>
                     <input
                       type="text"
                       value={formData.numero_dossier}
                       onChange={(e) => setFormData({ ...formData, numero_dossier: e.target.value })}
-                      placeholder="Laissé vide pour génération automatique"
+                      placeholder={t('super_admin.dossiersFormNumeroPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label>Date de disparition *</label>
+                    <label>{t('super_admin.dossiersFormDateDisparition')}</label>
                     <input
                       type="date"
                       value={formData.date_disparition}
@@ -878,7 +916,7 @@ const SuperAdminDossiersPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Lieu de disparition</label>
+                    <label>{t('super_admin.dossiersFormLieuDisparition')}</label>
                     <input
                       type="text"
                       value={formData.lieu_disparition}
@@ -886,7 +924,7 @@ const SuperAdminDossiersPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Ville</label>
+                    <label>{t('super_admin.dossiersFormVille')}</label>
                     <input
                       type="text"
                       value={formData.ville_disparition}
@@ -894,7 +932,7 @@ const SuperAdminDossiersPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Région</label>
+                    <label>{t('super_admin.dossiersFormRegion')}</label>
                     <input
                       type="text"
                       value={formData.region_disparition}
@@ -902,58 +940,58 @@ const SuperAdminDossiersPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label>Type de disparition *</label>
+                    <label>{t('super_admin.dossiersFormTypeDisparition')}</label>
                     <select
                       value={formData.type_disparition}
                       onChange={(e) => setFormData({ ...formData, type_disparition: e.target.value as TypeDisparition })}
                       required
                     >
-                      <option value="fugue">Fugue</option>
-                      <option value="enlevement_presume">Enlèvement présumé</option>
-                      <option value="accident">Accident</option>
-                      <option value="conflit_arme">Conflit armé</option>
-                      <option value="migration">Migration</option>
-                      <option value="catastrophe_naturelle">Catastrophe naturelle</option>
-                      <option value="disparition_volontaire">Disparition volontaire</option>
-                      <option value="inconnue">Inconnue</option>
-                      <option value="autre">Autre</option>
+                      <option value="fugue">{t('super_admin.dossiersTypeFugue')}</option>
+                      <option value="enlevement_presume">{t('super_admin.dossiersTypeEnlevementPresume')}</option>
+                      <option value="accident">{t('super_admin.dossiersTypeAccident')}</option>
+                      <option value="conflit_arme">{t('super_admin.dossiersTypeConflitArme')}</option>
+                      <option value="migration">{t('super_admin.dossiersTypeMigration')}</option>
+                      <option value="catastrophe_naturelle">{t('super_admin.dossiersTypeCatastropheNaturelle')}</option>
+                      <option value="disparition_volontaire">{t('super_admin.dossiersTypeDisparitionVolontaire')}</option>
+                      <option value="inconnue">{t('super_admin.dossiersTypeInconnue')}</option>
+                      <option value="autre">{t('super_admin.dossiersTypeAutre')}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Statut *</label>
+                    <label>{t('super_admin.dossiersFormStatut')}</label>
                     <select
                       value={formData.statut_dossier}
                       onChange={(e) => setFormData({ ...formData, statut_dossier: e.target.value as StatutDossier })}
                       required
                     >
-                      <option value="en_cours">En cours</option>
-                      <option value="retrouve_vivant">Retrouvé vivant</option>
-                      <option value="retrouve_decede">Retrouvé décédé</option>
-                      <option value="suspendu">Suspendu</option>
-                      <option value="classe_sans_suite">Classé sans suite</option>
-                      <option value="transfere">Transféré</option>
+                      <option value="en_cours">{t('super_admin.dossiersStatutEnCours')}</option>
+                      <option value="retrouve_vivant">{t('super_admin.dossiersStatutRetrouveVivant')}</option>
+                      <option value="retrouve_decede">{t('super_admin.dossiersStatutRetrouveDecede')}</option>
+                      <option value="suspendu">{t('super_admin.dossiersStatutSuspendu')}</option>
+                      <option value="classe_sans_suite">{t('super_admin.dossiersStatutClasseSansSuite')}</option>
+                      <option value="transfere">{t('super_admin.dossiersStatutTransfere')}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Niveau d'urgence *</label>
+                    <label>{t('super_admin.dossiersFormNiveauUrgence')}</label>
                     <select
                       value={formData.niveau_urgence}
                       onChange={(e) => setFormData({ ...formData, niveau_urgence: e.target.value as NiveauUrgence })}
                       required
                     >
-                      <option value="critique">Critique</option>
-                      <option value="urgent">Urgent</option>
-                      <option value="normal">Normal</option>
-                      <option value="faible">Faible</option>
+                      <option value="critique">{t('super_admin.dossiersUrgenceCritique')}</option>
+                      <option value="urgent">{t('super_admin.dossiersUrgenceUrgent')}</option>
+                      <option value="normal">{t('super_admin.dossiersUrgenceNormal')}</option>
+                      <option value="faible">{t('super_admin.dossiersUrgenceFaible')}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Personne</label>
+                    <label>{t('super_admin.dossiersFormPersonne')}</label>
                     <select
                       value={formData.id_personne}
                       onChange={(e) => setFormData({ ...formData, id_personne: e.target.value })}
                     >
-                      <option value="">Sélectionner une personne</option>
+                      <option value="">{t('super_admin.dossiersFormSelectPersonne')}</option>
                       {personnes.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.prenom || ''} {p.nom}
@@ -962,19 +1000,19 @@ const SuperAdminDossiersPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label>Organisation responsable</label>
+                    <label>{t('super_admin.dossiersFormOrganisationResponsable')}</label>
                     <select
                       value={formData.id_organisation_responsable}
                       onChange={(e) => setFormData({ ...formData, id_organisation_responsable: e.target.value })}
                     >
-                      <option value="">Aucune</option>
+                      <option value="">{t('super_admin.dossiersFormNone')}</option>
                       {organisations.map((org) => (
                         <option key={org.id} value={org.id}>{org.nom}</option>
                       ))}
                     </select>
                   </div>
                   <div className={styles['sa-dossiers__form-full']}>
-                    <label>Circonstances</label>
+                    <label>{t('super_admin.dossiersFormCirconstances')}</label>
                     <textarea
                       value={formData.circonstances}
                       onChange={(e) => setFormData({ ...formData, circonstances: e.target.value })}
@@ -988,17 +1026,17 @@ const SuperAdminDossiersPage: React.FC = () => {
                         checked={formData.visible_public}
                         onChange={(e) => setFormData({ ...formData, visible_public: e.target.checked })}
                       />
-                      Visible publiquement
+                      {t('super_admin.dossiersFormVisiblePublic')}
                     </label>
                   </div>
                 </div>
               </div>
 
               <div className={styles['sa-dossiers__modal-footer']}>
-                <button onClick={() => setShowModal(false)}>Annuler</button>
+                <button onClick={() => setShowModal(false)}>{t('super_admin.dossiersModalCancel')}</button>
                 <button onClick={handleSave} disabled={isSaving} className={styles['sa-dossiers__btn-save']}>
                   {isSaving ? <Loader2 size={16} className={styles['sa-dossiers__spinner']} /> : <Check size={16} />}
-                  {modalMode === 'create' ? 'Créer' : 'Enregistrer'}
+                  {modalMode === 'create' ? t('super_admin.dossiersModalCreate') : t('super_admin.dossiersModalSave')}
                 </button>
               </div>
             </div>
@@ -1010,16 +1048,16 @@ const SuperAdminDossiersPage: React.FC = () => {
           <div className={styles['sa-dossiers__modal-overlay']}>
             <div className={styles['sa-dossiers__modal']}>
               <div className={styles['sa-dossiers__modal-header']}>
-                <h2>Confirmer la suppression</h2>
-                <button type="button" onClick={() => setDeleteConfirm(null)} aria-label="Fermer"><X size={20} /></button>
+                <h2>{t('super_admin.dossiersDeleteConfirmTitle')}</h2>
+                <button type="button" onClick={() => setDeleteConfirm(null)} aria-label={t('super_admin.dossiersAriaClose')}><X size={20} /></button>
               </div>
               <div className={styles['sa-dossiers__modal-body']}>
-                <p>Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est irréversible.</p>
+                <p>{t('super_admin.dossiersDeleteConfirmMessage')}</p>
               </div>
               <div className={styles['sa-dossiers__modal-footer']}>
-                <button type="button" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+                <button type="button" onClick={() => setDeleteConfirm(null)}>{t('super_admin.dossiersModalCancel')}</button>
                 <button type="button" onClick={() => handleDelete(deleteConfirm)} className={styles['sa-dossiers__btn-delete']}>
-                  Supprimer
+                  {t('common.delete')}
                 </button>
               </div>
             </div>

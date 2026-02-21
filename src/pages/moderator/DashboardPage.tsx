@@ -174,43 +174,43 @@ export const ModerationDashboardPage: React.FC = () => {
     {
       label: t('moderator.totalSignalements'),
       value: stats?.total || 0,
-      change: recentCount > 0 ? `+${recentCount}` : '—',
-      subtext: recentCount > 0 ? t('moderator.last7Days') : '',
+      change: recentCount > 0 ? `+${recentCount}` : null,
+      subtext: recentCount > 0 ? t('moderator.last7Days') : t('moderator.noActivityLast7Days'),
       icon: BarChart3,
     },
     {
       label: t('moderator.pending'),
       value: (stats?.parEtat?.nouveau || 0) + (stats?.parEtat?.en_cours || 0),
-      change: pendingSignalements.length > 0 ? `${pendingSignalements.length}` : '—',
+      change: pendingSignalements.length > 0 ? `${pendingSignalements.length}` : null,
       subtext: t('moderator.toReview'),
       icon: Clock,
     },
     {
       label: t('moderator.approved'),
       value: stats?.parEtat?.valide || 0,
-      change: '—',
-      subtext: '',
+      change: null,
+      subtext: t('moderator.approvedSubtext'),
       icon: CheckCircle,
     },
     {
       label: t('moderator.rejected'),
       value: stats?.parEtat?.rejete || 0,
-      change: '—',
-      subtext: '',
+      change: null,
+      subtext: t('moderator.rejectedSubtext'),
       icon: XCircle,
     },
     {
       label: t('moderator.photosToModerate'),
       value: globalStats.photosEnAttente,
-      change: globalStats.photosEnAttente > 0 ? `${globalStats.photosEnAttente}` : '—',
-      subtext: globalStats.photosEnAttente > 0 ? t('moderator.pending') : '',
+      change: globalStats.photosEnAttente > 0 ? `${globalStats.photosEnAttente}` : null,
+      subtext: globalStats.photosEnAttente > 0 ? t('moderator.pending') : t('moderator.nonePending'),
       icon: Image,
     },
     {
       label: t('moderator.idVerifications'),
       value: globalStats.identitesEnAttente,
-      change: globalStats.identitesEnAttente > 0 ? `${globalStats.identitesEnAttente}` : '—',
-      subtext: globalStats.identitesEnAttente > 0 ? t('moderator.pending') : '',
+      change: globalStats.identitesEnAttente > 0 ? `${globalStats.identitesEnAttente}` : null,
+      subtext: globalStats.identitesEnAttente > 0 ? t('moderator.pending') : t('moderator.nonePending'),
       icon: UserCheck,
     },
   ];
@@ -280,7 +280,7 @@ export const ModerationDashboardPage: React.FC = () => {
                       </div>
                     </div>
                     <p className={styles['mod-dashboard__stat-change']}>
-                      {stat.change} {stat.subtext}
+                      {stat.change != null ? `${stat.change} ` : ''}{stat.subtext}
                     </p>
                   </div>
                 );

@@ -59,7 +59,7 @@ import {
   fetchSimilaritiesResults 
 } from '../../features/ia-analysis/store/iaSlice';
 import { supabase } from '../../config';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import styles from './IAAnalysisPage.module.css';
 
 type AnalysisTab = 'matching' | 'similarities' | 'predictions' | 'results' | 'statistics';
@@ -793,7 +793,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
 
               {iaLoading ? (
                 <div className={styles.skeletonWrap}>
-                  <AdminListSkeleton cardCount={4} showFilters={false} />
+                  <AdminCardsGridSkeleton cardCount={4} />
                 </div>
               ) : similaritiesResults.length > 0 ? (
                 <div className={styles.similaritiesList}>
@@ -856,7 +856,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
 
               {iaLoading ? (
                 <div className={styles.skeletonWrap}>
-                  <AdminListSkeleton cardCount={4} showFilters={false} />
+                  <AdminCardsGridSkeleton cardCount={4} />
                 </div>
               ) : locationPredictions.length > 0 ? (
                 <div className={styles.predictionsList}>
@@ -942,7 +942,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
 
               {iaLoading ? (
                 <div className={styles.skeletonWrap}>
-                  <AdminListSkeleton cardCount={6} showFilters={false} />
+                  <AdminCardsGridSkeleton cardCount={6} />
                 </div>
               ) : (
                 <div className={styles.resultsContainer}>
@@ -1152,9 +1152,8 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                   </div>
                 </div>
               ) : (
-                <div className={styles.loadingState}>
-                  <Loader2 size={32} className={styles.spinner} />
-                  <span>{t('authority.iaAnalysis.loading')}</span>
+                <div className={styles.skeletonWrap}>
+                  <AdminCardsGridSkeleton cardCount={6} />
                 </div>
               )}
 

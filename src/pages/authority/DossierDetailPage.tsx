@@ -706,7 +706,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                     </button>
                     <button 
                       className={styles.btn}
-                      onClick={() => navigate(`${bp}/ia-analysis?dossierId=${id}`)}
+                      onClick={() => navigate(bp === '/admin' ? `${bp}/ia?dossierId=${id}` : `${bp}/ia-analysis?dossierId=${id}`)}
                     >
                       <Brain size={16} /> {t('authority.dossierDetail.iaAnalysis')}
                     </button>
@@ -1252,7 +1252,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                             </div>
                             <button
                               className={styles.viewResultBtn}
-                              onClick={() => navigate(`${bp}/ia-analysis?resultId=${result.id}`)}
+                              onClick={() => navigate(bp === '/admin' ? `${bp}/ia?resultId=${result.id}` : `${bp}/ia-analysis?resultId=${result.id}`)}
                             >
                               <Eye size={14} /> {t('authority.iaAnalysis.actions.viewDetails')}
                             </button>

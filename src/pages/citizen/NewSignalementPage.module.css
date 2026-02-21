@@ -299,6 +299,19 @@
   cursor: not-allowed;
 }
 
+.new-signalement__hint {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.new-signalement__map-wrap {
+  margin-top: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
 .new-signalement__coords {
   margin: 0.5rem 0 0 0;
   font-size: 0.75rem;

@@ -10,7 +10,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthorityLayout } from '../../components/layout';
 import { FolderOpen, MapPin, Calendar, RefreshCw, Send, MessageSquare, Package, Share2, History, User, Phone, Eye, Plus } from 'lucide-react';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import { 
   useCoordinationMessages,
   useCoordinationResources,
@@ -38,7 +38,7 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Hooks réels avec Supabase
-  const { messages, loading: messagesLoading, error: messagesError, sendMessage } = useCoordinationMessages();
+  const { messages, loading: messagesLoading, error: messagesError, sendMessage, markAsRead: markMessagesAsRead } = useCoordinationMessages();
   const { resources, requests, loading: resourcesLoading, error: resourcesError, requestResource } = useCoordinationResources();
   const { history, loading: historyLoading, error: historyError, fetchHistory } = useCoordinationHistory();
   const { sharedDossiers, loading: sharedLoading, shareDossier } = useSharedDossiers();
@@ -64,6 +64,13 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
       scrollToBottom();
     }
   }, [messages, messagesLoading, activeTab, scrollToBottom]);
+
+  // Marquer comme lus les messages des autres quand l'onglet messages est affiché
+  useEffect(() => {
+    if (activeTab !== 'messages' || !user?.id || messages.length === 0) return;
+    const fromOthers = messages.filter((m) => m.author_id !== user.id).map((m) => m.id);
+    if (fromOthers.length > 0) markMessagesAsRead(fromOthers);
+  }, [activeTab, user?.id, messages, markMessagesAsRead]);
 
   // Envoyer un message
   const handleSendMessage = useCallback(async () => {
@@ -228,7 +235,7 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               <div className={styles.messagesList}>
                 {messagesLoading ? (
                   <div className={styles.skeletonWrap}>
-                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                    <AdminCardsGridSkeleton cardCount={4} />
                   </div>
                 ) : messages.length > 0 ? (
                   messages.map((msg) => {
@@ -320,7 +327,7 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               <div className={styles.resourcesList}>
                 {resourcesLoading ? (
                   <div className={styles.skeletonWrap}>
-                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                    <AdminCardsGridSkeleton cardCount={4} />
                   </div>
                 ) : resources.length > 0 ? (
                   resources.map((resource) => (
@@ -400,7 +407,7 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               <div className={styles.sharesList}>
                 {sharedLoading ? (
                   <div className={styles.skeletonWrap}>
-                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                    <AdminCardsGridSkeleton cardCount={4} />
                   </div>
                 ) : sharedDossiers.length > 0 ? (
                   sharedDossiers.map((share) => (
@@ -462,7 +469,7 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               <div className={styles.historyList}>
                 {historyLoading ? (
                   <div className={styles.skeletonWrap}>
-                    <AdminListSkeleton cardCount={4} showFilters={false} />
+                    <AdminCardsGridSkeleton cardCount={4} />
                   </div>
                 ) : history.length > 0 ? (
                   history.map((entry) => (

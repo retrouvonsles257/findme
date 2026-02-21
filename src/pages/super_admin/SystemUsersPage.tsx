@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase, resetPassword } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   Users, Shield, Mail, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, Building2, ToggleLeft, ToggleRight,
@@ -145,13 +146,19 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
           
           return {
             ...user,
-            roles: userRoles?.map((ur: any) => ({
-              ...ur.role,
-              date_attribution: ur.date_attribution,
-              date_expiration: ur.date_expiration,
-              attribue_par: ur.attribue_par,
-              commentaire: ur.commentaire,
-            })).filter((r: any) => r.id) || [],
+            roles: userRoles?.map((ur: any) => {
+              const r = ur.role;
+              if (!r?.id) return null;
+              return {
+                id: r.id,
+                nom: r.nom_role ?? r.nom ?? '',
+                description: r.description,
+                date_attribution: ur.date_attribution,
+                date_expiration: ur.date_expiration,
+                attribue_par: ur.attribue_par,
+                commentaire: ur.commentaire,
+              };
+            }).filter(Boolean) || [],
             organisation: user.organisation || null,
             statut_actif: user.statut_compte === 'actif', // Compatibilité avec l'ancien code
           };
@@ -159,7 +166,11 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
       );
 
       setUsers(enrichedUsers);
-      setRoles(rolesResult.data || []);
+      setRoles((rolesResult.data || []).map((r: any) => ({
+        id: r.id,
+        nom: r.nom_role ?? r.nom ?? '',
+        description: r.description,
+      })));
       setOrganisations(orgsResult.data || []);
     } catch (err: any) {
       console.error('Erreur chargement utilisateurs:', err);
@@ -258,8 +269,32 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
 
       if (modalMode === 'create') {
-        // Créer l'utilisateur avec TOUS les champs
+        // utilisateur.id doit être un id existant dans auth.users : créer d'abord le compte Auth
+        const { data: { session: savedSession } } = await (supabase as any).auth.getSession();
+        if (!savedSession) throw new Error('Session expirée. Veuillez vous reconnecter.');
+
+        const tempPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+          .map(b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 32])
+          .join('') + 'A1!'; // au moins 1 maj, 1 chiffre, 1 symbole pour règles courantes
+
+        const { data: authData, error: signUpError } = await (supabase as any).auth.signUp({
+          email: formData.email,
+          password: tempPassword,
+          options: { emailRedirectTo: undefined },
+        });
+
+        if (signUpError) throw signUpError;
+        const newAuthUser = authData?.user;
+        if (!newAuthUser?.id) throw new Error('Création du compte Auth échouée.');
+
+        // Remettre la session du super admin
+        await (supabase as any).auth.setSession({
+          access_token: savedSession.access_token,
+          refresh_token: savedSession.refresh_token,
+        });
+
         const userData: any = {
+          id: newAuthUser.id,
           nom: formData.nom,
           prenom: formData.prenom || null,
           email: formData.email,
@@ -283,23 +318,26 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
           id_organisation: formData.id_organisation || null,
         };
 
-        const { data: newUser, error: insertError } = await (supabase as any)
+        // Upsert : si un trigger a déjà créé la ligne au signUp, on met à jour au lieu d'insérer
+        const { error: upsertError } = await (supabase as any)
           .from('utilisateur')
-          .insert(userData)
-          .select()
-          .single();
+          .upsert(userData, { onConflict: 'id' });
 
-        if (insertError) throw insertError;
+        if (upsertError) throw upsertError;
 
-        // Assigner les rôles avec attribution par l'utilisateur courant
-        if (formData.selectedRoles.length > 0 && newUser) {
+        if (formData.selectedRoles.length > 0) {
           const roleInserts = formData.selectedRoles.map(roleId => ({
-            id_utilisateur: newUser.id,
+            id_utilisateur: newAuthUser.id,
             id_role: roleId,
             attribue_par: currentUser?.id || null,
           }));
           await (supabase as any).from('utilisateur_role').insert(roleInserts);
         }
+
+        // Envoyer un email « Définir le mot de passe » pour que l'utilisateur puisse se connecter
+        await (supabase as any).auth.resetPasswordForEmail(formData.email, {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        });
       } else if (modalMode === 'edit' && selectedUser) {
         // Mettre à jour l'utilisateur avec TOUS les champs
         const userData: any = {
@@ -346,7 +384,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
         }
       }
 
-      setSuccess(modalMode === 'create' ? 'Utilisateur créé avec succès' : 'Utilisateur modifié avec succès');
+      setSuccess(modalMode === 'create' ? t('super_admin.systemUsersCreateSuccess') : t('super_admin.systemUsersUpdateSuccess'));
       setTimeout(() => setSuccess(null), 3000);
       setShowModal(false);
       loadData();
@@ -420,7 +458,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
         if (updateError) throw updateError;
       }
 
-      setSuccess('Dates d\'expiration des rôles mises à jour');
+      setSuccess(t('super_admin.systemUsersRoleExpiryUpdated'));
       setTimeout(() => setSuccess(null), 3000);
       setShowRoleExpirationModal(false);
       loadData();
@@ -465,7 +503,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
         .eq('id', user.id);
 
       if (updateError) throw updateError;
-      setSuccess(`Statut de ${user.email} changé en ${newStatut}`);
+      setSuccess(t('super_admin.systemUsersStatusChanged', { email: user.email, statut: newStatut }));
       setTimeout(() => setSuccess(null), 3000);
       loadData();
     } catch (err: any) {
@@ -497,7 +535,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
       const { error: resetError } = await resetPassword(user.email);
       if (resetError) throw resetError;
 
-      setSuccess(`Email de réinitialisation envoyé à ${user.email}`);
+      setSuccess(t('super_admin.systemUsersResetPasswordSent', { email: user.email }));
       setTimeout(() => setSuccess(null), 5000);
 
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -509,7 +547,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
       });
     } catch (err: any) {
       console.error('Erreur réinitialisation:', err);
-      setError('Erreur lors de l\'envoi de l\'email: ' + (err as Error).message);
+      setError(t('super_admin.systemUsersResetPasswordError', { message: (err as Error).message }));
     }
   };
 
@@ -545,7 +583,11 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
           
           return {
             ...user,
-            roles: userRoles?.map((ur: any) => ur.role).filter(Boolean) || [],
+            roles: userRoles?.map((ur: any) => {
+              const r = ur.role;
+              if (!r?.id) return null;
+              return { id: r.id, nom: r.nom_role ?? r.nom ?? '' };
+            }).filter(Boolean) || [],
             organisation,
           };
         })
@@ -581,7 +623,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
       document.body.removeChild(link);
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.systemUsersExportError', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -618,7 +660,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
           <div className={styles['sa-system-users__error']}>
             <AlertCircle size={20} />
             <span>{error}</span>
-            <button type="button" onClick={() => setError(null)} aria-label="Fermer"><X size={16} /></button>
+            <button type="button" onClick={() => setError(null)} aria-label={t('super_admin.systemUsersAriaClose')}><X size={16} /></button>
           </div>
         )}
 
@@ -627,14 +669,14 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
           <div className={styles['sa-system-users__success']}>
             <Check size={20} />
             <span>{success}</span>
-            <button type="button" onClick={() => setSuccess(null)} aria-label="Fermer"><X size={16} /></button>
+            <button type="button" onClick={() => setSuccess(null)} aria-label={t('super_admin.systemUsersAriaClose')}><X size={16} /></button>
           </div>
         )}
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-system-users__loading']}>
-            <Loader2 size={32} className={styles['sa-system-users__spinner']} />
+          <div className={styles['sa-system-users__skeletonWrap']}>
+            <AdminTableSkeleton columns={6} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-users__table-wrapper']}>
@@ -724,7 +766,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
                   {modalMode === 'edit' && (t('super_admin.editUser') || 'Modifier utilisateur')}
                   {modalMode === 'view' && `${selectedUser?.prenom} ${selectedUser?.nom}`}
                 </h2>
-                <button type="button" onClick={() => setShowModal(false)} aria-label="Fermer"><X size={20} /></button>
+                <button type="button" onClick={() => setShowModal(false)} aria-label={t('super_admin.systemUsersAriaClose')}><X size={20} /></button>
               </div>
 
               <div className={styles['sa-system-users__modal-body']}>
@@ -832,7 +874,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
             <div className={styles['sa-system-users__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-users__modal-header']}>
                 <h2>Gérer dates d&apos;expiration des rôles — {selectedUserForRoleExpiration.email}</h2>
-                <button type="button" onClick={() => setShowRoleExpirationModal(false)} aria-label="Fermer"><X size={20} /></button>
+                <button type="button" onClick={() => setShowRoleExpirationModal(false)} aria-label={t('super_admin.systemUsersAriaClose')}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-users__modal-body']}>
                 {(!selectedUserForRoleExpiration.roles || selectedUserForRoleExpiration.roles.length === 0) ? (

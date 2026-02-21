@@ -30,7 +30,6 @@ import {
   Users,
   Layers,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './MapViewPage.module.css';
 
 // Types
@@ -428,7 +427,23 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
 
         {isLoading ? (
           <div className={styles['map-view__skeletonWrap']}>
-            <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
+            <div className={styles['map-view__map-skeleton-container']} aria-hidden>
+              <div className={styles['map-view__map-skeleton']}>
+                <div className={styles['map-view__map-skeleton-inner']} />
+              </div>
+              <div className={styles['map-view__map-skeleton-panel']}>
+                <div className={styles['map-view__map-skeleton-panel-title']} />
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className={styles['map-view__map-skeleton-panel-item']}>
+                    <div className={styles['map-view__map-skeleton-panel-dot']} />
+                    <div className={styles['map-view__map-skeleton-panel-lines']}>
+                      <div className={styles['map-view__map-skeleton-panel-line']} />
+                      <div className={styles['map-view__map-skeleton-panel-line-short']} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <>

@@ -10,9 +10,11 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
+  max-width: 100%;
   min-width: 0;
   padding: 1rem 1.5rem;
   box-sizing: border-box;
+  overflow-x: hidden;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
@@ -108,6 +110,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 0;
+  text-align: left;
 }
 
 .statCard:hover {
@@ -121,6 +125,9 @@
 
 .statCard svg {
   color: #1d4ed8;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .statCard.pending svg {
@@ -142,6 +149,9 @@
 .statInfo {
   display: flex;
   flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .statValue {
@@ -156,7 +166,9 @@
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Controls */
@@ -205,6 +217,9 @@
 .skeletonWrap {
   padding: var(--space-5, 1.5rem);
   min-height: 360px;
+  width: 100%;
+  min-width: 0;
+  grid-column: 1 / -1;
 }
 
 .errorBanner {
@@ -224,8 +239,10 @@
 /* Signalements Grid */
 .signalementsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .signalementCard {
@@ -235,6 +252,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border-left: 4px solid #e2e8f0;
   transition: all 0.2s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .signalementCard:hover {

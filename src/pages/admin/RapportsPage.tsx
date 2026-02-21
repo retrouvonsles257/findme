@@ -224,18 +224,18 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
                     const StatusIcon = getStatusConfig(rapport.statut).icon;
                     return (
                       <tr key={rapport.id}>
-                        <td className={styles.rapports__numero}>{rapport.numero}</td>
-                        <td>{rapport.dossier}</td>
-                        <td>{rapport.auteur}</td>
-                        <td>{rapport.type}</td>
-                        <td>{rapport.date}</td>
-                        <td>
+                        <td className={styles.rapports__numero} data-label={t('admin.number')}>{rapport.numero}</td>
+                        <td data-label={t('admin.dossier')}>{rapport.dossier}</td>
+                        <td data-label={t('admin.author')}>{rapport.auteur}</td>
+                        <td data-label={t('admin.type')}>{rapport.type}</td>
+                        <td data-label={t('common.date')}>{rapport.date}</td>
+                        <td data-label={t('common.status')}>
                           <span className={`${styles.rapports__statusBadge} ${styles[`rapports__statusBadge--${rapport.statut}`]}`}>
                             <StatusIcon className={styles.rapports__statusIcon} />
                             {getStatusConfig(rapport.statut).label}
                           </span>
                         </td>
-                        <td>
+                        <td className={styles.rapports__tdActions} data-label={t('common.actions')}>
                           <div className={styles.rapports__actions}>
                             <button
                               type="button"

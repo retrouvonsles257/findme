@@ -63,3 +63,31 @@
   display: flex;
   gap: 1rem;
 }
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+  .title {
+    font-size: 1.25rem;
+  }
+  .actions {
+    flex-direction: column;
+  }
+  .actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem 0.75rem 1.25rem;
+  }
+  .title {
+    font-size: 1.125rem;
+  }
+  .message {
+    font-size: 0.9375rem;
+  }
+}

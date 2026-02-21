@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   Image, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, CheckCircle, Ban
@@ -38,7 +39,7 @@ interface Photo {
 const ITEMS_PER_PAGE = 20;
 
 export const SuperAdminPhotosPage: React.FC = () => {
-  useI18n();
+  const { t } = useI18n();
 
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,7 +113,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
       if (error) throw error;
       loadPhotos();
     } catch (err: any) {
-      setError('Erreur: ' + err.message);
+      setError(t('super_admin.photosError', { message: err.message }));
     }
   };
 
@@ -132,7 +133,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
       if (error) throw error;
       loadPhotos();
     } catch (err: any) {
-      setError('Erreur: ' + err.message);
+      setError(t('super_admin.photosError', { message: err.message }));
     }
   };
 
@@ -161,25 +162,24 @@ export const SuperAdminPhotosPage: React.FC = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <SuperAdminLayout title="Modération Photos" activeNav="photos">
+    <SuperAdminLayout title={t('super_admin.photosTitle')} activeNav="photos">
       <div className={styles['sa-system-logs']}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Modération des Photos</h2>
-          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>Approuvez ou rejetez les photos uploadées</p>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>{t('super_admin.photosTitle')}</h2>
         </div>
 
         <div className={styles['sa-system-logs__filters']}>
           <div className={styles['sa-system-logs__filter-group']}>
             <Filter size={16} />
             <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous types</option>
-              <option value="portrait">Portrait</option>
-              <option value="corps_entier">Corps entier</option>
-              <option value="signalement">Signalement</option>
-              <option value="lieu_disparition">Lieu disparition</option>
-              <option value="objet_personnel">Objet personnel</option>
-              <option value="document">Document</option>
-              <option value="autre">Autre</option>
+              <option value="">{t('super_admin.documentsAllTypes')}</option>
+              <option value="portrait">{t('super_admin.photosTypePortrait')}</option>
+              <option value="corps_entier">{t('super_admin.photosTypeCorpsEntier')}</option>
+              <option value="signalement">{t('super_admin.photosTypeSignalement')}</option>
+              <option value="lieu_disparition">{t('super_admin.photosTypeLieuDisparition')}</option>
+              <option value="objet_personnel">{t('super_admin.photosTypeObjetPersonnel')}</option>
+              <option value="document">{t('super_admin.photosTypeDocument')}</option>
+              <option value="autre">{t('super_admin.photosTypeAutre')}</option>
             </select>
           </div>
           <select value={filterApprouvee} onChange={(e) => { setFilterApprouvee(e.target.value); setCurrentPage(1); }}>
@@ -194,7 +194,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
           </select>
           <button onClick={exportToCSV} className={styles['sa-system-logs__export-btn']}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.photosExportCsv')}
           </button>
         </div>
 
@@ -207,28 +207,28 @@ export const SuperAdminPhotosPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles['sa-system-logs__loading']}>
-            <Loader2 size={32} className={styles['sa-system-logs__spinner']} />
+          <div className={styles['sa-system-logs__skeletonWrap']}>
+            <AdminTableSkeleton columns={8} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-logs__table-wrapper']}>
             {photos.length === 0 ? (
               <div className={styles['sa-system-logs__empty']}>
                 <Image size={48} />
-                <p>Aucune photo trouvée</p>
+                <p>{t('super_admin.photosNoPhotos')}</p>
               </div>
             ) : (
               <table className={styles['sa-system-logs__table']}>
                 <thead>
                   <tr>
-                    <th>Photo</th>
-                    <th>Type</th>
-                    <th>Titre</th>
-                    <th>Qualité</th>
-                    <th>Personne</th>
-                    <th>Approuvée</th>
-                    <th>Visible</th>
-                    <th>Actions</th>
+                    <th>{t('super_admin.photosTablePhoto')}</th>
+                    <th>{t('super_admin.photosTableType')}</th>
+                    <th>{t('super_admin.photosTableTitle')}</th>
+                    <th>{t('super_admin.photosTableQuality')}</th>
+                    <th>{t('super_admin.photosTablePersonne')}</th>
+                    <th>{t('super_admin.photosTableApproved')}</th>
+                    <th>{t('super_admin.photosTableVisible')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -252,12 +252,12 @@ export const SuperAdminPhotosPage: React.FC = () => {
                           <Eye size={16} />
                         </button>
                         {!photo.approuvee && (
-                          <button onClick={() => handleApprove(photo.id)} title="Approuver" style={{ marginLeft: '0.5rem', color: '#10b981' }}>
+                          <button onClick={() => handleApprove(photo.id)} title={t('super_admin.photosApprove')} style={{ marginLeft: '0.5rem', color: '#10b981' }}>
                             <CheckCircle size={16} />
                           </button>
                         )}
                         {photo.approuvee && (
-                          <button onClick={() => handleReject(photo.id)} title="Rejeter" style={{ marginLeft: '0.5rem', color: '#ef4444' }}>
+                          <button onClick={() => handleReject(photo.id)} title={t('super_admin.photosReject')} style={{ marginLeft: '0.5rem', color: '#ef4444' }}>
                             <Ban size={16} />
                           </button>
                         )}
@@ -273,11 +273,11 @@ export const SuperAdminPhotosPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-system-logs__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -286,7 +286,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
           <div className={styles['sa-system-logs__modal-overlay']} onClick={() => setSelectedPhoto(null)}>
             <div className={styles['sa-system-logs__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-logs__modal-header']}>
-                <h2>Détails de la photo</h2>
+                <h2>{t('super_admin.photosDetailsTitle')}</h2>
                 <button onClick={() => setSelectedPhoto(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-logs__modal-body']}>
@@ -306,16 +306,16 @@ export const SuperAdminPhotosPage: React.FC = () => {
                 {!selectedPhoto.approuvee && (
                   <button onClick={() => { handleApprove(selectedPhoto.id); setSelectedPhoto(null); }} style={{ background: '#10b981', color: 'white' }}>
                     <CheckCircle size={16} />
-                    Approuver
+                    {t('super_admin.photosApprove')}
                   </button>
                 )}
                 {selectedPhoto.approuvee && (
                   <button onClick={() => { handleReject(selectedPhoto.id); setSelectedPhoto(null); }} style={{ background: '#ef4444', color: 'white' }}>
                     <Ban size={16} />
-                    Rejeter
+                    {t('super_admin.photosReject')}
                   </button>
                 )}
-                <button onClick={() => setSelectedPhoto(null)}>Fermer</button>
+                <button onClick={() => setSelectedPhoto(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

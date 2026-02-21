@@ -14,12 +14,12 @@ import {
   BarChart3,
   BookOpen,
   Handshake,
+  Heart,
   Brain,
   ChevronLeft,
   ChevronRight,
   LogOut,
   User,
-  Heart,
   X,
   Edit,
   Settings,
@@ -33,7 +33,7 @@ import { AUTH_ROUTES } from '../../../routes/routes.config';
 import { supabase } from '../../../config';
 import styles from './NGOSidebar.module.css';
 
-type NGONavId = 'dashboard' | 'cases' | 'campagnes' | 'alertes' | 'ia' | 'statistics' | 'resources' | 'partnerships';
+type NGONavId = 'dashboard' | 'cases' | 'campagnes' | 'alertes' | 'ia' | 'statistics' | 'resources' | 'partnerships' | 'donations';
 
 interface NGONavItem {
   id: NGONavId;
@@ -67,6 +67,7 @@ const NGO_NAV_GROUPS: NGONavGroup[] = [
       { id: 'statistics', labelKey: 'ngo.statistics', path: '/ngo/statistics', icon: BarChart3 },
       { id: 'resources', labelKey: 'ngo.resources', path: '/ngo/resources', icon: BookOpen },
       { id: 'partnerships', labelKey: 'ngo.partnerships', path: '/ngo/partnerships', icon: Handshake },
+      { id: 'donations', labelKey: 'ngo.donations', path: '/ngo/donations', icon: Heart },
     ],
   },
 ];
@@ -184,8 +185,7 @@ export const NGOSidebar: React.FC<NGOSidebarProps> = ({ isOpen, onToggle }) => {
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.logoSection}>
-            <Heart className={styles.logoIcon} size={28} />
-            <span className={styles.logoText}>{t('common.appName')}</span>
+            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.logoImg} />
           </div>
           <button
             type="button"

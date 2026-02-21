@@ -162,3 +162,37 @@
   border-color: #1d4ed8;
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
 }
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+  .title {
+    font-size: 1.25rem;
+  }
+  .titleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .actions,
+  .footer {
+    flex-direction: column;
+  }
+  .actions button,
+  .footer button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem 0.75rem 1.25rem;
+  }
+  .title {
+    font-size: 1.125rem;
+  }
+}

@@ -201,11 +201,11 @@ export const NGOCasesPage: React.FC<NGOCasesPageProps> = ({ noLayout, basePath =
                 className={styles.tableRow}
                 role="button"
                 tabIndex={0}
-                onClick={() => navigate(`${basePath}/cases/${c.id}`)}
+                onClick={() => navigate(basePath === '/admin' ? `${basePath}/dossiers/${c.id}` : `${basePath}/cases/${c.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    navigate(`${basePath}/cases/${c.id}`);
+                    navigate(basePath === '/admin' ? `${basePath}/dossiers/${c.id}` : `${basePath}/cases/${c.id}`);
                   }
                 }}
               >

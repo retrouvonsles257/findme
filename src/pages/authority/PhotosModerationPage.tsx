@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { AuthorityLayout } from '../../components/layout';
 import { supabase } from '../../config';
 import { useI18n } from '../../hooks';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import { CheckCircle, XCircle, Eye, RefreshCw, Image as ImageIcon, Loader2, X, Save } from 'lucide-react';
 import styles from '../moderator/PhotosModerationPage.module.css';
 
@@ -153,9 +154,8 @@ export const PhotosModerationPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles['photos-moderation__loading']}>
-            <Loader2 size={32} className={styles['photos-moderation__spinner']} />
-            <p>{t('authority.dossierDetail.loading')}</p>
+          <div className={styles['photos-moderation__skeletonWrap']}>
+            <AdminCardsGridSkeleton cardCount={8} />
           </div>
         ) : photos.length === 0 ? (
           <div className={styles['photos-moderation__empty']}>

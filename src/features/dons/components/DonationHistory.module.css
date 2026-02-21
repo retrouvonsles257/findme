@@ -127,6 +127,18 @@
   font-style: italic;
 }
 
+.receiptLink {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--don-accent, #1e3c72);
+  text-decoration: underline;
+}
+
+.receiptLink:hover {
+  text-decoration: none;
+}
+
 .itemMessage {
   margin-top: 0.75rem;
   padding: 0.75rem;

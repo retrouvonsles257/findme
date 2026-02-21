@@ -38,6 +38,7 @@
   gap: 0.5rem;
   text-decoration: none;
   color: #1d4ed8;
+  font-family: var(--app-name-font);
   font-weight: 700;
   font-size: 1.125rem;
 }

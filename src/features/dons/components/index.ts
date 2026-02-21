@@ -14,8 +14,11 @@ export type { DonationHistoryProps } from './DonationHistory';
 export { DonationStats } from './DonationStats';
 export type { DonationStatsProps } from './DonationStats';
 
-export { DonationSuccess } from './DonationSuccess';
+export { default as DonationSuccess } from './DonationSuccess';
 export type { DonationSuccessProps } from './DonationSuccess';
 
 export { PaymentMethods } from './PaymentMethods';
 export type { PaymentMethodsProps } from './PaymentMethods';
+
+export { DonationPageContent } from './DonationPageContent';
+export type { DonationPageContentProps } from './DonationPageContent';

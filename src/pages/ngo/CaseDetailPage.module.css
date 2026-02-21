@@ -5,6 +5,11 @@
   box-sizing: border-box;
 }
 
+.skeletonWrap {
+  padding: 1rem 1.5rem;
+  min-height: 320px;
+}
+
 .header {
   display: flex;
   justify-content: space-between;

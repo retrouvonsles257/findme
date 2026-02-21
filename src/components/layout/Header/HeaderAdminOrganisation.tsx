@@ -64,7 +64,7 @@ export const HeaderAdminOrganisation: React.FC<HeaderAdminOrganisationProps> = (
         {/* Logo */}
         <div className={styles.header__logo}>
           <span className={styles.header__logoIcon}>🔍</span>
-          <span className={styles.header__logoText}>RETROUVONSLES</span>
+          <span className={`${styles.header__logoText} app-name-bold`}>RETROUVONSLES</span>
         </div>
 
         {/* Search */}

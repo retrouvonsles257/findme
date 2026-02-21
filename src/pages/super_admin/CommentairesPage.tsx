@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { 
   MessageSquare, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, Lock
@@ -35,7 +36,7 @@ interface Commentaire {
 const ITEMS_PER_PAGE = 20;
 
 export const SuperAdminCommentairesPage: React.FC = () => {
-  useI18n();
+  const { t } = useI18n();
 
   const [commentaires, setCommentaires] = useState<Commentaire[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -114,35 +115,35 @@ export const SuperAdminCommentairesPage: React.FC = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <SuperAdminLayout title="Commentaires Confidentiels" activeNav="commentaires">
+    <SuperAdminLayout title={t('super_admin.commentairesTitle')} activeNav="commentaires">
       <div className={styles['sa-system-logs']}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>Commentaires Confidentiels</h2>
-          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>Consultez tous les commentaires confidentiels</p>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>{t('super_admin.commentairesTitle')}</h2>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>{t('super_admin.commentairesSubtitle')}</p>
         </div>
 
         <div className={styles['sa-system-logs__filters']}>
           <div className={styles['sa-system-logs__filter-group']}>
             <Filter size={16} />
             <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous types</option>
-              <option value="note_enquete">Note enquête</option>
-              <option value="coordination">Coordination</option>
-              <option value="info_complementaire">Info complémentaire</option>
-              <option value="mise_a_jour">Mise à jour</option>
-              <option value="question">Question</option>
-              <option value="reponse">Réponse</option>
-              <option value="autre">Autre</option>
+              <option value="">{t('super_admin.commentairesAllTypes')}</option>
+              <option value="note_enquete">{t('super_admin.commentairesTypeNoteEnquete')}</option>
+              <option value="coordination">{t('super_admin.commentairesTypeCoordination')}</option>
+              <option value="info_complementaire">{t('super_admin.commentairesTypeInfoComplementaire')}</option>
+              <option value="mise_a_jour">{t('super_admin.commentairesTypeMiseAJour')}</option>
+              <option value="question">{t('super_admin.commentairesTypeQuestion')}</option>
+              <option value="reponse">{t('super_admin.commentairesTypeReponse')}</option>
+              <option value="autre">{t('super_admin.commentairesTypeAutre')}</option>
             </select>
           </div>
           <select value={filterConfidentiel} onChange={(e) => { setFilterConfidentiel(e.target.value); setCurrentPage(1); }}>
-            <option value="">Tous</option>
-            <option value="true">Confidentiels</option>
-            <option value="false">Publics</option>
+            <option value="">{t('super_admin.commentairesFilterAll')}</option>
+            <option value="true">{t('super_admin.commentairesFilterConfidential')}</option>
+            <option value="false">{t('super_admin.commentairesFilterPublic')}</option>
           </select>
           <button onClick={exportToCSV} className={styles['sa-system-logs__export-btn']}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.commentairesExportCsv')}
           </button>
         </div>
 
@@ -155,15 +156,15 @@ export const SuperAdminCommentairesPage: React.FC = () => {
         )}
 
         {isLoading ? (
-          <div className={styles['sa-system-logs__loading']}>
-            <Loader2 size={32} className={styles['sa-system-logs__spinner']} />
+          <div className={styles['sa-system-logs__skeletonWrap']}>
+            <AdminTableSkeleton columns={7} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-logs__table-wrapper']}>
             {commentaires.length === 0 ? (
               <div className={styles['sa-system-logs__empty']}>
                 <MessageSquare size={48} />
-                <p>Aucun commentaire trouvé</p>
+                <p>{t('super_admin.commentairesNoData')}</p>
               </div>
             ) : (
               <table className={styles['sa-system-logs__table']}>
@@ -190,7 +191,7 @@ export const SuperAdminCommentairesPage: React.FC = () => {
                       <td>{commentaire.dossier?.numero_dossier || '-'}</td>
                       <td>{commentaire.utilisateur?.email || '-'}</td>
                       <td>
-                        <button onClick={() => setSelectedCommentaire(commentaire)} title="Voir">
+                        <button onClick={() => setSelectedCommentaire(commentaire)} title={t('common.view')}>
                           <Eye size={16} />
                         </button>
                       </td>
@@ -205,11 +206,11 @@ export const SuperAdminCommentairesPage: React.FC = () => {
         {totalPages > 1 && (
           <div className={styles['sa-system-logs__pagination']}>
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('common.previous')}
             </button>
-            <span>Page {currentPage} sur {totalPages}</span>
+            <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages })}</span>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-              Suivant <ChevronRight size={16} />
+              {t('common.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}
@@ -218,7 +219,7 @@ export const SuperAdminCommentairesPage: React.FC = () => {
           <div className={styles['sa-system-logs__modal-overlay']} onClick={() => setSelectedCommentaire(null)}>
             <div className={styles['sa-system-logs__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-logs__modal-header']}>
-                <h2>Détails du commentaire</h2>
+                <h2>{t('super_admin.commentairesDetailsTitle')}</h2>
                 <button onClick={() => setSelectedCommentaire(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-logs__modal-body']}>
@@ -243,7 +244,7 @@ export const SuperAdminCommentairesPage: React.FC = () => {
                 </div>
               </div>
               <div className={styles['sa-system-logs__modal-footer']}>
-                <button onClick={() => setSelectedCommentaire(null)}>Fermer</button>
+                <button onClick={() => setSelectedCommentaire(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

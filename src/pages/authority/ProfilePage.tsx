@@ -13,6 +13,7 @@ import { useNotification } from '../../contexts';
 import { useAppSelector } from '../../store/types';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { useI18n } from '../../hooks';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import { supabase } from '../../config';
 import { cloudinaryConfig } from '../../config/cloudinary.config';
 import {
@@ -33,6 +34,8 @@ import {
   Lock,
   CheckCircle,
   AlertTriangle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import styles from './ProfilePage.module.css';
 
@@ -89,7 +92,11 @@ export const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+  const [showPasswords, setShowPasswords] = useState({ new: false, confirm: false });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -280,6 +287,46 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsChangingPassword(true);
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        addNotification({
+          title: t('authority.profilePage.messages.error'),
+          message: t('authority.profilePage.security.passwordsMismatch'),
+          type: 'error',
+        });
+        return;
+      }
+      if (passwordData.newPassword.length < 8) {
+        addNotification({
+          title: t('authority.profilePage.messages.error'),
+          message: t('authority.profilePage.security.passwordMinLength'),
+          type: 'error',
+        });
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: passwordData.newPassword });
+      if (error) throw error;
+      addNotification({
+        title: t('authority.profilePage.messages.success'),
+        message: t('authority.profilePage.security.passwordChanged'),
+        type: 'success',
+      });
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+      setShowPasswordForm(false);
+    } catch (err: any) {
+      addNotification({
+        title: t('authority.profilePage.messages.error'),
+        message: err.message || t('authority.profilePage.messages.genericError'),
+        type: 'error',
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   // Annuler les modifications
   const handleCancel = () => {
     if (profile) {
@@ -317,9 +364,8 @@ export const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <AuthorityLayout>
-        <div className={styles.loadingContainer}>
-          <Loader2 size={32} className={styles.spinner} />
-          <p>{t('authority.profilePage.loading')}</p>
+        <div className={styles.skeletonWrap}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
         </div>
       </AuthorityLayout>
     );
@@ -678,12 +724,60 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
 
-            <button 
-              className={styles.changePasswordBtn}
-              onClick={() => navigate('/authority/security')}
-            >
-              <Lock size={16} /> {t('authority.profilePage.security.changePassword')}
-            </button>
+            {!showPasswordForm ? (
+              <button
+                type="button"
+                className={styles.changePasswordBtn}
+                onClick={() => setShowPasswordForm(true)}
+              >
+                <Lock size={16} /> {t('authority.profilePage.security.changePassword')}
+              </button>
+            ) : (
+              <form onSubmit={handleChangePassword} className={styles.passwordForm}>
+                <div className={styles.passwordFormField}>
+                  <label>{t('authority.profilePage.security.newPassword')}</label>
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      type={showPasswords.new ? 'text' : 'password'}
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      required
+                      minLength={8}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                    />
+                    <button type="button" onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })} aria-label="Toggle visibility">
+                      {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.passwordFormField}>
+                  <label>{t('authority.profilePage.security.confirmPassword')}</label>
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      type={showPasswords.confirm ? 'text' : 'password'}
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      required
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                    />
+                    <button type="button" onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })} aria-label="Toggle visibility">
+                      {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.passwordFormActions}>
+                  <button type="button" onClick={() => { setShowPasswordForm(false); setPasswordData({ newPassword: '', confirmPassword: '' }); }}>
+                    {t('authority.profilePage.security.cancel')}
+                  </button>
+                  <button type="submit" disabled={isChangingPassword}>
+                    {isChangingPassword ? <Loader2 size={16} className={styles.spinner} /> : <CheckCircle size={16} />}
+                    {t('authority.profilePage.security.updatePassword')}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>

@@ -400,7 +400,8 @@ export const triggerSignalementAnalysis = async (
 // ============================================
 
 /**
- * Valider un résultat IA (confirmer la correspondance)
+ * Valider un résultat IA (confirmer la correspondance).
+ * Notification à la famille (docs : "Si confirmé par l'autorité" -> "Notification à la famille (si autorisée)").
  */
 export const confirmIAResult = async (
   resultId: string,
@@ -419,6 +420,26 @@ export const confirmIAResult = async (
     `Résultat IA confirmé par l'autorité. ${comment || ''}`,
     userId
   );
+
+  // Notification à la famille (créateur du dossier) si présent
+  const dossierId = result?.id_dossier;
+  if (dossierId) {
+    const { data: dossier } = await db.from('dossier_disparition').select('id_utilisateur_createur').eq('id', dossierId).single();
+    const createurId = (dossier as any)?.id_utilisateur_createur;
+    if (createurId) {
+      await db.from('notification').insert({
+        type_notification: 'personne_retrouvee',
+        titre: 'Correspondance confirmée',
+        message: 'Une correspondance a été confirmée par les autorités pour un dossier que vous avez créé. Consultez le dossier pour plus de détails.',
+        canal: 'in_app',
+        lue: false,
+        date_creation: new Date().toISOString(),
+        id_utilisateur: createurId,
+        id_dossier: dossierId,
+        donnees_supplementaires: { resultat_ia_id: resultId },
+      });
+    }
+  }
 
   return result;
 };

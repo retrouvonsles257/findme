@@ -348,10 +348,19 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
     });
   };
 
+  // Clamp une zone dans [0, 100] pour rester sur l'image
+  const clampRegion = (r: { x: number; y: number; width: number; height: number }) => {
+    const x = Math.max(0, Math.min(100, r.x));
+    const y = Math.max(0, Math.min(100, r.y));
+    const w = Math.max(0, Math.min(100 - x, r.width));
+    const h = Math.max(0, Math.min(100 - y, r.height));
+    return { x, y, width: w, height: h };
+  };
+
   // Gérer la fin du dessin
   const handleMouseUp = () => {
     if (currentRegion && currentRegion.width > 2 && currentRegion.height > 2) {
-      setBlurRegions(prev => [...prev, currentRegion]);
+      setBlurRegions(prev => [...prev, clampRegion(currentRegion)]);
     }
     setIsDrawing(false);
     setDrawStart(null);
@@ -400,8 +409,15 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
         id_signalement: selectedPhoto.id_signalement || null,
       });
 
+      const updatedCaracteristiques = {
+        ...existingData,
+        zones_floutees: blurRegions,
+        date_floutage: new Date().toISOString(),
+        floute_par: currentUser?.id,
+      };
       setSuccessMessage(t('moderator.blurSavedSuccess'));
       setShowBlurEditor(false);
+      setSelectedPhoto(prev => prev ? { ...prev, caracteristiques_detectees: updatedCaracteristiques } : null);
       loadPhotos();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
@@ -737,60 +753,61 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                         </div>
                       </div>
                       
-                      <div 
+                      <div
                         className={styles['photos-moderation__blur-canvas']}
                         onMouseDown={handleMouseDown}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseUp}
                       >
-                        <img
-                          ref={setImageRef}
-                          src={selectedPhoto.url_cloudinary}
-                          alt="Édition"
-                          className={styles['photos-moderation__modal-photo']}
-                          draggable={false}
-                        />
-                        
-                        {/* Zones de floutage existantes */}
-                        {blurRegions.map((region, index) => (
-                          <div
-                            key={index}
-                            className={styles['photos-moderation__blur-region']}
-                            style={{
-                              left: `${region.x}%`,
-                              top: `${region.y}%`,
-                              width: `${region.width}%`,
-                              height: `${region.height}%`,
-                            }}
-                          >
-                            <button
-                              className={styles['photos-moderation__blur-region-delete']}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeBlurRegion(index);
+                        {/* Wrapper même taille que l'image pour que les % des zones soient relatifs à l'image */}
+                        <div className={styles['photos-moderation__blur-canvas-inner']}>
+                          <img
+                            ref={setImageRef}
+                            src={selectedPhoto.url_cloudinary}
+                            alt="Édition"
+                            className={styles['photos-moderation__modal-photo']}
+                            draggable={false}
+                          />
+                          {/* Zones de floutage existantes */}
+                          {blurRegions.map((region, index) => (
+                            <div
+                              key={index}
+                              className={styles['photos-moderation__blur-region']}
+                              style={{
+                                left: `${region.x}%`,
+                                top: `${region.y}%`,
+                                width: `${region.width}%`,
+                                height: `${region.height}%`,
                               }}
                             >
-                              <Trash2 size={12} />
-                            </button>
-                            <span className={styles['photos-moderation__blur-region-label']}>
-                              {t('moderator.zoneLabel')} {index + 1}
-                            </span>
-                          </div>
-                        ))}
-                        
-                        {/* Zone en cours de dessin */}
-                        {currentRegion && (
-                          <div
-                            className={`${styles['photos-moderation__blur-region']} ${styles['photos-moderation__blur-region--drawing']}`}
-                            style={{
-                              left: `${currentRegion.x}%`,
-                              top: `${currentRegion.y}%`,
-                              width: `${currentRegion.width}%`,
-                              height: `${currentRegion.height}%`,
-                            }}
-                          />
-                        )}
+                              <button
+                                className={styles['photos-moderation__blur-region-delete']}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeBlurRegion(index);
+                                }}
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                              <span className={styles['photos-moderation__blur-region-label']}>
+                                {t('moderator.zoneLabel')} {index + 1}
+                              </span>
+                            </div>
+                          ))}
+                          {/* Zone en cours de dessin */}
+                          {currentRegion && (
+                            <div
+                              className={`${styles['photos-moderation__blur-region']} ${styles['photos-moderation__blur-region--drawing']}`}
+                              style={{
+                                left: `${currentRegion.x}%`,
+                                top: `${currentRegion.y}%`,
+                                width: `${currentRegion.width}%`,
+                                height: `${currentRegion.height}%`,
+                              }}
+                            />
+                          )}
+                        </div>
                       </div>
                       
                       {blurRegions.length > 0 && (
@@ -810,31 +827,30 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
                       )}
                     </div>
                   ) : (
-                    <>
+                    /* Wrapper même taille que l'image pour que l'overlay (position: absolute; inset: 0) soit aligné sur l'image et les % des zones corrects */
+                    <div className={styles['photos-moderation__modal-photo-wrap']}>
                       <img
                         src={selectedPhoto.url_cloudinary}
                         alt="Détail"
                         className={styles['photos-moderation__modal-photo']}
                       />
-                      
-                      {/* Afficher les zones floutées existantes en overlay */}
                       {selectedPhoto.caracteristiques_detectees?.zones_floutees && selectedPhoto.caracteristiques_detectees.zones_floutees.length > 0 && (
-                        <div className={styles['photos-moderation__blur-overlay']}>
+                        <div className={styles['photos-moderation__blur-overlay']} aria-hidden>
                           {selectedPhoto.caracteristiques_detectees.zones_floutees.map((region: any, index: number) => (
                             <div
                               key={index}
                               className={styles['photos-moderation__blur-preview']}
                               style={{
-                                left: `${region.x}%`,
-                                top: `${region.y}%`,
-                                width: `${region.width}%`,
-                                height: `${region.height}%`,
+                                left: `${Number(region.x)}%`,
+                                top: `${Number(region.y)}%`,
+                                width: `${Number(region.width)}%`,
+                                height: `${Number(region.height)}%`,
                               }}
                             />
                           ))}
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
 

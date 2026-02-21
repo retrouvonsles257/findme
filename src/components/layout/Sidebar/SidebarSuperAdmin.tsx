@@ -38,8 +38,6 @@ export const SidebarSuperAdmin: React.FC<SidebarSuperAdminProps> = ({
     { label: t('super_admin.globalStats'), href: '/super-admin/global-stats', icon: '🌍' },
     { label: t('super_admin.organisations'), href: '/super-admin/organisations', icon: '🏢' },
     { label: t('super_admin.systemUsers'), href: '/super-admin/system-users', icon: '👥' },
-    { label: t('super_admin.iaConfig'), href: '/super-admin/ia-config', icon: '🤖' },
-    { label: t('super_admin.security'), href: '/super-admin/security', icon: '🔐' },
     { label: t('super_admin.systemLogs'), href: '/super-admin/system-logs', icon: '📋' },
     { label: t('super_admin.systemSettings'), href: '/super-admin/system-settings', icon: '⚙️' },
   ];

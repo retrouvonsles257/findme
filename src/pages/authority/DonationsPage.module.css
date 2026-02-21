@@ -74,6 +74,72 @@
 }
 
 /* ============================================ */
+/* CTA FAIRE UN DON */
+/* ============================================ */
+
+.ctaDonWrapper {
+  width: 100%;
+}
+
+.ctaDonCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  flex-wrap: wrap;
+}
+
+.ctaDonContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ctaDonIcon {
+  color: #ec4899;
+  flex-shrink: 0;
+}
+
+.ctaDonTitle {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ctaDonText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.ctaDonButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ctaDonButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+}
+
+/* ============================================ */
 /* TABS */
 /* ============================================ */
 
@@ -497,6 +563,12 @@
 /* LOADING & EMPTY STATE */
 /* ============================================ */
 
+.skeletonWrap {
+  padding: var(--space-4, 1rem);
+  min-height: 360px;
+  width: 100%;
+}
+
 .loadingState {
   display: flex;
   flex-direction: column;
@@ -690,6 +762,21 @@
 
   .donationAmount {
     min-width: auto;
+  }
+
+  .ctaDonCard {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .ctaDonContent {
+    justify-content: center;
+  }
+
+  .ctaDonButton {
+    width: 100%;
+    justify-content: center;
   }
 
   .campagnesList {

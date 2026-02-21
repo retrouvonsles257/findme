@@ -13,6 +13,7 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { uploadFileToCloudinary } from '../../services/cloudinary';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import { 
   User, Mail, Phone, MapPin, Shield, Lock, Save,
   Loader2, AlertCircle, Check, Eye, EyeOff, Camera,
@@ -55,7 +56,7 @@ interface UserProfile {
 }
 
 export const SuperAdminProfilePage: React.FC = () => {
-  useI18n(); // For future i18n support
+  const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -103,7 +104,7 @@ export const SuperAdminProfilePage: React.FC = () => {
 
   const loadProfile = useCallback(async () => {
     if (!currentUser?.id) {
-      setError('Non connecté');
+      setError(t('super_admin.profileNotConnected'));
       setIsLoading(false);
       return;
     }
@@ -165,7 +166,7 @@ export const SuperAdminProfilePage: React.FC = () => {
       });
 
       if (!result.success || (!result.secureUrl && !result.url)) {
-        setError(result.error || 'Erreur lors de l\'upload Cloudinary.');
+        setError(result.error || t('super_admin.profileErrorUploadCloudinary'));
         return;
       }
 
@@ -179,10 +180,10 @@ export const SuperAdminProfilePage: React.FC = () => {
         .eq('id', profile.id);
 
       if (updateError) throw updateError;
-      setSuccess('Photo de profil mise à jour');
+      setSuccess(t('super_admin.profilePhotoUpdated'));
       loadProfile();
     } catch (err: any) {
-      setError(err?.message || 'Erreur lors de l\'upload');
+      setError(err?.message || t('super_admin.profileErrorUpload'));
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -204,7 +205,7 @@ export const SuperAdminProfilePage: React.FC = () => {
         try {
           preferencesJson = JSON.parse(formData.preferences_notification);
         } catch (parseError) {
-          setError('Format JSON invalide pour les préférences de notification');
+          setError(t('super_admin.profileInvalidJsonPreferences'));
           return;
         }
       }
@@ -240,7 +241,7 @@ export const SuperAdminProfilePage: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      setSuccess('Profil mis à jour avec succès');
+      setSuccess(t('super_admin.profileUpdatedSuccess'));
       loadProfile();
     } catch (err: any) {
       console.error('Erreur sauvegarde:', err);
@@ -259,11 +260,11 @@ export const SuperAdminProfilePage: React.FC = () => {
       setSuccess(null);
 
       if (passwordData.newPassword !== passwordData.confirmPassword) {
-        throw new Error('Les mots de passe ne correspondent pas');
+        throw new Error(t('super_admin.profilePasswordsMismatch'));
       }
 
       if (passwordData.newPassword.length < 8) {
-        throw new Error('Le mot de passe doit contenir au moins 8 caractères');
+        throw new Error(t('super_admin.profilePasswordMinLength'));
       }
 
       const { error: updateError } = await supabase.auth.updateUser({
@@ -272,7 +273,7 @@ export const SuperAdminProfilePage: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      setSuccess('Mot de passe modifié avec succès');
+      setSuccess(t('super_admin.profilePasswordChangedSuccess'));
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
     } catch (err: any) {
@@ -309,7 +310,7 @@ export const SuperAdminProfilePage: React.FC = () => {
         className={styles['sa-profile__stepper-btn']}
         onClick={() => onChange(roundStep(Math.max(min, value - step), step))}
         disabled={value <= min}
-        aria-label="Diminuer"
+        aria-label={t('super_admin.profileAriaDecrease')}
       >
         <Minus size={14} />
       </button>
@@ -334,7 +335,7 @@ export const SuperAdminProfilePage: React.FC = () => {
         className={styles['sa-profile__stepper-btn']}
         onClick={() => onChange(roundStep(Math.min(max, value + step), step))}
         disabled={value >= max}
-        aria-label="Augmenter"
+        aria-label={t('super_admin.profileAriaIncrease')}
       >
         <Plus size={14} />
       </button>
@@ -343,17 +344,16 @@ export const SuperAdminProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SuperAdminLayout title="Mon Profil" activeNav="profile">
-        <div className={styles['sa-profile__loading']}>
-          <Loader2 size={32} className={styles['sa-profile__spinner']} />
-          <p>Chargement du profil...</p>
+      <SuperAdminLayout title={t('super_admin.profileTitle')} activeNav="profile">
+        <div className={styles['sa-profile__skeletonWrap']}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={5} />
         </div>
       </SuperAdminLayout>
     );
   }
 
   return (
-    <SuperAdminLayout title="Mon Profil" activeNav="profile">
+    <SuperAdminLayout title={t('super_admin.profileTitle')} activeNav="profile">
       <div className={styles['sa-profile']}>
         {/* Messages */}
         {error && (
@@ -374,7 +374,7 @@ export const SuperAdminProfilePage: React.FC = () => {
           <div className={styles['sa-profile__header']}>
             <div className={styles['sa-profile__avatar']}>
               {profile?.photo_profil ? (
-                <img src={profile.photo_profil} alt="Avatar" />
+                <img src={profile.photo_profil} alt={t('super_admin.profileAvatarAlt')} />
               ) : (
                 <User size={48} />
               )}
@@ -384,14 +384,14 @@ export const SuperAdminProfilePage: React.FC = () => {
                 accept="image/jpeg,image/png,image/webp"
                 className={styles['sa-profile__avatar-input']}
                 onChange={handlePhotoChange}
-                aria-label="Changer la photo"
+                aria-label={t('super_admin.profileChangePhoto')}
               />
               <button
                 type="button"
                 className={styles['sa-profile__avatar-edit']}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingPhoto}
-                title="Changer la photo"
+                title={t('super_admin.profileChangePhoto')}
               >
                 {isUploadingPhoto ? <Loader2 size={16} className={styles['sa-profile__spinner']} /> : <Camera size={16} />}
               </button>
@@ -400,89 +400,89 @@ export const SuperAdminProfilePage: React.FC = () => {
               <h2>{profile?.prenom} {profile?.nom}</h2>
               <p><Mail size={14} /> {profile?.email}</p>
               <span className={styles['sa-profile__badge']}>
-                <Shield size={14} /> Super Administrateur
+                <Shield size={14} /> {t('super_admin.profileSuperAdmin')}
               </span>
             </div>
           </div>
 
           {/* Profile Form */}
           <form onSubmit={handleSaveProfile} className={styles['sa-profile__form']}>
-            <h3>Informations personnelles</h3>
+            <h3>{t('super_admin.profilePersonalInfo')}</h3>
             
             <div className={styles['sa-profile__form-grid']}>
               <div className={styles['sa-profile__form-field']}>
-                <label><User size={16} /> Nom *</label>
+                <label><User size={16} /> {t('super_admin.profileLabelName')}</label>
                 <input
                   type="text"
                   value={formData.nom}
                   onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
                   required
-                  placeholder="Votre nom"
+                  placeholder={t('super_admin.profilePlaceholderName')}
                 />
               </div>
               
               <div className={styles['sa-profile__form-field']}>
-                <label><User size={16} /> Prénom</label>
+                <label><User size={16} /> {t('super_admin.profileLabelPrenom')}</label>
                 <input
                   type="text"
                   value={formData.prenom}
                   onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                  placeholder="Votre prénom"
+                  placeholder={t('super_admin.profilePlaceholderPrenom')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><Phone size={16} /> Téléphone</label>
+                <label><Phone size={16} /> {t('super_admin.profileLabelPhone')}</label>
                 <input
                   type="tel"
                   value={formData.telephone}
                   onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                  placeholder="+237 6XX XXX XXX"
+                  placeholder={t('super_admin.profilePlaceholderPhone')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><MapPin size={16} /> Ville</label>
+                <label><MapPin size={16} /> {t('super_admin.profileLabelCity')}</label>
                 <input
                   type="text"
                   value={formData.ville}
                   onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                  placeholder="Votre ville"
+                  placeholder={t('super_admin.profilePlaceholderCity')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><MapPin size={16} /> Pays</label>
+                <label><MapPin size={16} /> {t('super_admin.profileLabelCountry')}</label>
                 <input
                   type="text"
                   value={formData.pays}
                   onChange={(e) => setFormData({ ...formData, pays: e.target.value })}
-                  placeholder="Votre pays"
+                  placeholder={t('super_admin.profilePlaceholderCountry')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><MapPin size={16} /> Adresse</label>
+                <label><MapPin size={16} /> {t('super_admin.profileLabelAddress')}</label>
                 <input
                   type="text"
                   value={formData.adresse}
                   onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                  placeholder="Votre adresse complète"
+                  placeholder={t('super_admin.profilePlaceholderAddress')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><MapPin size={16} /> Région</label>
+                <label><MapPin size={16} /> {t('super_admin.profileLabelRegion')}</label>
                 <input
                   type="text"
                   value={formData.region}
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  placeholder="Votre région"
+                  placeholder={t('super_admin.profilePlaceholderRegion')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><Calendar size={16} /> Date de naissance</label>
+                <label><Calendar size={16} /> {t('super_admin.profileLabelBirthDate')}</label>
                 <input
                   type="date"
                   value={formData.date_naissance}
@@ -491,30 +491,30 @@ export const SuperAdminProfilePage: React.FC = () => {
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><Shield size={16} /> Numéro de badge</label>
+                <label><Shield size={16} /> {t('super_admin.profileLabelBadgeNumber')}</label>
                 <input
                   type="text"
                   value={formData.numero_badge}
                   onChange={(e) => setFormData({ ...formData, numero_badge: e.target.value })}
-                  placeholder="Numéro de badge (si applicable)"
+                  placeholder={t('super_admin.profilePlaceholderBadge')}
                 />
               </div>
 
               <div className={styles['sa-profile__form-field']}>
-                <label><Shield size={16} /> Document d'accréditation</label>
+                <label><Shield size={16} /> {t('super_admin.profileLabelAccreditationDoc')}</label>
                 <input
                   type="text"
                   value={formData.document_accreditation}
                   onChange={(e) => setFormData({ ...formData, document_accreditation: e.target.value })}
-                  placeholder="Référence du document d'accréditation"
+                  placeholder={t('super_admin.profilePlaceholderAccreditationRef')}
                 />
               </div>
             </div>
 
-            <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>Localisation</h3>
+            <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>{t('super_admin.profileLabelLocation')}</h3>
             <div className={styles['sa-profile__form-grid']}>
               <div className={styles['sa-profile__form-field']}>
-                <label><Map size={16} /> Latitude</label>
+                <label><Map size={16} /> {t('super_admin.profileLabelLatitude')}</label>
                 <Stepper
                   value={parseFloat(formData.latitude_actuelle) || 0}
                   onChange={(v) => setFormData({ ...formData, latitude_actuelle: String(v) })}
@@ -524,7 +524,7 @@ export const SuperAdminProfilePage: React.FC = () => {
                 />
               </div>
               <div className={styles['sa-profile__form-field']}>
-                <label><Map size={16} /> Longitude</label>
+                <label><Map size={16} /> {t('super_admin.profileLabelLongitude')}</label>
                 <Stepper
                   value={parseFloat(formData.longitude_actuelle) || 0}
                   onChange={(v) => setFormData({ ...formData, longitude_actuelle: String(v) })}
@@ -534,7 +534,7 @@ export const SuperAdminProfilePage: React.FC = () => {
                 />
               </div>
               <div className={styles['sa-profile__form-field']}>
-                <label><MapPin size={16} /> Rayon de notification (km)</label>
+                <label><MapPin size={16} /> {t('super_admin.profileLabelNotificationRadius')}</label>
                 <Stepper
                   value={parseFloat(formData.rayon_notification_km) || 0}
                   onChange={(v) => setFormData({ ...formData, rayon_notification_km: String(v) })}
@@ -545,16 +545,16 @@ export const SuperAdminProfilePage: React.FC = () => {
               </div>
             </div>
 
-            <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>Préférences</h3>
+            <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>{t('super_admin.profileLabelPreferences')}</h3>
             <div className={styles['sa-profile__form-grid']}>
               <div className={styles['sa-profile__form-field']}>
-                <label><Globe size={16} /> Langue préférée</label>
+                <label><Globe size={16} /> {t('super_admin.profileLabelPreferredLanguage')}</label>
                 <select
                   value={formData.langue_preferee}
                   onChange={(e) => setFormData({ ...formData, langue_preferee: e.target.value })}
                 >
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
+                  <option value="fr">{t('super_admin.profileOptionFrench')}</option>
+                  <option value="en">{t('super_admin.profileOptionEnglish')}</option>
                 </select>
               </div>
 
@@ -566,7 +566,7 @@ export const SuperAdminProfilePage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, accepte_notifications: e.target.checked })}
                 />
                 <label htmlFor="accepte_notifications" style={{ margin: 0, cursor: 'pointer' }}>
-                  <Bell size={16} /> Accepter les notifications
+                  <Bell size={16} /> {t('super_admin.profileAcceptNotifications')}
                 </label>
               </div>
 
@@ -578,13 +578,13 @@ export const SuperAdminProfilePage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, accepte_geolocalisation: e.target.checked })}
                 />
                 <label htmlFor="accepte_geolocalisation" style={{ margin: 0, cursor: 'pointer' }}>
-                  <Map size={16} /> Accepter la géolocalisation
+                  <Map size={16} /> {t('super_admin.profileAcceptGeolocation')}
                 </label>
               </div>
             </div>
 
             <div className={styles['sa-profile__form-field']}>
-              <label><Settings size={16} /> Préférences de notification (JSON)</label>
+              <label><Settings size={16} /> {t('super_admin.profileNotificationPreferencesJson')}</label>
               <textarea
                 value={formData.preferences_notification}
                 onChange={(e) => setFormData({ ...formData, preferences_notification: e.target.value })}
@@ -593,21 +593,21 @@ export const SuperAdminProfilePage: React.FC = () => {
                 style={{ fontFamily: 'monospace', fontSize: '12px' }}
               />
               <small style={{ color: '#666', fontSize: '12px' }}>
-                Format JSON valide requis pour les préférences de notification
+                {t('super_admin.profileJsonValidRequired')}
               </small>
             </div>
 
             <div className={styles['sa-profile__form-actions']}>
               <button type="submit" disabled={isSaving}>
                 {isSaving ? <Loader2 size={16} className={styles['sa-profile__spinner']} /> : <Save size={16} />}
-                Enregistrer les modifications
+                {t('super_admin.profileSaveChanges')}
               </button>
             </div>
           </form>
 
           {/* Password Change */}
           <div className={styles['sa-profile__security']}>
-            <h3><Lock size={18} /> Sécurité</h3>
+            <h3><Lock size={18} /> {t('super_admin.profileSectionSecurity')}</h3>
             
             {!showPasswordForm ? (
               <button 
@@ -615,12 +615,12 @@ export const SuperAdminProfilePage: React.FC = () => {
                 className={styles['sa-profile__password-btn']}
               >
                 <Lock size={16} />
-                Modifier mon mot de passe
+                {t('super_admin.profileChangePassword')}
               </button>
             ) : (
               <form onSubmit={handleChangePassword} className={styles['sa-profile__password-form']}>
                 <div className={styles['sa-profile__form-field']}>
-                  <label>Nouveau mot de passe *</label>
+                  <label>{t('super_admin.profileNewPassword')}</label>
                   <div className={styles['sa-profile__password-input']}>
                     <input
                       type={showPasswords.new ? 'text' : 'password'}
@@ -628,7 +628,7 @@ export const SuperAdminProfilePage: React.FC = () => {
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                       required
                       minLength={8}
-                      placeholder="Minimum 8 caractères"
+                      placeholder={t('super_admin.profileMinChars')}
                     />
                     <button type="button" onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}>
                       {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -637,14 +637,14 @@ export const SuperAdminProfilePage: React.FC = () => {
                 </div>
 
                 <div className={styles['sa-profile__form-field']}>
-                  <label>Confirmer le mot de passe *</label>
+                  <label>{t('super_admin.profileConfirmPassword')}</label>
                   <div className={styles['sa-profile__password-input']}>
                     <input
                       type={showPasswords.confirm ? 'text' : 'password'}
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       required
-                      placeholder="Confirmez le mot de passe"
+                      placeholder={t('super_admin.profileConfirmPasswordPlaceholder')}
                     />
                     <button type="button" onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}>
                       {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -654,11 +654,11 @@ export const SuperAdminProfilePage: React.FC = () => {
 
                 <div className={styles['sa-profile__password-actions']}>
                   <button type="button" onClick={() => setShowPasswordForm(false)}>
-                    Annuler
+                    {t('super_admin.profileCancel')}
                   </button>
                   <button type="submit" disabled={isChangingPassword}>
                     {isChangingPassword ? <Loader2 size={16} className={styles['sa-profile__spinner']} /> : <Check size={16} />}
-                    Modifier le mot de passe
+                    {t('super_admin.profileUpdatePassword')}
                   </button>
                 </div>
               </form>
@@ -667,29 +667,28 @@ export const SuperAdminProfilePage: React.FC = () => {
 
           {/* Account Info */}
           <div className={styles['sa-profile__account-info']}>
-            <h3>Informations du compte</h3>
+            <h3>{t('super_admin.profileAccountInfo')}</h3>
             {profile?.created_at && (
-              <p>Compte créé le {new Date(profile.created_at).toLocaleDateString('fr-FR')}</p>
+              <p>{t('super_admin.profileAccountCreated', { date: new Date(profile.created_at).toLocaleDateString('fr-FR') })}</p>
             )}
             {profile?.updated_at && (
-              <p>Dernière modification le {new Date(profile.updated_at).toLocaleDateString('fr-FR')}</p>
+              <p>{t('super_admin.profileLastModified', { date: new Date(profile.updated_at).toLocaleDateString('fr-FR') })}</p>
             )}
             {profile?.derniere_connexion && (
-              <p>Dernière connexion le {new Date(profile.derniere_connexion).toLocaleString('fr-FR')}</p>
+              <p>{t('super_admin.profileLastLogin', { date: new Date(profile.derniere_connexion).toLocaleString('fr-FR') })}</p>
             )}
             {profile?.statut_compte && (
-              <p>Statut: <strong>{profile.statut_compte}</strong></p>
+              <p>{t('super_admin.profileStatus')} <strong>{profile.statut_compte}</strong></p>
             )}
             {profile?.type_compte && (
-              <p>Type de compte: <strong>{profile.type_compte}</strong></p>
+              <p>{t('super_admin.profileAccountType')} <strong>{profile.type_compte}</strong></p>
             )}
             {profile?.score_fiabilite !== undefined && (
-              <p>Score de fiabilité: <strong>{profile.score_fiabilite}</strong></p>
+              <p>{t('super_admin.profileReliabilityScore')} <strong>{profile.score_fiabilite}</strong></p>
             )}
             {(profile?.nombre_signalements_valides !== undefined || profile?.nombre_signalements_invalides !== undefined) && (
               <p>
-                Signalements: <strong>{profile.nombre_signalements_valides || 0} valides</strong>, 
-                {' '}<strong>{profile.nombre_signalements_invalides || 0} invalides</strong>
+                {t('super_admin.profileReportsValidInvalid', { valid: profile.nombre_signalements_valides || 0, invalid: profile.nombre_signalements_invalides || 0 })}
               </p>
             )}
           </div>

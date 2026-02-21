@@ -4,7 +4,7 @@ import { Search, Plus, AlertTriangle, ChevronLeft, ChevronRight, Megaphone } fro
 import { useI18n } from '../../hooks';
 import { getCampagnes } from '../../features/campagnes/services/campagneAPI';
 import { NGOLayout } from './NGOLayout';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from '../admin/skeletons';
 import styles from './CampagnesPage.module.css';
 
 interface CampaignRow {
@@ -67,7 +67,7 @@ export const NGOCampagnesPage: React.FC<NGOCampagnesPageProps> = ({ noLayout, ba
 
   const loadingContent = (
     <div className={styles.skeletonWrap}>
-      <AdminListSkeleton cardCount={6} showFilters={false} />
+      <AdminCardsGridSkeleton cardCount={6} />
     </div>
   );
   if (loading) {

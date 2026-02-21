@@ -716,6 +716,34 @@
   .dashboard__actionsGrid {
     grid-template-columns: 1fr;
   }
+
+  /* Skeleton loading responsive */
+  .dashboard__skeletonWelcome {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-3);
+  }
+
+  .dashboard__skeletonWelcomeBtn {
+    width: 100%;
+    max-width: none;
+  }
+
+  .dashboard__skeletonStatCard {
+    padding: var(--space-3);
+  }
+
+  .dashboard__skeletonActionCard {
+    padding: var(--space-3);
+  }
+
+  .dashboard__skeletonActivityCard {
+    padding: var(--space-3);
+  }
+
+  .dashboard__skeletonSummaryCard {
+    padding: var(--space-3);
+  }
 }
 
 @media (max-width: 480px) {
@@ -734,6 +762,32 @@
   .dashboard__statCard {
     padding: var(--space-3);
     min-height: 120px;
+  }
+
+  /* Skeleton loading responsive */
+  .dashboard__skeletonWelcome {
+    padding: var(--space-3);
+  }
+
+  .dashboard__skeletonWelcomeContent {
+    max-width: 100%;
+  }
+
+  .dashboard__skeletonStatCard {
+    padding: var(--space-3);
+    min-height: 120px;
+  }
+
+  .dashboard__skeletonActionCard {
+    padding: var(--space-3);
+  }
+
+  .dashboard__skeletonActivityItem {
+    padding: var(--space-2);
+  }
+
+  .dashboard__skeletonSummaryCard {
+    padding: var(--space-3);
   }
 
   .dashboard__statIcon,

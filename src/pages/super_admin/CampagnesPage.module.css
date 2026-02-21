@@ -77,6 +77,13 @@
   margin-bottom: 1rem;
 }
 
+.sa-campagnes__skeletonWrap {
+  padding: 0.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .sa-campagnes__loading {
   display: flex;
   justify-content: center;
@@ -439,4 +446,8 @@
   .sa-campagnes { padding: 1rem; }
   .sa-campagnes__grid { grid-template-columns: 1fr; }
   .sa-campagnes__form-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .sa-campagnes { padding: 0.75rem; }
 }

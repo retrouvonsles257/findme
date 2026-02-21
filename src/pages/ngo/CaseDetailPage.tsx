@@ -7,12 +7,13 @@
 
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, FileText, MapPin, User, Phone, Mail, Calendar, Loader2 } from 'lucide-react';
+import { ArrowLeft, Edit, FileText, MapPin, User, Phone, Mail, Calendar } from 'lucide-react';
 import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { NGOLayout } from './NGOLayout';
+import { AdminDetailSkeleton } from '../admin/skeletons';
 import { useI18n } from '../../hooks';
 import styles from './CaseDetailPage.module.css';
 
@@ -43,9 +44,8 @@ export const NGOCaseDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <NGOLayout>
-        <div className={styles.loading}>
-          <Loader2 className={styles.spinner} size={32} />
-          <p>{t('common.loading')}</p>
+        <div className={styles.skeletonWrap}>
+          <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
         </div>
       </NGOLayout>
     );

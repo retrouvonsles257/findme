@@ -82,9 +82,11 @@ const SIDEBAR_BG_IMAGE = '/assets/images/niveau_2_operateur_saisie.png';
 interface OperatorLayoutProps {
   children: React.ReactNode;
   title: string;
+  /** Titre et contenu sur la même ligne (alignés verticalement) */
+  titleOnSameRow?: boolean;
 }
 
-export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title }) => {
+export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title, titleOnSameRow }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language, changeLanguage } = useI18n();
@@ -171,10 +173,7 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <div className={styles.logoIcon}>
-                <span>RetrouvonsLes</span>
-                <span>Opérateur</span>
-              </div>
+              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
             </div>
           )}
           <button
@@ -305,6 +304,7 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
           >
             <Menu size={24} />
           </button>
+          <span className={`${styles.topHeaderAppName} app-name-bold`}>{t('common.appName')}</span>
           <div className={styles.topHeaderRight}>
             <button
               type="button"
@@ -328,9 +328,9 @@ export const OperatorLayout: React.FC<OperatorLayoutProps> = ({ children, title 
           </div>
         </header>
 
-        <div className={styles.content}>
+        <div className={`${styles.content} ${titleOnSameRow ? styles.contentTitleRow : ''}`}>
           <h1 className={styles.pageTitle}>{title}</h1>
-          {children}
+          {titleOnSameRow ? <div className={styles.contentBody}>{children}</div> : children}
         </div>
       </div>
     </div>

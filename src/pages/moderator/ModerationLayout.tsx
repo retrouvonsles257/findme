@@ -56,6 +56,8 @@ interface ModerationLayoutProps {
   children: React.ReactNode;
   title: string;
   activeNav: ModeratorNavId;
+  /** Titre et contenu sur une même ligne (ex: page Dons) */
+  titleOnSameRow?: boolean;
 }
 
 const MODERATOR_NAV_BASE: (Omit<ModeratorNavGroup, 'items'> & { items: (Omit<ModeratorNavItem, 'badge'> & { badgeKey?: boolean })[] })[] = [
@@ -95,6 +97,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
   children,
   title,
   activeNav,
+  titleOnSameRow,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -204,10 +207,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <div className={styles.logoIcon}>
-                <span>{t('moderator.sidebar.appName')}</span>
-                <span>{t('moderator.sidebar.roleModerator')}</span>
-              </div>
+              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
             </div>
           )}
           <button
@@ -337,6 +337,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
           >
             <Menu size={24} />
           </button>
+          <span className={`${styles.topHeaderAppName} app-name-bold`}>{t('moderator.sidebar.appName')}</span>
           <div className={styles.topHeaderRight}>
             <button
               type="button"
@@ -367,9 +368,13 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
           </div>
         </header>
 
-        <div className={styles.content}>
+        <div className={`${styles.content} ${titleOnSameRow ? styles.contentTitleRow : ''}`}>
           <h1 className={styles.pageTitle}>{title}</h1>
-          <div className={styles.contentInner}>{children}</div>
+          {titleOnSameRow ? (
+            <div className={styles.contentBody}>{children}</div>
+          ) : (
+            <div className={styles.contentInner}>{children}</div>
+          )}
         </div>
       </div>
     </div>

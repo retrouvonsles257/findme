@@ -1,18 +1,15 @@
 /**
  * =====================================================
  * RETROUVONSLES - DonationForm Component
- * Formulaire de création/édition de don
- * =====================================================
- */
+ * Formulaire unifié : même rendu partout (connecté / non connecté).
+ * Style maquette + champs adaptés au formulaire actuel.
+ * ===================================================== */
 
 import React, { useState, useCallback } from 'react';
+import { TypeDon, MethodePaiement } from '../../../@types';
 import { useDonationCreate } from '../hooks/useDonationCreate';
 import * as donService from '../services/donService';
 import styles from './DonationForm.module.css';
-
-// ============================================
-// COMPONENT PROPS
-// ============================================
 
 export interface DonationFormProps {
   onSuccess?: (donId: string) => void;
@@ -20,49 +17,31 @@ export interface DonationFormProps {
   prefilledAmount?: number;
   prefilledType?: string;
   showPaymentOptions?: boolean;
-  /**
-   * Permet de restreindre les méthodes affichées (ex: ['mobile_money'] pour Citizen).
-   * Si non fourni, toutes les options sont disponibles.
-   */
   availablePaymentMethods?: string[];
   className?: string;
 }
 
-// ============================================
-// COMPONENT
-// ============================================
+const AMOUNT_PRESETS = [1000, 5000, 10000, 20000];
 
-/**
- * Composant formulaire de don
- */
 export const DonationForm: React.FC<DonationFormProps> = ({
   onSuccess,
   onCancel,
-  prefilledAmount,
+  prefilledAmount = 1000,
   prefilledType,
   showPaymentOptions = true,
   availablePaymentMethods,
   className = '',
 }) => {
-  const {
-    validationErrors,
-    isProcessing,
-    processPayment,
-    submitDonation,
-    clearErrors,
-  } = useDonationCreate();
-
-  const defaultPaymentMethod =
-    availablePaymentMethods && availablePaymentMethods.length > 0
-      ? availablePaymentMethods[0]
-      : 'carte_bancaire';
+  const { validationErrors, isProcessing, processPayment, submitDonation, clearErrors } = useDonationCreate();
+  const initialAmount = prefilledAmount || 1000;
+  const [otherAmount, setOtherAmount] = useState(String(initialAmount));
 
   const [localFormData, setLocalFormData] = useState<donService.DonFormData>({
-    montant: prefilledAmount || 0,
+    montant: initialAmount,
     devise: 'XAF',
-    type_don: (prefilledType as any) || 'ponctuel',
-    methode_paiement: defaultPaymentMethod,
-    mobile_money_operator: 'mtn_momo',
+    type_don: prefilledType === 'mensuel' ? TypeDon.MENSUEL : TypeDon.PONCTUEL,
+    methode_paiement: MethodePaiement.MOBILE_MONEY,
+    mobile_money_operator: 'orange_money',
     donateur_anonyme: false,
     nom_donateur: '',
     email_donateur: '',
@@ -71,132 +50,181 @@ export const DonationForm: React.FC<DonationFormProps> = ({
     message_donateur: '',
   });
 
-  // ========== FIELD HANDLERS ==========
-
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      const { name, value, type } = e.currentTarget;
-
-      setLocalFormData((prev) => ({
-        ...prev,
-        [name]:
-          type === 'checkbox' ? (e.currentTarget as HTMLInputElement).checked : value,
-      }));
-
-      // Nettoyer l'erreur du champ
-      if (validationErrors[name as keyof typeof validationErrors]) {
-        clearErrors();
-      }
+      const target = e.currentTarget;
+      const { name, value, type } = target;
+      const nextValue = type === 'checkbox' ? (target as HTMLInputElement).checked : value;
+      setLocalFormData((prev) => ({ ...prev, [name]: nextValue }));
+      if (validationErrors[name as keyof typeof validationErrors]) clearErrors();
     },
     [validationErrors, clearErrors],
   );
 
-  const handleNumberChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.currentTarget;
-      setLocalFormData((prev) => ({
-        ...prev,
-        [name]: parseFloat(value) || 0,
-      }));
-    },
-    [],
-  );
-
-  // ========== FORM SUBMISSION ==========
+  /** Montant à payer : preset sélectionné, ou valeur "Autre montant" si l'utilisateur a saisi un montant. */
+  const getAmount = useCallback(() => {
+    if (otherAmount.trim()) {
+      const raw = parseFloat(otherAmount.replace(/\s/g, '').replace(/\u202f/g, '')) || 0;
+      return raw > 0 ? Math.round(raw / 5) * 5 : localFormData.montant;
+    }
+    return localFormData.montant;
+  }, [otherAmount, localFormData.montant]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-
+      const montant = Math.max(5, getAmount());
+      const data: donService.DonFormData = {
+        ...localFormData,
+        montant,
+        devise: 'XAF',
+        methode_paiement: MethodePaiement.MOBILE_MONEY,
+        mobile_money_operator: localFormData.mobile_money_operator || 'orange_money',
+      };
       try {
-        const don = await submitDonation(localFormData);
-
-        // Traiter le paiement (simulé) si on affiche les options de paiement
-        // -> met à jour statut_paiement, date_traitement, reference_transaction, etc.
+        const don = await submitDonation(data);
         if (showPaymentOptions) {
           const ok = await processPayment(don.id, {
-            montant: localFormData.montant,
-            devise: localFormData.devise,
-            methode: localFormData.methode_paiement as any,
-            email: localFormData.email_donateur || undefined,
-            telephone: localFormData.telephone_donateur || undefined,
-            description: localFormData.message_donateur || undefined,
-            mobileMoneyOperator: localFormData.mobile_money_operator,
+            montant: data.montant,
+            devise: data.devise,
+            methode: MethodePaiement.MOBILE_MONEY,
+            email: data.email_donateur || undefined,
+            telephone: data.telephone_donateur || undefined,
+            description: data.message_donateur || undefined,
+            mobileMoneyOperator: data.mobile_money_operator,
           });
           if (!ok) return;
         }
-
         if (onSuccess) onSuccess(don.id);
-      } catch (error) {
-        // L'erreur est déjà gérée par le hook
+      } catch {
+        // error handled in hook
       }
     },
-    [localFormData, submitDonation, processPayment, onSuccess, showPaymentOptions],
+    [localFormData, getAmount, submitDonation, processPayment, showPaymentOptions, onSuccess],
   );
 
-  // ========== RENDER ==========
+  const typeDon = localFormData.type_don === TypeDon.MENSUEL ? TypeDon.MENSUEL : TypeDon.PONCTUEL;
 
   return (
-    <form onSubmit={handleSubmit} className={`${styles.donationForm} ${className}`}>
-      {/* Montant */}
-      <div className={styles.formGroup}>
-        <label htmlFor="montant">Montant du don *</label>
-        <div className={styles.inputGroup}>
-          <input
-            id="montant"
-            type="number"
-            name="montant"
-            min="1"
-            max="1000000"
-            step="100"
-            value={localFormData.montant}
-            onChange={handleNumberChange}
-            className={validationErrors.montant ? styles.error : ''}
-            required
-            disabled={isProcessing}
-          />
-          <select
-            name="devise"
-            value={localFormData.devise}
-            onChange={handleInputChange}
-            disabled={isProcessing}
-          >
-            <option value="XAF">XAF (Franc CFA)</option>
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-          </select>
+    <form onSubmit={handleSubmit} className={`${styles.donationForm} ${styles.unified} ${className}`}>
+      {/* Ligne 1 : Type + Montant (côte à côte sur desktop) */}
+      <div className={styles.formRow}>
+        <div className={styles.formGroup}>
+          <label className={styles.maquetteLabel}>Type de don</label>
+          <div className={styles.typeDonRow}>
+            <button
+              type="button"
+              className={`${styles.typeDonBtn} ${typeDon === TypeDon.PONCTUEL ? styles.typeDonBtnActive : ''}`}
+              onClick={() => setLocalFormData((p) => ({ ...p, type_don: TypeDon.PONCTUEL }))}
+              disabled={isProcessing}
+            >
+              Ponctuel
+            </button>
+            <button
+              type="button"
+              className={`${styles.typeDonBtn} ${typeDon === TypeDon.MENSUEL ? styles.typeDonBtnActive : ''}`}
+              onClick={() => setLocalFormData((p) => ({ ...p, type_don: TypeDon.MENSUEL }))}
+              disabled={isProcessing}
+            >
+              Mensuel
+            </button>
+          </div>
         </div>
-        {validationErrors.montant && (
-          <span className={styles.error}>{validationErrors.montant}</span>
-        )}
+        <div className={styles.formGroup}>
+          <label className={styles.maquetteLabel}>Montant (XAF)</label>
+          <div className={styles.amountPresets}>
+            {AMOUNT_PRESETS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                className={`${styles.presetBtn} ${getAmount() === a ? styles.presetBtnActive : ''}`}
+                onClick={() => {
+                  setLocalFormData((p) => ({ ...p, montant: a }));
+                  setOtherAmount(String(a));
+                }}
+                disabled={isProcessing}
+              >
+                {a.toLocaleString('fr-FR')}
+              </button>
+            ))}
+          </div>
+          <div className={styles.otherAmountRow}>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="— — .."
+              value={otherAmount}
+              onChange={(e) => {
+                const v = e.target.value;
+                setOtherAmount(v);
+                const n = parseFloat(v.replace(/\s/g, '').replace(/\u202f/g, '')) || 0;
+                if (n > 0) setLocalFormData((p) => ({ ...p, montant: Math.round(n / 5) * 5 }));
+              }}
+              className={styles.otherAmountInput}
+              disabled={isProcessing}
+            />
+            <span className={styles.xafSuffix}>XAF</span>
+          </div>
+        </div>
       </div>
 
-      {/* Type de don */}
-      <div className={styles.formGroup}>
-        <label htmlFor="type_don">Type de don *</label>
-        <select
-          id="type_don"
-          name="type_don"
-          value={localFormData.type_don}
-          onChange={handleInputChange}
-          className={validationErrors.type_don ? styles.error : ''}
-          required
-          disabled={isProcessing}
-        >
-          <option value="ponctuel">Ponctuel</option>
-          <option value="mensuel">Mensuel</option>
-          <option value="annuel">Annuel</option>
-          <option value="entreprise">Entreprise</option>
-          <option value="fondation">Fondation</option>
-        </select>
-        {validationErrors.type_don && (
-          <span className={styles.error}>{validationErrors.type_don}</span>
+      {/* Ligne 2 : Paiement + Téléphone (côte à côte sur desktop) */}
+      <div className={styles.formRow}>
+        {showPaymentOptions && (
+          <div className={styles.formGroup}>
+            <label className={styles.maquetteLabel}>Méthode de paiement</label>
+            <div className={styles.paymentCards}>
+              <button
+                type="button"
+                className={`${styles.paymentCard} ${(localFormData.mobile_money_operator || 'orange_money') === 'orange_money' ? styles.paymentCardActive : ''}`}
+                onClick={() => setLocalFormData((p) => ({ ...p, mobile_money_operator: 'orange_money' }))}
+                disabled={isProcessing}
+              >
+                <span className={styles.paymentCardLogo}>Orange Money</span>
+                {(localFormData.mobile_money_operator || 'orange_money') === 'orange_money' && (
+                  <span className={styles.paymentCardCheck}>✓</span>
+                )}
+              </button>
+              <button
+                type="button"
+                className={`${styles.paymentCard} ${localFormData.mobile_money_operator === 'mtn_momo' ? styles.paymentCardActive : ''}`}
+                onClick={() => setLocalFormData((p) => ({ ...p, mobile_money_operator: 'mtn_momo' }))}
+                disabled={isProcessing}
+              >
+                <span className={styles.paymentCardLogo}>MTN MoMo</span>
+                {localFormData.mobile_money_operator === 'mtn_momo' && (
+                  <span className={styles.paymentCardCheck}>✓</span>
+                )}
+              </button>
+            </div>
+            <p className={styles.paymentHint}>CARTE / PAYPAL</p>
+          </div>
         )}
+        <div className={styles.formGroup}>
+          <label htmlFor="telephone_donateur" className={styles.maquetteLabel}>Téléphone</label>
+          <div className={styles.phonePrefixGroup}>
+            <span className={styles.phonePrefix}>+237</span>
+            <input
+              id="telephone_donateur"
+              type="tel"
+              name="telephone_donateur"
+              value={localFormData.telephone_donateur}
+              onChange={handleInputChange}
+              placeholder="6XX XXX XXX"
+              className={validationErrors.telephone_donateur ? styles.error : ''}
+              disabled={isProcessing}
+              required
+            />
+          </div>
+          {validationErrors.telephone_donateur && (
+            <span className={styles.errorText}>{validationErrors.telephone_donateur}</span>
+          )}
+        </div>
       </div>
 
-      {/* Donateur anonyme */}
+      {/* Anonyme */}
       <div className={styles.formGroup}>
-        <label>
+        <label className={styles.checkboxLabel}>
           <input
             type="checkbox"
             name="donateur_anonyme"
@@ -204,15 +232,15 @@ export const DonationForm: React.FC<DonationFormProps> = ({
             onChange={handleInputChange}
             disabled={isProcessing}
           />
-          Faire un don anonyme
+          Faire un don de manière anonyme
         </label>
       </div>
 
-      {/* Informations donateur */}
+      {/* Champs donateur si non anonyme (grille 2 col sur desktop) */}
       {!localFormData.donateur_anonyme && (
-        <>
+        <div className={styles.donorFields}>
           <div className={styles.formGroup}>
-            <label htmlFor="nom_donateur">Nom *</label>
+            <label htmlFor="nom_donateur" className={styles.maquetteLabel}>Nom *</label>
             <input
               id="nom_donateur"
               type="text"
@@ -224,12 +252,11 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               disabled={isProcessing}
             />
             {validationErrors.nom_donateur && (
-              <span className={styles.error}>{validationErrors.nom_donateur}</span>
+              <span className={styles.errorText}>{validationErrors.nom_donateur}</span>
             )}
           </div>
-
           <div className={styles.formGroup}>
-            <label htmlFor="email_donateur">Email</label>
+            <label htmlFor="email_donateur" className={styles.maquetteLabel}>Email</label>
             <input
               id="email_donateur"
               type="email"
@@ -240,12 +267,11 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               disabled={isProcessing}
             />
             {validationErrors.email_donateur && (
-              <span className={styles.error}>{validationErrors.email_donateur}</span>
+              <span className={styles.errorText}>{validationErrors.email_donateur}</span>
             )}
           </div>
-
           <div className={styles.formGroup}>
-            <label htmlFor="organisation_donatrice">Organisation (optionnel)</label>
+            <label htmlFor="organisation_donatrice" className={styles.maquetteLabel}>Organisation</label>
             <input
               id="organisation_donatrice"
               type="text"
@@ -255,115 +281,35 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               disabled={isProcessing}
             />
           </div>
-        </>
-      )}
-
-      {/* Téléphone (toujours disponible, requis pour Mobile Money) */}
-      <div className={styles.formGroup}>
-        <label htmlFor="telephone_donateur">
-          Téléphone{localFormData.methode_paiement === 'mobile_money' ? ' *' : ''}
-        </label>
-        <input
-          id="telephone_donateur"
-          type="tel"
-          name="telephone_donateur"
-          value={localFormData.telephone_donateur}
-          onChange={handleInputChange}
-          className={validationErrors.telephone_donateur ? styles.error : ''}
-          disabled={isProcessing}
-          required={localFormData.methode_paiement === 'mobile_money'}
-        />
-        {validationErrors.telephone_donateur && (
-          <span className={styles.error}>{validationErrors.telephone_donateur}</span>
-        )}
-      </div>
-
-      {/* Message */}
-      <div className={styles.formGroup}>
-        <label htmlFor="message_donateur">Message (optionnel)</label>
-        <textarea
-          id="message_donateur"
-          name="message_donateur"
-          value={localFormData.message_donateur}
-          onChange={handleInputChange}
-          rows={4}
-          disabled={isProcessing}
-        />
-      </div>
-
-      {/* Méthode de paiement */}
-      {showPaymentOptions && (
-        <div className={styles.formGroup}>
-          <label htmlFor="methode_paiement">Méthode de paiement *</label>
-          <select
-            id="methode_paiement"
-            name="methode_paiement"
-            value={localFormData.methode_paiement}
-            onChange={handleInputChange}
-            className={validationErrors.methode_paiement ? styles.error : ''}
-            required
-            disabled={isProcessing}
-          >
-            {(!availablePaymentMethods || availablePaymentMethods.includes('carte_bancaire')) && (
-              <option value="carte_bancaire">Carte Bancaire</option>
-            )}
-            {(!availablePaymentMethods || availablePaymentMethods.includes('mobile_money')) && (
-              <option value="mobile_money">Mobile Money</option>
-            )}
-            {(!availablePaymentMethods || availablePaymentMethods.includes('virement')) && (
-              <option value="virement">Virement</option>
-            )}
-            {(!availablePaymentMethods || availablePaymentMethods.includes('paypal')) && (
-              <option value="paypal">PayPal</option>
-            )}
-            {(!availablePaymentMethods || availablePaymentMethods.includes('autre')) && (
-              <option value="autre">Autre</option>
-            )}
-          </select>
-          {validationErrors.methode_paiement && (
-            <span className={styles.error}>{validationErrors.methode_paiement}</span>
-          )}
+          <div className={styles.formGroup}>
+            <label htmlFor="message_donateur" className={styles.maquetteLabel}>Message</label>
+            <textarea
+              id="message_donateur"
+              name="message_donateur"
+              value={localFormData.message_donateur}
+              onChange={handleInputChange}
+              rows={1}
+              disabled={isProcessing}
+              className={styles.messageInput}
+            />
+          </div>
         </div>
       )}
 
-      {/* Mobile Money: opérateur */}
-      {showPaymentOptions && localFormData.methode_paiement === 'mobile_money' && (
-        <div className={styles.formGroup}>
-          <label htmlFor="mobile_money_operator">Opérateur Mobile Money *</label>
-          <select
-            id="mobile_money_operator"
-            name="mobile_money_operator"
-            value={localFormData.mobile_money_operator || 'mtn_momo'}
-            onChange={handleInputChange}
-            required
-            disabled={isProcessing}
-          >
-            <option value="mtn_momo">MTN MoMo</option>
-            <option value="orange_money">Orange Money</option>
-          </select>
-        </div>
-      )}
+      {/* CTA */}
+      <button type="submit" className={styles.maquetteSubmitBtn} disabled={isProcessing}>
+        <span className={styles.heartIcon}>♥</span> Faire un don maintenant
+      </button>
 
-      {/* Boutons */}
-      <div className={styles.formActions}>
-        <button
-          type="submit"
-          className={styles.submitBtn}
-          disabled={isProcessing}
-        >
-          {isProcessing ? 'Traitement...' : 'Continuer'}
+      {onCancel && (
+        <button type="button" className={styles.cancelBtn} onClick={onCancel} disabled={isProcessing}>
+          Annuler
         </button>
-        {onCancel && (
-          <button
-            type="button"
-            className={styles.cancelBtn}
-            onClick={onCancel}
-            disabled={isProcessing}
-          >
-            Annuler
-          </button>
-        )}
-      </div>
+      )}
+
+      <p className={styles.maquetteDisclaimer}>
+        En cliquant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité. Vos données sont traitées de manière sécurisée.
+      </p>
     </form>
   );
 };

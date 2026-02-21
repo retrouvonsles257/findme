@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
+import { AdminTableSkeleton } from '../admin/skeletons';
 import { FileText, Clock, User, Filter, Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
 import styles from './SystemLogsPage.module.css';
 
@@ -80,11 +81,32 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
       if (filterDateFrom) query = query.gte('date_action', filterDateFrom);
       if (filterDateTo) query = query.lte('date_action', `${filterDateTo}T23:59:59`);
 
-      const { data, error: fetchError } = await query;
+      const { data: rawLogs, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
-      // Les données sont déjà enrichies par Supabase avec les relations
-      setLogs(data || []);
+      const list = rawLogs || [];
+      const userIds = [...new Set(list.map((l: JournalActivite) => l.id_utilisateur).filter(Boolean))] as string[];
+      let userMap: Record<string, { nom: string; email: string }> = {};
+      if (userIds.length > 0) {
+        const { data: users } = await (supabase as any)
+          .from('utilisateur')
+          .select('id, nom, prenom, email')
+          .in('id', userIds);
+        if (users?.length) {
+          userMap = (users as any[]).reduce((acc, u) => {
+            acc[u.id] = {
+              nom: [u.prenom, u.nom].filter(Boolean).join(' ') || u.email || '-',
+              email: u.email || '-',
+            };
+            return acc;
+          }, {} as Record<string, { nom: string; email: string }>);
+        }
+      }
+      const enriched = list.map((log: JournalActivite) => ({
+        ...log,
+        utilisateur: log.id_utilisateur ? userMap[log.id_utilisateur] : undefined,
+      }));
+      setLogs(enriched);
     } catch (err: any) {
       console.error('Erreur chargement logs:', err);
       setError(err.message);
@@ -115,18 +137,18 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
   };
 
   const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      connexion: 'Connexion',
-      deconnexion: 'Déconnexion',
-      creation: 'Création',
-      modification: 'Modification',
-      suppression: 'Suppression',
-      consultation: 'Consultation',
-      signalement: 'Signalement',
-      alerte: 'Alerte',
-      autre: 'Autre',
+    const keyMap: Record<string, string> = {
+      connexion: 'super_admin.systemLogsTypeConnexion',
+      deconnexion: 'super_admin.systemLogsTypeDeconnexion',
+      creation: 'super_admin.systemLogsTypeCreation',
+      modification: 'super_admin.systemLogsTypeModification',
+      suppression: 'super_admin.systemLogsTypeSuppression',
+      consultation: 'super_admin.systemLogsTypeConsultation',
+      signalement: 'super_admin.systemLogsTypeSignalement',
+      alerte: 'super_admin.systemLogsTypeAlerte',
+      autre: 'super_admin.systemLogsTypeAutre',
     };
-    return labels[type] || type;
+    return (keyMap[type] && t(keyMap[type])) || type;
   };
 
   const resetFilters = () => {
@@ -196,7 +218,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
       document.body.removeChild(link);
     } catch (err: any) {
       console.error('Erreur export CSV:', err);
-      setError('Erreur lors de l\'export: ' + err.message);
+      setError(t('super_admin.systemLogsErrorExport', { message: err.message }));
     } finally {
       setIsLoading(false);
     }
@@ -208,29 +230,29 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
         {/* Filtres */}
         <div className={styles['sa-system-logs__filters']}>
           <div className={styles['sa-system-logs__filter-group']}>
-            <label><Filter size={16} /> Type d'action</label>
+            <label><Filter size={16} /> {t('super_admin.systemLogsTypeAction')}</label>
             <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
-              <option value="">Tous</option>
+              <option value="">{t('super_admin.systemLogsAll')}</option>
               {typeActionOptions.map((type) => (
                 <option key={type} value={type}>{getTypeLabel(type)}</option>
               ))}
             </select>
           </div>
           <div className={styles['sa-system-logs__filter-group']}>
-            <label><Clock size={16} /> Du</label>
+            <label><Clock size={16} /> {t('super_admin.systemLogsFrom')}</label>
             <input type="date" value={filterDateFrom} onChange={(e) => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} />
           </div>
           <div className={styles['sa-system-logs__filter-group']}>
-            <label><Clock size={16} /> Au</label>
+            <label><Clock size={16} /> {t('super_admin.systemLogsTo')}</label>
             <input type="date" value={filterDateTo} onChange={(e) => { setFilterDateTo(e.target.value); setCurrentPage(1); }} />
           </div>
           <button className={styles['sa-system-logs__filter-btn']} onClick={resetFilters}>
             <RefreshCw size={16} />
-            Réinitialiser
+            {t('super_admin.systemLogsReset')}
           </button>
           <button className={styles['sa-system-logs__export-btn']} onClick={exportToCSV} disabled={isLoading}>
             <Download size={16} />
-            Exporter CSV
+            {t('super_admin.systemLogsExportCsv')}
           </button>
         </div>
 
@@ -244,31 +266,31 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
 
         {/* Stats */}
         <div className={styles['sa-system-logs__stats']}>
-          <span>{totalCount} entrées au total</span>
-          <span>Page {currentPage} sur {totalPages || 1}</span>
+          <span>{totalCount} {t('super_admin.systemLogsEntriesTotal')}</span>
+          <span>{t('super_admin.systemLogsPageOf', { current: currentPage, total: totalPages || 1 })}</span>
         </div>
 
         {/* Loading */}
         {isLoading ? (
-          <div className={styles['sa-system-logs__loading']}>
-            <Loader2 size={32} className={styles['sa-system-logs__spinner']} />
+          <div className={styles['sa-system-logs__skeletonWrap']}>
+            <AdminTableSkeleton columns={5} rows={8} />
           </div>
         ) : (
           <div className={styles['sa-system-logs__table-wrapper']}>
             {logs.length === 0 ? (
               <div className={styles['sa-system-logs__empty']}>
                 <FileText size={48} />
-                <p>Aucune entrée dans le journal</p>
+                <p>{t('super_admin.systemLogsNoEntries')}</p>
               </div>
             ) : (
               <table className={styles['sa-system-logs__table']}>
                 <thead>
                   <tr>
                     <th><Clock size={16} /> {t('common.timestamp')}</th>
-                    <th><FileText size={16} /> Type</th>
-                    <th>Description</th>
-                    <th><User size={16} /> Utilisateur</th>
-                    <th>IP</th>
+                    <th><FileText size={16} /> {t('super_admin.systemLogsColumnType')}</th>
+                    <th>{t('super_admin.systemLogsColumnDescription')}</th>
+                    <th><User size={16} /> {t('super_admin.systemLogsColumnUser')}</th>
+                    <th>{t('super_admin.systemLogsColumnIP')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,7 +309,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
                         {log.utilisateur ? (
                           <span>{log.utilisateur.nom}<br /><small>{log.utilisateur.email}</small></span>
                         ) : (
-                          <span className={styles['sa-system-logs__system']}>Système</span>
+                          <span className={styles['sa-system-logs__system']}>{t('super_admin.systemLogsSystem')}</span>
                         )}
                       </td>
                       <td className={styles['sa-system-logs__ip']}>{log.ip_utilisateur || '-'}</td>
@@ -307,7 +329,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
               disabled={currentPage === 1}
             >
               <ChevronLeft size={16} />
-              Précédent
+              {t('common.previous')}
             </button>
             <div className={styles['sa-system-logs__page-numbers']}>
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -336,7 +358,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
               disabled={currentPage === totalPages}
             >
-              Suivant
+              {t('common.next')}
               <ChevronRight size={16} />
             </button>
           </div>
@@ -347,42 +369,42 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
           <div className={styles['sa-system-logs__modal-overlay']} onClick={() => setSelectedLog(null)}>
             <div className={styles['sa-system-logs__modal']} onClick={(e) => e.stopPropagation()}>
               <div className={styles['sa-system-logs__modal-header']}>
-                <h2>Détails du journal</h2>
+                <h2>{t('super_admin.systemLogsDetailsTitle')}</h2>
                 <button onClick={() => setSelectedLog(null)}><X size={20} /></button>
               </div>
               <div className={styles['sa-system-logs__modal-body']}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-                  <div><label>ID:</label><span>{selectedLog.id}</span></div>
-                  <div><label>Date:</label><span>{new Date(selectedLog.date_action).toLocaleString('fr-FR')}</span></div>
-                  <div><label>Type action:</label><span>{selectedLog.type_action}</span></div>
+                  <div><label>{t('super_admin.systemLogsLabelId')}</label><span>{selectedLog.id}</span></div>
+                  <div><label>{t('super_admin.systemLogsLabelDate')}</label><span>{new Date(selectedLog.date_action).toLocaleString('fr-FR')}</span></div>
+                  <div><label>{t('super_admin.systemLogsLabelTypeAction')}</label><span>{selectedLog.type_action}</span></div>
                   {selectedLog.action_detaillee && (
-                    <div><label>Action détaillée:</label><span>{selectedLog.action_detaillee}</span></div>
+                    <div><label>{t('super_admin.systemLogsLabelActionDetaillee')}</label><span>{selectedLog.action_detaillee}</span></div>
                   )}
-                  <div><label>Utilisateur:</label><span>{selectedLog.utilisateur ? `${selectedLog.utilisateur.nom} (${selectedLog.utilisateur.email})` : 'Système'}</span></div>
-                  <div><label>IP:</label><span>{selectedLog.ip_utilisateur || '-'}</span></div>
+                  <div><label>{t('super_admin.systemLogsLabelUser')}</label><span>{selectedLog.utilisateur ? `${selectedLog.utilisateur.nom} (${selectedLog.utilisateur.email})` : t('super_admin.systemLogsSystem')}</span></div>
+                  <div><label>{t('super_admin.systemLogsLabelIP')}</label><span>{selectedLog.ip_utilisateur || '-'}</span></div>
                   {selectedLog.user_agent && (
-                    <div style={{ gridColumn: '1 / -1' }}><label>User Agent:</label><span style={{ fontSize: '0.875rem' }}>{selectedLog.user_agent}</span></div>
+                    <div style={{ gridColumn: '1 / -1' }}><label>{t('super_admin.systemLogsLabelUserAgent')}</label><span style={{ fontSize: '0.875rem' }}>{selectedLog.user_agent}</span></div>
                   )}
                   {selectedLog.localisation_action && (
-                    <div><label>Localisation:</label><span>{selectedLog.localisation_action}</span></div>
+                    <div><label>{t('super_admin.systemLogsLabelLocation')}</label><span>{selectedLog.localisation_action}</span></div>
                   )}
                   {selectedLog.dossier && (
-                    <div><label>Dossier:</label><span>{selectedLog.dossier.numero_dossier}</span></div>
+                    <div><label>{t('super_admin.systemLogsLabelDossier')}</label><span>{selectedLog.dossier.numero_dossier}</span></div>
                   )}
                   {selectedLog.signalement && (
-                    <div><label>Signalement:</label><span>{selectedLog.signalement.numero_signalement || '-'}</span></div>
+                    <div><label>{t('super_admin.systemLogsLabelSignalement')}</label><span>{selectedLog.signalement.numero_signalement || '-'}</span></div>
                   )}
                   {selectedLog.alerte && (
-                    <div><label>Alerte:</label><span>{selectedLog.alerte.numero_alerte || selectedLog.alerte.titre}</span></div>
+                    <div><label>{t('super_admin.systemLogsLabelAlerte')}</label><span>{selectedLog.alerte.numero_alerte || selectedLog.alerte.titre}</span></div>
                   )}
                 </div>
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Description:</label>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>{t('super_admin.systemLogsLabelDescription')}</label>
                   <p style={{ padding: '0.75rem', background: '#f1f5f9', borderRadius: '0.5rem' }}>{selectedLog.description || '-'}</p>
                 </div>
                 {selectedLog.donnees_avant && (
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Données avant:</label>
+                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>{t('super_admin.systemLogsLabelDataBefore')}</label>
                     <pre style={{ fontSize: '0.875rem', padding: '0.75rem', background: '#f1f5f9', borderRadius: '0.5rem', overflow: 'auto', maxHeight: '200px' }}>
                       {JSON.stringify(selectedLog.donnees_avant, null, 2)}
                     </pre>
@@ -390,7 +412,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
                 )}
                 {selectedLog.donnees_apres && (
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Données après:</label>
+                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>{t('super_admin.systemLogsLabelDataAfter')}</label>
                     <pre style={{ fontSize: '0.875rem', padding: '0.75rem', background: '#f1f5f9', borderRadius: '0.5rem', overflow: 'auto', maxHeight: '200px' }}>
                       {JSON.stringify(selectedLog.donnees_apres, null, 2)}
                     </pre>
@@ -398,7 +420,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
                 )}
               </div>
               <div className={styles['sa-system-logs__modal-footer']}>
-                <button onClick={() => setSelectedLog(null)}>Fermer</button>
+                <button onClick={() => setSelectedLog(null)}>{t('common.close')}</button>
               </div>
             </div>
           </div>

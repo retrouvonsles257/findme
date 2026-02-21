@@ -94,6 +94,7 @@ export const NGOHeader: React.FC<NGOHeaderProps> = ({
             <Menu size={22} />
           </button>
         )}
+        <span className={`${styles.headerAppName} app-name-bold`}>{t('common.appName')}</span>
       </div>
 
       <form className={styles.searchForm} onSubmit={handleSearch}>

@@ -9,6 +9,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
+import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { ModerationLayout } from './ModerationLayout';
 import { MapTilerView, MapTilerMarker } from '../../components/maps/MapTilerView/MapTilerView';
 import {
@@ -22,6 +23,7 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
+  Bell,
 } from 'lucide-react';
 import styles from './MapViewPage.module.css';
 
@@ -35,7 +37,8 @@ interface MapFilters {
 export const MapViewPage: React.FC = () => {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { signalements, isLoading, fetchSignalements } = useSignalements();
+  const { signalements, isLoading: signalementsLoading, fetchSignalements } = useSignalements();
+  const { alertes, loading: alertesLoading, fetchAlertes } = useAlertes();
 
   // State
   const [filters, setFilters] = useState<MapFilters>({
@@ -45,13 +48,17 @@ export const MapViewPage: React.FC = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedSignalement, setSelectedSignalement] = useState<any>(null);
+  const [selectedAlerte, setSelectedAlerte] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [mapCenter, setMapCenter] = useState<[number, number]>([5.3599, -4.0082]); // Abidjan default
 
-  // Charger les signalements
+  const isLoading = signalementsLoading || alertesLoading;
+
+  // Charger les signalements et les alertes
   useEffect(() => {
     fetchSignalements(undefined, 1);
-  }, [fetchSignalements]);
+    fetchAlertes();
+  }, [fetchSignalements, fetchAlertes]);
 
   // Filtrer les signalements par statut, date, score (sans filtre de coordonnées pour la liste)
   const filteredByOtherCriteria = useMemo(() => {
@@ -103,40 +110,66 @@ export const MapViewPage: React.FC = () => {
     });
   }, [filteredByOtherCriteria]);
 
-  // Convertir les signalements en marqueurs MapTiler
+  // Alertes actives avec coordonnées (pour la carte)
+  const filteredAlertes = useMemo(() => {
+    return alertes.filter((a: any) => {
+      const lat = a.latitude_centre;
+      const lng = a.longitude_centre;
+      if (!lat || !lng) return false;
+      if (a.statut_alerte !== 'en_cours') return false;
+      return true;
+    });
+  }, [alertes]);
+
+  // Convertir signalements + alertes en marqueurs MapTiler
   const mapMarkers: MapTilerMarker[] = useMemo(() => {
-    return filteredSignalements.map((sig) => {
+    const markers: MapTilerMarker[] = [];
+
+    filteredSignalements.forEach((sig) => {
       const lat = sig.latitude_observation ?? sig.latitude ?? 0;
       const lng = sig.longitude_observation ?? sig.longitude ?? 0;
       const statut: string = sig.statut_validation || sig.etat || '';
-      
-      // Déterminer le type pour la couleur
       let markerType: MapTilerMarker['type'] = 'sighting';
-      if (statut === 'en_attente' || statut === 'nouveau') {
-        markerType = 'alert';
-      } else if (statut === 'valide') {
-        markerType = 'organization';
-      } else if (statut === 'invalide' || statut === 'rejete') {
-        markerType = 'missing';
-      }
+      if (statut === 'en_attente' || statut === 'nouveau') markerType = 'alert';
+      else if (statut === 'valide') markerType = 'organization';
+      else if (statut === 'invalide' || statut === 'rejete') markerType = 'missing';
 
-      return {
+      markers.push({
         id: sig.id,
-        lat: lat,
-        lng: lng,
+        lat,
+        lng,
         label: sig.lieu_observation || sig.ville_observation || t('moderator.reportLabel'),
         type: markerType,
         image: sig.photo_url,
-        data: { signalementId: sig.id } as Record<string, unknown>,
-      };
+        data: { type: 'signalement', id: sig.id } as Record<string, unknown>,
+      });
     });
-  }, [filteredSignalements]);
+
+    filteredAlertes.forEach((a: any) => {
+      markers.push({
+        id: `ale-${a.id}`,
+        lat: a.latitude_centre,
+        lng: a.longitude_centre,
+        label: a.titre || t('moderator.alerteLabel'),
+        type: 'alert',
+        data: { type: 'alerte', id: a.id } as Record<string, unknown>,
+      });
+    });
+
+    return markers;
+  }, [filteredSignalements, filteredAlertes, t]);
 
   // Gérer le clic sur un marqueur
   const handleMarkerClick = (marker: MapTilerMarker) => {
-    const sig = filteredSignalements.find(s => s.id === marker.id);
-    if (sig) {
-      setSelectedSignalement(sig);
+    const data = marker.data as { type?: string; id?: string };
+    if (data?.type === 'alerte' && data?.id) {
+      const ale = alertes.find((a: any) => a.id === data.id);
+      setSelectedAlerte(ale || null);
+      setSelectedSignalement(null);
+    } else {
+      const sig = filteredSignalements.find(s => s.id === marker.id);
+      setSelectedSignalement(sig || null);
+      setSelectedAlerte(null);
     }
   };
 
@@ -180,8 +213,9 @@ export const MapViewPage: React.FC = () => {
       enAttente: all.filter(s => (s.statut_validation || s.etat) === 'en_attente' || s.etat === 'nouveau').length,
       valides: all.filter(s => (s.statut_validation || s.etat) === 'valide').length,
       rejetes: all.filter(s => (s.statut_validation || s.etat) === 'invalide' || s.etat === 'rejete').length,
+      alertes: filteredAlertes.length,
     };
-  }, [filteredByOtherCriteria, filteredSignalements, signalementsSansCoordonnees]);
+  }, [filteredByOtherCriteria, filteredSignalements, signalementsSansCoordonnees, filteredAlertes]);
 
   // Ouvrir dans la page de validation
   const handleViewDetails = (sig: any) => {
@@ -319,6 +353,10 @@ export const MapViewPage: React.FC = () => {
             <CheckCircle size={20} />
             <span>{stats.valides} {t('moderator.valides')}</span>
           </div>
+          <div className={styles['map-view__stat']} title={t('moderator.alertesOnMap')}>
+            <Bell size={20} />
+            <span>{stats.alertes} {t('moderator.alertes')}</span>
+          </div>
         </div>
 
         {isLoading ? (
@@ -357,20 +395,49 @@ export const MapViewPage: React.FC = () => {
                   className={styles['map-view__maptiler']}
                 />
                 
-                {/* Panel latéral des signalements */}
+                {/* Panel latéral : signalements + alertes */}
                 <div className={styles['map-view__markers-panel']}>
-                  <h4>{t('moderator.onMapCount').replace('{{count}}', String(filteredSignalements.length))}</h4>
+                  <h4>{t('moderator.onMapCount').replace('{{count}}', String(mapMarkers.length))}</h4>
                   <div className={styles['map-view__markers-list']}>
-                    {filteredSignalements.slice(0, 15).map((sig) => {
+                    {mapMarkers.slice(0, 15).map((marker) => {
+                      const data = marker.data as { type?: string; id?: string };
+                      const isAlerte = data?.type === 'alerte';
+                      if (isAlerte) {
+                        return (
+                          <div
+                            key={marker.id}
+                            className={styles['map-view__marker-item']}
+                            onClick={() => handleMarkerClick(marker)}
+                          >
+                            <div
+                              className={styles['map-view__marker-dot']}
+                              style={{ backgroundColor: '#f59e0b' }}
+                            />
+                            <div className={styles['map-view__marker-info']}>
+                              <span className={styles['map-view__marker-location']}>
+                                <Bell size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                                {marker.label}
+                              </span>
+                              <span className={styles['map-view__marker-coords']}>
+                                {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
+                              </span>
+                            </div>
+                            <span className={styles['map-view__marker-status']} style={{ backgroundColor: '#f59e0b' }}>
+                              {t('moderator.alerteLabel')}
+                            </span>
+                          </div>
+                        );
+                      }
+                      const sig = filteredSignalements.find(s => s.id === marker.id);
+                      if (!sig) return null;
                       const statusBadge = getStatusBadge(sig);
                       const lat = sig.latitude_observation ?? sig.latitude;
                       const lng = sig.longitude_observation ?? sig.longitude;
-
                       return (
                         <div
                           key={sig.id}
                           className={styles['map-view__marker-item']}
-                          onClick={() => setSelectedSignalement(sig)}
+                          onClick={() => handleMarkerClick(marker)}
                         >
                           <div
                             className={styles['map-view__marker-dot']}
@@ -394,9 +461,9 @@ export const MapViewPage: React.FC = () => {
                       );
                     })}
                   </div>
-                  {filteredSignalements.length > 15 && (
+                  {mapMarkers.length > 15 && (
                     <p className={styles['map-view__more-markers']}>
-                      {t('moderator.othersOnMap').replace('{{count}}', String(filteredSignalements.length - 15))}
+                      {t('moderator.othersOnMap').replace('{{count}}', String(mapMarkers.length - 15))}
                     </p>
                   )}
 
@@ -598,6 +665,56 @@ export const MapViewPage: React.FC = () => {
                   <Eye size={18} />
                   {t('moderator.openInValidation')}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal détail alerte */}
+        {selectedAlerte && (
+          <div
+            className={styles['map-view__modal']}
+            onClick={() => setSelectedAlerte(null)}
+          >
+            <div
+              className={styles['map-view__modal-content']}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className={styles['map-view__close-btn']}
+                onClick={() => setSelectedAlerte(null)}
+              >
+                <X size={24} />
+              </button>
+              <div className={styles['map-view__modal-header']}>
+                <Bell size={24} />
+                <h3>{selectedAlerte.titre || t('moderator.alerteLabel')}</h3>
+              </div>
+              <div className={styles['map-view__modal-body']}>
+                <div className={styles['map-view__modal-grid']}>
+                  <div className={styles['map-view__modal-row']}>
+                    <label>{t('moderator.modalCoordinates')}</label>
+                    <span>
+                      {selectedAlerte.latitude_centre?.toFixed(6)}, {selectedAlerte.longitude_centre?.toFixed(6)}
+                    </span>
+                  </div>
+                  <div className={styles['map-view__modal-row']}>
+                    <label>{t('common.date')}</label>
+                    <span>
+                      {new Date(selectedAlerte.date_diffusion || selectedAlerte.created_at).toLocaleString('fr-FR')}
+                    </span>
+                  </div>
+                  <div className={styles['map-view__modal-row']}>
+                    <label>{t('moderator.alerteStatus')}</label>
+                    <span>{selectedAlerte.statut_alerte || 'en_cours'}</span>
+                  </div>
+                </div>
+                <div className={styles['map-view__modal-description']}>
+                  <label>{t('common.description')}</label>
+                  <p>{(selectedAlerte.message_court || selectedAlerte.message || '').substring(0, 300)}
+                    {(selectedAlerte.message_court || selectedAlerte.message || '').length > 300 ? '...' : ''}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
