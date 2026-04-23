@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config/supabase.config';
 import {
@@ -12,12 +12,6 @@ import {
   ChevronRight,
   Eye,
   Users,
-  Menu,
-  X,
-  Map,
-  AlertTriangle,
-  Heart,
-  Mail,
 } from 'lucide-react';
 import styles from './DisparitionsPage.module.css';
 
@@ -48,15 +42,15 @@ interface FilterState {
 }
 
 export const DisparitionsPage: React.FC = () => {
-  const { t, language, changeLanguage } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [filteredDossiers, setFilteredDossiers] = useState<Dossier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     status: '',
     location: '',
@@ -64,6 +58,17 @@ export const DisparitionsPage: React.FC = () => {
   });
 
   const itemsPerPage = 12;
+
+  useEffect(() => {
+    const nom = searchParams.get('nom')?.trim() || '';
+    const location = searchParams.get('location')?.trim() || '';
+    if (!nom && !location) return;
+    setFilters((prev) => ({
+      ...prev,
+      searchTerm: nom || prev.searchTerm,
+      location: location || prev.location,
+    }));
+  }, [searchParams]);
 
   const loadDossiers = useCallback(async () => {
     try {
@@ -185,10 +190,6 @@ export const DisparitionsPage: React.FC = () => {
     navigate(`/disparitions/${dossierId}`);
   };
 
-  const toggleLanguage = () => {
-    changeLanguage(language === 'fr' ? 'en' : 'fr');
-  };
-
   // Pagination
   const totalPages = Math.ceil(filteredDossiers.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
@@ -249,62 +250,6 @@ export const DisparitionsPage: React.FC = () => {
 
   return (
     <div className={styles.disparitionsPage}>
-      {/* Navigation */}
-      <nav className={styles.navbar}>
-        <div className={styles.navContainer}>
-          <Link to="/" className={styles.logo}>
-            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="RetrouvonsLes" className={styles.logoImg} />
-            <span>RETROUVONSLES</span>
-          </Link>
-
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
-            <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Search size={16} />
-              {t('public.navbar.home')}
-            </Link>
-            <Link to="/map" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Map size={16} />
-              {t('public.navbar.map')}
-            </Link>
-            <Link to="/disparitions" className={`${styles.navLink} ${styles.active}`} onClick={() => setMobileMenuOpen(false)}>
-              <Users size={16} />
-              {t('public.navbar.search')}
-            </Link>
-            <Link to="/signaler" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <AlertTriangle size={16} />
-              {t('public.navbar.report')}
-            </Link>
-            <Link to="/about" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Heart size={16} />
-              {t('public.navbar.about')}
-            </Link>
-            <Link to="/contact" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Mail size={16} />
-              {t('public.navbar.contact')}
-            </Link>
-          </div>
-
-          <div className={styles.navActions}>
-            <button className={styles.langBtn} onClick={toggleLanguage}>
-              {language === 'fr' ? 'EN' : 'FR'}
-            </button>
-            <button className={styles.loginBtn} onClick={() => navigate('/auth/login')}>
-              {t('public.navbar.login')}
-            </button>
-            <button
-              type="button"
-              className={styles.mobileMenuBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
       <main className={styles.mainContent}>
         <div className={styles.container}>
           {/* Header */}
@@ -491,7 +436,7 @@ export const DisparitionsPage: React.FC = () => {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <p>© {new Date().getFullYear()} RETROUVONSLES. {language === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
+          <p>{t('public.footer.copyright').replace('{{year}}', String(new Date().getFullYear()))}</p>
         </div>
       </footer>
     </div>

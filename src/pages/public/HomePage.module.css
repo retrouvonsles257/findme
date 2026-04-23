@@ -1,17 +1,21 @@
 /* ============================================
-   HomePage Styles - RetrouvonsLes
-   Primary: #1d4ed8 (Blue)
+   HomePage Styles
+   Bleus : même dégradé que le titre hero (première section)
    Font: Inter
    ============================================ */
 
-/* CSS Variables */
-:root {
-  --color-primary: #1d4ed8;
-  --color-primary-dark: #1e40af;
-  --color-primary-light: #3b82f6;
-  --color-primary-alpha: rgba(29, 78, 216, 0.92);
-  --color-secondary: rgba(30, 144, 255, 0.92);
-  --color-accent: #0ea5e9;
+/* Base + variables (scopées à la page d'accueil) */
+.homePage {
+  /* Référence = texte accentué du hero */
+  --hero-blue-start: #38bdf8;
+  --hero-blue-end: #0ea5e9;
+  --gradient-hero-blue: linear-gradient(135deg, var(--hero-blue-start) 0%, var(--hero-blue-end) 100%);
+  --color-primary: var(--hero-blue-end);
+  --color-primary-dark: #0284c7;
+  --color-primary-light: var(--hero-blue-start);
+  --color-primary-alpha: rgba(14, 165, 233, 0.92);
+  --color-secondary: rgba(56, 189, 248, 0.92);
+  --color-accent: var(--hero-blue-end);
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
@@ -32,40 +36,143 @@
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --transition: all 0.2s ease-in-out;
-}
 
-/* Base Styles */
-.homePage {
   font-family: var(--font-family);
   color: var(--color-text);
   background: var(--color-bg);
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: clip;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
 
 /* ============================================
-   Navigation
+   Navigation (fixée en haut du viewport — « collée » au scroll)
    ============================================ */
-.navbar {
-  position: absolute;
+.navSection {
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  background: transparent;
-  padding: 1rem 0;
-  padding-top: max(1rem, env(safe-area-inset-top));
-  transition: var(--transition);
+  z-index: 200;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  isolation: isolate;
+  pointer-events: none;
+  transition: background-color 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease;
 }
 
-.navbar.scrolled {
-  position: fixed;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-md);
+.navSection .navbar {
+  pointer-events: auto;
+}
+
+.navbar {
+  position: relative;
+  width: 100%;
+  z-index: 2;
+  font-family: var(--font-family, 'Inter', sans-serif);
+  background: transparent;
+  padding: 0.875rem 0;
+  padding-top: max(0.875rem, env(safe-area-inset-top));
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid transparent;
+  transition:
+    padding 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.navbarTinted {
+  border-bottom-color: transparent;
+}
+
+.navbarCompact {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+  padding-bottom: 0.45rem;
+}
+
+.navbarCompact .logoImg {
+  width: 28px;
+  height: 28px;
+}
+
+.navbarCompact .navLinks {
+  gap: 1rem;
+}
+
+.navbarCompact .navLink {
+  font-size: 0.875rem;
+}
+
+.navbarTinted .navLink {
+  color: var(--color-text-light) !important;
+}
+
+.navbarTinted .navLink svg {
+  color: var(--color-primary) !important;
+  opacity: 0.95;
+}
+
+.navbarTinted .navLink:hover {
+  color: var(--color-text) !important;
+}
+
+.navbarTinted .navLink::after {
+  background: var(--color-primary);
+}
+
+.navbarTinted .langBtn {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--color-text) !important;
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+.navbarTinted .langBtn:hover {
+  background: rgba(14, 165, 233, 0.16);
+  color: var(--color-text) !important;
+}
+
+/* Navbar « scrollée » : bouton « Se connecter » toujours lisible
+   (bleu dégradé + texte blanc, ombre marquée pour détacher du fond blanc) */
+.navbarTinted .loginBtn,
+.navbarTinted .loginBtn:focus,
+.navbarTinted .loginBtn:focus-visible {
+  background: var(--gradient-hero-blue) !important;
+  background-image: linear-gradient(135deg, var(--hero-blue-start) 0%, var(--hero-blue-end) 100%) !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 6px 18px rgba(14, 165, 233, 0.35), 0 1px 0 rgba(255, 255, 255, 0.35) inset !important;
+}
+
+.navbarTinted .loginBtn:hover {
+  background: linear-gradient(135deg, var(--hero-blue-start) 0%, var(--color-primary-dark) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 22px rgba(14, 165, 233, 0.42), 0 1px 0 rgba(255, 255, 255, 0.35) inset !important;
+}
+
+.navbarTinted .mobileMenuBtn {
+  color: var(--color-text);
+}
+
+.navbarTinted .logo {
+  color: var(--color-text) !important;
+}
+
+.navbarTinted .logoText {
+  color: var(--color-text) !important;
+  text-shadow: none;
+}
+
+/* Menu mobile plein écran : liens toujours clairs sur fond bleu */
+.navLinksOpen .navLink,
+.navLinksOpen .navLink svg {
+  color: #ffffff !important;
+}
+
+.navLinksOpen .navLink::after {
+  background: #fff;
 }
 
 .navContainer {
@@ -103,11 +210,12 @@
 }
 
 .logoText {
-  font-family: var(--app-name-font);
+  font-family: var(--font-family, 'Inter', sans-serif);
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -168,7 +276,17 @@
   flex-shrink: 0;
 }
 
+.navBtnInner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
 .langBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -189,6 +307,9 @@
 }
 
 .loginBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #ffffff;
   color: var(--color-primary) !important;
   border: none;
@@ -214,12 +335,18 @@
   cursor: pointer;
   padding: 0.5rem;
   flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 /* ============================================
-   Hero Section
+   Hero Section (remonte sous la navbar sticky pour fond plein écran)
    ============================================ */
 .heroSection {
+  margin-top: calc(-1 * var(--nav-h));
   min-height: 100vh;
   min-height: 100dvh;
   position: relative;
@@ -253,16 +380,37 @@
   z-index: 2;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 8rem 2rem 4rem;
+  /*
+   * Le hero a margin-top: -var(--nav-h) + overflow:hidden : la partie du padding
+   * qui « remonte » au-dessus du viewport est clippée. Il faut ~2× la hauteur barre
+   * pour que le contenu (badge, titres) commence réellement sous la navbar.
+   */
+  /* Plus d’espace entre la navbar et le contenu du hero, avec un bas un peu plus respirant. */
+  padding: calc(2 * var(--nav-h) + 1.1rem) 2rem 1rem;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.75rem;
+  align-items: stretch; /* 👈 colonnes alignées haut ET bas */
   min-height: 100vh;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .heroContent {
   color: #fff;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 👈 texte collé en haut (= haut de l’image à droite) */
+  gap: 0.5rem;
+}
+
+/* Le dernier bloc (= carrousel) est poussé au bas de la colonne gauche :
+   bas du carrousel = bas de la photo à droite. Plus de grand vide en bas. */
+.heroContent > *:last-child {
+  margin-top: auto;
 }
 
 .heroTag {
@@ -270,11 +418,14 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  text-align: center;
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   padding: 0.5rem 1rem;
   border-radius: 50px;
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -286,34 +437,72 @@
   flex-shrink: 0;
 }
 
+.heroCameroon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  margin: 0 0 0.25rem;
+  padding: 0.3rem 0.7rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-lg);
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+.cameroonFlag {
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.cameroonFlag svg {
+  display: block;
+  width: 28px;
+  height: 18px;
+}
+
 .heroTitle {
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
   font-weight: 800;
   line-height: 1.1;
-  margin-bottom: 1.5rem;
+  margin: 0;
   letter-spacing: -0.025em;
 }
 
 .highlight {
-  color: var(--color-accent);
-  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+  color: transparent;
+  background: var(--gradient-hero-blue);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  /* Le slogan doit rester sur UNE ligne, quel que soit le breakpoint */
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  display: inline-block;
+  max-width: 100%;
 }
 
 .heroDescription {
-  font-size: 1.25rem;
-  line-height: 1.7;
+  font-size: clamp(0.95rem, 1.45vw, 1.1rem);
+  line-height: 1.55;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 0.75rem;
-  max-width: 540px;
+  margin: 0;
+  max-width: 560px;
 }
 
 .heroCasesCount {
-  font-size: 0.9375rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 2rem;
+  font-size: clamp(0.8125rem, 1.25vw, 0.9375rem);
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0 0 0.35rem;
 }
 
 .heroCTA {
@@ -415,7 +604,7 @@
 
 .searchInput:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
 }
 
 .searchBtn {
@@ -444,17 +633,45 @@
   background: var(--color-primary-dark);
 }
 
-/* Hero Image */
+/* Hero Image — s’étire verticalement (du badge au bas du carrousel) */
 .heroImage {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: relative;
+  align-self: stretch;
+  justify-self: stretch;
+  min-height: 100%;
+  width: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 40px 70px rgba(0, 0, 0, 0.45);
+  isolation: isolate;
+}
+
+.heroImage::after {
+  /* Voile discret pour que l’image reste lisible sur le fond hero (déjà sombre) */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.12) 0%,
+    rgba(15, 23, 42, 0) 35%,
+    rgba(15, 23, 42, 0.25) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
 }
 
 .heroImg {
-  max-width: 100%;
-  height: auto;
-  filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.25));
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.02);
+  transition: transform 0.6s ease;
+}
+
+.heroImage:hover .heroImg {
+  transform: scale(1.06);
 }
 
 /* ============================================
@@ -502,7 +719,7 @@
   justify-content: center;
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 50%;
   color: #fff;
   margin: 0 auto 1.5rem;
@@ -518,6 +735,37 @@
   color: var(--color-primary);
   margin-bottom: 0.5rem;
   line-height: 1;
+}
+
+.statNumberSkeleton {
+  display: inline-block;
+  min-width: 3.5rem;
+  min-height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-secondary) 0%,
+    var(--color-bg-tertiary) 45%,
+    var(--color-bg-secondary) 90%
+  );
+  background-size: 200% 100%;
+  animation: homeStatShimmer 1.15s ease-in-out infinite;
+}
+
+@keyframes homeStatShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statNumberSkeleton {
+    animation: none;
+    background: var(--color-bg-secondary);
+  }
 }
 
 .statLabel {
@@ -564,7 +812,7 @@
   justify-content: center;
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 50%;
   color: #fff;
   margin: 0 auto 1.5rem;
@@ -632,7 +880,7 @@
   justify-content: center;
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: var(--gradient-hero-blue);
   border-radius: var(--radius-xl);
   color: #fff;
   margin-bottom: 1.5rem;
@@ -749,7 +997,7 @@
 .testimonyAvatar {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -834,6 +1082,69 @@
 }
 
 /* ============================================
+   Révélations au scroll — variantes (rejouables à chaque passage dans le viewport)
+   ============================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transition:
+      opacity 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal.revealUp:not(.revealVisible) {
+    transform: translate3d(0, 1.65rem, 0);
+  }
+
+  .reveal.revealDown:not(.revealVisible) {
+    transform: translate3d(0, -1.35rem, 0);
+  }
+
+  .reveal.revealLeft:not(.revealVisible) {
+    transform: translate3d(-2rem, 0, 0);
+  }
+
+  .reveal.revealRight:not(.revealVisible) {
+    transform: translate3d(2rem, 0, 0);
+  }
+
+  .reveal.revealZoom:not(.revealVisible) {
+    transform: translate3d(0, 0, 0) scale(0.92);
+  }
+
+  .reveal.revealVisible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.synergyGrid .reveal,
+.statsContainer .reveal,
+.testimoniesGrid .reveal,
+.mapContainer .reveal {
+  min-width: 0;
+}
+
+.synergyGrid .reveal,
+.statsContainer .reveal {
+  height: 100%;
+}
+
+.synergyGrid .reveal > .synergyCard,
+.statsContainer .reveal > .statCard {
+  height: 100%;
+}
+
+/* ============================================
    Partners Section
    ============================================ */
 .partnersSection {
@@ -889,7 +1200,7 @@
    ============================================ */
 .ctaSection {
   padding: 5rem 2rem;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--gradient-hero-blue);
 }
 
 .ctaContent {
@@ -1091,24 +1402,33 @@
 
 @media (max-width: 1024px) {
   .navContainer {
-    padding: 0 1.5rem;
+    padding: 0 max(1.25rem, env(safe-area-inset-left)) 0 max(1.25rem, env(safe-area-inset-right));
   }
 
   .logoText {
-    font-size: 1rem;
+    font-size: clamp(0.9375rem, 2vw, 1rem);
+    max-width: min(52vw, 14rem);
   }
 
   .heroOverlay {
     grid-template-columns: 1fr;
-    padding: 6rem 1.5rem 4rem;
+    gap: 2rem;
+    align-items: start;
+    padding: calc(2 * var(--nav-h) + 2rem) max(1.25rem, env(safe-area-inset-left)) 4rem max(1.25rem, env(safe-area-inset-right));
   }
 
   .heroImage {
     display: none;
   }
 
+  .heroContent {
+    justify-content: flex-start;
+  }
+
   .heroTitle {
-    font-size: 2.5rem;
+    font-size: clamp(1.7rem, 4.5vw, 2.25rem);
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .heroDescription {
@@ -1141,12 +1461,40 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+    padding-bottom: 0.5rem;
+  }
+
+  .navbarCompact {
+    padding-top: max(0.4rem, env(safe-area-inset-top));
+    padding-bottom: 0.4rem;
+  }
+
   .navContainer {
-    padding: 0 1rem;
+    padding: 0 max(0.75rem, env(safe-area-inset-left)) 0 max(0.75rem, env(safe-area-inset-right));
+    gap: 0.375rem;
+  }
+
+  /* Logo + actions au-dessus du menu plein écran */
+  .navContainer:has(.navLinksOpen) .logo,
+  .navContainer:has(.navLinksOpen) .navActions {
+    position: relative;
+    z-index: 222;
+  }
+
+  .logo {
+    gap: 0.375rem;
+  }
+
+  .logoImg {
+    width: 28px;
+    height: 28px;
   }
 
   .logoText {
-    font-size: 0.95rem;
+    font-size: clamp(0.8125rem, 3.2vw, 0.95rem);
+    max-width: min(46vw, 11rem);
   }
 
   .navLinks {
@@ -1161,9 +1509,10 @@
     justify-content: center;
     align-items: center;
     gap: 2rem;
-    z-index: 99;
+    z-index: 220;
     overflow-y: auto;
-    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)) 1rem;
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-right));
   }
 
   .navLinksOpen {
@@ -1171,8 +1520,8 @@
   }
 
   .mobileMenuBtn {
-    display: block;
-    z-index: 101;
+    display: flex;
+    z-index: 221;
   }
 
   .langBtn {
@@ -1187,18 +1536,32 @@
   }
 
   .heroOverlay {
-    padding: 5rem 1rem 3rem;
+    padding: 3rem max(1rem, env(safe-area-inset-left)) 3rem max(1rem, env(safe-area-inset-right));
     min-height: auto;
-    padding-top: max(5rem, calc(env(safe-area-inset-top) + 4rem));
-    padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 2rem));
+    align-items: start;
+    /* Voir commentaire .heroOverlay : marge clip + badge sur 2 lignes */
+    padding-top: calc(2 * var(--nav-h) + 1rem);
+    padding-bottom: max(3rem, calc(env(safe-area-inset-bottom, 0px) + 2rem));
   }
 
   .heroTitle {
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 6vw, 1.75rem);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    margin: 0;
   }
 
   .heroDescription {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .heroCasesCount {
+    margin: 0 0 0.2rem;
+  }
+
+  .heroContent {
+    gap: 0.4rem;
   }
 
   .heroCTA {
@@ -1372,35 +1735,43 @@
 
 @media (max-width: 480px) {
   .navContainer {
-    padding: 0 0.75rem;
+    padding: 0 max(0.625rem, env(safe-area-inset-left)) 0 max(0.625rem, env(safe-area-inset-right));
+    gap: 0.25rem;
   }
 
   .logoText {
-    font-size: 0.875rem;
-    max-width: 140px;
+    font-size: clamp(0.75rem, 3.5vw, 0.875rem);
+    max-width: min(40vw, 9.5rem);
   }
 
   .navActions {
-    gap: 0.5rem;
+    gap: 0.35rem;
   }
 
   .langBtn {
     padding: 0.375rem 0.625rem;
     font-size: 0.75rem;
-    min-width: 40px;
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
   }
 
   .loginBtn {
-    padding: 0.375rem 0.875rem;
+    padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
+    min-height: 44px;
+    box-sizing: border-box;
   }
 
   .heroOverlay {
-    padding: 4rem 0.75rem 2.5rem;
+    padding: 2.5rem max(0.75rem, env(safe-area-inset-left)) 2.5rem max(0.75rem, env(safe-area-inset-right));
+    padding-top: calc(2 * var(--nav-h) + 0.85rem);
   }
 
   .heroTitle {
-    font-size: 1.5rem;
+    font-size: clamp(1.25rem, 6.8vw, 1.5rem);
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .heroDescription {
@@ -1586,20 +1957,21 @@
 /* Très petits écrans (< 380px) */
 @media (max-width: 380px) {
   .navContainer {
-    padding: 0 0.5rem;
+    padding: 0 max(0.45rem, env(safe-area-inset-left)) 0 max(0.45rem, env(safe-area-inset-right));
   }
 
   .logoText {
-    font-size: 0.8125rem;
-    max-width: 110px;
+    font-size: 0.75rem;
+    max-width: min(36vw, 8.5rem);
   }
 
   .heroOverlay {
-    padding: 3.5rem 0.5rem 2rem;
+    padding: 2rem max(0.5rem, env(safe-area-inset-left)) 2rem max(0.5rem, env(safe-area-inset-right));
+    padding-top: calc(2 * var(--nav-h) + 0.75rem);
   }
 
   .heroTitle {
-    font-size: 1.35rem;
+    font-size: clamp(1.1rem, 7.5vw, 1.35rem);
   }
 
   .heroDescription {

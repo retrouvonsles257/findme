@@ -1,16 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useI18n } from '../../hooks';
+import { useNavigate } from 'react-router-dom';
+import { useI18n, useInView } from '../../hooks';
 import { supabase } from '../../config';
 import {
-  Search,
   AlertTriangle,
   Eye,
   Users,
   MapPin,
-  Phone,
-  Mail,
-  Map,
   Heart,
   UserPlus,
   Brain,
@@ -21,11 +17,42 @@ import {
   Shield,
   Building2,
   Globe,
-  ChevronRight,
-  Menu,
-  X,
 } from 'lucide-react';
 import styles from './HomePage.module.css';
+import { MissingPersonsCarousel, HomeMapSection } from '../../components/public';
+
+type RevealVariant = 'up' | 'down' | 'left' | 'right' | 'zoom';
+
+const REVEAL_VARIANT_CLASS: Record<RevealVariant, string> = {
+  up: styles.revealUp,
+  down: styles.revealDown,
+  left: styles.revealLeft,
+  right: styles.revealRight,
+  zoom: styles.revealZoom,
+};
+
+function Reveal({
+  children,
+  className,
+  style,
+  variant = 'up',
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  variant?: RevealVariant;
+}) {
+  const { ref, isVisible } = useInView();
+  return (
+    <div
+      ref={ref}
+      className={`${styles.reveal} ${REVEAL_VARIANT_CLASS[variant]} ${isVisible ? styles.revealVisible : ''} ${className ?? ''}`}
+      style={style}
+    >
+      {children}
+    </div>
+  );
+}
 
 interface DossierStats {
   totalCases: number;
@@ -44,7 +71,7 @@ interface Temoignage {
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { t, language, changeLanguage } = useI18n();
+  const { t, language } = useI18n();
 
   const [stats, setStats] = useState<DossierStats>({
     totalCases: 0,
@@ -53,9 +80,7 @@ export const HomePage: React.FC = () => {
     totalPhotos: 0,
   });
   const [temoignages, setTemoignages] = useState<Temoignage[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchLocation, setSearchLocation] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [statsLoaded, setStatsLoaded] = useState(false);
 
   const loadStatistics = useCallback(async () => {
     try {
@@ -106,6 +131,8 @@ export const HomePage: React.FC = () => {
       setTemoignages(formatted);
     } catch (err) {
       console.error('Erreur chargement stats:', err);
+    } finally {
+      setStatsLoaded(true);
     }
   }, []);
 
@@ -113,96 +140,35 @@ export const HomePage: React.FC = () => {
     loadStatistics();
   }, [loadStatistics]);
 
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (searchTerm) params.append('nom', searchTerm);
-    if (searchLocation) params.append('location', searchLocation);
-    navigate(`/search?${params.toString()}`);
-  };
-
-  const handleSignalMissing = () => {
-    navigate('/signaler');
-  };
-
-  const handleViewAdvices = () => {
-    navigate('/disparitions');
-  };
-
-  const toggleLanguage = () => {
-    changeLanguage(language === 'fr' ? 'en' : 'fr');
-  };
-
-  const currentYear = new Date().getFullYear();
-
   return (
     <div className={styles.homePage}>
-      {/* Navigation */}
-      <nav className={styles.navbar}>
-        <div className={styles.navContainer}>
-          <Link to="/" className={styles.logo}>
-            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="RetrouvonsLes" className={styles.logoImg} />
-            <span className={`${styles.logoText} app-name-bold`}>RETROUVONSLES</span>
-          </Link>
-
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
-            <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Search size={16} />
-              {t('public.navbar.home')}
-            </Link>
-            <Link to="/map" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Map size={16} />
-              {t('public.navbar.map')}
-            </Link>
-            <Link to="/disparitions" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Users size={16} />
-              {t('public.navbar.search')}
-            </Link>
-            <Link to="/signaler" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <AlertTriangle size={16} />
-              {t('public.navbar.report')}
-            </Link>
-            <Link to="/about" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Heart size={16} />
-              {t('public.navbar.about')}
-            </Link>
-            <Link to="/contact" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Mail size={16} />
-              {t('public.navbar.contact')}
-            </Link>
-          </div>
-
-          <div className={styles.navActions}>
-            <button className={styles.langBtn} onClick={toggleLanguage}>
-              {language === 'fr' ? 'EN' : 'FR'}
-            </button>
-            <button className={styles.loginBtn} onClick={() => navigate('/auth/login')}>
-              {t('public.navbar.login')}
-            </button>
-            <button
-              type="button"
-              className={styles.mobileMenuBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <section className={styles.heroSection}>
+      <section id="home-hero" className={styles.heroSection}>
         <div className={styles.heroOverlay}>
           <div className={styles.heroContent}>
-            <div className={styles.heroTag}>
-              <Brain size={16} />
-              <span>{t('public.home.hero_tag')}</span>
+            <div className={styles.heroCameroon}>
+              <span className={styles.cameroonFlag} aria-hidden>
+                <svg viewBox="0 0 9 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect width="3" height="6" fill="#007A5E" />
+                  <rect x="3" width="3" height="6" fill="#CE1126" />
+                  <rect x="6" width="3" height="6" fill="#FCD116" />
+                  {/* Étoile à 5 branches (or), centrée sur la bande rouge */}
+                  <polygon
+                    fill="#FCD116"
+                    stroke="#CE1126"
+                    strokeWidth="0.04"
+                    strokeLinejoin="round"
+                    points="4.5,2.05 4.72,2.69 5.4,2.71 4.86,3.12 5.06,3.77 4.5,3.38 3.94,3.77 4.14,3.12 3.6,2.71 4.28,2.69"
+                  />
+                </svg>
+              </span>
+              <span>{t('public.home.cameroon_badge')}</span>
             </div>
             <h1 className={styles.heroTitle}>
-              {t('public.home.title').split(',')[0]},{' '}
+              {t('public.home.title').split(',')[0]},
+              <br />
               <span className={styles.highlight}>
-                {t('public.home.title').split(',')[1] || 'Retrouvons-les'}
+                {(t('public.home.title').split(',')[1] || 'Retrouvons-Les').trim()}
               </span>
             </h1>
             <p className={styles.heroDescription}>{t('public.home.subtitle')}</p>
@@ -210,178 +176,164 @@ export const HomePage: React.FC = () => {
               {t('public.home.cases_count').replace('{{count}}', String(stats.totalCases || 441))}
             </p>
 
-            <div className={styles.heroCTA}>
-              <button className={styles.btnPrimary} onClick={handleSignalMissing}>
-                <AlertTriangle size={18} />
-                <span>{t('public.home.report_btn')}</span>
-              </button>
-              <button className={styles.btnSecondary} onClick={handleViewAdvices}>
-                <Eye size={18} />
-                <span>{t('public.home.consult_btn')}</span>
-              </button>
-            </div>
-
-            <div className={styles.searchBox}>
-              <div className={styles.searchInputGroup}>
-                <div className={styles.searchInputWrapper}>
-                  <Search size={18} className={styles.searchIcon} />
-                  <input
-                    type="text"
-                    placeholder={t('public.home.search_placeholder')}
-                    className={styles.searchInput}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
-                </div>
-                <div className={styles.searchInputWrapper}>
-                  <MapPin size={18} className={styles.searchIcon} />
-                  <input
-                    type="text"
-                    placeholder={t('public.home.location_placeholder')}
-                    className={styles.searchInput}
-                    value={searchLocation}
-                    onChange={(e) => setSearchLocation(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
-                </div>
-                <button className={styles.searchBtn} onClick={handleSearch}>
-                  <Search size={18} />
-                  <span>{t('public.home.search_btn')}</span>
-                </button>
-              </div>
-            </div>
+            <MissingPersonsCarousel />
           </div>
-          <div className={styles.heroImage}>
-            <img src="/assets/images/unity.png" alt="Ensemble" className={styles.heroImg} />
+          <div className={styles.heroImage} aria-hidden>
+            <img src="/assets/images/unity.png" alt="" className={styles.heroImg} />
           </div>
         </div>
       </section>
 
       {/* Statistics Section */}
-      <section className={styles.statsSection}>
-        <h2 className={styles.sectionTitle}>{t('public.home.stats_title')}</h2>
+      <section id="home-stats" className={styles.statsSection}>
+        <Reveal variant="up">
+          <h2 className={styles.sectionTitle}>{t('public.home.stats_title')}</h2>
+        </Reveal>
         <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <Users size={32} />
+          <Reveal variant="up" style={{ transitionDelay: '0ms' }}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>
+                <Users size={32} />
+              </div>
+              <div className={styles.statNumber}>
+                {!statsLoaded ? <span className={styles.statNumberSkeleton} aria-hidden /> : stats.totalCases}
+              </div>
+              <div className={styles.statLabel}>{t('public.home.total_cases')}</div>
+              <div className={styles.statSubtext}>{t('public.home.total_cases_desc')}</div>
             </div>
-            <div className={styles.statNumber}>{stats.totalCases}</div>
-            <div className={styles.statLabel}>{t('public.home.total_cases')}</div>
-            <div className={styles.statSubtext}>{t('public.home.total_cases_desc')}</div>
-          </div>
+          </Reveal>
 
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <MessageSquare size={32} />
+          <Reveal variant="right" style={{ transitionDelay: '75ms' }}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>
+                <MessageSquare size={32} />
+              </div>
+              <div className={styles.statNumber}>
+                {!statsLoaded ? (
+                  <span className={styles.statNumberSkeleton} aria-hidden />
+                ) : stats.totalSignalements > 1000 ? (
+                  `${Math.floor(stats.totalSignalements / 1000)}k`
+                ) : (
+                  stats.totalSignalements
+                )}
+              </div>
+              <div className={styles.statLabel}>{t('public.home.total_signals')}</div>
+              <div className={styles.statSubtext}>{t('public.home.total_signals_desc')}</div>
             </div>
-            <div className={styles.statNumber}>
-              {stats.totalSignalements > 1000
-                ? `${Math.floor(stats.totalSignalements / 1000)}k`
-                : stats.totalSignalements}
-            </div>
-            <div className={styles.statLabel}>{t('public.home.total_signals')}</div>
-            <div className={styles.statSubtext}>{t('public.home.total_signals_desc')}</div>
-          </div>
+          </Reveal>
 
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <Eye size={32} />
+          <Reveal variant="zoom" style={{ transitionDelay: '150ms' }}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>
+                <Eye size={32} />
+              </div>
+              <div className={styles.statNumber}>
+                {!statsLoaded ? (
+                  <span className={styles.statNumberSkeleton} aria-hidden />
+                ) : stats.totalAvis > 1000 ? (
+                  `${Math.floor(stats.totalAvis / 1000)}k`
+                ) : (
+                  stats.totalAvis
+                )}
+              </div>
+              <div className={styles.statLabel}>{t('public.home.total_opinions')}</div>
+              <div className={styles.statSubtext}>{t('public.home.total_opinions_desc')}</div>
             </div>
-            <div className={styles.statNumber}>
-              {stats.totalAvis > 1000
-                ? `${Math.floor(stats.totalAvis / 1000)}k`
-                : stats.totalAvis}
-            </div>
-            <div className={styles.statLabel}>{t('public.home.total_opinions')}</div>
-            <div className={styles.statSubtext}>{t('public.home.total_opinions_desc')}</div>
-          </div>
+          </Reveal>
 
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <Camera size={32} />
+          <Reveal variant="left" style={{ transitionDelay: '225ms' }}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>
+                <Camera size={32} />
+              </div>
+              <div className={styles.statNumber}>
+                {!statsLoaded ? (
+                  <span className={styles.statNumberSkeleton} aria-hidden />
+                ) : stats.totalPhotos > 1000 ? (
+                  `${Math.floor(stats.totalPhotos / 1000)}k`
+                ) : (
+                  stats.totalPhotos
+                )}
+              </div>
+              <div className={styles.statLabel}>{t('public.home.total_photos')}</div>
+              <div className={styles.statSubtext}>{t('public.home.total_photos_desc')}</div>
             </div>
-            <div className={styles.statNumber}>
-              {stats.totalPhotos > 1000
-                ? `${Math.floor(stats.totalPhotos / 1000)}k`
-                : stats.totalPhotos}
-            </div>
-            <div className={styles.statLabel}>{t('public.home.total_photos')}</div>
-            <div className={styles.statSubtext}>{t('public.home.total_photos_desc')}</div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Synergy Section */}
-      <section className={styles.synergySection}>
-        <h2 className={styles.sectionTitle}>
-          {t('public.home.synergy_title').split(' ').slice(0, -1).join(' ')}{' '}
-          <span className={styles.highlight}>
-            {t('public.home.synergy_title').split(' ').slice(-1)}
-          </span>
-        </h2>
+      <section id="home-synergy" className={styles.synergySection}>
+        <Reveal variant="left">
+          <h2 className={styles.sectionTitle}>
+            {t('public.home.synergy_title').split(' ').slice(0, -1).join(' ')}{' '}
+            <span className={styles.highlight}>
+              {t('public.home.synergy_title').split(' ').slice(-1)}
+            </span>
+          </h2>
+        </Reveal>
 
         <div className={styles.synergyGrid}>
-          <div className={styles.synergyCard}>
-            <div className={styles.synergyIcon}>
-              <AlertTriangle size={40} />
+          <Reveal variant="up" style={{ transitionDelay: '0ms' }}>
+            <div className={styles.synergyCard}>
+              <div className={styles.synergyIcon}>
+                <AlertTriangle size={40} />
+              </div>
+              <div className={styles.synergyStep}>01</div>
+              <h3>{t('public.home.synergy_step1_title')}</h3>
+              <p>{t('public.home.synergy_step1_desc')}</p>
             </div>
-            <div className={styles.synergyStep}>01</div>
-            <h3>{t('public.home.synergy_step1_title')}</h3>
-            <p>{t('public.home.synergy_step1_desc')}</p>
-          </div>
+          </Reveal>
 
-          <div className={styles.synergyCard}>
-            <div className={styles.synergyIcon}>
-              <Brain size={40} />
+          <Reveal variant="zoom" style={{ transitionDelay: '80ms' }}>
+            <div className={styles.synergyCard}>
+              <div className={styles.synergyIcon}>
+                <Brain size={40} />
+              </div>
+              <div className={styles.synergyStep}>02</div>
+              <h3>{t('public.home.synergy_step2_title')}</h3>
+              <p>{t('public.home.synergy_step2_desc')}</p>
             </div>
-            <div className={styles.synergyStep}>02</div>
-            <h3>{t('public.home.synergy_step2_title')}</h3>
-            <p>{t('public.home.synergy_step2_desc')}</p>
-          </div>
+          </Reveal>
 
-          <div className={styles.synergyCard}>
-            <div className={styles.synergyIcon}>
-              <Users size={40} />
+          <Reveal variant="right" style={{ transitionDelay: '160ms' }}>
+            <div className={styles.synergyCard}>
+              <div className={styles.synergyIcon}>
+                <Users size={40} />
+              </div>
+              <div className={styles.synergyStep}>03</div>
+              <h3>{t('public.home.synergy_step3_title')}</h3>
+              <p>{t('public.home.synergy_step3_desc')}</p>
             </div>
-            <div className={styles.synergyStep}>03</div>
-            <h3>{t('public.home.synergy_step3_title')}</h3>
-            <p>{t('public.home.synergy_step3_desc')}</p>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Interactive Map Section */}
-      <section className={styles.mapSection}>
-        <div className={styles.mapContainer}>
-          <div className={styles.mapContent}>
-            <div className={styles.mapIcon}>
-              <Map size={48} />
-            </div>
-            <h3 className={styles.mapTitle}>{t('public.home.map_title')}</h3>
-            <p className={styles.mapDescription}>{t('public.home.map_description')}</p>
-            <button className={styles.mapBtn} onClick={() => navigate('/map')}>
-              <MapPin size={18} />
-              <span>{t('public.home.map_cta')}</span>
-              <ChevronRight size={18} />
-            </button>
-          </div>
-          <div className={styles.mapPlaceholder}>
-            <Map size={64} />
-            <span>{t('public.home.map_title')}</span>
-          </div>
-        </div>
+      <section id="home-map" className={styles.mapSection}>
+        <Reveal variant="up">
+          <HomeMapSection />
+        </Reveal>
       </section>
 
       {/* Testimonies Section */}
-      <section className={styles.testimoniesSection}>
-        <h2 className={styles.sectionTitle}>{t('public.home.testimonies_title')}</h2>
-        <p className={styles.testimoniesSubtitle}>{t('public.home.testimonies_subtitle')}</p>
+      <section id="home-testimonies" className={styles.testimoniesSection}>
+        <Reveal variant="down">
+          <h2 className={styles.sectionTitle}>{t('public.home.testimonies_title')}</h2>
+        </Reveal>
+        <Reveal variant="right" style={{ transitionDelay: '50ms' }}>
+          <p className={styles.testimoniesSubtitle}>{t('public.home.testimonies_subtitle')}</p>
+        </Reveal>
 
         <div className={styles.testimoniesGrid}>
           {temoignages.length > 0 ? (
-            temoignages.map((temoignage) => (
-              <div key={temoignage.id} className={styles.testimonyCard}>
+            temoignages.map((temoignage, index) => (
+              <Reveal
+                key={temoignage.id}
+                variant={index % 2 === 0 ? 'up' : 'left'}
+                style={{ transitionDelay: `${index * 70}ms` }}
+              >
+                <div className={styles.testimonyCard}>
                 <div className={styles.testimonyHeader}>
                   <div className={styles.testimonyAvatar}>
                     {temoignage.photo_principale ? (
@@ -413,21 +365,27 @@ export const HomePage: React.FC = () => {
                     })}
                   </p>
                 )}
-              </div>
+                </div>
+              </Reveal>
             ))
           ) : (
-            <div className={styles.noTestimonies}>
-              <Heart size={48} />
-              <p>{t('public.home.testimonies_empty')}</p>
-            </div>
+            <Reveal variant="zoom">
+              <div className={styles.noTestimonies}>
+                <Heart size={48} />
+                <p>{t('public.home.testimonies_empty')}</p>
+              </div>
+            </Reveal>
           )}
         </div>
       </section>
 
       {/* Partners Section */}
-      <section className={styles.partnersSection}>
-        <p className={styles.partnersText}>{t('public.home.partners_title')}</p>
-        <div className={styles.partnersList}>
+      <section id="home-partners" className={styles.partnersSection}>
+        <Reveal variant="zoom">
+          <p className={styles.partnersText}>{t('public.home.partners_title')}</p>
+        </Reveal>
+        <Reveal variant="up" style={{ transitionDelay: '60ms' }}>
+          <div className={styles.partnersList}>
           <div className={styles.partnerLogo}>
             <Shield size={24} />
             <span>{t('public.home.partner_police')}</span>
@@ -449,99 +407,29 @@ export const HomePage: React.FC = () => {
             <span>{t('public.home.partner_unesco')}</span>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* CTA Section */}
-      <section className={styles.ctaSection}>
-        <div className={styles.ctaContent}>
-          <h2>{t('public.home.cta_title')}</h2>
-          <p>{t('public.home.cta_description')}</p>
-          <div className={styles.ctaButtons}>
-            <button className={styles.donateBtn} onClick={() => navigate('/donate')}>
-              <Sparkles size={18} />
-              <span>{t('public.home.donate_cta')}</span>
-            </button>
-            <button className={styles.volunteerBtn} onClick={() => navigate('/volunteer')}>
-              <UserPlus size={18} />
-              <span>{t('public.home.volunteer_cta')}</span>
-            </button>
+      <section id="home-cta" className={styles.ctaSection}>
+        <Reveal variant="zoom">
+          <div className={styles.ctaContent}>
+            <h2>{t('public.home.cta_title')}</h2>
+            <p>{t('public.home.cta_description')}</p>
+            <div className={styles.ctaButtons}>
+              <button type="button" className={styles.donateBtn} onClick={() => navigate('/donate')}>
+                <Sparkles size={18} />
+                <span>{t('public.home.donate_cta')}</span>
+              </button>
+              <button type="button" className={styles.volunteerBtn} onClick={() => navigate('/volunteer')}>
+                <UserPlus size={18} />
+                <span>{t('public.home.volunteer_cta')}</span>
+              </button>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <div className={styles.footerSection}>
-            <div className={styles.footerLogo}>
-              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="RetrouvonsLes" className={styles.footerLogoImg} />
-              <span>RETROUVONSLES</span>
-            </div>
-            <p>{t('public.footer.description')}</p>
-          </div>
-
-          <div className={styles.footerSection}>
-            <h4>{t('public.footer.navigation')}</h4>
-            <ul>
-              <li>
-                <Link to="/">{t('public.navbar.home')}</Link>
-              </li>
-              <li>
-                <Link to="/about">{t('public.navbar.about')}</Link>
-              </li>
-              <li>
-                <Link to="/how-it-works">{t('public.how_it_works.title')}</Link>
-              </li>
-              <li>
-                <Link to="/contact">{t('public.navbar.contact')}</Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className={styles.footerSection}>
-            <h4>{t('public.footer.resources')}</h4>
-            <ul>
-              <li>
-                <Link to="/search">{t('public.navbar.search')}</Link>
-              </li>
-              <li>
-                <Link to="/map">{t('public.navbar.map')}</Link>
-              </li>
-              <li>
-                <Link to="/disparitions">{t('public.disparitions.title')}</Link>
-              </li>
-              <li>
-                <Link to="/donate">{t('public.donate.title')}</Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className={styles.footerSection}>
-            <h4>{t('public.footer.contact')}</h4>
-            <p className={styles.contactItem}>
-              <Mail size={16} />
-              <span>{t('public.footer.email')}</span>
-            </p>
-            <p className={styles.contactItem}>
-              <Phone size={16} />
-              <span>{t('public.footer.phone')}</span>
-            </p>
-            <p className={styles.contactItem}>
-              <MapPin size={16} />
-              <span>{t('public.footer.address')}</span>
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.footerBottom}>
-          <p>{t('public.footer.copyright').replace('{{year}}', String(currentYear))}</p>
-          <div className={styles.footerLinks}>
-            <Link to="/legal">{t('public.footer.legal')}</Link>
-            <Link to="/privacy">{t('public.footer.privacy')}</Link>
-            <Link to="/terms">{t('public.footer.terms')}</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

@@ -32,7 +32,7 @@ interface SystemConfig {
 }
 
 const DEFAULT_CONFIG: SystemConfig = {
-  system_name: 'RETROUVONSLES',
+  system_name: 'RETROUVONS-LES',
   system_version: '1.0.0',
   default_language: 'fr',
   maintenance_mode: false,

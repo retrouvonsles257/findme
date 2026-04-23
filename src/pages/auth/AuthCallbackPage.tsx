@@ -195,7 +195,7 @@ export const AuthCallbackPage: React.FC = () => {
 
           <div className={styles.blueCard}>
             <div className={styles.badge}>Authentification</div>
-            <h2 className={styles.blueTitle}>Bienvenue sur Retrouvons Les</h2>
+            <h2 className={styles.blueTitle}>Bienvenue sur Retrouvons-Les</h2>
             <p className={styles.blueText}>
               Nous vérifions votre identité pour sécuriser votre accès à la plateforme.
             </p>

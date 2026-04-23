@@ -91,7 +91,7 @@ export const useCoordinationHistory = (): UseCoordinationHistoryReturn => {
           titre: alerte.statut_alerte === 'en_cours' ? 'Alerte diffusée' : 'Alerte créée',
           description: alerte.titre || 'Nouvelle alerte',
           auteur: 'Système',
-          organisation: 'RetrouvonsLes',
+          organisation: 'Retrouvons-Les',
           timestamp: alerte.date_diffusion || new Date().toISOString(),
           metadata: { statut: alerte.statut_alerte },
         });
@@ -105,7 +105,7 @@ export const useCoordinationHistory = (): UseCoordinationHistoryReturn => {
           titre: 'Dossier mis à jour',
           description: `${dossier.numero_dossier || 'Dossier'} - Statut: ${dossier.statut_dossier}`,
           auteur: 'Système',
-          organisation: 'RetrouvonsLes',
+          organisation: 'Retrouvons-Les',
           timestamp: dossier.updated_at,
           dossier_id: dossier.id,
         });
@@ -129,7 +129,7 @@ export const useCoordinationHistory = (): UseCoordinationHistoryReturn => {
           titre: 'Message de coordination',
           description: 'Système de coordination initialisé',
           auteur: 'Système',
-          organisation: 'RetrouvonsLes',
+          organisation: 'Retrouvons-Les',
           timestamp: new Date().toISOString(),
         },
       ]);

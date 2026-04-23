@@ -1,7 +1,7 @@
 {
   "dashboardTitle": "Tableau de bord Super Admin",
   "dashboardSubtitle": "Bienvenue sur le tableau de bord Super Admin",
-  "dashboardDescription": "Gestion complète du système RETROUVONSLES",
+  "dashboardDescription": "Gestion complète du système RETROUVONS-LES",
   "recentActivities": "Activités récentes",
   "noActivities": "Aucune activité récente",
   "thisMonth": "ce mois",
@@ -220,7 +220,7 @@
   "signalementValidationMenu": "Validation Signalements",
   "profileMenu": "Mon Profil",
   "maintenanceMenu": "Maintenance",
-  "layoutAppName": "RetrouvonsLes",
+  "layoutAppName": "Retrouvons-Les",
   "layoutOpenMenu": "Ouvrir le menu",
   "layoutReduceMenu": "Réduire le menu",
   "layoutLanguageEn": "English",

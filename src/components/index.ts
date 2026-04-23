@@ -16,6 +16,9 @@ export * from './ia';
 // Layout
 export * from './layout';
 
+// Public site (shell, navbar, footer)
+export * from './public';
+
 // Maps
 export * from './maps';
 

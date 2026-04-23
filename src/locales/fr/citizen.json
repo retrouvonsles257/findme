@@ -105,7 +105,7 @@
     "donations": "Dons",
     "signalements": "Signalements",
     "noResultsFound": "Aucun résultat trouvé",
-    "donationsSubtitle": "Soutenez RetrouvonsLes avec Orange Money ou MTN MoMo",
+    "donationsSubtitle": "Soutenez Retrouvons-Les avec Orange Money ou MTN MoMo",
     "makeDonation": "Faire un don",
     "myDonations": "Mes dons",
     "donationsMockNote": "En dev, le paiement est simulé. En production, la confirmation viendra via webhook de la passerelle.",

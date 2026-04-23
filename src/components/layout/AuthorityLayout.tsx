@@ -17,7 +17,7 @@ export interface AuthorityLayoutProps {
 export const AuthorityLayout: React.FC<AuthorityLayoutProps> = ({ children }) => {
   return (
     <DashboardLayout
-      header={<HeaderAuthority logo={<span>RetrouvonsLes</span>} />}
+      header={<HeaderAuthority logo={<span>Retrouvons-Les</span>} />}
       sidebar={<SidebarAuthority />}
     >
       {children}

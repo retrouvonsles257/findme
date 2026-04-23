@@ -6,68 +6,54 @@
  */
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { PublicSiteLayout } from '../components/public';
 import {
   HomePage,
-  SearchPage,
   DisparitionsPage,
   DossierDetailPage,
-  MapPage,
   AboutPage,
   ContactPage,
   DonatePage,
   HowItWorksPage,
-  PreventingPage
+  PreventingPage,
+  AppDownloadPage,
 } from '../pages/public';
 
 import { PUBLIC_ROUTES } from './routes.config';
 
+/** Redirige /search?… vers /disparitions?… (mêmes paramètres de requête). */
+const SearchToDisparitionsRedirect: React.FC = () => {
+  const [params] = useSearchParams();
+  const s = params.toString();
+  return <Navigate to={s ? `${PUBLIC_ROUTES.DISPARITIONS}?${s}` : PUBLIC_ROUTES.DISPARITIONS} replace />;
+};
+
+/** Redirige /map vers la section carte de la home. */
+const MapToHomeRedirect: React.FC = () => (
+  <Navigate to={{ pathname: PUBLIC_ROUTES.HOME, hash: '#home-map' }} replace />
+);
+
 /**
  * PublicRoutes Component
  * Contient toutes les routes publiques accessibles sans authentification
- * - Accueil (statistics, testimonials)
- * - Recherche avancée de dossiers
- * - Liste des disparitions
- * - Détail d'un dossier
- * - Carte interactive
- * - À Propos
- * - Contact
- * - Faire un don
- * - Comment ça marche
- * - Prévention
  */
 const PublicRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Home Page */}
-      <Route path={PUBLIC_ROUTES.HOME} element={<HomePage />} />
-
-      {/* Search Page */}
-      <Route path={PUBLIC_ROUTES.SEARCH} element={<SearchPage />} />
-
-      {/* Disparitions List */}
-      <Route path={PUBLIC_ROUTES.DISPARITIONS} element={<DisparitionsPage />} />
-
-      {/* Dossier Detail */}
-      <Route path={PUBLIC_ROUTES.DOSSIER_DETAIL} element={<DossierDetailPage />} />
-
-      {/* Interactive Map */}
-      <Route path={PUBLIC_ROUTES.MAP} element={<MapPage />} />
-
-      {/* About Page */}
-      <Route path={PUBLIC_ROUTES.ABOUT} element={<AboutPage />} />
-
-      {/* Contact Form */}
-      <Route path={PUBLIC_ROUTES.CONTACT} element={<ContactPage />} />
-
-      {/* Donation Page */}
-      <Route path={PUBLIC_ROUTES.DONATE} element={<DonatePage />} />
-
-      {/* How It Works */}
-      <Route path={PUBLIC_ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
-
-      {/* Prevention Tips */}
-      <Route path={PUBLIC_ROUTES.PREVENTING} element={<PreventingPage />} />
+      <Route element={<PublicSiteLayout />}>
+        <Route path={PUBLIC_ROUTES.HOME} element={<HomePage />} />
+        <Route path={PUBLIC_ROUTES.SEARCH} element={<SearchToDisparitionsRedirect />} />
+        <Route path={PUBLIC_ROUTES.DISPARITIONS} element={<DisparitionsPage />} />
+        <Route path={PUBLIC_ROUTES.DOSSIER_DETAIL} element={<DossierDetailPage />} />
+        <Route path={PUBLIC_ROUTES.MAP} element={<MapToHomeRedirect />} />
+        <Route path={PUBLIC_ROUTES.ABOUT} element={<AboutPage />} />
+        <Route path={PUBLIC_ROUTES.CONTACT} element={<ContactPage />} />
+        <Route path={PUBLIC_ROUTES.DONATE} element={<DonatePage />} />
+        <Route path={PUBLIC_ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
+        <Route path={PUBLIC_ROUTES.PREVENTING} element={<PreventingPage />} />
+        <Route path={PUBLIC_ROUTES.APP} element={<AppDownloadPage />} />
+      </Route>
     </Routes>
   );
 };

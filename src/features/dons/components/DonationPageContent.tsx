@@ -129,7 +129,7 @@ export const DonationPageContent: React.FC<DonationPageContentProps> = ({
                 <div className={`${styles.grid} ${showHistory ? styles.gridThree : ''}`}>
                   <aside className={styles.left}>
                     <h1 className={styles.heroTitle}>
-                    Soutenez <span className={styles.heroHighlight}>RetrouvonsLes</span>
+                    Soutenez <span className={styles.heroHighlight}>Retrouvons-Les</span>
                   </h1>
                   <p className={styles.mission}>
                     Chaque don nous aide à ramener un être cher à sa famille grâce à notre technologie de recherche et d'alerte instantanée au Cameroun.
@@ -185,7 +185,7 @@ export const DonationPageContent: React.FC<DonationPageContentProps> = ({
               <div className={`${styles.grid} ${showHistory ? styles.gridThree : ''}`}>
                 <aside className={styles.left}>
                   <h1 className={styles.heroTitle}>
-                    Soutenez <span className={styles.heroHighlight}>RetrouvonsLes</span>
+                    Soutenez <span className={styles.heroHighlight}>Retrouvons-Les</span>
                   </h1>
                   <p className={styles.mission}>
                     Chaque don nous aide à ramener un être cher à sa famille grâce à notre technologie de recherche et d'alerte instantanée au Cameroun.
@@ -266,7 +266,7 @@ export const DonationPageContent: React.FC<DonationPageContentProps> = ({
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerRow}>
-            <span className={styles.footerLogo}>RetrouvonsLes</span>
+            <span className={styles.footerLogo}>Retrouvons-Les</span>
             <nav className={styles.footerNav} aria-label="Pied de page">
               <a href="/conditions">Conditions Générales</a>
               <a href="/confidentialite">Politique de Confidentialité</a>
@@ -278,7 +278,7 @@ export const DonationPageContent: React.FC<DonationPageContentProps> = ({
             </div>
           </div>
           <p className={styles.footerCopy}>
-            © {new Date().getFullYear()} RetrouvonsLes. Tous droits réservés. Association à but non lucratif enregistrée au Cameroun.
+            © {new Date().getFullYear()} Retrouvons-Les. Tous droits réservés. Association à but non lucratif enregistrée au Cameroun.
           </p>
         </div>
       </footer>

@@ -13,10 +13,10 @@ import { envConfig } from './env.config';
 
 export const appConfig = {
   // App Identity
-  name: 'RetrouvonsLes',
+  name: 'Retrouvons-Les',
   version: '1.0.0',
   description: 'Platform for finding and reunifying missing persons in Africa',
-  author: 'RetrouvonsLes Team',
+  author: 'Retrouvons-Les Team',
 
   // Environment
   isDevelopment: envConfig.NODE_ENV === 'development',

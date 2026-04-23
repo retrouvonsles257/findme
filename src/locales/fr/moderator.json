@@ -184,7 +184,7 @@
   "donationsMenu": "Dons",
 
   "sidebar": {
-    "appName": "RetrouvonsLes",
+    "appName": "Retrouvons-Les",
     "roleModerator": "Modérateur"
   },
   "notifications": {
@@ -257,7 +257,7 @@
   "loadingReports": "Chargement des rapports...",
   "reportsCount": "{{count}} signalements",
   "closed": "Fermés",
-  "donationsHeroTitle": "Soutenir RetrouvonsLes",
+  "donationsHeroTitle": "Soutenir Retrouvons-Les",
   "donationsHeroSubtitle": "Orange Money / MTN MoMo (mode dev/mock par défaut). Les confirmations réelles passent par webhook.",
   "donationsPillOrangeMtn": "Orange Money",
   "donationsPillMtn": "MTN MoMo",

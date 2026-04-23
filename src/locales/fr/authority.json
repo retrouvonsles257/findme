@@ -559,7 +559,7 @@
       }
     },
   "sidebar": {
-    "appName": "RetrouvonsLes",
+    "appName": "Retrouvons-Les",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "editProfile": "Modifier le profil",
@@ -1520,7 +1520,7 @@
       "completedCampaigns": "Campagnes terminées"
     },
     "makeDonation": "Faire un don",
-    "ctaDonDescription": "Accédez à la page de don pour soutenir RetrouvonsLes et consulter votre historique de dons.",
+    "ctaDonDescription": "Accédez à la page de don pour soutenir Retrouvons-Les et consulter votre historique de dons.",
     "goToDonate": "Aller à la page de don",
     "modal": {
       "description": "Description",

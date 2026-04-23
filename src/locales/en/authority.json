@@ -734,7 +734,7 @@
       }
     },
   "sidebar": {
-    "appName": "RetrouvonsLes",
+    "appName": "Retrouvons-Les",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "editProfile": "Edit profile",
@@ -1519,7 +1519,7 @@
       "completedCampaigns": "Completed campaigns"
     },
     "makeDonation": "Make a donation",
-    "ctaDonDescription": "Go to the donation page to support RetrouvonsLes and view your donation history.",
+    "ctaDonDescription": "Go to the donation page to support Retrouvons-Les and view your donation history.",
     "goToDonate": "Go to donation page",
     "modal": {
       "description": "Description",

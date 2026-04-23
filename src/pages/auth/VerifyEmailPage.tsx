@@ -97,7 +97,7 @@ export const VerifyEmailPage: React.FC = () => {
             <h3>📬 Que faire maintenant ?</h3>
             <ol className={styles.instructionList}>
               <li>Ouvrez votre boîte de réception</li>
-              <li>Cherchez l'email de <strong>Retrouvons Les</strong></li>
+              <li>Cherchez l'email de <strong>Retrouvons-Les</strong></li>
               <li>Cliquez sur le lien de confirmation dans l'email</li>
               <li>Vous serez redirigé pour compléter votre profil</li>
             </ol>

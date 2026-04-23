@@ -297,7 +297,7 @@ export const DonationsPage: React.FC = () => {
               <div>
                 <h2 className={styles.ctaDonTitle}>{t('authority.donations.makeDonation') || 'Faire un don'}</h2>
                 <p className={styles.ctaDonText}>
-                  {t('authority.donations.ctaDonDescription') || 'Accédez à la page de don pour soutenir RetrouvonsLes et consulter votre historique de dons.'}
+                  {t('authority.donations.ctaDonDescription') || 'Accédez à la page de don pour soutenir Retrouvons-Les et consulter votre historique de dons.'}
                 </p>
               </div>
             </div>

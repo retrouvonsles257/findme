@@ -1,15 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import {
-  Search,
-  Map,
-  Users,
-  AlertTriangle,
   Heart,
-  Mail,
-  Menu,
-  X,
   Target,
   Eye,
   Sparkles,
@@ -21,13 +14,8 @@ import {
 import styles from './AboutPage.module.css';
 
 export const AboutPage: React.FC = () => {
-  const { t, language, changeLanguage } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const toggleLanguage = () => {
-    changeLanguage(language === 'fr' ? 'en' : 'fr');
-  };
 
   const values = [
     {
@@ -93,61 +81,6 @@ export const AboutPage: React.FC = () => {
 
   return (
     <div className={styles.aboutPage}>
-      {/* Navigation */}
-      <nav className={styles.navbar}>
-        <div className={styles.navContainer}>
-          <Link to="/" className={styles.logo}>
-            <Search size={24} />
-            <span>RETROUVONSLES</span>
-          </Link>
-
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
-            <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Search size={16} />
-              {t('public.navbar.home')}
-            </Link>
-            <Link to="/map" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Map size={16} />
-              {t('public.navbar.map')}
-            </Link>
-            <Link to="/disparitions" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Users size={16} />
-              {t('public.navbar.search')}
-            </Link>
-            <Link to="/signaler" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <AlertTriangle size={16} />
-              {t('public.navbar.report')}
-            </Link>
-            <Link to="/about" className={`${styles.navLink} ${styles.active}`} onClick={() => setMobileMenuOpen(false)}>
-              <Heart size={16} />
-              {t('public.navbar.about')}
-            </Link>
-            <Link to="/contact" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>
-              <Mail size={16} />
-              {t('public.navbar.contact')}
-            </Link>
-          </div>
-
-          <div className={styles.navActions}>
-            <button className={styles.langBtn} onClick={toggleLanguage}>
-              {language === 'fr' ? 'EN' : 'FR'}
-            </button>
-            <button className={styles.loginBtn} onClick={() => navigate('/auth/login')}>
-              {t('public.navbar.login')}
-            </button>
-            <button
-              type="button"
-              className={styles.mobileMenuBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
@@ -247,7 +180,7 @@ export const AboutPage: React.FC = () => {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <p>© {new Date().getFullYear()} RETROUVONSLES. {language === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
+          <p>{t('public.footer.copyright').replace('{{year}}', String(new Date().getFullYear()))}</p>
         </div>
       </footer>
     </div>

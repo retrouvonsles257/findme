@@ -105,7 +105,7 @@
   "donations": "Donations",
   "signalements": "Reports",
   "noResultsFound": "No results found",
-  "donationsSubtitle": "Support RetrouvonsLes with Orange Money or MTN MoMo",
+  "donationsSubtitle": "Support Retrouvons-Les with Orange Money or MTN MoMo",
   "makeDonation": "Make a donation",
   "myDonations": "My donations",
   "donationsMockNote": "In dev, the payment is simulated. In production, confirmation will come via the gateway webhook.",

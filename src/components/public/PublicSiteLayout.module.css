@@ -1,0 +1,55 @@
+/* Shell public : variables partagées (hauteur barre + design tokens).
+   Doivent vivre sur .siteRoot parce que la navbar est rendue EN DEHORS
+   de .homePage : sans ces vars ici, les styles navbar type
+   var(--gradient-hero-blue) / var(--color-primary) ne résolvent rien
+   et le bouton « Se connecter » perd son fond/contenu au scroll. */
+.siteRoot {
+  --nav-h: calc(max(0.875rem, env(safe-area-inset-top, 0px)) + 0.875rem + 2.85rem);
+
+  /* Palette hero (bleu dégradé) */
+  --hero-blue-start: #38bdf8;
+  --hero-blue-end: #0ea5e9;
+  --gradient-hero-blue: linear-gradient(135deg, var(--hero-blue-start) 0%, var(--hero-blue-end) 100%);
+
+  /* Aliases utilisés par la navbar */
+  --color-primary: var(--hero-blue-end);
+  --color-primary-dark: #0284c7;
+  --color-primary-light: var(--hero-blue-start);
+
+  /* Texte */
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-text: #1f2937;
+  --color-text-light: #6b7280;
+
+  /* Rayons / transitions */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --transition: all 0.2s ease-in-out;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .siteRoot {
+    --nav-h: calc(max(0.5rem, env(safe-area-inset-top, 0px)) + 0.5rem + 2.95rem);
+  }
+}
+
+/* Fallback global si un composant public oublie le shell : les vars restent valides */
+:root {
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --hero-blue-start: #38bdf8;
+  --hero-blue-end: #0ea5e9;
+  --gradient-hero-blue: linear-gradient(135deg, var(--hero-blue-start) 0%, var(--hero-blue-end) 100%);
+  --color-primary: var(--hero-blue-end);
+  --color-primary-dark: #0284c7;
+}

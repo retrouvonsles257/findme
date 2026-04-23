@@ -1,7 +1,7 @@
 {
   "dashboardTitle": "Super Admin Dashboard",
   "dashboardSubtitle": "Welcome to the Super Admin Dashboard",
-  "dashboardDescription": "Complete system management for RETROUVONSLES",
+  "dashboardDescription": "Complete system management for RETROUVONS-LES",
   "recentActivities": "Recent Activities",
   "noActivities": "No recent activities",
   "thisMonth": "this month",
@@ -220,7 +220,7 @@
   "signalementValidationMenu": "Report Validation",
   "profileMenu": "My Profile",
   "maintenanceMenu": "Maintenance",
-  "layoutAppName": "RetrouvonsLes",
+  "layoutAppName": "Retrouvons-Les",
   "layoutOpenMenu": "Open menu",
   "layoutReduceMenu": "Collapse menu",
   "layoutLanguageEn": "English",

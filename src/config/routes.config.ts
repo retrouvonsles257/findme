@@ -47,7 +47,7 @@ export const publicRoutes: RouteConfig[] = [
   {
     path: '/about',
     label: 'À Propos',
-    description: 'À propos de RetrouvonsLes',
+    description: 'À propos de Retrouvons-Les',
     icon: 'info',
     isPublic: true,
     layout: 'main',

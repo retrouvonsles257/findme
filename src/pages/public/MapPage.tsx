@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config/supabase.config';
 import { MapTilerView, MapTilerMarker } from '../../components/maps/MapTilerView';
@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Users,
   AlertTriangle,
-  Menu,
 } from 'lucide-react';
 import styles from './MapPage.module.css';
 
@@ -31,7 +30,7 @@ interface Dossier {
 }
 
 export const MapPage: React.FC = () => {
-  const { t, language, changeLanguage } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
 
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
@@ -42,7 +41,6 @@ export const MapPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDossier, setSelectedDossier] = useState<Dossier | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Convert dossiers to map markers
   const markers: MapTilerMarker[] = filteredDossiers
@@ -192,47 +190,8 @@ export const MapPage: React.FC = () => {
     }
   };
 
-  const toggleLanguage = () => {
-    changeLanguage(language === 'fr' ? 'en' : 'fr');
-  };
-
   return (
     <div className={styles.mapPage}>
-      {/* Navigation */}
-      <nav className={styles.navbar}>
-        <div className={styles.navContainer}>
-          <Link to="/" className={styles.logo}>
-            <Search size={24} />
-            <span>RETROUVONSLES</span>
-          </Link>
-
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksOpen : ''}`} aria-hidden={!mobileMenuOpen}>
-            <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.home')}</Link>
-            <Link to="/map" className={`${styles.navLink} ${styles.active}`} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.map')}</Link>
-            <Link to="/disparitions" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.search')}</Link>
-            <Link to="/signaler" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>{t('public.navbar.report')}</Link>
-          </div>
-
-          <div className={styles.navActions}>
-            <button className={styles.langBtn} onClick={toggleLanguage}>
-              {language === 'fr' ? 'EN' : 'FR'}
-            </button>
-            <button className={styles.loginBtn} onClick={() => navigate('/auth/login')}>
-              {t('public.navbar.login')}
-            </button>
-            <button
-              type="button"
-              className={styles.mobileMenuBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content - Layout: Filtres | Carte | Résultats */}
       <div className={styles.mainContent}>
         {/* Panneau de filtres (gauche) */}

@@ -46,6 +46,7 @@ export { useWebsocket, type UseWebsocketOptions, type UseWebsocketResult } from 
 
 // Scroll
 export { useInfiniteScroll, type UseInfiniteScrollOptions, type UseInfiniteScrollResult } from './useInfiniteScroll';
+export { useInView, useInViewOnce, type UseInViewOptions } from './useInView';
 
 // Utilities
 export { usePrevious } from './usePrevious';

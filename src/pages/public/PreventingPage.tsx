@@ -170,7 +170,7 @@ export const PreventingPage: React.FC = () => {
               <h3>📞 {t('preventing.emergency_numbers')}</h3>
               <p><strong>Police:</strong> 117</p>
               <p><strong>Gendarmerie:</strong> 1511</p>
-              <p><strong>RETROUVONSLES:</strong> +237 600 000 000</p>
+              <p><strong>Retrouvons-Les :</strong> +237 600 000 000</p>
             </div>
             <div className={styles.resourceCard}>
               <h3>🏥 {t('preventing.hospitals')}</h3>

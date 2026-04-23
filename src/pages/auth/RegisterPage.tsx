@@ -164,7 +164,7 @@ export const RegisterPage: React.FC = () => {
         <div className={styles.formCard}>
           <h1 className={styles.title}>Créer un compte</h1>
           <p className={styles.subtitle}>
-            Rejoignez le réseau national Retrouvons Les et contribuez à redonner espoir aux familles.
+            Rejoignez le réseau national Retrouvons-Les et contribuez à redonner espoir aux familles.
           </p>
 
           <form onSubmit={handleRegister} className={styles.form}>

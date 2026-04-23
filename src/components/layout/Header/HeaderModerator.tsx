@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { useI18n } from '../../../hooks';
 import { useAppSelector } from '../../../store/hooks';
 import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { HeaderLogo } from './HeaderLogo';
@@ -19,13 +20,14 @@ interface HeaderModeratorProps {
 
 const HeaderModerator: React.FC<HeaderModeratorProps> = ({ children }) => {
   const currentUser = useAppSelector(selectCurrentUser);
+  const { t } = useI18n();
 
   return (
     <header className={styles.header}>
       <div className={styles.headerContent}>
         {/* Logo */}
         <div className={styles.logoSection}>
-          <HeaderLogo logo={<div>Retrouvons Les</div>} />
+          <HeaderLogo logo={<div>{t('common.appName')}</div>} />
         </div>
 
         {/* Navigation */}

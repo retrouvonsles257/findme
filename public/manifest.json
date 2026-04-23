@@ -1,6 +1,6 @@
 {
-  "short_name": "RetrouvonsLes",
-  "name": "Retrouvons les",
+  "short_name": "Retrouvons-Les",
+  "name": "Retrouvons-Les",
   "icons": [
     {"src": "android/mipmap-mdpi/ic_launcher.png", "sizes": "48x48", "type": "image/png"},
     {"src": "android/mipmap-hdpi/ic_launcher.png", "sizes": "72x72", "type": "image/png"},

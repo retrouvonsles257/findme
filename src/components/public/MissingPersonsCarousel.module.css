@@ -1,0 +1,413 @@
+/* =============================================
+   Carrousel hero — carré (photo plein cadre + infos) + bande de miniatures
+   ============================================= */
+.carousel {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch; /* scène + bande prennent toute la largeur de la colonne */
+}
+
+/* --- Scène : un CARRÉ qui contient la photo et ses infos -------------- */
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 25px 55px rgba(15, 23, 42, 0.45);
+}
+
+.stagePhoto {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.stageImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: rrtlFadeIn 0.45s ease;
+}
+
+.stageImgFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.65);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(56, 189, 248, 0.16) 100%);
+}
+
+.statusTag {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 3;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(239, 68, 68, 0.95);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.stageInfo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 2.5rem 1rem 0.9rem;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.65) 40%,
+    rgba(0, 0, 0, 0.1) 85%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  animation: rrtlFadeInUp 0.45s ease;
+}
+
+.stageName {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.stageMetaList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.65rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.stageMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.metaIcon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.metaText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.stageCta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.55rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.stageCta:hover,
+.stageCta:focus-visible {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: translateX(2px);
+  outline: none;
+}
+
+/* --- Bande de miniatures rondes ---------------------------------------- */
+.strip {
+  width: 100%; /* s’étire sur toute la largeur disponible, comme la scène */
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0.1rem 0.4rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  outline: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 1.2rem,
+    #000 calc(100% - 1.2rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 1.2rem,
+    #000 calc(100% - 1.2rem),
+    transparent 100%
+  );
+}
+
+.strip::-webkit-scrollbar {
+  height: 4px;
+}
+.strip::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+}
+.strip::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(2.1rem, 5.6vw, 2.5rem);
+  height: clamp(2.1rem, 5.6vw, 2.5rem);
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  scroll-snap-align: center;
+}
+
+.thumb:hover,
+.thumb:focus-visible,
+.thumbActive {
+  transform: scale(1.12);
+  border-color: var(--hero-blue-start, #38bdf8);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 6px 14px rgba(15, 23, 42, 0.3);
+  outline: none;
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.65);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(56, 189, 248, 0.15) 100%);
+}
+
+/* --- Squelettes (scène carrée + bande) --------------------------------- */
+.stageSkeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: rrtlSkel 1.4s linear infinite;
+}
+
+.stageLinesSkel {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.skelLine {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  animation: rrtlSkel 1.4s linear infinite;
+}
+
+.skelLineShort {
+  width: 55%;
+}
+
+.thumbSkel {
+  flex: 0 0 auto;
+  width: clamp(2.1rem, 5.6vw, 2.5rem);
+  height: clamp(2.1rem, 5.6vw, 2.5rem);
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: rrtlSkel 1.4s linear infinite;
+}
+
+/* --- Animations --------------------------------------------------------- */
+@keyframes rrtlFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rrtlFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rrtlSkel {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* --- Accessibilité : pas d’animation si demandé ------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .stageImg,
+  .stageInfo,
+  .stageSkeleton,
+  .skelLine,
+  .thumbSkel {
+    animation: none;
+  }
+  .stageCta {
+    transition: none;
+  }
+  .thumb,
+  .thumb:hover,
+  .thumb:focus-visible,
+  .thumbActive {
+    transform: none;
+  }
+}
+
+/* --- Responsive -------------------------------------------------------- */
+/* Sur tablette/mobile (une seule colonne) on plafonne le carré pour éviter
+   qu’il ne devienne disproportionné sur ces viewports. */
+@media (max-width: 1024px) {
+  .carousel {
+    align-items: center; /* colonne pleine largeur : carré centré */
+  }
+  .stage,
+  .strip {
+    max-width: 32rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel {
+    gap: 0.6rem;
+  }
+  .stage {
+    border-radius: 1.1rem;
+  }
+  .stage,
+  .strip {
+    max-width: 26rem;
+  }
+  .stageInfo {
+    padding: 2rem 0.85rem 0.75rem;
+  }
+  .stageCta {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .thumb,
+  .thumbSkel {
+    width: 2.15rem;
+    height: 2.15rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stage,
+  .strip {
+    max-width: 100%;
+  }
+  .stageName {
+    font-size: 0.95rem;
+  }
+  .stageMetaList {
+    font-size: 0.72rem;
+  }
+  .thumb,
+  .thumbSkel {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .thumb,
+  .thumbSkel {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+}

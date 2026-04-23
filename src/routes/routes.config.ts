@@ -18,7 +18,9 @@ export const PUBLIC_ROUTES = {
   CONTACT: '/contact',
   DONATE: '/donate',
   HOW_IT_WORKS: '/how-it-works',
-  PREVENTING: '/preventing'
+  PREVENTING: '/preventing',
+  /** Page téléchargement application mobile (placeholder) */
+  APP: '/app',
 } as const;
 
 // ============================================

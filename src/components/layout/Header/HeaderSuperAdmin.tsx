@@ -56,7 +56,7 @@ export const HeaderSuperAdmin: React.FC<HeaderSuperAdminProps> = ({
         {/* Logo et titre */}
         <div className={styles.logo}>
           <span className={styles.logoIcon}>👑</span>
-          <span className={`${styles.logoText} app-name-bold`}>RETROUVONSLES - SUPER ADMIN</span>
+          <span className={`${styles.logoText} app-name-bold`}>{`${t('common.app_name')} - SUPER ADMIN`}</span>
         </div>
 
         {/* Barre de recherche */}

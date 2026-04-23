@@ -46,8 +46,8 @@ const DonationSuccess: React.FC<DonationSuccessProps> = ({
 
   const shareUrl = typeof window !== 'undefined' ? encodeURIComponent(window.location.href) : '';
   const shareText = donationAmount
-    ? encodeURIComponent(`J'ai soutenu RetrouvonsLes avec un don de ${donationAmount.toLocaleString('fr-CM')} ${donationCurrency}. Rejoignez la cause !`)
-    : encodeURIComponent('Je soutiens RetrouvonsLes. Rejoignez la cause !');
+    ? encodeURIComponent(`J'ai soutenu Retrouvons-Les avec un don de ${donationAmount.toLocaleString('fr-CM')} ${donationCurrency}. Rejoignez la cause !`)
+    : encodeURIComponent('Je soutiens Retrouvons-Les. Rejoignez la cause !');
 
   return (
     <div className={`${styles.wrapper} ${className}`}>
@@ -168,7 +168,7 @@ const DonationSuccess: React.FC<DonationSuccessProps> = ({
         </div>
 
         <p className={styles.footer}>
-          © {new Date().getFullYear()} RetrouvonsLes. Tous droits réservés. Vos données sont sécurisées.
+          © {new Date().getFullYear()} Retrouvons-Les. Tous droits réservés. Vos données sont sécurisées.
         </p>
       </div>
     </div>

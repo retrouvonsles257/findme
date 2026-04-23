@@ -15,3 +15,4 @@ export { DonatePage } from './DonatePage';
 export { HowItWorksPage } from './HowItWorksPage';
 export { PreventingPage } from './PreventingPage';
 export { DossierDetailPage } from './DossierDetailPage';
+export { AppDownloadPage } from './AppDownloadPage';
