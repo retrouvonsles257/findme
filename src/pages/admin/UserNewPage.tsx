@@ -32,10 +32,18 @@ import styles from './UserNewPage.module.css';
 
 type RowMode = 'invite' | 'create';
 
+/** Profils métier transmis à l’Edge Function (mappés vers `autorite` + `autorite_echelon`). */
+type AutoriteInviteRole =
+  | 'officier_police'
+  | 'agent_gendarmerie'
+  | 'responsable_ong'
+  | 'operateur_saisie'
+  | 'moderateur';
+
 interface UserRow {
   id: string;
   email: string;
-  role: NomRole;
+  role: AutoriteInviteRole;
   mode: RowMode;
   password: string;
 }
@@ -46,13 +54,15 @@ interface BatchResult {
   failed: { email: string; error: string }[];
 }
 
-const ROLE_OPTIONS: NomRole[] = [
-  NomRole.OFFICIER_POLICE,
-  NomRole.AGENT_GENDARMERIE,
-  NomRole.RESPONSABLE_ONG,
-  NomRole.OPERATEUR_SAISIE,
-  NomRole.MODERATEUR,
+const ROLE_OPTIONS: AutoriteInviteRole[] = [
+  'officier_police',
+  'agent_gendarmerie',
+  'responsable_ong',
+  'operateur_saisie',
+  'moderateur',
 ];
+
+const DEFAULT_INVITE_ROLE: AutoriteInviteRole = 'operateur_saisie';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -65,7 +75,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
   const [rows, setRows] = useState<UserRow[]>(() => [
-    { id: generateRowId(), email: '', role: NomRole.OPERATEUR_SAISIE, mode: 'invite', password: '' },
+    { id: generateRowId(), email: '', role: DEFAULT_INVITE_ROLE, mode: 'invite', password: '' },
   ]);
   const [sending, setSending] = useState(false);
   const [batchResult, setBatchResult] = useState<BatchResult | null>(null);
@@ -73,7 +83,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
   const addRow = useCallback(() => {
     setRows((prev) => [
       ...prev,
-      { id: generateRowId(), email: '', role: NomRole.OPERATEUR_SAISIE, mode: 'invite', password: '' },
+      { id: generateRowId(), email: '', role: DEFAULT_INVITE_ROLE, mode: 'invite', password: '' },
     ]);
   }, []);
 
@@ -123,7 +133,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
     setSending(false);
   }, [currentUser?.organisation_id, rows, t]);
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+  if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
     navigate('/auth/login');
     return null;
   }
@@ -195,7 +205,8 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                     variant={hasSuccess ? 'secondary' : 'primary'}
                     onClick={() => {
                       setBatchResult(null);
-                      if (hasSuccess) setRows([{ id: generateRowId(), email: '', role: NomRole.OPERATEUR_SAISIE, mode: 'invite', password: '' }]);
+                      if (hasSuccess)
+                        setRows([{ id: generateRowId(), email: '', role: DEFAULT_INVITE_ROLE, mode: 'invite', password: '' }]);
                     }}
                   >
                     {hasSuccess ? t('admin.addRow') : t('common.back')}
@@ -269,7 +280,7 @@ export const AdminOrganisationUserNewPage: React.FC = () => {
                     <div className={styles.tdRole} data-label={t('common.role')}>
                       <select
                         value={row.role}
-                        onChange={(e) => updateRow(row.id, { role: e.target.value as NomRole })}
+                        onChange={(e) => updateRow(row.id, { role: e.target.value as AutoriteInviteRole })}
                         className={styles.select}
                       >
                         {ROLE_OPTIONS.map((r) => (

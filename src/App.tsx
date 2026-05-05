@@ -31,6 +31,7 @@ import { envConfig } from './config';
 // Routes
 import AppRoutes from './routes/AppRoutes';
 import { AuthSessionRestorer } from './features/auth/components/AuthSessionRestorer';
+import { CitizenPushGlobalSync } from './features/notifications/components';
 
 // Styles
 import './styles/index.ts';
@@ -79,12 +80,7 @@ const App: React.FC = () => {
         console.warn('[App] MapTiler API key not configured');
       }
 
-      // Register Service Worker for offline support
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker
-          .register('/service-worker.js')
-          .catch((err) => console.warn('Service Worker registration failed:', err));
-      }
+      // FCM : public/firebase-messaging-sw.js (généré au prestart/prebuild depuis .env)
     } catch (error) {
       console.error('App initialization error:', error);
     }
@@ -102,6 +98,7 @@ const App: React.FC = () => {
           <LanguageProvider>
             <I18nProvider>
               <AuthProvider>
+                <CitizenPushGlobalSync />
                 <GeolocationProvider>
                   <NotificationProvider>
                     <WebSocketProvider>

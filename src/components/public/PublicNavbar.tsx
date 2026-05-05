@@ -10,9 +10,10 @@ import {
   Smartphone,
   LogIn,
   Languages,
+  UserPlus,
 } from 'lucide-react';
 import { useI18n } from '../../hooks';
-import { PUBLIC_ROUTES } from '../../routes/routes.config';
+import { CITIZEN_ROUTES, PUBLIC_ROUTES } from '../../routes/routes.config';
 import homeStyles from '../../pages/public/HomePage.module.css';
 import shellStyles from './PublicNavbar.module.css';
 
@@ -97,6 +98,14 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
                 <Users {...navIconProps} />
                 {t('public.navbar.disparitions')}
               </Link>
+              <Link
+                to={`${PUBLIC_ROUTES.CONTRIBUTE}?next=${encodeURIComponent(CITIZEN_ROUTES.NEW_SIGNALEMENT)}`}
+                className={homeStyles.navLink}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <UserPlus {...navIconProps} />
+                {t('public.contribute.navbar_link')}
+              </Link>
               <Link to={PUBLIC_ROUTES.APP} className={homeStyles.navLink} onClick={() => setMobileMenuOpen(false)}>
                 <Smartphone {...navIconProps} />
                 {t('public.navbar.app_download')}
@@ -163,6 +172,14 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
             <Users {...navIconProps} />
             {t('public.navbar.disparitions')}
           </NavLink>
+          <Link
+            to={`${PUBLIC_ROUTES.CONTRIBUTE}?next=${encodeURIComponent(CITIZEN_ROUTES.NEW_SIGNALEMENT)}`}
+            className={shellStyles.navLink}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <UserPlus {...navIconProps} />
+            {t('public.contribute.navbar_link')}
+          </Link>
           <NavLink to={PUBLIC_ROUTES.APP} className={linkClass} onClick={() => setMobileMenuOpen(false)}>
             <Smartphone {...navIconProps} />
             {t('public.navbar.app_download')}

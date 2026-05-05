@@ -51,7 +51,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
   const { addNotification } = useNotification();
   const { signalements, isLoading, error: loadError, fetchSignalements } = useSignalements();
   const orgFilter = useMemo(() => {
-    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
+    if (currentUser?.role === NomRole.AUTORITE && currentUser?.organisation_id) {
       return { organisation_id: currentUser.organisation_id };
     }
     return undefined;

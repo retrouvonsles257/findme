@@ -6,6 +6,9 @@
  */
 
 import { supabase } from '../../config';
+import { normalizeAppRole, normalizeAppRoles } from '../../utils/normalizeAppRole';
+
+export { normalizeAppRole, normalizeAppRoles };
 
 // ============================================
 // TYPES
@@ -52,6 +55,10 @@ export interface AuthUserData {
   statut_compte: string;
   organisation_id?: string | null;
   telephone?: string | null;
+  identite_verifiee?: boolean;
+  autorite_echelon?: number | null;
+  is_anonymous?: boolean;
+  email_confirme?: boolean;
 }
 
 export interface AuthSessionData {
@@ -73,6 +80,107 @@ export interface OAuthResult {
   error?: string;
 }
 
+/** Rôle JWT : user_metadata en priorité, puis app_metadata (souvent utilisé pour les admins). */
+export function pickAuthJwtRole(user: {
+  user_metadata?: Record<string, unknown> | null;
+  app_metadata?: Record<string, unknown> | null;
+} | null): string | null {
+  if (!user) return null;
+  const um = user.user_metadata as Record<string, unknown> | undefined;
+  const am = user.app_metadata as Record<string, unknown> | undefined;
+  const r = um?.role ?? am?.role;
+  return typeof r === 'string' && r.trim() !== '' ? r.trim() : null;
+}
+
+/** UUID organisation depuis JWT (admin org / invitations). */
+export function pickOrganisationIdFromJwt(user: {
+  user_metadata?: Record<string, unknown> | null;
+  app_metadata?: Record<string, unknown> | null;
+} | null): string | null {
+  if (!user) return null;
+  const um = user.user_metadata as Record<string, unknown> | undefined;
+  const am = user.app_metadata as Record<string, unknown> | undefined;
+  const candidates = [
+    um?.organisation_id,
+    um?.id_organisation,
+    um?.organisationId,
+    am?.organisation_id,
+    am?.id_organisation,
+    am?.organisationId,
+  ];
+  for (const c of candidates) {
+    if (typeof c === 'string' && c.trim() !== '') return c.trim();
+  }
+  return null;
+}
+
+/**
+ * Si les RPC profil/rôle ne répondent pas, lecture directe des tables (session déjà posée après signIn).
+ * Corrige super-admin sans metadata.role : rôle et nom viennent de `utilisateur` + `utilisateur_role`.
+ */
+async function loadLoginFallbackFromDb(userId: string): Promise<{
+  nom?: string | null;
+  prenom?: string | null;
+  statut_compte?: string | null;
+  type_compte?: string | null;
+  id_organisation?: string | null;
+  telephone?: string | null;
+  identite_verifiee?: boolean;
+  autorite_echelon?: number | null;
+  mainRole: string | null;
+  allRoles: string[] | null;
+} | null> {
+  try {
+    const { data: utilRow, error: uErr } = await (supabase as any)
+      .from('utilisateur')
+      .select('nom, prenom, statut_compte, type_compte, id_organisation, telephone, identite_verifiee, autorite_echelon')
+      .eq('id', userId)
+      .maybeSingle();
+    if (uErr || !utilRow) return null;
+
+    const { data: urRows, error: urErr } = await (supabase as any)
+      .from('utilisateur_role')
+      .select('date_expiration, role ( nom_role, niveau_accreditation )')
+      .eq('id_utilisateur', userId);
+
+    let mainRole: string | null = null;
+    let allRoles: string[] | null = null;
+
+    if (!urErr && Array.isArray(urRows) && urRows.length > 0) {
+      const now = Date.now();
+      type UrRow = {
+        date_expiration?: string | null;
+        role?: { nom_role?: string; niveau_accreditation?: number | null } | null;
+      };
+      const active = (urRows as UrRow[]).filter((row) => {
+        if (!row.date_expiration) return true;
+        return new Date(row.date_expiration).getTime() > now;
+      });
+      if (active.length) {
+        const scored = active
+          .map((row) => ({
+            nom: String(row.role?.nom_role || ''),
+            niv: Number(row.role?.niveau_accreditation ?? 0),
+          }))
+          .filter((x) => x.nom.length > 0);
+        if (scored.length) {
+          scored.sort((a, b) => b.niv - a.niv);
+          mainRole = scored[0].nom;
+          allRoles = Array.from(new Set(scored.map((s) => s.nom)));
+        }
+      }
+    }
+
+    return {
+      ...utilRow,
+      mainRole,
+      allRoles,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ============================================
 // HELPER FUNCTIONS (Using RPC functions to bypass RLS)
 // ============================================
@@ -85,12 +193,12 @@ async function getUserMainRole(userId: string): Promise<string | null> {
 
     if (error) {
       console.error('Error getting user role via RPC:', error);
-      // Fallback: try to get from auth.users metadata
+      // Fallback: JWT metadata (user + app)
       const { data: userData } = await supabase.auth.getUser();
-      return userData?.user?.user_metadata?.role || null;
+      return normalizeAppRole(pickAuthJwtRole(userData?.user as any));
     }
 
-    return data || null;
+    return normalizeAppRole(data as string | null);
   } catch (error) {
     console.error('Exception in getUserMainRole:', error);
     return null;
@@ -101,20 +209,19 @@ async function getUserAllRoles(userId: string): Promise<string[]> {
   try {
     // Use RPC function with SECURITY DEFINER to bypass RLS
     const { data, error } = await (supabase as any)
-      .rpc('get_user_all_roles', { user_id: userId });
+      .rpc('get_user_all_roles', { p_user_id: userId });
 
     if (error) {
       console.error('Error getting user roles via RPC:', error);
-      // Fallback: try to get from auth.users metadata
       const { data: userData } = await supabase.auth.getUser();
-      const role = userData?.user?.user_metadata?.role;
-      return role ? [role] : ['citoyen_standard'];
+      const role = pickAuthJwtRole(userData?.user as any);
+      return normalizeAppRoles(role ? [role] : []);
     }
 
-    return data || ['citoyen_standard'];
+    return normalizeAppRoles((data as string[] | null) || ['citoyen']);
   } catch (error) {
     console.error('Exception in getUserAllRoles:', error);
-    return ['citoyen_standard'];
+    return ['citoyen'];
   }
 }
 
@@ -234,11 +341,11 @@ class SupabaseAuthService {
         console.error('Error creating user profile:', userError);
         // On continue quand même - le compte auth est créé
       } else {
-        // Assigner le rôle citoyen_standard par défaut
+        // Assigner le rôle citoyen par défaut
         const { data: defaultRole } = await (supabase as any)
           .from('role')
           .select('id')
-          .eq('nom_role', 'citoyen_standard')
+          .eq('nom_role', 'citoyen')
           .single();
 
         if (defaultRole) {
@@ -269,10 +376,12 @@ class SupabaseAuthService {
             email: data.email,
             nom: 'À compléter',
             prenom: 'À compléter',
-            role: 'citoyen_standard',
-            roles: ['citoyen_standard'],
+            role: 'citoyen',
+            roles: ['citoyen'],
             type_compte: 'grand_public',
             statut_compte: 'actif',
+            is_anonymous: false,
+            email_confirme: Boolean(authData.user.email_confirmed_at),
           },
           access_token: authData.session?.access_token || '',
           refresh_token: authData.session?.refresh_token || '',
@@ -288,6 +397,125 @@ class SupabaseAuthService {
         },
       };
     }
+  }
+
+  /**
+   * Profil + rôles après tout sign-in Supabase réussi (email, anonyme, upgrade, etc.).
+   */
+  private async composeAuthSessionFromSignedInUser(
+    authUser: any,
+    session: { access_token: string; refresh_token: string; expires_at: number | null | undefined },
+  ): Promise<AuthResult<AuthSessionData>> {
+    const { data: userWithRole, error: rpcError } = await (supabase as any).rpc('get_user_with_role', {
+      user_id: authUser.id,
+    });
+
+    let userProfile = userWithRole;
+    let mainRole = userWithRole?.role || null;
+    let allRoles = userWithRole?.roles || ['citoyen'];
+
+    if (rpcError || !userWithRole) {
+      console.log('⚠ RPC failed or profile missing, using JWT metadata + base utilisateur...');
+      const metadata = authUser.user_metadata || {};
+      const jwtRole = pickAuthJwtRole(authUser as any);
+      mainRole = jwtRole;
+      allRoles = jwtRole ? [jwtRole] : [];
+
+      userProfile = {
+        id: authUser.id,
+        email: authUser.email,
+        nom: metadata.nom || metadata.last_name || 'Non renseigné',
+        prenom: metadata.prenom || metadata.first_name || 'Non renseigné',
+        type_compte: metadata.type_compte || 'grand_public',
+        statut_compte: (metadata.statut_compte as string) || 'actif',
+      };
+
+      const fromDb = await loadLoginFallbackFromDb(authUser.id);
+      if (fromDb) {
+        const isPlaceholder = (s: string | null | undefined) =>
+          !s || s === 'Non renseigné' || s === 'À compléter';
+        userProfile = {
+          ...userProfile,
+          nom: !isPlaceholder(fromDb.nom) ? fromDb.nom : userProfile.nom,
+          prenom: !isPlaceholder(fromDb.prenom) ? fromDb.prenom : userProfile.prenom,
+          type_compte: fromDb.type_compte || userProfile.type_compte,
+          statut_compte: fromDb.statut_compte || userProfile.statut_compte,
+          id_organisation: fromDb.id_organisation ?? (userProfile as any).id_organisation,
+          telephone: fromDb.telephone ?? (userProfile as any).telephone,
+          identite_verifiee: fromDb.identite_verifiee ?? (userProfile as any).identite_verifiee,
+          autorite_echelon: fromDb.autorite_echelon ?? (userProfile as any).autorite_echelon,
+        };
+        if (fromDb.mainRole) {
+          mainRole = fromDb.mainRole;
+          allRoles =
+            fromDb.allRoles && fromDb.allRoles.length > 0 ? fromDb.allRoles : [fromDb.mainRole];
+        } else if (!mainRole) {
+          mainRole = 'citoyen';
+          allRoles = ['citoyen'];
+        }
+      } else if (!mainRole) {
+        mainRole = 'citoyen';
+        allRoles = ['citoyen'];
+      } else {
+        allRoles = [mainRole];
+      }
+    }
+
+    const jwtOrgFill = pickOrganisationIdFromJwt(authUser as any);
+    if (userProfile && jwtOrgFill && !(userProfile as any).id_organisation) {
+      userProfile = { ...(userProfile as any), id_organisation: jwtOrgFill };
+    }
+
+    if (userProfile?.statut_compte === 'suspendu' || userProfile?.statut_compte === 'bloque') {
+      return {
+        error: {
+          code: 'ACCOUNT_SUSPENDED',
+          message: 'Votre compte est suspendu. Contactez l\'administrateur.',
+        },
+      };
+    }
+
+    mainRole = normalizeAppRole(mainRole ?? 'citoyen');
+    allRoles = normalizeAppRoles(allRoles);
+
+    console.log('✓ Connexion complète. Rôle:', mainRole);
+
+    logActivity({
+      type_action: 'connexion',
+      id_utilisateur: authUser.id,
+      description: 'Connexion réussie',
+    }).catch(() => {});
+
+    const isAnonymous = Boolean(authUser.is_anonymous);
+
+    return {
+      data: {
+        user: {
+          id: authUser.id,
+          email: authUser.email || '',
+          nom: userProfile?.nom || 'Non renseigné',
+          prenom: userProfile?.prenom || 'Non renseigné',
+          nom_complet:
+            userProfile?.nom_complet ||
+            `${userProfile?.prenom || ''} ${userProfile?.nom || ''}`.trim() ||
+            'Utilisateur',
+          role: mainRole || 'citoyen',
+          roles: allRoles,
+          type_compte: userProfile?.type_compte || 'grand_public',
+          statut_compte: userProfile?.statut_compte || 'actif',
+          organisation_id:
+            userProfile?.id_organisation || pickOrganisationIdFromJwt(authUser as any) || null,
+          telephone: userProfile?.telephone || null,
+          identite_verifiee: userProfile?.identite_verifiee ?? false,
+          autorite_echelon: userProfile?.autorite_echelon ?? null,
+          is_anonymous: isAnonymous,
+          email_confirme: Boolean(authUser.email_confirmed_at),
+        },
+        access_token: session.access_token || '',
+        refresh_token: session.refresh_token || '',
+        expires_at: session.expires_at ?? 0,
+      },
+    };
   }
 
   /**
@@ -333,75 +561,123 @@ class SupabaseAuthService {
 
       console.log('✓ Authentification réussie, ID:', authData.user.id);
 
-      // Récupérer le profil utilisateur via RPC (bypass RLS)
-      const { data: userWithRole, error: rpcError } = await (supabase as any)
-        .rpc('get_user_with_role', { user_id: authData.user.id });
-
-      let userProfile = userWithRole;
-      let mainRole = userWithRole?.role || null;
-      let allRoles = userWithRole?.roles || ['citoyen_standard'];
-
-      // Si RPC échoue ou profil manquant, utiliser les metadata
-      if (rpcError || !userWithRole) {
-        console.log('⚠ RPC failed or profile missing, using metadata...');
-        const metadata = authData.user.user_metadata || {};
-        mainRole = metadata.role || 'citoyen_standard';
-        allRoles = [mainRole];
-        userProfile = {
-          id: authData.user.id,
-          email: authData.user.email,
-          nom: metadata.nom || metadata.last_name || 'Non renseigné',
-          prenom: metadata.prenom || metadata.first_name || 'Non renseigné',
-          type_compte: metadata.type_compte || 'grand_public',
-          statut_compte: 'actif'
-        };
-      }
-
-      // Vérifier le statut du compte
-      if (userProfile?.statut_compte === 'suspendu' || userProfile?.statut_compte === 'bloque') {
-        return {
-          error: {
-            code: 'ACCOUNT_SUSPENDED',
-            message: 'Votre compte est suspendu. Contactez l\'administrateur.',
-          },
-        };
-      }
-
-      console.log('✓ Connexion complète. Rôle:', mainRole);
-
-      // Log de l'activité (ignore errors - may fail due to RLS)
-      logActivity({
-        type_action: 'connexion',
-        id_utilisateur: authData.user.id,
-        description: 'Connexion réussie'
-      }).catch(() => {}); // Silently ignore RLS errors
-
-      return {
-        data: {
-          user: {
-            id: authData.user.id,
-            email: authData.user.email || '',
-            nom: userProfile?.nom || 'Non renseigné',
-            prenom: userProfile?.prenom || 'Non renseigné',
-            nom_complet: userProfile?.nom_complet || `${userProfile?.prenom || ''} ${userProfile?.nom || ''}`.trim() || 'Utilisateur',
-            role: mainRole || 'citoyen_standard',
-            roles: allRoles,
-            type_compte: userProfile?.type_compte || 'grand_public',
-            statut_compte: userProfile?.statut_compte || 'actif',
-            organisation_id: userProfile?.id_organisation || null,
-            telephone: userProfile?.telephone || null,
-          },
-          access_token: authData.session?.access_token || '',
-          refresh_token: authData.session?.refresh_token || '',
-          expires_at: authData.session?.expires_at || 0,
-        },
-      };
+      return await this.composeAuthSessionFromSignedInUser(authData.user, {
+        access_token: authData.session?.access_token || '',
+        refresh_token: authData.session?.refresh_token || '',
+        expires_at: authData.session?.expires_at ?? 0,
+      });
     } catch (error: any) {
       console.error('Exception in login:', error);
       return {
         error: {
           code: 'LOGIN_EXCEPTION',
           message: 'Une erreur est survenue lors de la connexion',
+        },
+      };
+    }
+  }
+
+  /**
+   * Connexion anonyme (Supabase) — même user.id pour les données, upgrade possible plus tard.
+   */
+  async signInAnonymously(): Promise<AuthResult<AuthSessionData>> {
+    try {
+      const { data: authData, error: authError } = await (supabase as any).auth.signInAnonymously();
+
+      if (authError) {
+        let message = authError.message || 'Connexion sans compte impossible';
+        const raw = String(authError.message || '').toLowerCase();
+        if (raw.includes('anonymous') && (raw.includes('disabled') || raw.includes('not enabled'))) {
+          message =
+            'Les accès temporaires sans compte sont désactivés côté serveur. Activez « Anonymous sign-ins » dans le tableau Supabase.';
+        }
+        return {
+          error: {
+            code: authError.code || 'ANON_ERROR',
+            message,
+            status: authError.status,
+          },
+        };
+      }
+
+      if (!authData?.user || !authData?.session) {
+        return {
+          error: {
+            code: 'NO_SESSION',
+            message: 'Session anonyme introuvable',
+          },
+        };
+      }
+
+      return await this.composeAuthSessionFromSignedInUser(authData.user, {
+        access_token: authData.session.access_token || '',
+        refresh_token: authData.session.refresh_token || '',
+        expires_at: authData.session.expires_at ?? 0,
+      });
+    } catch (error: any) {
+      console.error('Exception in signInAnonymously:', error);
+      return {
+        error: {
+          code: 'ANON_EXCEPTION',
+          message: error.message || 'Connexion sans compte impossible',
+        },
+      };
+    }
+  }
+
+  /**
+   * Lie email + mot de passe à un compte anonyme (même id utilisateur).
+   */
+  async upgradeAnonymousAccount(data: {
+    email: string;
+    password: string;
+  }): Promise<AuthResult<AuthSessionData>> {
+    try {
+      const { data: updated, error } = await (supabase as any).auth.updateUser({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (error) {
+        let message = error.message || 'Impossible d\'enregistrer le compte';
+        if (String(error.message || '').includes('already registered')) {
+          message = 'Cette adresse e-mail est déjà utilisée. Connectez-vous ou utilisez une autre adresse.';
+        }
+        return {
+          error: {
+            code: error.code || 'UPGRADE_ERROR',
+            message,
+            status: error.status,
+          },
+        };
+      }
+
+      if (!updated?.user) {
+        return {
+          error: {
+            code: 'NO_USER',
+            message: 'Mise à jour du compte impossible',
+          },
+        };
+      }
+
+      const { data: sessionData } = await (supabase as any).auth.getSession();
+      if (!sessionData?.session) {
+        return {
+          error: {
+            code: 'NO_SESSION',
+            message: 'Session introuvable après enregistrement du compte',
+          },
+        };
+      }
+
+      return await this.composeAuthSessionFromSignedInUser(updated.user, sessionData.session);
+    } catch (error: any) {
+      console.error('Exception in upgradeAnonymousAccount:', error);
+      return {
+        error: {
+          code: 'UPGRADE_EXCEPTION',
+          message: error.message || 'Erreur lors de l\'enregistrement du compte',
         },
       };
     }
@@ -551,11 +827,11 @@ class SupabaseAuthService {
           console.log('Profile created with OAuth data');
         }
 
-        // Assigner le rôle citoyen_standard
+        // Assigner le rôle citoyen
         const { data: defaultRole } = await (supabase as any)
           .from('role')
           .select('id')
-          .eq('nom_role', 'citoyen_standard')
+          .eq('nom_role', 'citoyen')
           .single();
 
         if (defaultRole) {
@@ -594,7 +870,7 @@ class SupabaseAuthService {
           success: true,
           user,
           profile: newProfile || null,
-          role: 'citoyen_standard',
+          role: 'citoyen',
           isNewUser: true,
           emailSent: false
         };
@@ -620,7 +896,7 @@ class SupabaseAuthService {
         success: true,
         user,
         profile: userProfile,
-        role: mainRole || 'citoyen_standard',
+        role: normalizeAppRole(mainRole || 'citoyen'),
         isNewUser: false
       };
     } catch (error: any) {
@@ -726,7 +1002,7 @@ class SupabaseAuthService {
         const { data: defaultRole } = await (supabase as any)
           .from('role')
           .select('id')
-          .eq('nom_role', 'citoyen_standard')
+          .eq('nom_role', 'citoyen')
           .single();
 
         if (defaultRole) {
@@ -825,8 +1101,8 @@ class SupabaseAuthService {
             email: authData.user?.email || '',
             nom: '',
             prenom: '',
-            role: 'citoyen_standard',
-            roles: ['citoyen_standard'],
+            role: 'citoyen',
+            roles: ['citoyen'],
             type_compte: 'grand_public',
             statut_compte: 'actif',
           },
@@ -930,10 +1206,16 @@ class SupabaseAuthService {
             email: user.email || '',
             nom: profile?.nom || '',
             prenom: profile?.prenom || '',
-            role: mainRole || 'citoyen_standard',
-            roles: allRoles,
+            role: normalizeAppRole(mainRole || 'citoyen'),
+            roles: normalizeAppRoles(allRoles),
             type_compte: profile?.type_compte || 'grand_public',
             statut_compte: profile?.statut_compte || 'actif',
+            organisation_id:
+              profile?.id_organisation ?? pickOrganisationIdFromJwt(user as any) ?? null,
+            identite_verifiee: profile?.identite_verifiee ?? false,
+            autorite_echelon: profile?.autorite_echelon ?? null,
+            is_anonymous: Boolean((user as any).is_anonymous),
+            email_confirme: Boolean(user.email_confirmed_at),
           },
           access_token: session.access_token,
           refresh_token: session.refresh_token || '',
@@ -985,10 +1267,14 @@ class SupabaseAuthService {
             email: user.email || '',
             nom: profile?.nom || '',
             prenom: profile?.prenom || '',
-            role: mainRole || 'citoyen_standard',
-            roles: allRoles,
+            role: normalizeAppRole(mainRole || 'citoyen'),
+            roles: normalizeAppRoles(allRoles),
             type_compte: profile?.type_compte || 'grand_public',
             statut_compte: profile?.statut_compte || 'actif',
+            organisation_id:
+              profile?.id_organisation ?? pickOrganisationIdFromJwt(user as any) ?? null,
+            identite_verifiee: profile?.identite_verifiee ?? false,
+            autorite_echelon: profile?.autorite_echelon ?? null,
           },
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token || '',
@@ -1050,22 +1336,41 @@ export async function getUserAccountStatus(userId: string): Promise<string> {
   }
 }
 
-export const getRedirectPathByRole = (role: string): string => {
-  const routes: { [key: string]: string } = {
-    'super_admin': '/super-admin',
-    'admin_organisation': '/admin',
-    'responsable_ong': '/ngo',
-    'officier_police': '/authority',
-    'agent_gendarmerie': '/authority',
-    'moderateur': '/moderator',
-    'operateur_saisie': '/operator',
-    'citoyen_verifie': '/citizen',
-    'citoyen_standard': '/citizen'
+/**
+ * Base URL après auth (OAuth, liens). Même logique que le dashboard : admin org ≠ super-admin.
+ */
+export const getRedirectPathByRole = (
+  role: string,
+  organisationId?: string | null
+): string => {
+  const r = normalizeAppRole(role);
+  if (r === 'admin_systeme') {
+    return organisationId ? '/admin' : '/super-admin';
+  }
+  const routes: Record<string, string> = {
+    citoyen: '/citizen',
+    autorite: '/authority',
   };
-  return routes[role] || '/citizen';
+  return routes[r] || '/citizen';
 };
 
-// Export helper functions
+/**
+ * Après login : `admin_systeme` + organisation → portail admin org ; sans org → super-admin.
+ * (La migration DB fusionne les anciens rôles sur `admin_systeme` ; seul `id_organisation` les distingue.)
+ */
+export function getDashboardPathAfterLogin(
+  role: string,
+  organisationId?: string | null
+): string {
+  const r = normalizeAppRole(role);
+  if (r === 'admin_systeme') {
+    return organisationId ? '/admin/dashboard' : '/super-admin/dashboard';
+  }
+  if (r === 'autorite') return '/authority/dashboard';
+  return '/citizen/dashboard';
+}
+
+// Export helper functions (normalizeAppRole est exporté plus haut)
 export { getUserMainRole, isProfileComplete };
 
 // Export handleOAuthCallback as standalone function

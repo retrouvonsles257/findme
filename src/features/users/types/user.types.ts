@@ -51,16 +51,7 @@ export interface UserPreferences {
 export interface UserRole {
   id: string;
   user_id: string;
-  nom_role:
-    | 'super_admin'
-    | 'admin_organisation'
-    | 'officier_police'
-    | 'agent_gendarmerie'
-    | 'responsable_ong'
-    | 'operateur_saisie'
-    | 'moderateur'
-    | 'citoyen_verifie'
-    | 'citoyen_standard';
+  nom_role: 'citoyen' | 'autorite' | 'admin_systeme';
   organisation_id?: string;
   permissions: string[];
   date_attribution: Date | string;

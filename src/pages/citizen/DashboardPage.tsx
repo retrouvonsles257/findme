@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
-import { NomRole } from '../../@types/enums.types';
 import { CitizenLayout } from './CitizenLayout';
 import { useSignalements } from '../../features/signalements/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
@@ -39,7 +38,7 @@ export const CitizenDashboardPage: React.FC = () => {
     fetchNotifications 
   } = useNotifications();
 
-  const isVerified = (currentUser as any)?.role === NomRole.CITOYEN_VERIFIE;
+  const isVerified = Boolean((currentUser as any)?.identite_verifiee);
   const isLoading = signalementLoading || notificationLoading;
 
   // Charger les données au montage

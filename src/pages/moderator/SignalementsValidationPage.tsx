@@ -55,7 +55,11 @@ interface ExtendedFilters {
   search: string;
 }
 
-export const SignalementsValidationPage: React.FC = () => {
+export interface SignalementsValidationPageProps {
+  noLayout?: boolean;
+}
+
+export const SignalementsValidationPage: React.FC<SignalementsValidationPageProps> = ({ noLayout = false }) => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
   
@@ -285,6 +289,7 @@ export const SignalementsValidationPage: React.FC = () => {
       // Si spam ou doublon, utiliser le statut final
       if (validationData.decision === 'rejete' && (validationData.statut_final === 'spam' || validationData.statut_final === 'doublonne')) {
         updatePayload.statut_validation = validationData.statut_final;
+        updatePayload.visible_detail_public = false;
       }
 
       // Si transfert aux autorités
@@ -376,8 +381,7 @@ export const SignalementsValidationPage: React.FC = () => {
     return '#ef4444';
   };
 
-  return (
-    <ModerationLayout title={t('moderator.validationTitle')} activeNav="validation">
+  const content = (
       <div className={styles.validation}>
         {/* Header avec recherche et filtres */}
         <section className={styles['validation__header']}>
@@ -1076,6 +1080,13 @@ export const SignalementsValidationPage: React.FC = () => {
           </div>
         )}
       </div>
+  );
+
+  if (noLayout) return content;
+
+  return (
+    <ModerationLayout title={t('moderator.validationTitle')} activeNav="validation">
+      {content}
     </ModerationLayout>
   );
 };

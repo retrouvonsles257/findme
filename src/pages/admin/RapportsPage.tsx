@@ -92,7 +92,7 @@ export const AdminOrganisationRapportsPage: React.FC = () => {
   }, [currentUser?.organisation_id, searchTerm, filterStatus, t]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

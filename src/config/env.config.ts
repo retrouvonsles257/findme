@@ -29,6 +29,8 @@ export interface EnvConfig {
   REACT_APP_FIREBASE_STORAGE_BUCKET: string;
   REACT_APP_FIREBASE_MESSAGING_SENDER_ID: string;
   REACT_APP_FIREBASE_APP_ID: string;
+  /** Clé Web Push (Firebase Console → Cloud Messaging). Sinon REACT_APP_PUSH_VAPID_PUBLIC_KEY. */
+  REACT_APP_FIREBASE_VAPID_KEY: string;
 
   // Cloudinary
   REACT_APP_CLOUDINARY_CLOUD_NAME: string;
@@ -61,6 +63,16 @@ export interface EnvConfig {
   ENABLE_NOTIFICATIONS: boolean;
   ENABLE_ANALYTICS: boolean;
   ENABLE_PUSH_NOTIFICATIONS: boolean;
+  /**
+   * Si true (défaut) : avec un centre GPS, si personne n’est dans le rayon → 0 destinataire (pas de repli « tout le monde »).
+   * Si false : repli historique — diffusion à tous les citoyens notifiables quand le rayon est vide.
+   */
+  ALERTE_DIFFUSION_STRICT_GEO_ONLY: boolean;
+  /**
+   * Si true : alerte **sans** centre GPS → diffusion à tous les citoyens notifiables (comportement large, à éviter en prod).
+   * Si false (défaut) : sans centre → 0 notification (local uniquement).
+   */
+  ALERTE_ALLOW_BROADCAST_WITHOUT_GEO: boolean;
 }
 
 // ============================================
@@ -125,6 +137,7 @@ export const envConfig: EnvConfig = {
   REACT_APP_FIREBASE_STORAGE_BUCKET: getEnvVariable('REACT_APP_FIREBASE_STORAGE_BUCKET'),
   REACT_APP_FIREBASE_MESSAGING_SENDER_ID: getEnvVariable('REACT_APP_FIREBASE_MESSAGING_SENDER_ID'),
   REACT_APP_FIREBASE_APP_ID: getEnvVariable('REACT_APP_FIREBASE_APP_ID'),
+  REACT_APP_FIREBASE_VAPID_KEY: getEnvVariable('REACT_APP_FIREBASE_VAPID_KEY'),
 
   // Cloudinary
   REACT_APP_CLOUDINARY_CLOUD_NAME: getEnvVariable('REACT_APP_CLOUDINARY_CLOUD_NAME'),
@@ -169,6 +182,8 @@ export const envConfig: EnvConfig = {
   ENABLE_NOTIFICATIONS: getBooleanEnv('ENABLE_NOTIFICATIONS', true),
   ENABLE_ANALYTICS: getBooleanEnv('ENABLE_ANALYTICS', true),
   ENABLE_PUSH_NOTIFICATIONS: getBooleanEnv('ENABLE_PUSH_NOTIFICATIONS', true),
+  ALERTE_DIFFUSION_STRICT_GEO_ONLY: getBooleanEnv('REACT_APP_ALERTE_STRICT_GEO_ONLY', true),
+  ALERTE_ALLOW_BROADCAST_WITHOUT_GEO: getBooleanEnv('REACT_APP_ALERTE_ALLOW_BROADCAST_WITHOUT_GEO', false),
 };
 
 // ============================================

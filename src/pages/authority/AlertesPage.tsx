@@ -73,7 +73,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
 
   useEffect(() => {
     const filters = initialFilters ?? (
-      currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id
+      currentUser?.role === NomRole.AUTORITE && currentUser?.organisation_id
         ? { id_organisation_responsable: currentUser.organisation_id }
         : undefined
     );
@@ -115,7 +115,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
           addNotification({
             title: t('authority.alertes.messages.published'),
             message: t('authority.alertes.messages.diffusedToUsers').replace('{{count}}', String(result.nombre_destinataires)),
-            type: 'success',
+            type: result.nombre_destinataires === 0 ? 'warning' : 'success',
           });
           break;
 

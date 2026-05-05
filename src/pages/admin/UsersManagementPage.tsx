@@ -40,12 +40,13 @@ import {
 } from 'lucide-react';
 import { AdminTableSkeleton } from './skeletons';
 import styles from './UsersManagement.module.css';
+import { normalizeAppRole } from '../../utils/normalizeAppRole';
 
 interface User {
   id: string;
   nom_complet: string;
   email: string;
-  role: NomRole;
+  role: NomRole | string;
   statut: StatutCompte;
   date_creation: string;
   dernier_acces?: string;
@@ -80,7 +81,7 @@ export const AdminOrganisationUsersPage: React.FC = () => {
         id: r.id,
         nom_complet: [r.nom, r.prenom].filter(Boolean).join(' ').trim() || r.email,
         email: r.email,
-        role: (r.role?.nom_role as NomRole) || NomRole.CITOYEN_STANDARD,
+        role: normalizeAppRole((r.role?.nom_role as string) || NomRole.CITOYEN) as NomRole,
         statut: (r.statut_compte as StatutCompte) || StatutCompte.ACTIF,
         date_creation: r.created_at ? r.created_at.split('T')[0] : '',
         dernier_acces: r.derniere_connexion ? r.derniere_connexion.split('T')[0] : undefined,
@@ -97,26 +98,21 @@ export const AdminOrganisationUsersPage: React.FC = () => {
   }, [currentUser?.organisation_id, searchTerm, filterRole, filterStatus]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }
     loadUsers();
   }, [currentUser, navigate, loadUsers]);
 
-  const getRoleBadgeColor = (role: NomRole) => {
-    const colors: Record<NomRole, string> = {
-      [NomRole.ADMIN_ORGANISATION]: 'primary',
-      [NomRole.OFFICIER_POLICE]: 'info',
-      [NomRole.OPERATEUR_SAISIE]: 'warning',
-      [NomRole.MODERATEUR]: 'success',
-      [NomRole.RESPONSABLE_ONG]: 'info',
-      [NomRole.AGENT_GENDARMERIE]: 'info',
-      [NomRole.CITOYEN_VERIFIE]: 'success',
-      [NomRole.CITOYEN_STANDARD]: 'default',
-      [NomRole.SUPER_ADMIN]: 'danger',
+  const getRoleBadgeColor = (role: NomRole | string) => {
+    const r = normalizeAppRole(role as string);
+    const colors: Record<string, string> = {
+      [NomRole.ADMIN_SYSTEME]: 'danger',
+      [NomRole.AUTORITE]: 'primary',
+      [NomRole.CITOYEN]: 'default',
     };
-    return colors[role] || 'default';
+    return colors[r] || 'default';
   };
 
   const getStatusIcon = (status: StatutCompte) => {
@@ -215,9 +211,9 @@ export const AdminOrganisationUsersPage: React.FC = () => {
                   className={styles.usersManagement__select}
                 >
                   <option value="all">{t('admin.allRoles')}</option>
-                  <option value={NomRole.OFFICIER_POLICE}>{t('admin.policeOfficer')}</option>
-                  <option value={NomRole.OPERATEUR_SAISIE}>{t('admin.dataOperator')}</option>
-                  <option value={NomRole.MODERATEUR}>{t('admin.moderator')}</option>
+                  <option value={NomRole.AUTORITE}>{t('admin.roleAutorite') || 'Autorité'}</option>
+                  <option value={NomRole.CITOYEN}>{t('admin.roleCitoyen') || 'Citoyen'}</option>
+                  <option value={NomRole.ADMIN_SYSTEME}>{t('admin.roleAdminSysteme') || 'Admin système'}</option>
                 </select>
               </div>
               <div className={styles.usersManagement__filterGroup}>

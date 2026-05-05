@@ -73,7 +73,7 @@ export const SidebarSuperAdmin: React.FC<SidebarSuperAdminProps> = ({
         {!isCollapsed && (
           <div className={styles.orgInfo}>
             <p className={styles.orgName}>{t('super_admin.title')}</p>
-            <p className={styles.orgRole}>{NomRole.SUPER_ADMIN}</p>
+            <p className={styles.orgRole}>{NomRole.ADMIN_SYSTEME}</p>
           </div>
         )}
       </div>

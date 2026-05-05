@@ -195,6 +195,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const payload: Record<string, unknown> = {
         statut_validation: newStatut,
+        visible_detail_public: newStatut === 'valide',
         verifie_par: user?.id || null,
         date_verification: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -224,6 +225,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const payload: Record<string, unknown> = {
         statut_validation: editStatut,
+        visible_detail_public: editStatut === 'valide',
         verifie_par: user?.id || null,
         date_verification: new Date().toISOString(),
         updated_at: new Date().toISOString(),

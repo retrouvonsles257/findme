@@ -1,7 +1,8 @@
 /**
  * =====================================================
  * RETROUVONSLES - Moderator Routes
- * Routes pour les modérateurs
+ * Non monté dans AppRoutes : `/moderator/*` redirige vers `/authority/dashboard` (refonte rôles).
+ * Fichier conservé pour référence / composants partagés.
  * =====================================================
  */
 
@@ -35,7 +36,7 @@ import { NomRole } from '../@types/enums.types';
  * - Donations
  */
 const ModeratorRoutes: React.FC = () => {
-  const moderatorRoles = [NomRole.MODERATEUR];
+  const moderatorRoles = [NomRole.AUTORITE];
 
   return (
     <PrivateRoute>

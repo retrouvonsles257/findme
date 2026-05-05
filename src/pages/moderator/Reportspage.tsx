@@ -13,7 +13,12 @@ import { BarChart3, Clock, CheckCircle, XCircle, Archive, TrendingUp } from 'luc
 import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './ReportsPage.module.css';
 
-export const ReportsPage: React.FC = () => {
+export interface ReportsPageProps {
+  /** Contenu seul (embarqué sous `AuthorityLayout`). */
+  noLayout?: boolean;
+}
+
+export const ReportsPage: React.FC<ReportsPageProps> = ({ noLayout = false }) => {
   const { t } = useI18n();
   const { signalements, isLoading } = useSignalements();
   const [reportPeriod, setReportPeriod] = useState<'7days' | '30days' | 'all'>('7days');
@@ -125,8 +130,7 @@ export const ReportsPage: React.FC = () => {
     { icon: Archive, value: reportStats.en_cours, labelKey: 'moderator.inProgress' as const },
   ];
 
-  return (
-    <ModerationLayout title={t('moderator.reportsPageTitle')} activeNav="reports">
+  const content = (
       <div className={styles.reports}>
         {/* Header */}
         <div className={styles['reports__header']}>
@@ -298,6 +302,13 @@ export const ReportsPage: React.FC = () => {
           </>
         )}
       </div>
+  );
+
+  if (noLayout) return content;
+
+  return (
+    <ModerationLayout title={t('moderator.reportsPageTitle')} activeNav="reports">
+      {content}
     </ModerationLayout>
   );
 };

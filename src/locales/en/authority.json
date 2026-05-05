@@ -31,6 +31,18 @@
     "noMessage": "No message",
     "typeStandard": "Standard",
     "unitKm": "km",
+    "diffusion": {
+      "previewTitle": "Estimated reach before broadcast",
+      "previewLoading": "Calculating recipients…",
+      "previewCount": "{{count}} recipient(s) in radius (out of {{total}} citizens with notifications on). Radius stored on alert: {{rayon}} km.",
+      "previewNoCentre": "No geographic center on this alert: no notifications will be sent until a location is set (dossier or alert coordinates).",
+      "previewNoCentreBroadcast": "No center on alert, but config allows broad broadcast: {{count}} recipient(s).",
+      "previewStrictOff": "Fallback “all notifiables if radius is empty” may apply (REACT_APP_ALERTE_STRICT_GEO_ONLY=false).",
+      "toastSuccessTitle": "Broadcast saved",
+      "toastSuccessBody": "Alert sent to {{count}} recipient(s).",
+      "toastZeroTitle": "No recipients in radius",
+      "toastZeroBody": "No notifications were sent. Check the alert center, radius, or citizens’ shared location."
+    },
     "actions": {
       "publish": "Publish",
       "delete": "Delete",
@@ -107,6 +119,8 @@
         "dossierRequired": "Please select a file",
         "alerteCreated": "Alert created",
         "alerteCreatedAndPublished": "Alert has been created and will be broadcast",
+        "alerteCreatedAndPublishedWithCount": "Alert broadcast to {{count}} recipient(s) (notifications created).",
+        "publishNoRecipients": "Alert published, but no eligible citizens (active account, notifications on, location within radius when the alert has map coordinates). Check citizen location or radius.",
         "alerteSavedAsDraft": "Alert has been saved as draft",
         "error": "Error",
         "creationError": "Error during creation"
@@ -699,10 +713,15 @@
     "alertes": "Alerts",
     "coordination": "Coordination",
     "dossiers": "Files",
+    "personnes": "Persons",
     "mapView": "Map View",
     "analysis": "AI Analysis",
     "investigation": "Investigation",
     "signalements": "Reports",
+    "fileSignalements": "Report queue (advanced)",
+    "reportsSignalements": "Report statistics",
+    "activityHistory": "Activity history",
+    "identityVerification": "Identity verification",
     "photosModeration": "Photo moderation",
     "donations": "Donations & Campaigns",
     "statistiques": "Statistics"
@@ -895,11 +914,22 @@
     "no": "No"
   },
   "roles": {
-    "officier_police": "Police Officer",
-    "agent_gendarmerie": "Gendarmerie Agent",
-    "operateur_saisie": "Operator",
-    "admin_organisation": "Organization Admin",
+    "admin_systeme": "System administrator",
+    "citoyen": "Citizen",
+    "autorite": "Authority",
+    "moderateur": "Validation and moderation (legacy label)",
+    "responsable_ong": "Humanitarian coordination (legacy label)",
+    "officier_police": "Police command (legacy label)",
+    "agent_gendarmerie": "Gendarmerie command (legacy label)",
+    "operateur_saisie": "Data entry and case management (legacy label)",
+    "admin_organisation": "Organization administration (legacy label)",
     "default": "Authority"
+  },
+  "echelonFunction": {
+    "1": "Data entry and case management",
+    "2": "Moderation and content validation",
+    "3": "Humanitarian stakeholder coordination",
+    "4": "Command (police / gendarmerie)"
   },
   "iaAnalysis": {
     "title": "Advanced AI Analysis",

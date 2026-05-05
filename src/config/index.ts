@@ -64,6 +64,7 @@ export {
   getCurrentUser,
   isAuthenticated,
   signInWithPassword,
+  signInAnonymously,
   signUpWithPassword,
   signInWithGoogle,
   signInWithFacebook,

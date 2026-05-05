@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useI18n, useInView } from '../../hooks';
 import { supabase } from '../../config';
 import {
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import styles from './HomePage.module.css';
 import { MissingPersonsCarousel, HomeMapSection } from '../../components/public';
+import { CITIZEN_ROUTES, PUBLIC_ROUTES } from '../../routes/routes.config';
 
 type RevealVariant = 'up' | 'down' | 'left' | 'right' | 'zoom';
 
@@ -86,7 +87,11 @@ export const HomePage: React.FC = () => {
     try {
       const [dossiersRes, signalementRes, avisRes, photosRes] = await Promise.all([
         supabase.from('dossier_disparition').select('id', { count: 'exact', head: true }) as any,
-        supabase.from('signalement').select('id', { count: 'exact', head: true }) as any,
+        supabase
+          .from('signalement')
+          .select('id', { count: 'exact', head: true })
+          .eq('statut_validation', 'valide')
+          .eq('visible_detail_public', true) as any,
         supabase.from('avis').select('id', { count: 'exact', head: true }) as any,
         supabase
           .from('dossier_disparition')
@@ -175,6 +180,15 @@ export const HomePage: React.FC = () => {
             <p className={styles.heroCasesCount}>
               {t('public.home.cases_count').replace('{{count}}', String(stats.totalCases || 441))}
             </p>
+
+            <div className={styles.heroCTA}>
+              <Link
+                to={`${PUBLIC_ROUTES.CONTRIBUTE}?next=${encodeURIComponent(CITIZEN_ROUTES.NEW_SIGNALEMENT)}`}
+                className={styles.btnSecondary}
+              >
+                {t('public.home.hero_guest_cta')}
+              </Link>
+            </div>
 
             <MissingPersonsCarousel />
           </div>

@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
@@ -37,6 +37,8 @@ type FilterType = 'all' | 'active' | 'proximity' | 'closed';
 export const CitizenAlertesPage: React.FC = () => {
   const { t, language } = useI18n();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const focusAlerteId = searchParams.get('alerte');
   
   // Hooks
   const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useAlertes();
@@ -187,6 +189,29 @@ export const CitizenAlertesPage: React.FC = () => {
   const isLoading = loadingAlertes || loadingProximity;
   const hasError = errorAlertes || errorProximity;
 
+  useEffect(() => {
+    if (focusAlerteId) {
+      setFilter('all');
+    }
+  }, [focusAlerteId]);
+
+  useEffect(() => {
+    if (!focusAlerteId || isLoading) return;
+    let removeHighlightTimer: number | undefined;
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById(`citizen-alerte-${focusAlerteId}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.classList.add(styles['alertes__card--focus']);
+      removeHighlightTimer = window.setTimeout(() => {
+        el?.classList.remove(styles['alertes__card--focus']);
+      }, 6000);
+    }, 400);
+    return () => {
+      clearTimeout(timer);
+      if (removeHighlightTimer !== undefined) window.clearTimeout(removeHighlightTimer);
+    };
+  }, [focusAlerteId, isLoading, filteredAlertes.length]);
+
   return (
     <CitizenLayout>
       <div className={styles.alertes}>
@@ -315,6 +340,7 @@ export const CitizenAlertesPage: React.FC = () => {
                   return (
                     <div
                       key={alerte.id}
+                      id={`citizen-alerte-${alerte.id}`}
                       className={styles['alertes__card']}
                       onClick={() => handleViewDetails(alerte.id, alerte.id_dossier)}
                     >

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { AdminDetailSkeleton } from '../admin/skeletons';
 import styles from './ProfilePage.module.css';
-import { NomRole, StatutCompte } from '../../@types/enums.types';
+import { StatutCompte } from '../../@types/enums.types';
 
 interface ProfileData {
   nom: string;
@@ -66,7 +66,7 @@ export const CitizenProfilePage: React.FC = () => {
     accepte_geolocalisation: false,
   });
 
-  const isVerified = (currentUser as any)?.role === NomRole.CITOYEN_VERIFIE;
+  const isVerified = Boolean((currentUser as any)?.identite_verifiee);
   const isVerificationPending = (currentUser as any)?.statut_compte === StatutCompte.EN_ATTENTE_VERIFICATION;
 
   // Charger le profil depuis Supabase

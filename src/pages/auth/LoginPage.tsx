@@ -5,26 +5,19 @@
  * =====================================================
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAppDispatch } from '../../store/types';
-import { loginThunk } from '../../features/auth/store/authThunks';
+import { loginThunk, signInAnonymousThunk } from '../../features/auth/store/authThunks';
+import { useI18n } from '../../hooks';
 import { LoginCredentials } from '../../@types/auth.types';
-import { NomRole } from '../../@types/enums.types';
-
 import styles from './LoginPage.module.css';
-
-const ROLE_DASHBOARD_MAP: Record<NomRole, string> = {
-  [NomRole.SUPER_ADMIN]: '/super-admin/dashboard',
-  [NomRole.ADMIN_ORGANISATION]: '/admin/dashboard',
-  [NomRole.OFFICIER_POLICE]: '/authority/dashboard',
-  [NomRole.AGENT_GENDARMERIE]: '/authority/dashboard',
-  [NomRole.RESPONSABLE_ONG]: '/ngo/dashboard',
-  [NomRole.OPERATEUR_SAISIE]: '/operator/dashboard',
-  [NomRole.MODERATEUR]: '/moderator/dashboard',
-  [NomRole.CITOYEN_VERIFIE]: '/citizen/dashboard',
-  [NomRole.CITOYEN_STANDARD]: '/citizen/dashboard',
-};
+import { getDashboardPathAfterLogin } from '../../services/supabase/auth';
+import { safeCitizenNextPath } from '../../utils/safeCitizenNext';
+import {
+  canAttemptAnonymousSignIn,
+  markAnonymousSignInSuccess,
+} from '../../utils/anonymousSignInRateLimit';
 
 interface LoginError {
   email?: string;
@@ -40,7 +33,18 @@ interface LocationState {
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
+  const { tNamespace, t } = useI18n();
+  const anonAnchorRef = useRef<HTMLDivElement | null>(null);
+
+  /** `?next=` uniquement si présent et déjà limité à `/citizen/…` (sinon on suit le rôle — évite d’envoyer admin/autorité vers /citizen/dashboard). */
+  const citizenDeepLinkFromQuery = useMemo(() => {
+    const raw = searchParams.get('next');
+    if (!raw?.trim()) return null;
+    const safe = safeCitizenNextPath(raw, '__invalid__');
+    return safe.startsWith('/citizen/') ? safe : null;
+  }, [searchParams]);
   
   // Get success message from location state
   const locationState = location.state as LocationState | null;
@@ -65,6 +69,12 @@ export const LoginPage: React.FC = () => {
     }
     return undefined; // Retour explicite pour tous les chemins
   }, [showSuccessMessage]);
+
+  useEffect(() => {
+    if (searchParams.get('anon') === '1' && anonAnchorRef.current) {
+      anonAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [searchParams]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: LoginError = {};
@@ -130,18 +140,20 @@ export const LoginPage: React.FC = () => {
         }
 
         // Redirection immédiate après succès du login
-        const userRole = result.payload?.user?.role as NomRole;
+        const userRole = result.payload?.user?.role as string | undefined;
         console.log('[LoginPage] User role from payload:', userRole);
         console.log('[LoginPage] Full payload user:', result.payload?.user);
-        
-        const dashboardUrl = userRole ? ROLE_DASHBOARD_MAP[userRole] : '/';
+
+        const orgId = result.payload?.user?.organisation_id ?? null;
+        const dashboardUrl = getDashboardPathAfterLogin(userRole || 'citoyen', orgId);
+        const target = citizenDeepLinkFromQuery ?? dashboardUrl;
         console.log('[LoginPage] Dashboard URL:', dashboardUrl);
-        console.log('[LoginPage] About to navigate to:', dashboardUrl);
-        
+        console.log('[LoginPage] About to navigate to:', target);
+
         // Attendre un court instant pour que Redux termine la mise à jour
         setTimeout(() => {
-          console.log('[LoginPage] Navigating now to:', dashboardUrl);
-          navigate(dashboardUrl, { replace: true });
+          console.log('[LoginPage] Navigating now to:', target);
+          navigate(target, { replace: true });
         }, 100);
       } catch (error: any) {
         console.error('[LoginPage] Login error:', error);
@@ -153,8 +165,41 @@ export const LoginPage: React.FC = () => {
       // Note: Ne pas mettre setIsLoading(false) ici en cas de succès
       // pour éviter que l'utilisateur ne puisse cliquer à nouveau
     },
-    [validateForm, credentials, dispatch, isLoading, navigate]
+    [validateForm, credentials, dispatch, isLoading, navigate, citizenDeepLinkFromQuery]
   );
+
+  const handleContinueWithoutAccount = useCallback(async () => {
+    if (isLoading) return;
+    const gate = canAttemptAnonymousSignIn();
+    if (!gate.ok) {
+      const sec = Math.ceil(gate.retryAfterMs / 1000);
+      setErrors({
+        general: t('public.contribute.rate_limited', { count: sec }),
+      });
+      return;
+    }
+    setIsLoading(true);
+    setErrors({});
+    try {
+      const result = (await dispatch(signInAnonymousThunk())) as any;
+      if (!result?.type?.endsWith('/fulfilled')) {
+        throw result?.payload || new Error('Connexion sans compte impossible');
+      }
+      markAnonymousSignInSuccess();
+      const userRole = result.payload?.user?.role as string | undefined;
+      const orgId = result.payload?.user?.organisation_id ?? null;
+      const dashboardUrl = getDashboardPathAfterLogin(userRole || 'citoyen', orgId);
+      const target = citizenDeepLinkFromQuery ?? dashboardUrl;
+      setTimeout(() => {
+        navigate(target, { replace: true });
+      }, 100);
+    } catch (error: any) {
+      setErrors({
+        general: error?.message || 'Connexion sans compte impossible. Réessayez plus tard.',
+      });
+      setIsLoading(false);
+    }
+  }, [dispatch, isLoading, navigate, citizenDeepLinkFromQuery, t]);
 
   return (
     <div className={styles.pageWrapper}>
@@ -264,6 +309,23 @@ export const LoginPage: React.FC = () => {
               </svg>
               {isLoading ? 'Connexion...' : 'Se connecter'}
             </button>
+
+            <div ref={anonAnchorRef} />
+            <button
+              type="button"
+              disabled={isLoading}
+              className={styles.secondaryButton}
+              onClick={handleContinueWithoutAccount}
+            >
+              {tNamespace('auth', 'auth.login.continue_without_account', 'Continuer sans créer de compte')}
+            </button>
+            <p className={styles.anonHint}>
+              {tNamespace(
+                'auth',
+                'auth.login.continue_without_account_hint',
+                'Vous pourrez enregistrer un e-mail et un mot de passe plus tard pour conserver vos données.',
+              )}
+            </p>
 
             {/* Divider */}
             <div className={styles.divider}>

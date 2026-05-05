@@ -16,10 +16,16 @@ export interface User {
   statut_compte: StatutCompte;
   type_compte: TypeCompte;
   organisation_id?: UUID;
+  /** Ex-rôle citoyen_verifie : identité vérifiée côté profil. */
+  identite_verifiee?: boolean;
+  /** Sous-type compte autorite (1–4), null si non applicable. */
+  autorite_echelon?: number | null;
   date_creation: Timestamp;
   derniere_connexion?: Timestamp;
   email_confirme: boolean;
   telephone_confirme: boolean;
+  /** Session Supabase anonyme (avant liaison email / mot de passe). */
+  is_anonymous?: boolean;
 }
 
 export interface Session {

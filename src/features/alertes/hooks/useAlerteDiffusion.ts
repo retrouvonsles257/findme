@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { useNotification, useGeolocation } from '../../../contexts';
+import { useI18n } from '../../../hooks';
 import * as alerteAPI from '../services/alerteAPI';
 import * as alerteService from '../services/alerteService';
 
@@ -117,6 +118,7 @@ export const useAlerteDiffusion = (): UseAlerteDiffusionReturn => {
 
   const { addNotification } = useNotification();
   const { location } = useGeolocation();
+  const { t } = useI18n();
 
   // ========== DIFFUSION ==========
 
@@ -162,12 +164,24 @@ export const useAlerteDiffusion = (): UseAlerteDiffusionReturn => {
           },
         }));
 
-        addNotification({
-          title: 'Diffusion réussie',
-          message: `Alerte envoyée à ${result.nombre_destinataires} destinataires`,
-          type: 'success',
-          duration: 5000,
-        });
+        if (result.nombre_destinataires === 0) {
+          addNotification({
+            title: t('authority.alertes.diffusion.toastZeroTitle'),
+            message: t('authority.alertes.diffusion.toastZeroBody'),
+            type: 'warning',
+            duration: 8000,
+          });
+        } else {
+          addNotification({
+            title: t('authority.alertes.diffusion.toastSuccessTitle'),
+            message: t('authority.alertes.diffusion.toastSuccessBody').replace(
+              '{{count}}',
+              String(result.nombre_destinataires),
+            ),
+            type: 'success',
+            duration: 5000,
+          });
+        }
 
         return diffusionResult;
       } catch (err) {
@@ -181,7 +195,7 @@ export const useAlerteDiffusion = (): UseAlerteDiffusionReturn => {
         throw err;
       }
     },
-    [addNotification],
+    [addNotification, t],
   );
 
   // ========== PROGRAMMATION ==========

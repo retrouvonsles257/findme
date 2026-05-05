@@ -86,14 +86,14 @@ const SUPER_ADMIN_NAV_GROUPS: SuperAdminNavGroup[] = [
     labelKey: 'super_admin.nav.organisations',
     items: [
       { id: 'organisations', labelKey: 'super_admin.organisations', path: '/super-admin/organisations', icon: Building2 },
-      { id: 'system-users', labelKey: 'super_admin.systemUsersMenu', path: '/super-admin/system-users', icon: Users },
-      { id: 'roles', labelKey: 'super_admin.rolesMenu', path: '/super-admin/roles', icon: UserCog },
     ],
   },
   {
     groupKey: 'system',
     labelKey: 'super_admin.nav.system',
     items: [
+      { id: 'system-users', labelKey: 'super_admin.systemUsersMenu', path: '/super-admin/system-users', icon: Users },
+      { id: 'roles', labelKey: 'super_admin.rolesMenu', path: '/super-admin/roles', icon: UserCog },
       { id: 'system-logs', labelKey: 'super_admin.systemLogsMenu', path: '/super-admin/system-logs', icon: FileText },
       { id: 'system-settings', labelKey: 'super_admin.systemSettingsMenu', path: '/super-admin/system-settings', icon: Settings },
     ],

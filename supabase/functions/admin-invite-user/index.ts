@@ -103,7 +103,7 @@ serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { data: profile, error: profileError } = await (adminClient as any).from('utilisateur').select('id_organisation').eq('id', userId).maybeSingle();
+  const { data: profile, error: profileError } = await (adminClient as any).from('utilisateur').select('id').eq('id', userId).maybeSingle();
   if (profileError) {
     const detail = profileError?.message || profileError?.code || String(profileError);
     return jsonResponse({ error: 'Erreur lecture profil', detail }, 500);
@@ -111,17 +111,13 @@ serve(async (req) => {
   if (!profile) {
     return jsonResponse({ error: 'Profil utilisateur introuvable (table utilisateur)' }, 403);
   }
-  const userOrgId = (profile.id_organisation ?? '') as string;
 
   const { data: rolesData } = await (adminClient as any).from('utilisateur_role').select('role:role(nom_role)').eq('id_utilisateur', userId);
   const roles = Array.isArray(rolesData) ? rolesData : rolesData ? [rolesData] : [];
-  const hasAdminOrg = roles.some((r: any) => r?.role?.nom_role === 'admin_organisation');
+  const hasSystemAdmin = roles.some((r: any) => r?.role?.nom_role === 'admin_systeme');
 
-  if (!hasAdminOrg) {
-    return jsonResponse({ error: 'Rôle admin organisation requis' }, 403);
-  }
-  if (userOrgId !== organisationId) {
-    return jsonResponse({ error: 'Vous n\'êtes pas admin de cette organisation' }, 403);
+  if (!hasSystemAdmin) {
+    return jsonResponse({ error: 'Rôle administrateur système requis' }, 403);
   }
 
   const redirectUrl = Deno.env.get('SITE_URL') || `${supabaseUrl.replace('.supabase.co', '')}`;

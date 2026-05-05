@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useAppSelector } from '../../store/hooks';
 import { useI18n } from '../../hooks';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
@@ -252,8 +253,7 @@ export const OperatorMyDossiersPage: React.FC = () => {
                         Voir
                       </button>
                       {(dossier.id_utilisateur_createur === currentUser?.id ||
-                        currentUser?.role === 'admin_organisation' ||
-                        currentUser?.role === 'super_admin') && (
+                        currentUser?.role === NomRole.ADMIN_SYSTEME) && (
                         <button
                           className={styles['operator-my-dossiers__edit-btn']}
                           onClick={() => navigate(`/operator/edit-dossier/${dossier.id}`)}

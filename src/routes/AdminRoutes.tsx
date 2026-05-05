@@ -70,7 +70,7 @@ const RedirectAdminIA: React.FC = () => {
  * - Audit Logs
  */
 const AdminRoutes: React.FC = () => {
-  const adminRoles = [NomRole.ADMIN_ORGANISATION];
+  const adminRoles = [NomRole.ADMIN_SYSTEME];
 
   return (
     <PrivateRoute>
@@ -80,7 +80,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/dashboard"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationDashboardPage />
             </RoleBasedRoute>
           }
@@ -90,7 +90,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/utilisateurs"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationUsersPage />
             </RoleBasedRoute>
           }
@@ -98,7 +98,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/utilisateurs/new"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationUserNewPage />
             </RoleBasedRoute>
           }
@@ -106,7 +106,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/utilisateurs/:id"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationUserDetailPage />
             </RoleBasedRoute>
           }
@@ -116,7 +116,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/dossiers"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationDossiersPage />
             </RoleBasedRoute>
           }
@@ -124,7 +124,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/dossiers/new"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationDossierNewPage />
             </RoleBasedRoute>
           }
@@ -132,7 +132,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/dossiers/:id"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationDossierDetailPage />
             </RoleBasedRoute>
           }
@@ -140,7 +140,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/dossiers/:id/edit"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationDossierEditPage />
             </RoleBasedRoute>
           }
@@ -150,7 +150,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/alertes"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationAlertesPage />
             </RoleBasedRoute>
           }
@@ -158,7 +158,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/alertes/new"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCreateAlertePage />
             </RoleBasedRoute>
           }
@@ -166,7 +166,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/alertes/:id"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationAlerteDetailPage />
             </RoleBasedRoute>
           }
@@ -174,7 +174,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/signalements"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationSignalementsPage />
             </RoleBasedRoute>
           }
@@ -182,7 +182,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/signalements/:id"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationSignalementDetailPage />
             </RoleBasedRoute>
           }
@@ -190,7 +190,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/ia"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationIAPage />
             </RoleBasedRoute>
           }
@@ -199,7 +199,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/coordination"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCoordinationPage />
             </RoleBasedRoute>
           }
@@ -207,7 +207,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/carte"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCartePage />
             </RoleBasedRoute>
           }
@@ -217,7 +217,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/photos-moderation"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationPhotosModerationPage />
             </RoleBasedRoute>
           }
@@ -225,7 +225,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/verification-identite"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationVerificationIdentitePage />
             </RoleBasedRoute>
           }
@@ -235,7 +235,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/personnes"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationPersonnesPage />
             </RoleBasedRoute>
           }
@@ -243,7 +243,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/personnes/:id"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationPersonDetailPage />
             </RoleBasedRoute>
           }
@@ -251,7 +251,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/photos-en-attente"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationPhotosEnAttentePage />
             </RoleBasedRoute>
           }
@@ -259,7 +259,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/signalements-en-attente"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationSignalementsEnAttentePage />
             </RoleBasedRoute>
           }
@@ -269,7 +269,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/campagnes"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCampagnesPage />
             </RoleBasedRoute>
           }
@@ -277,7 +277,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/campagnes/create"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCreateCampagnePage />
             </RoleBasedRoute>
           }
@@ -285,7 +285,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/cas"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCasesPage />
             </RoleBasedRoute>
           }
@@ -293,7 +293,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/cas/create"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationCreateCasePage />
             </RoleBasedRoute>
           }
@@ -301,7 +301,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/ressources"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationRessourcesPage />
             </RoleBasedRoute>
           }
@@ -309,7 +309,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/partenariats"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationPartenariatsPage />
             </RoleBasedRoute>
           }
@@ -319,7 +319,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/rapports"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationRapportsPage />
             </RoleBasedRoute>
           }
@@ -327,7 +327,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/rapports/:id"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationRapportDetailPage />
             </RoleBasedRoute>
           }
@@ -337,7 +337,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/statistiques"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationStatistiquesPage />
             </RoleBasedRoute>
           }
@@ -347,7 +347,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/profile"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationProfilePage />
             </RoleBasedRoute>
           }
@@ -357,7 +357,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/parametres"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationSettingsPage />
             </RoleBasedRoute>
           }
@@ -367,7 +367,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/workflows"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationWorkflowsPage />
             </RoleBasedRoute>
           }
@@ -377,7 +377,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/roles"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationRolesPage />
             </RoleBasedRoute>
           }
@@ -387,7 +387,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/audit-logs"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationAuditLogsPage />
             </RoleBasedRoute>
           }
@@ -397,7 +397,7 @@ const AdminRoutes: React.FC = () => {
         <Route
           path="/donations"
           element={
-            <RoleBasedRoute requiredRoles={adminRoles}>
+            <RoleBasedRoute requiredRoles={adminRoles} organisationScope="with_organisation">
               <AdminOrganisationDonationsPage />
             </RoleBasedRoute>
           }

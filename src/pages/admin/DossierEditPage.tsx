@@ -84,7 +84,7 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
   }, [currentUser?.organisation_id, id, t]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }
@@ -108,7 +108,7 @@ export const AdminOrganisationDossierEditPage: React.FC = () => {
     }
   };
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+  if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
     return null;
   }
 

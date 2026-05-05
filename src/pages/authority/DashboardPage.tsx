@@ -32,7 +32,9 @@ import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
 import styles from './DashboardPage.module.css';
-import type { NomRole } from '../../@types/enums.types';
+import { NomRole } from '../../@types/enums.types';
+import { normalizeAppRole } from '../../utils/normalizeAppRole';
+import { authorityEchelonI18nKey } from '../../utils/authorityRoleUi';
 
 interface DashboardStats {
   dossiers_total: number;
@@ -65,12 +67,9 @@ export const DashboardPage: React.FC = () => {
     taux_resolution: 0,
   });
 
-  // Verify user is an authority
+  // Vérifier que l'utilisateur est bien compte autorité (rôle unique en base)
   useEffect(() => {
-    if (
-      currentUser &&
-      !(['officier_police' as NomRole, 'agent_gendarmerie' as NomRole].includes(currentUser.role as NomRole))
-    ) {
+    if (currentUser && currentUser.role !== NomRole.AUTORITE) {
       navigate('/');
     }
   }, [currentUser, navigate]);
@@ -125,12 +124,15 @@ export const DashboardPage: React.FC = () => {
 
   const isLoading = dossiersLoading || signalementsLoading || alertesLoading;
 
-  const getRoleName = (role?: string) => {
-    switch (role) {
-      case 'officier_police': return t('authority.roles.officier_police');
-      case 'agent_gendarmerie': return t('authority.roles.agent_gendarmerie');
-      default: return t('authority.roles.default');
+  const getRoleSubtitle = (role?: string) => {
+    const r = normalizeAppRole(role);
+    if (r === NomRole.ADMIN_SYSTEME) return t('authority.roles.admin_systeme');
+    if (r === NomRole.CITOYEN) return t('authority.roles.citoyen');
+    if (r === NomRole.AUTORITE) {
+      const e = (currentUser as { autorite_echelon?: number | null })?.autorite_echelon;
+      return t(authorityEchelonI18nKey(e));
     }
+    return t('authority.roles.default');
   };
 
   return (
@@ -141,10 +143,10 @@ export const DashboardPage: React.FC = () => {
           <div className={styles.headerContent}>
             <div className={styles.welcomeSection}>
               <h1 className={styles.pageTitle}>
-                {t('authority.welcome')}, {currentUser?.nom_complet?.split('authority. ')[0] || t('authority.roles.default')}
+                {t('authority.welcome')}, {currentUser?.nom_complet?.trim()?.split(/\s+/)[0] || t('authority.roles.default')}
               </h1>
               <p className={styles.pageSubtitle}>
-                {getRoleName(currentUser?.role)} • {t('authority.menu.dashboard')}
+                {getRoleSubtitle(currentUser?.role)} • {t('authority.menu.dashboard')}
               </p>
             </div>
             <button 

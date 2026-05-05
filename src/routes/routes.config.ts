@@ -21,6 +21,8 @@ export const PUBLIC_ROUTES = {
   PREVENTING: '/preventing',
   /** Page téléchargement application mobile (placeholder) */
   APP: '/app',
+  /** Parcours public : connexion anonyme ou classique vers une action citoyenne (ex. signalement). */
+  CONTRIBUTE: '/contribuer',
 } as const;
 
 // ============================================
@@ -65,7 +67,7 @@ export const AUTHORITY_ROUTES = {
 } as const;
 
 // ============================================
-// OPERATOR ROUTES (Data Entry)
+// OPERATOR ROUTES — conservés pour chemins / redirections uniquement (UI → /authority).
 // ============================================
 export const OPERATOR_ROUTES = {
   BASE: '/operator',
@@ -78,7 +80,7 @@ export const OPERATOR_ROUTES = {
 } as const;
 
 // ============================================
-// MODERATOR ROUTES
+// MODERATOR ROUTES — idem opérateur (parcours Autorité).
 // ============================================
 export const MODERATOR_ROUTES = {
   BASE: '/moderator',
@@ -155,6 +157,15 @@ export const ROUTES = {
   superAdmin: SUPER_ADMIN_ROUTES,
   errors: ERROR_ROUTES
 } as const;
+
+/** Anciens préfixes `/operator`, `/moderator`, `/ngo` : redirection unique vers le silo Autorité (étape D5). */
+export const LEGACY_SILO_BASES = [
+  ROUTES.operator.BASE,
+  ROUTES.moderator.BASE,
+  ROUTES.ngo.BASE,
+] as const;
+
+export const LEGACY_SILO_REDIRECT_TARGET = `${ROUTES.authority.BASE}/dashboard` as const;
 
 /**
  * Helper function to get URL params with dynamic values

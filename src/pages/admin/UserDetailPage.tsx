@@ -132,7 +132,7 @@ export const AdminOrganisationUserDetailPage: React.FC = () => {
     }
   };
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+  if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
     navigate('/auth/login');
     return null;
   }
@@ -244,7 +244,7 @@ export const AdminOrganisationUserDetailPage: React.FC = () => {
                       ))}
                     </select>
                   ) : (
-                    <Badge variant="info">{t(`admin.role.${(user as any).role?.nom_role || 'citoyen_standard'}`, t('common.unknown'))}</Badge>
+                    <Badge variant="info">{t(`admin.role.${(user as any).role?.nom_role || 'citoyen'}`, t('common.unknown'))}</Badge>
                   )}
                 </div>
                 <div className={styles.field}>

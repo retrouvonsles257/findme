@@ -6,6 +6,7 @@
  */
 
 import type { AuthStoreState } from '../types';
+import { NomRole } from '../../../@types/enums.types';
 
 // ============================================
 // ROOT SELECTOR
@@ -48,7 +49,8 @@ export const selectUserRole = (state: any) => selectAuthState(state)?.user?.role
 /**
  * Sélectionne l'ID de l'organisation de l'utilisateur
  */
-export const selectOrganisationId = (state: any) => selectAuthState(state)?.user?.organisationId || null;
+export const selectOrganisationId = (state: any) =>
+  selectAuthState(state)?.user?.organisation_id ?? null;
 
 /**
  * Sélectionne le nom complet de l'utilisateur
@@ -370,7 +372,7 @@ export const selectHasAnyPermission = (state: any, permissions: string[]) => {
  */
 export const selectIsAdmin = (state: any) => {
   const role = selectUserRole(state);
-  return role === 'ADMIN' || role === 'SUPER_ADMIN';
+  return role === NomRole.ADMIN_SYSTEME;
 };
 
 /**

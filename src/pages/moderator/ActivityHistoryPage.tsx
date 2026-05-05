@@ -61,7 +61,11 @@ interface PersonalStats {
 type FilterType = 'all' | 'validation_signalement' | 'upload_photo' | 'attribution_role' | 'autre';
 type DateRange = '7d' | '30d' | '90d' | 'all';
 
-export const ActivityHistoryPage: React.FC = () => {
+export interface ActivityHistoryPageProps {
+  noLayout?: boolean;
+}
+
+export const ActivityHistoryPage: React.FC<ActivityHistoryPageProps> = ({ noLayout = false }) => {
   const { t, language } = useI18n();
   const currentUser = useAppSelector(selectUser);
 
@@ -239,8 +243,7 @@ export const ActivityHistoryPage: React.FC = () => {
     return groups;
   }, {} as Record<string, ActivityLog[]>);
 
-  return (
-    <ModerationLayout title={t('moderator.activityHistory')} activeNav="history">
+  const content = (
       <div className={styles.page}>
         <header className={styles.header}>
           <div className={styles.headerContent}>
@@ -403,6 +406,13 @@ export const ActivityHistoryPage: React.FC = () => {
           )}
         </div>
       </div>
+  );
+
+  if (noLayout) return content;
+
+  return (
+    <ModerationLayout title={t('moderator.activityHistory')} activeNav="history">
+      {content}
     </ModerationLayout>
   );
 };

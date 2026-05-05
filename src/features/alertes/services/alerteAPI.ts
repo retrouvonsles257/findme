@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '../../../config/supabase.config';
+import { envConfig } from '../../../config/env.config';
 import type {
   Alerte,
   StatutAlerte,
@@ -79,6 +80,30 @@ export const createAlerte = async (input: AlerteCreateInput): Promise<Alerte> =>
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Non authentifié');
 
+  let latIn = input.latitude_centre;
+  let lngIn = input.longitude_centre;
+  const latMissing =
+    latIn == null || lngIn == null || Number.isNaN(Number(latIn)) || Number.isNaN(Number(lngIn));
+  if (latMissing && input.id_dossier) {
+    const { data: dossier } = await supabase
+      .from('dossier_disparition')
+      .select('latitude_disparition, longitude_disparition')
+      .eq('id', input.id_dossier)
+      .maybeSingle();
+    const d = dossier as { latitude_disparition?: number | null; longitude_disparition?: number | null } | null;
+    if (d?.latitude_disparition != null && d?.longitude_disparition != null) {
+      const dl = Number(d.latitude_disparition);
+      const dg = Number(d.longitude_disparition);
+      if (!Number.isNaN(dl) && !Number.isNaN(dg)) {
+        latIn = dl;
+        lngIn = dg;
+      }
+    }
+  }
+
+  const latFinal = latIn != null && !Number.isNaN(Number(latIn)) ? Number(latIn) : null;
+  const lngFinal = lngIn != null && !Number.isNaN(Number(lngIn)) ? Number(lngIn) : null;
+
   // Préparer les données pour l'insertion
   // Supabase convertit automatiquement les tableaux en JSONB
   const insertData = {
@@ -87,8 +112,8 @@ export const createAlerte = async (input: AlerteCreateInput): Promise<Alerte> =>
     message_court: input.message_court || input.message.substring(0, 500),
     type_alerte: input.type_alerte,
     id_dossier: input.id_dossier,
-    latitude_centre: input.latitude_centre || null,
-    longitude_centre: input.longitude_centre || null,
+    latitude_centre: latFinal,
+    longitude_centre: lngFinal,
     rayon_km: input.rayon_km || 50,
     zones_specifiques: input.zones_specifiques || null,
     date_diffusion: new Date().toISOString(),
@@ -311,6 +336,56 @@ export const cancelAlerte = async (
 // DIFFUSION OPERATIONS
 // ============================================
 
+const LOG_DIFFUSE = '[DiffuseAlerte]';
+
+function logDiffuse(phase: string, data: Record<string, unknown>): void {
+  try {
+    console.info(LOG_DIFFUSE, phase, JSON.stringify(data));
+  } catch {
+    console.info(LOG_DIFFUSE, phase, data);
+  }
+}
+
+/**
+ * Tous les comptes grand_public actifs avec notifications acceptées (pagination PostgREST, évite la limite ~1000 lignes).
+ * Utilisé par {@link diffuserAlerte} / {@link previewDiffusionAlerte} pour le filtre géographique.
+ */
+async function fetchAllCitoyensNotifiables(): Promise<
+  { id: string; latitude_actuelle: number | null; longitude_actuelle: number | null }[]
+> {
+  const pageSize = 800;
+  const rows: { id: string; latitude_actuelle: number | null; longitude_actuelle: number | null }[] = [];
+  let from = 0;
+  let page = 0;
+
+  for (;;) {
+    page += 1;
+    const to = from + pageSize - 1;
+    const { data, error } = await (supabase
+      .from('utilisateur')
+      .select('id, latitude_actuelle, longitude_actuelle')
+      .eq('accepte_notifications', true)
+      .eq('statut_compte', 'actif')
+      .eq('type_compte', 'grand_public')
+      .order('id', { ascending: true })
+      .range(from, to) as any);
+
+    if (error) {
+      logDiffuse('fetch_citoyens_error', { page, from, to, message: error.message, code: (error as any).code });
+      throw error;
+    }
+
+    const chunk = (data as any[]) || [];
+    rows.push(...chunk);
+    logDiffuse('fetch_citoyens_page', { page, from, to, pageRows: chunk.length, totalSoFar: rows.length });
+
+    if (chunk.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return rows;
+}
+
 /**
  * Calcule la distance en km entre deux points (formule de Haversine).
  */
@@ -333,41 +408,203 @@ function distanceKm(
   return R * c;
 }
 
+export type CitoyenNotifiable = {
+  id: string;
+  latitude_actuelle: number | null;
+  longitude_actuelle: number | null;
+};
+
+export type DiffusionDestinatairesResult = {
+  destinataires: CitoyenNotifiable[];
+  useGeo: boolean;
+  sansCentreSurAlerte: boolean;
+  excludedSansPosition: number;
+  excludedHorsRayon: number;
+  geoFallbackApplied: boolean;
+  totalNotifiables: number;
+};
+
 /**
- * Diffuser une alerte aux citoyens dans le rayon de diffusion (aligné docs).
- * Seuls les utilisateurs grand_public avec accepte_notifications, dans la zone
- * de l'alerte (latitude_centre + rayon_km), reçoivent une notification.
+ * Même logique de filtrage que {@link diffuserAlerte} (strict geo + option sans centre).
+ */
+export function computeDestinatairesAlerteDiffusion(
+  rawUsers: CitoyenNotifiable[],
+  alertLat: number | null | undefined,
+  alertLng: number | null | undefined,
+  alertRayonKm: number,
+): DiffusionDestinatairesResult {
+  const strictGeoOnly = envConfig.ALERTE_DIFFUSION_STRICT_GEO_ONLY;
+  const allowBroadcastWithoutGeo = envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO;
+
+  const latN = alertLat != null ? Number(alertLat) : NaN;
+  const lngN = alertLng != null ? Number(alertLng) : NaN;
+  const useGeo =
+    alertLat != null &&
+    alertLng != null &&
+    !Number.isNaN(latN) &&
+    !Number.isNaN(lngN);
+
+  const totalNotifiables = rawUsers.length;
+
+  if (!useGeo) {
+    if (allowBroadcastWithoutGeo) {
+      return {
+        destinataires: rawUsers.slice(),
+        useGeo: false,
+        sansCentreSurAlerte: true,
+        excludedSansPosition: 0,
+        excludedHorsRayon: 0,
+        geoFallbackApplied: false,
+        totalNotifiables,
+      };
+    }
+    return {
+      destinataires: [],
+      useGeo: false,
+      sansCentreSurAlerte: true,
+      excludedSansPosition: 0,
+      excludedHorsRayon: 0,
+      geoFallbackApplied: false,
+      totalNotifiables,
+    };
+  }
+
+  let excludedSansPosition = 0;
+  let excludedHorsRayon = 0;
+  let destinataires = rawUsers.filter((u: CitoyenNotifiable) => {
+    const lat = u.latitude_actuelle;
+    const lng = u.longitude_actuelle;
+    if (lat == null || lng == null) {
+      excludedSansPosition += 1;
+      return false;
+    }
+    const d = distanceKm(latN, lngN, lat, lng);
+    if (d > alertRayonKm) {
+      excludedHorsRayon += 1;
+      return false;
+    }
+    return true;
+  });
+
+  const geoFallbackApplied =
+    destinataires.length === 0 && rawUsers.length > 0 && !strictGeoOnly;
+
+  if (geoFallbackApplied) {
+    destinataires = rawUsers.slice();
+  }
+
+  return {
+    destinataires,
+    useGeo: true,
+    sansCentreSurAlerte: false,
+    excludedSansPosition,
+    excludedHorsRayon,
+    geoFallbackApplied,
+    totalNotifiables,
+  };
+}
+
+/** Aperçu du nombre de destinataires sans INSERT (pour l’UI autorité). */
+export async function previewDiffusionAlerte(
+  alerteId: string,
+): Promise<
+  DiffusionDestinatairesResult & {
+    rayon_km: number;
+    configStrictGeo: boolean;
+    configAllowSansCentre: boolean;
+  }
+> {
+  const alerte = await getAlerteById(alerteId);
+  const rawUsers = await fetchAllCitoyensNotifiables();
+  const alertRayonKm = alerte.rayon_km ?? 50;
+  return {
+    ...computeDestinatairesAlerteDiffusion(rawUsers, alerte.latitude_centre, alerte.longitude_centre, alertRayonKm),
+    rayon_km: alertRayonKm,
+    configStrictGeo: envConfig.ALERTE_DIFFUSION_STRICT_GEO_ONLY,
+    configAllowSansCentre: envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO,
+  };
+}
+
+/**
+ * Diffuser une alerte aux citoyens (une ligne `notification` par destinataire → webhook FCM par ligne).
+ *
+ * Règles :
+ * - Candidats : `type_compte = grand_public`, `statut_compte = actif`, `accepte_notifications = true`.
+ * - Avec **centre** + rayon : uniquement les citoyens dont la position partagée est dans le disque (Haversine).
+ * - **Repli « tout le monde » dans le rayon vide** : seulement si `REACT_APP_ALERTE_STRICT_GEO_ONLY=false`.
+ * - **Sans centre** sur l’alerte : 0 destinataire sauf si `REACT_APP_ALERTE_ALLOW_BROADCAST_WITHOUT_GEO=true`.
  */
 export const diffuserAlerte = async (
   id: string,
   canaux?: string[],
 ): Promise<{ success: boolean; nombre_destinataires: number }> => {
+  const diffusionTraceId = `diff-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const alerte = await getAlerteById(id);
   const alertLat = alerte.latitude_centre ?? null;
   const alertLng = alerte.longitude_centre ?? null;
   const alertRayonKm = alerte.rayon_km ?? 50;
 
-  // Citoyens (grand_public) qui acceptent les notifications et ont un compte actif
-  const { data: users, error: usersError } = await (supabase
-    .from('utilisateur')
-    .select('id, latitude_actuelle, longitude_actuelle')
-    .eq('accepte_notifications', true)
-    .eq('statut_compte', 'actif')
-    .eq('type_compte', 'grand_public') as any);
+  const rawUsers = await fetchAllCitoyensNotifiables();
+  const computed = computeDestinatairesAlerteDiffusion(rawUsers, alertLat, alertLng, alertRayonKm);
+  const {
+    destinataires,
+    useGeo,
+    sansCentreSurAlerte,
+    excludedSansPosition,
+    excludedHorsRayon,
+    geoFallbackApplied,
+    totalNotifiables,
+  } = computed;
 
-  if (usersError) throw usersError;
-  const rawUsers = (users as any[]) || [];
+  logDiffuse('start', {
+    traceId: diffusionTraceId,
+    alerteId: id,
+    titre: alerte.titre?.slice(0, 80),
+    centre: useGeo ? { lat: alertLat, lng: alertLng } : null,
+    rayon_km: alertRayonKm,
+    filtre: useGeo
+      ? 'geo_rayon'
+      : sansCentreSurAlerte
+        ? envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO
+          ? 'tous_notifiables_sans_centre_explicit'
+          : 'aucune_diffusion_sans_centre'
+        : 'inconnu',
+    strict_geo_only: envConfig.ALERTE_DIFFUSION_STRICT_GEO_ONLY,
+    allow_broadcast_sans_geo: envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO,
+    canaux,
+  });
 
-  // Filtrer par rayon : uniquement les utilisateurs dans la zone de l'alerte
-  const destinataires =
-    alertLat != null && alertLng != null
-      ? rawUsers.filter((u: any) => {
-          const lat = u.latitude_actuelle;
-          const lng = u.longitude_actuelle;
-          if (lat == null || lng == null) return false;
-          return distanceKm(alertLat, alertLng, lat, lng) <= alertRayonKm;
-        })
-      : rawUsers;
+  if (sansCentreSurAlerte && !envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO) {
+    logDiffuse('sans_centre_skip', {
+      traceId: diffusionTraceId,
+      message:
+        'Alerte sans latitude_centre/longitude_centre : 0 notification. Renseigner le lieu (dossier) ou activer REACT_APP_ALERTE_ALLOW_BROADCAST_WITHOUT_GEO pour diffusion large.',
+    });
+  }
+
+  if (geoFallbackApplied) {
+    logDiffuse('geo_fallback_all_notifiables', {
+      traceId: diffusionTraceId,
+      raison:
+        'aucun destinataire dans le rayon — repli vers tous les citoyens notifiables (REACT_APP_ALERTE_STRICT_GEO_ONLY=false)',
+      excludedSansPosition,
+      excludedHorsRayon,
+      totalNotifiables,
+    });
+  }
+
+  const idSample = destinataires.slice(0, 8).map((u: any) => String(u.id).slice(0, 8) + '…');
+
+  logDiffuse('candidats', {
+    traceId: diffusionTraceId,
+    total_grand_public_actifs_notif_on: totalNotifiables,
+    destinataires_finaux: destinataires.length,
+    excludedSansPosition: useGeo ? excludedSansPosition : 0,
+    excludedHorsRayon: useGeo ? excludedHorsRayon : 0,
+    geo_fallback_all_notifiables: geoFallbackApplied,
+    sans_centre: sansCentreSurAlerte,
+    idSample,
+  });
 
   const canal = (canaux && canaux[0]) || 'in_app';
   const dateCreation = new Date().toISOString();
@@ -382,13 +619,50 @@ export const diffuserAlerte = async (
     date_creation: dateCreation,
     id_utilisateur: user.id,
     id_alerte: id,
+    donnees_supplementaires: {
+      traceId: diffusionTraceId,
+      source: 'diffuserAlerte',
+      createdAt: dateCreation,
+    },
   }));
 
   if (notifications.length > 0) {
-    const { error: notifError } = await supabase
-      .from('notification')
-      .insert(notifications as any);
-    if (notifError) throw notifError;
+    const { error: notifError } = await supabase.from('notification').insert(notifications as any);
+
+    if (notifError) {
+      logDiffuse('insert_notification_error', {
+        traceId: diffusionTraceId,
+        message: notifError.message,
+        code: (notifError as any).code,
+        details: (notifError as any).details,
+        hint: (notifError as any).hint,
+        rowsAttempted: notifications.length,
+      });
+      throw notifError;
+    }
+    logDiffuse('insert_notification_ok', { traceId: diffusionTraceId, rowsInserted: notifications.length });
+  } else {
+    let skipReason: string;
+    if (totalNotifiables === 0) {
+      skipReason = 'aucun_citoyen_eligible_en_base';
+    } else if (sansCentreSurAlerte && !envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO) {
+      skipReason = 'pas_de_centre_geo';
+    } else if (useGeo) {
+      skipReason = 'aucun_dans_rayon_ou_sans_position';
+    } else {
+      skipReason = 'aucun_destinataire';
+    }
+    logDiffuse('insert_notification_skip', {
+      traceId: diffusionTraceId,
+      reason: skipReason,
+      rawUsers: totalNotifiables,
+      hint_geo:
+        useGeo && totalNotifiables > 0
+          ? 'Vérifier que les citoyens ont latitude_actuelle/longitude_actuelle (GPS + paramètres géoloc / partager position).'
+          : sansCentreSurAlerte && !envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO
+            ? 'Renseigner latitude_centre/longitude_centre (p. ex. lieu du dossier) sur l’alerte.'
+            : undefined,
+    });
   }
 
   // Mettre à jour l'alerte
@@ -410,6 +684,8 @@ export const diffuserAlerte = async (
       date_action: new Date().toISOString(),
     });
   }
+
+  logDiffuse('done', { traceId: diffusionTraceId, nombre_destinataires: destinataires.length, alerteId: id });
 
   return {
     success: true,

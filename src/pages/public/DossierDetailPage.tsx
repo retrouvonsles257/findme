@@ -32,7 +32,8 @@ interface Signalement {
   lieu_observation?: string | null;
   ville_observation?: string | null;
   region_observation?: string | null;
-  etat_validation?: string | null;
+  statut_validation?: string | null;
+  visible_detail_public?: boolean | null;
 }
 
 export const DossierDetailPage: React.FC = () => {
@@ -95,8 +96,12 @@ export const DossierDetailPage: React.FC = () => {
         // Load signalements
         const { data: signalData, error: signalErr } = await (supabase as any)
           .from('signalement')
-          .select('id, description, date_observation, lieu_observation, ville_observation, region_observation, etat_validation')
+          .select(
+            'id, description, date_observation, lieu_observation, ville_observation, region_observation, statut_validation, visible_detail_public',
+          )
           .eq('id_dossier', id)
+          .eq('statut_validation', 'valide')
+          .eq('visible_detail_public', true)
           .order('date_observation', { ascending: false });
 
         if (!signalErr && signalData) {

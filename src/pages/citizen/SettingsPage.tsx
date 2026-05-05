@@ -10,6 +10,8 @@ import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { supabase } from '../../config';
+import { deleteFCMToken } from '../../config/firebase.config';
+import { deleteAllFcmTokensForUser } from '../../features/notifications/services/fcmTokenAPI';
 import { useI18n } from '../../hooks';
 import { CitizenLayout } from './CitizenLayout';
 import {
@@ -216,6 +218,15 @@ export const CitizenSettingsPage: React.FC = () => {
         .eq('id', userId);
 
       if (dbError) throw dbError;
+
+      if (!settings.notifications_push) {
+        try {
+          await deleteAllFcmTokensForUser(userId);
+          await deleteFCMToken();
+        } catch (e) {
+          console.warn('[Settings] Nettoyage jetons FCM:', e);
+        }
+      }
 
       setSuccess(t('citizen.settingsSaved'));
       setHasChanges(false);

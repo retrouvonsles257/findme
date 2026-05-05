@@ -7,10 +7,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { 
-  supabaseAuthService, 
+import {
+  supabaseAuthService,
   getUserAccountStatus,
-  getRedirectPathByRole 
+  getDashboardPathAfterLogin,
+  normalizeAppRole,
+  pickOrganisationIdFromJwt,
 } from '../../services/supabase/auth';
 
 import styles from './VerifyEmailPage.module.css'; // Réutiliser le style
@@ -98,12 +100,16 @@ export const AuthCallbackPage: React.FC = () => {
             return;
           }
           
-          const userRole = result.role || 'citoyen_standard';
-          console.log('User role:', userRole);
-          
+          const userRole = normalizeAppRole(result.role || 'citoyen');
+          const orgId =
+            (result.profile as { id_organisation?: string } | null)?.id_organisation ??
+            pickOrganisationIdFromJwt(result.user as any) ??
+            null;
+          console.log('User role:', userRole, 'org:', orgId);
+
           setStatusMessage(`Bienvenue ${result.profile?.prenom || result.user.email}! Redirection...`);
 
-          const redirectPath = getRedirectPathByRole(userRole);
+          const redirectPath = getDashboardPathAfterLogin(userRole, orgId);
           console.log('Redirecting to:', redirectPath);
           
           setTimeout(() => {

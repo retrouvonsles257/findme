@@ -15,6 +15,11 @@ import {
   XCircle, AlertCircle, Image as ImageIcon
 } from 'lucide-react';
 import { AdminDetailSkeleton } from '../admin/skeletons';
+import {
+  getRawStatut,
+  getCitizenStatusI18nSuffix,
+  getStatutPhase,
+} from '../../features/signalements/utils/citizenStatutValidationUi';
 import styles from './SignalementDetailPage.module.css';
 
 interface SignalementDetail {
@@ -112,20 +117,23 @@ export const CitizenSignalementDetailPage: React.FC = () => {
     });
   };
 
-  // Obtenir l'icône et la couleur du statut
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'valide':
-        return { icon: <CheckCircle size={20} />, color: '#22c55e', label: t('citizen.approved') };
-      case 'invalide':
-      case 'rejete':
-        return { icon: <XCircle size={20} />, color: '#ef4444', label: t('citizen.rejected') };
-      case 'en_verification':
-        return { icon: <Eye size={20} />, color: '#f59e0b', label: t('citizen.underReview') };
-      case 'en_attente':
-      default:
-        return { icon: <AlertCircle size={20} />, color: '#6b7280', label: t('citizen.pending') || 'En attente' };
+  const buildStatusInfo = (sig: SignalementDetail) => {
+    const raw = getRawStatut(sig);
+    const label = t(`citizen.${getCitizenStatusI18nSuffix(raw)}`);
+    const phase = getStatutPhase(raw);
+    if (phase === 'ok') {
+      return { icon: <CheckCircle size={20} />, color: '#22c55e', label };
     }
+    if (phase === 'nok') {
+      return { icon: <XCircle size={20} />, color: '#ef4444', label };
+    }
+    if (phase === 'other') {
+      return { icon: <AlertCircle size={20} />, color: '#64748b', label };
+    }
+    if (phase === 'review') {
+      return { icon: <Eye size={20} />, color: '#f59e0b', label };
+    }
+    return { icon: <AlertCircle size={20} />, color: '#6b7280', label };
   };
 
   // Niveau de certitude
@@ -172,7 +180,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
     );
   }
 
-  const statusInfo = getStatusInfo(signalement.statut_validation);
+  const statusInfo = buildStatusInfo(signalement);
 
   return (
     <CitizenLayout activeNav="signalements">

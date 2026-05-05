@@ -19,121 +19,92 @@ export interface UsePermissionsResult {
   isVerified: boolean;
 }
 
-// Permission mapping based on roles
+const permissionsCitoyen: string[] = [
+  'create_signalements',
+  'view_dossiers',
+  'view_signalements',
+  'view_notifications',
+  'manage_profile',
+  'manage_notification_preferences',
+];
+
+const permissionsCitoyenIdentite: string[] = [
+  ...permissionsCitoyen,
+  'priority_reports',
+  'upload_multiple_photos',
+];
+
+/** Ancienne granularité opérateur / modérateur / ONG / police regroupée sous `autorite`. */
+const permissionsAutorite: string[] = [
+  'view_reports',
+  'manage_signalements',
+  'view_dossiers',
+  'create_alerts',
+  'view_analytics',
+  'manage_content',
+  'create_signalements',
+  'view_organization_dossiers',
+  'create_dossiers',
+  'edit_own_dossiers',
+  'create_personnes',
+  'manage_filiation',
+  'view_pending_signalements',
+  'view_pending_photos',
+  'manage_dossiers',
+  'manage_organization_alerts',
+  'manage_organization_content',
+  'view_organization_analytics',
+  'manage_organization_users',
+];
+
+const permissionsAdminSysteme: string[] = [
+  ...permissionsAutorite,
+  'manage_users',
+  'manage_roles',
+  'manage_organizations',
+  'manage_alerts',
+  'manage_notifications',
+];
+
 const rolePermissions: Partial<Record<NomRole, string[]>> = {
-  [NomRole.SUPER_ADMIN]: [
-    'manage_users',
-    'manage_roles',
-    'view_reports',
-    'manage_organizations',
-    'manage_content',
-    'view_analytics',
-    'manage_alerts',
-    'manage_dossiers',
-    'manage_signalements',
-    'manage_notifications',
-  ],
-  [NomRole.ADMIN_ORGANISATION]: [
-    'manage_organization_users',
-    'view_organization_reports',
-    'manage_organization_content',
-    'view_organization_analytics',
-    'manage_dossiers',
-    'manage_signalements',
-    'manage_organization_alerts',
-  ],
-  [NomRole.OFFICIER_POLICE]: [
-    'view_reports',
-    'manage_signalements',
-    'view_dossiers',
-    'create_alerts',
-    'view_analytics',
-  ],
-  [NomRole.AGENT_GENDARMERIE]: [
-    'view_reports',
-    'manage_signalements',
-    'view_dossiers',
-    'create_alerts',
-    'view_analytics',
-  ],
-  [NomRole.RESPONSABLE_ONG]: [
-    'view_reports',
-    'create_dossiers',
-    'manage_dossiers',
-    'create_signalements',
-    'manage_signalements',
-    'view_analytics',
-  ],
-  [NomRole.MODERATEUR]: [
-    'manage_content',
-    'view_reports',
-    'create_signalements',
-    'view_analytics',
-  ],
-  [NomRole.OPERATEUR_SAISIE]: [
-    // Docs: opérateur saisie (niveau 2)
-    'view_dossiers',
-    'view_organization_dossiers',
-    'create_dossiers',
-    'edit_own_dossiers',
-    'create_personnes',
-    'manage_filiation',
-    'view_pending_signalements',
-    'view_pending_photos',
-  ],
-  // Citoyens (docs: peuvent consulter les dossiers publics + créer des signalements)
-  [NomRole.CITOYEN_VERIFIE]: [
-    'create_signalements',
-    'view_dossiers',
-    'view_signalements',
-    'view_notifications',
-    'manage_profile',
-    'manage_notification_preferences',
-    // Spécifique niveau 1
-    'priority_reports',
-    'upload_multiple_photos',
-  ],
-  [NomRole.CITOYEN_STANDARD]: [
-    'create_signalements',
-    'view_dossiers',
-    'view_signalements',
-    'view_notifications',
-    'manage_profile',
-    'manage_notification_preferences',
-  ],
+  [NomRole.ADMIN_SYSTEME]: permissionsAdminSysteme,
+  [NomRole.AUTORITE]: permissionsAutorite,
+  [NomRole.CITOYEN]: permissionsCitoyen,
 };
 
 export const usePermissions = (): UsePermissionsResult => {
-  // Assuming auth state is stored in Redux
-  const user = useSelector((state: any) => state.auth?.user || null);
+  const user = useSelector((state: any) => state.auth?.user || null) as User | null;
 
   const getPermissions = (role?: NomRole): string[] => {
     if (!role) return [];
+    if (role === NomRole.CITOYEN && user?.identite_verifiee) {
+      return permissionsCitoyenIdentite;
+    }
     return rolePermissions[role] || [];
   };
 
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
-    const permissions = getPermissions(user.role);
+    const permissions = getPermissions(user.role as NomRole);
     return permissions.includes(permission);
   };
 
   const hasAnyPermission = (permissions: string[]): boolean => {
     if (!user) return false;
-    const userPermissions = getPermissions(user.role);
+    const userPermissions = getPermissions(user.role as NomRole);
     return permissions.some((perm) => userPermissions.includes(perm));
   };
 
   const hasAllPermissions = (permissions: string[]): boolean => {
     if (!user) return false;
-    const userPermissions = getPermissions(user.role);
+    const userPermissions = getPermissions(user.role as NomRole);
     return permissions.every((perm) => userPermissions.includes(perm));
   };
 
-  const isAdmin =
-    user?.role === NomRole.SUPER_ADMIN || user?.role === NomRole.ADMIN_ORGANISATION;
-  const isModerator = user?.role === NomRole.MODERATEUR;
-  const isVerified = user?.role === NomRole.CITOYEN_VERIFIE;
+  const isAdmin = user?.role === NomRole.ADMIN_SYSTEME;
+  const echelon = user?.autorite_echelon ?? null;
+  const isModerator = user?.role === NomRole.AUTORITE && echelon !== null && echelon <= 2;
+  const isVerified = user?.role === NomRole.CITOYEN && Boolean(user?.identite_verifiee);
 
   return {
     user,

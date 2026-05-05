@@ -16,6 +16,13 @@ import { CitizenLayout } from './CitizenLayout';
 import { supabase } from '../../config';
 import { Search, Plus, Eye, Trash2, FileText, AlertCircle, MapPin, Calendar } from 'lucide-react';
 import { AdminListSkeleton } from '../admin/skeletons';
+import {
+  getRawStatut,
+  getCitizenStatusI18nSuffix,
+  getCardStatusVisual,
+  matchesCitizenListFilter,
+  type CitizenSignalementFilterBucket,
+} from '../../features/signalements/utils/citizenStatutValidationUi';
 import styles from './MySignalementsPage.module.css';
 
 export const CitizenMySignalementsPage: React.FC = () => {
@@ -26,7 +33,7 @@ export const CitizenMySignalementsPage: React.FC = () => {
   const userId = (currentUser as any)?.id;
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState<CitizenSignalementFilterBucket>('all');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [dossierPhotos, setDossierPhotos] = useState<Record<string, string>>({});
 
@@ -81,48 +88,18 @@ export const CitizenMySignalementsPage: React.FC = () => {
     loadDossierPhotos(ids);
   }, [userSignalements, loadDossierPhotos]);
 
-  // Mapper les statuts de la DB vers les statuts d'affichage
-  const mapStatus = (etat: string): 'approved' | 'pending' | 'rejected' => {
-    switch (etat) {
-      case 'valide':
-        return 'approved';
-      case 'rejete':
-      case 'invalide':
-        return 'rejected';
-      case 'en_cours':
-      case 'nouveau':
-      case 'en_attente':
-      default:
-        return 'pending';
-    }
+  const getStatusText = (sig: any) => {
+    const raw = getRawStatut(sig);
+    return t(`citizen.${getCitizenStatusI18nSuffix(raw)}`);
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'approved':
-      case 'valide':
-        return t('citizen.approved');
-      case 'pending':
-      case 'en_cours':
-      case 'nouveau':
-      case 'en_attente':
-        return t('citizen.underReview');
-      case 'rejected':
-      case 'rejete':
-      case 'invalide':
-        return t('citizen.rejected');
-      default:
-        return t('citizen.pending') || status;
-    }
-  };
-
-  // Filtrer par statut
-  const filteredSignalements = filterStatus === 'all'
-    ? userSignalements
-    : userSignalements.filter((sig: any) => {
-        const mappedStatus = mapStatus(sig.etat || sig.statut_validation);
-        return mappedStatus === filterStatus;
-      });
+  // Filtrer par statut (aligné `statut_validation` — étape E)
+  const filteredSignalements =
+    filterStatus === 'all'
+      ? userSignalements
+      : userSignalements.filter((sig: any) =>
+          matchesCitizenListFilter(getRawStatut(sig), filterStatus),
+        );
 
   // Recherche
   const searchedSignalements = filteredSignalements.filter((sig: any) => {
@@ -191,7 +168,9 @@ export const CitizenMySignalementsPage: React.FC = () => {
           <label className={styles['signalements__filter-label']}>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) =>
+                setFilterStatus(e.target.value as CitizenSignalementFilterBucket)
+              }
               className={styles['signalements__filter-select']}
             >
               <option value="all">{t('common.allItems')} ({userSignalements.length})</option>
@@ -221,7 +200,8 @@ export const CitizenMySignalementsPage: React.FC = () => {
             {searchedSignalements.length > 0 ? (
               <div className={styles['signalements__grid']}>
                 {searchedSignalements.map((sig: any) => {
-                  const status = mapStatus(sig.etat || sig.statut_validation);
+                  const raw = getRawStatut(sig);
+                  const visual = getCardStatusVisual(raw);
                   const photo = sig.id_dossier ? dossierPhotos[sig.id_dossier] : null;
                   return (
                     <div key={sig.id} className={styles['signalements__card']}>
@@ -233,8 +213,8 @@ export const CitizenMySignalementsPage: React.FC = () => {
                             <FileText size={40} />
                           </div>
                         )}
-                        <span className={`${styles['signalements__card-status']} ${styles[`signalements__status--${status}`]}`}>
-                          {getStatusText(sig.etat || sig.statut_validation)}
+                        <span className={`${styles['signalements__card-status']} ${styles[`signalements__status--${visual}`]}`}>
+                          {getStatusText(sig)}
                         </span>
                       </div>
                       <div className={styles['signalements__card-body']}>

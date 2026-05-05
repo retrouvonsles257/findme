@@ -30,6 +30,9 @@
     "manageReports": "Gérer les rapports",
     "manageTeam": "Gérer les membres de votre équipe",
     "manageUsers": "Gérer les utilisateurs",
+    "roleAutorite": "Autorité",
+    "roleCitoyen": "Citoyen",
+    "roleAdminSysteme": "Administrateur système",
 
     "allRoles": "Tous les rôles",
     "policeOfficer": "Officier de police",
@@ -306,15 +309,18 @@
     "welcome": "Bienvenue",
 
     "role": {
-      "super_admin": "Super Admin",
-      "admin_organisation": "Admin Organisation",
-      "officier_police": "Officier de police",
-      "agent_gendarmerie": "Agent gendarmerie",
-      "responsable_ong": "Responsable ONG",
-      "operateur_saisie": "Opérateur de saisie",
-      "moderateur": "Modérateur",
-      "citoyen_verifie": "Citoyen vérifié",
-      "citoyen_standard": "Citoyen standard"
+      "citoyen": "Citoyen",
+      "autorite": "Autorité",
+      "admin_systeme": "Administrateur système",
+      "super_admin": "Administrateur système (ancien libellé)",
+      "admin_organisation": "Autorité — administration d’organisation (ancien libellé)",
+      "officier_police": "Invitation — commandement (police / gendarmerie)",
+      "agent_gendarmerie": "Invitation — commandement (gendarmerie)",
+      "responsable_ong": "Invitation — coordination humanitaire",
+      "operateur_saisie": "Invitation — saisie et dossiers",
+      "moderateur": "Invitation — modération et validation",
+      "citoyen_verifie": "Citoyen",
+      "citoyen_standard": "Citoyen"
     },
     "status": {
       "actif": "Actif",

@@ -20,13 +20,13 @@ export const AdminOrganisationDossierNewPage: React.FC = () => {
   const currentUser = useAppSelector(selectCurrentUser);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }
   }, [currentUser, navigate]);
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+  if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
     return null;
   }
 

@@ -5,11 +5,13 @@
  * =====================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './AlerteCreate.module.css';
 import { useAlerteDiffusion } from '../hooks/useAlerteDiffusion';
 import { AlerteZoneSelector, type Zone } from './AlerteZoneSelector';
 import { useNotification } from '../../../contexts';
+import { useI18n } from '../../../hooks';
+import { previewDiffusionAlerte, type DiffusionDestinatairesResult } from '../services/alerteAPI';
 
 // ============================================
 // TYPE DEFINITIONS
@@ -32,6 +34,35 @@ export const AlerteDiffusion: React.FC<AlerteDiffusionProps> = ({
 }) => {
   const { diffuserAlerte, programmerDiffusion } = useAlerteDiffusion();
   const { addNotification } = useNotification();
+  const { t } = useI18n();
+
+  const [preview, setPreview] = useState<
+    | (DiffusionDestinatairesResult & {
+        rayon_km: number;
+        configStrictGeo: boolean;
+        configAllowSansCentre: boolean;
+      })
+    | null
+  >(null);
+  const [previewLoading, setPreviewLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setPreviewLoading(true);
+    void previewDiffusionAlerte(alerteId)
+      .then((p) => {
+        if (!cancelled) setPreview(p);
+      })
+      .catch(() => {
+        if (!cancelled) setPreview(null);
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [alerteId]);
 
   const [canaux, setCanaux] = useState<string[]>(['push', 'in_app']);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -86,11 +117,23 @@ export const AlerteDiffusion: React.FC<AlerteDiffusionProps> = ({
           priorite_diffusion: 'haute',
         });
 
-        addNotification({
-          title: 'Succès',
-          message: `Alerte diffusée à ${result.nombre_destinataires} destinataires`,
-          type: 'success',
-        });
+        if (result.nombre_destinataires === 0) {
+          addNotification({
+            title: t('authority.alertes.diffusion.toastZeroTitle'),
+            message: t('authority.alertes.diffusion.toastZeroBody'),
+            type: 'warning',
+            duration: 8000,
+          });
+        } else {
+          addNotification({
+            title: t('authority.alertes.diffusion.toastSuccessTitle'),
+            message: t('authority.alertes.diffusion.toastSuccessBody').replace(
+              '{{count}}',
+              String(result.nombre_destinataires),
+            ),
+            type: 'success',
+          });
+        }
 
         onSuccess?.();
       }
@@ -107,9 +150,42 @@ export const AlerteDiffusion: React.FC<AlerteDiffusionProps> = ({
 
   // ========== RENDER ==========
 
+  const previewBody = () => {
+    if (!preview) return null;
+    if (preview.sansCentreSurAlerte && preview.destinataires.length > 0 && preview.configAllowSansCentre) {
+      return t('authority.alertes.diffusion.previewNoCentreBroadcast').replace(
+        '{{count}}',
+        String(preview.destinataires.length),
+      );
+    }
+    if (preview.sansCentreSurAlerte && preview.destinataires.length === 0 && !preview.configAllowSansCentre) {
+      return t('authority.alertes.diffusion.previewNoCentre');
+    }
+    return t('authority.alertes.diffusion.previewCount')
+      .replace('{{count}}', String(preview.destinataires.length))
+      .replace('{{total}}', String(preview.totalNotifiables))
+      .replace('{{rayon}}', String(preview.rayon_km));
+  };
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Diffuser l'alerte</h2>
+
+      <div className={styles.diffusionPreview} role="status">
+        <strong>{t('authority.alertes.diffusion.previewTitle')}</strong>
+        {previewLoading ? (
+          <p>{t('authority.alertes.diffusion.previewLoading')}</p>
+        ) : preview ? (
+          <>
+            <p>{previewBody()}</p>
+            {!preview.configStrictGeo && preview.useGeo ? (
+              <p className={styles.diffusionPreviewWarn}>{t('authority.alertes.diffusion.previewStrictOff')}</p>
+            ) : null}
+          </>
+        ) : (
+          <p>—</p>
+        )}
+      </div>
 
       <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
         {/* Canaux */}

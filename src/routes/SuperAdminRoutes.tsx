@@ -41,7 +41,7 @@ import { NomRole } from '../@types/enums.types';
  * - Profile, Documents, Photos, Commentaires, Notifications, Liens filiation
  */
 const SuperAdminRoutes: React.FC = () => {
-  const superAdminRoles = [NomRole.SUPER_ADMIN];
+  const superAdminRoles = [NomRole.ADMIN_SYSTEME];
 
   return (
     <PrivateRoute>
@@ -50,7 +50,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/dashboard"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminDashboardPage />
             </RoleBasedRoute>
           }
@@ -60,7 +60,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/global-stats"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminGlobalStatsPage />
             </RoleBasedRoute>
           }
@@ -70,7 +70,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/organisations"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminOrganisationsPage />
             </RoleBasedRoute>
           }
@@ -80,7 +80,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/system-logs"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminSystemLogsPage />
             </RoleBasedRoute>
           }
@@ -90,7 +90,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/system-settings"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminSystemSettingsPage />
             </RoleBasedRoute>
           }
@@ -100,7 +100,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/system-users"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminSystemUsersPage />
             </RoleBasedRoute>
           }
@@ -110,7 +110,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/campagnes"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminCampagnesPage />
             </RoleBasedRoute>
           }
@@ -120,7 +120,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/dons"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminDonsPage />
             </RoleBasedRoute>
           }
@@ -129,7 +129,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/dons/faire-un-don"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminDonatePage />
             </RoleBasedRoute>
           }
@@ -139,7 +139,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/roles"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminRolesPage />
             </RoleBasedRoute>
           }
@@ -149,7 +149,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/dossiers"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminDossiersPage />
             </RoleBasedRoute>
           }
@@ -159,7 +159,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/dossiers/:id"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminDossierDetailPage />
             </RoleBasedRoute>
           }
@@ -169,7 +169,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/dossiers-critiques"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminDossiersCritiquesPage />
             </RoleBasedRoute>
           }
@@ -179,7 +179,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/alertes"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminAlertesPage />
             </RoleBasedRoute>
           }
@@ -189,7 +189,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/resultats-ia"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminResultatsIAPage />
             </RoleBasedRoute>
           }
@@ -199,7 +199,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/signalement-validation"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminSignalementValidationPage />
             </RoleBasedRoute>
           }
@@ -209,7 +209,7 @@ const SuperAdminRoutes: React.FC = () => {
         <Route
           path="/profile"
           element={
-            <RoleBasedRoute requiredRoles={superAdminRoles}>
+            <RoleBasedRoute requiredRoles={superAdminRoles} organisationScope="without_organisation">
               <SuperAdminProfilePage />
             </RoleBasedRoute>
           }

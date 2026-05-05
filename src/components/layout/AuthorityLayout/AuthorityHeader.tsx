@@ -174,7 +174,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       // Utiliser les bons noms de colonnes: date_creation, lue, url_action
       const { data, error } = await (supabase as any)
         .from('notification')
-        .select('authority.id, type_notification, titre, message, lue, date_creation, url_action')
+        .select('id, type_notification, titre, message, lue, date_creation, url_action')
         .eq('id_utilisateur', currentUser.id)
         .order('date_creation', { ascending: false })
         .limit(10);
@@ -203,7 +203,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       // Récupérer les signalements récents validés
       const { data: signalements } = await (supabase as any)
         .from('signalement')
-        .select('authority.id, created_at, id_dossier, statut_validation, description')
+        .select('id, created_at, id_dossier, statut_validation, description')
         .eq('statut_validation', 'valide')
         .order('created_at', { ascending: false })
         .limit(5);
@@ -211,7 +211,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       // Récupérer les alertes récentes
       const { data: alertes } = await (supabase as any)
         .from('alerte')
-        .select('authority.id, created_at, titre, statut_alerte')
+        .select('id, created_at, titre, statut_alerte')
         .order('created_at', { ascending: false })
         .limit(3);
 

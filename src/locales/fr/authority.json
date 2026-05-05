@@ -524,10 +524,15 @@
     "alertes": "Alertes",
     "coordination": "Coordination",
     "dossiers": "Dossiers",
+    "personnes": "Personnes",
     "mapView": "Vue Carte",
     "analysis": "Analyse IA",
     "investigation": "Investigation",
     "signalements": "Signalements",
+    "fileSignalements": "File signalements (avancée)",
+    "reportsSignalements": "Rapports signalements",
+    "activityHistory": "Historique d'activité",
+    "identityVerification": "Vérifications d'identité",
     "photosModeration": "Modération photos",
     "donations": "Dons & Campagnes",
     "statistiques": "Statistiques"
@@ -598,6 +603,18 @@
     "noMessage": "Pas de message",
     "typeStandard": "Standard",
     "unitKm": "km",
+    "diffusion": {
+      "previewTitle": "Estimation avant diffusion",
+      "previewLoading": "Calcul des destinataires…",
+      "previewCount": "{{count}} destinataire(s) dans le rayon (sur {{total}} citoyen(s) avec notifications activées). Rayon enregistré sur l’alerte : {{rayon}} km.",
+      "previewNoCentre": "Aucun centre géographique sur cette alerte : aucune notification ne sera envoyée tant que le lieu (dossier ou coordonnées d’alerte) n’est pas renseigné.",
+      "previewNoCentreBroadcast": "Sans lieu sur l’alerte, la configuration autorise une diffusion large : {{count}} destinataire(s).",
+      "previewStrictOff": "Le repli « tous les notifiables si rayon vide » est possible (REACT_APP_ALERTE_STRICT_GEO_ONLY=false).",
+      "toastSuccessTitle": "Diffusion enregistrée",
+      "toastSuccessBody": "Alerte envoyée à {{count}} destinataire(s).",
+      "toastZeroTitle": "Aucun destinataire dans le rayon",
+      "toastZeroBody": "Aucune notification envoyée. Vérifiez le centre de l’alerte, le rayon ou la position partagée des citoyens."
+    },
     "actions": {
       "publish": "Publier",
       "delete": "Supprimer",
@@ -674,6 +691,8 @@
         "dossierRequired": "Veuillez sélectionner un dossier",
         "alerteCreated": "Alerte créée",
         "alerteCreatedAndPublished": "L'alerte a été créée et sera diffusée",
+        "alerteCreatedAndPublishedWithCount": "L'alerte a été diffusée à {{count}} destinataire(s) (notifications créées).",
+        "publishNoRecipients": "Alerte publiée, mais aucun citoyen éligible (compte actif, notifications activées, position dans le rayon si l'alerte a un centre géographique). Vérifiez la géolocalisation des citoyens ou le rayon.",
         "alerteSavedAsDraft": "L'alerte a été enregistrée en brouillon",
         "error": "Erreur",
         "creationError": "Erreur lors de la création"
@@ -896,11 +915,22 @@
     "no": "Non"
   },
   "roles": {
-    "officier_police": "Officier de Police",
-    "agent_gendarmerie": "Agent Gendarmerie",
-    "operateur_saisie": "Opérateur",
-    "admin_organisation": "Admin Organisation",
+    "admin_systeme": "Administrateur système",
+    "citoyen": "Citoyen",
+    "autorite": "Autorité",
+    "moderateur": "Validation et modération (libellé historique)",
+    "responsable_ong": "Coordination humanitaire (libellé historique)",
+    "officier_police": "Commandement police (libellé historique)",
+    "agent_gendarmerie": "Commandement gendarmerie (libellé historique)",
+    "operateur_saisie": "Saisie et dossiers (libellé historique)",
+    "admin_organisation": "Administration d’organisation (libellé historique)",
     "default": "Autorité"
+  },
+  "echelonFunction": {
+    "1": "Saisie et gestion des dossiers",
+    "2": "Modération et validation des contenus",
+    "3": "Coordination des acteurs humanitaires",
+    "4": "Commandement (police / gendarmerie)"
   },
   "iaAnalysis": {
     "title": "Analyse IA Avancée",

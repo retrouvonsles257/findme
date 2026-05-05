@@ -17,8 +17,6 @@ export { default as PublicRoutes } from './PublicRoutes';
 export { default as AuthRoutes } from './AuthRoutes';
 export { default as CitizenRoutes } from './CitizenRoutes';
 export { default as AuthorityRoutes } from './AuthorityRoutes';
-export { default as OperatorRoutes } from './OperatorRoutes';
-export { default as ModeratorRoutes } from './ModeratorRoutes';
 export { default as NGORoutes } from './NGORoutes';
 export { default as AdminRoutes } from './AdminRoutes';
 export { default as SuperAdminRoutes } from './SuperAdminRoutes';
@@ -47,7 +45,9 @@ export {
   ADMIN_ROUTES,
   SUPER_ADMIN_ROUTES,
   ERROR_ROUTES,
-  getRoute
+  getRoute,
+  LEGACY_SILO_BASES,
+  LEGACY_SILO_REDIRECT_TARGET,
 } from './routes.config';
 
 export {

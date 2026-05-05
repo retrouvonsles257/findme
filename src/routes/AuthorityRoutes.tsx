@@ -20,6 +20,10 @@ import {
   SignalementsPage,
   SignalementDetailPage,
   PhotosModerationPage,
+  ModerationReportsPage,
+  ModerationActivityHistoryPage,
+  ModerationIdentityVerificationPage,
+  SignalementsFileAvancePage,
   InvestigationPage,
   IAAnalysisPage,
   CoordinationPage,
@@ -29,6 +33,9 @@ import {
   StatistiquesPage,
   ProfilePage,
   NotificationsPage,
+  PersonsPage,
+  PersonDetailPage,
+  CreatePersonPage,
 } from '../pages/authority';
 
 import PrivateRoute from './PrivateRoutes';
@@ -42,11 +49,7 @@ import { CoordinationReadProvider } from '../features/coordination/context/Coord
  * CoordinationReadProvider ici pour qu'il ne se démonte pas à chaque changement de page (badge messages de coordination persistant).
  */
 const AuthorityRoutes: React.FC = () => {
-  const authorityRoles = [
-    NomRole.OFFICIER_POLICE,
-    NomRole.AGENT_GENDARMERIE,
-    NomRole.ADMIN_ORGANISATION,
-  ];
+  const authorityRoles = [NomRole.AUTORITE];
 
   return (
     <PrivateRoute>
@@ -110,6 +113,32 @@ const AuthorityRoutes: React.FC = () => {
           }
         />
 
+        {/* Personnes (silo Autorité — étape D2) */}
+        <Route
+          path="/personnes"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <PersonsPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/personnes/:id"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <PersonDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/create-person"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <CreatePersonPage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* ==================== ALERTES ==================== */}
         
         {/* Alertes List */}
@@ -160,6 +189,42 @@ const AuthorityRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={authorityRoles}>
               <SignalementDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/file-signalements"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <SignalementsFileAvancePage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/rapports-signalements"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <ModerationReportsPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/historique-activite"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <ModerationActivityHistoryPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/verifications-identite"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <ModerationIdentityVerificationPage />
             </RoleBasedRoute>
           }
         />

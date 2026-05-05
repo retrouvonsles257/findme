@@ -7,22 +7,17 @@
  */
 
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Import des composants de routes par module
 import PublicRoutes from './PublicRoutes';
 import AuthRoutes from './AuthRoutes';
 import CitizenRoutes from './CitizenRoutes';
 import AuthorityRoutes from './AuthorityRoutes';
-import OperatorRoutes from './OperatorRoutes';
-import ModeratorRoutes from './ModeratorRoutes';
-import NGORoutes from './NGORoutes';
 import AdminRoutes from './AdminRoutes';
 import SuperAdminRoutes from './SuperAdminRoutes';
 import ErrorRoutes from './ErrorRoutes';
-
-// Import des routes config
-import { ROUTES } from './routes.config';
+import { LEGACY_SILO_BASES, LEGACY_SILO_REDIRECT_TARGET, ROUTES } from './routes.config';
 
 /**
  * Loading Component
@@ -47,9 +42,7 @@ const LoadingComponent: React.FC = () => (
  * - Auth routes: /auth/* (login, register, forgot password, etc)
  * - Citizen routes: /citizen/* (citoyens standard et vérifiés)
  * - Authority routes: /authority/* (police, gendarmerie)
- * - Operator routes: /operator/* (opérateurs de saisie)
- * - Moderator routes: /moderator/* (modérateurs)
- * - NGO routes: /ngo/* (organisations humanitaires)
+ * - (Étape D5) Redirections legacy : `LEGACY_SILO_BASES` → `/authority/dashboard` (voir `routes.config.ts`).
  * - Admin routes: /admin/* (admin d'organisations)
  * - SuperAdmin routes: /super-admin/* (super administrateur système)
  * - Error routes: /unauthorized, /forbidden, /server-error, 404
@@ -79,14 +72,13 @@ const AppRoutes: React.FC = () => {
         {/* Authority Routes */}
         <Route path={`${ROUTES.authority.BASE}/*`} element={<AuthorityRoutes />} />
 
-        {/* Operator Routes */}
-        <Route path={`${ROUTES.operator.BASE}/*`} element={<OperatorRoutes />} />
-
-        {/* Moderator Routes */}
-        <Route path={`${ROUTES.moderator.BASE}/*`} element={<ModeratorRoutes />} />
-
-        {/* NGO Routes */}
-        <Route path={`${ROUTES.ngo.BASE}/*`} element={<NGORoutes />} />
+        {LEGACY_SILO_BASES.map((base) => (
+          <Route
+            key={base}
+            path={`${base}/*`}
+            element={<Navigate to={LEGACY_SILO_REDIRECT_TARGET} replace />}
+          />
+        ))}
 
         {/* Admin Routes */}
         <Route path={`${ROUTES.admin.BASE}/*`} element={<AdminRoutes />} />

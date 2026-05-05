@@ -1,7 +1,8 @@
 /**
  * =====================================================
  * RETROUVONSLES - Operator Routes
- * Routes pour les opérateurs (saisie de données)
+ * Non monté dans AppRoutes : `/operator/*` redirige vers `/authority/dashboard` (refonte rôles).
+ * Fichier conservé pour référence / réutilisation ponctuelle de pages si besoin.
  * =====================================================
  */
 
@@ -35,7 +36,7 @@ import { NomRole } from '../@types/enums.types';
  * - Data Entry
  */
 const OperatorRoutes: React.FC = () => {
-  const operatorRoles = [NomRole.OPERATEUR_SAISIE];
+  const operatorRoles = [NomRole.AUTORITE];
 
   return (
     <PrivateRoute>

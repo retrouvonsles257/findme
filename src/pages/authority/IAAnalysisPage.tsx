@@ -126,7 +126,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
   const dispatch = useDispatch();
 
   const organisationIdForIA =
-    currentUser?.role === NomRole.ADMIN_ORGANISATION ? currentUser?.organisation_id : undefined;
+    currentUser?.role === NomRole.AUTORITE ? currentUser?.organisation_id : undefined;
 
   // Charger l'historique IA et les statistiques au démarrage
   useEffect(() => {
@@ -154,7 +154,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
   // Charger les statistiques IA (filtrées par org si admin org)
   const loadStatistics = async () => {
     try {
-      const orgId = currentUser?.role === NomRole.ADMIN_ORGANISATION ? currentUser?.organisation_id : undefined;
+      const orgId = currentUser?.role === NomRole.AUTORITE ? currentUser?.organisation_id : undefined;
       const allResults = await getResultatsIA(undefined, undefined, orgId);
       
       const confirmed = allResults.filter(r => r.statut_validation === 'confirme').length;

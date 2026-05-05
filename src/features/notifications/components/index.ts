@@ -1,3 +1,4 @@
+export { CitizenPushGlobalSync } from './CitizenPushGlobalSync';
 export { NotificationCenter } from './NotificationCenter';
 export { NotificationHistory } from './NotificationHistory';
 export { NotificationPreferences } from './NotificationPreferences';

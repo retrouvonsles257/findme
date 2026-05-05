@@ -86,7 +86,7 @@ export const AdminOrganisationSettingsPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

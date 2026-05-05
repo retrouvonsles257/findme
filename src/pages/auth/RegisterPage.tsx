@@ -7,10 +7,12 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAppSelector } from '../../store/types';
+import { useAppDispatch, useAppSelector } from '../../store/types';
 import { useI18n } from '../../hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { selectUser } from '../../features/auth/store/authSelectors';
 import { supabaseAuthService } from '../../services/supabase/auth';
+import { upgradeAnonymousThunk } from '../../features/auth/store/authThunks';
 
 import styles from './RegisterPage.module.css';
 
@@ -23,14 +25,18 @@ interface RegisterError {
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const dispatch = useAppDispatch();
+  const { tNamespace } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
+  const authUser = useAppSelector(selectUser);
+  const isGuest = Boolean(authUser?.is_anonymous);
 
   useEffect(() => {
-    if (currentUser) {
+    const u = currentUser ?? authUser;
+    if (u && !u.is_anonymous) {
       navigate('/citizen/dashboard', { replace: true });
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, authUser, navigate]);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -134,6 +140,42 @@ export const RegisterPage: React.FC = () => {
     [validateForm, formData, navigate]
   );
 
+  const handleUpgradeAnonymous = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (!validateForm()) return;
+      setIsLoading(true);
+      setErrors({});
+      try {
+        const result = (await dispatch(
+          upgradeAnonymousThunk({
+            email: formData.email.trim(),
+            password: formData.password,
+          }),
+        )) as any;
+        if (!result?.type?.endsWith('/fulfilled')) {
+          throw result?.payload || new Error('Enregistrement impossible');
+        }
+        const emailConfirme = Boolean(result.payload?.user?.email_confirme);
+        if (emailConfirme) {
+          navigate('/citizen/dashboard', { replace: true });
+        } else {
+          navigate('/auth/verify-email', {
+            state: { email: formData.email.trim() },
+            replace: true,
+          });
+        }
+      } catch (error: any) {
+        setErrors({
+          general: error?.message || 'Enregistrement impossible. Réessayez ou utilisez une autre adresse e-mail.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [dispatch, formData.email, formData.password, navigate, validateForm],
+  );
+
   const handleOAuthSignup = useCallback(
     async (provider: 'google' | 'facebook') => {
       setIsLoading(true);
@@ -162,6 +204,117 @@ export const RegisterPage: React.FC = () => {
       <div className={styles.container}>
         {/* Carte formulaire */}
         <div className={styles.formCard}>
+          {isGuest ? (
+            <>
+              <h1 className={styles.title}>
+                {tNamespace('auth', 'auth.register.anonymous_upgrade_title', 'Enregistrer votre compte')}
+              </h1>
+              <p className={styles.subtitle}>
+                {tNamespace(
+                  'auth',
+                  'auth.register.anonymous_upgrade_subtitle',
+                  'Vous êtes connecté en mode invité. Ajoutez un e-mail et un mot de passe pour sécuriser l’accès à vos données.',
+                )}
+              </p>
+              <form onSubmit={handleUpgradeAnonymous} className={styles.form}>
+                {errors.general && (
+                  <div className={styles.errorAlert}>
+                    <span>{errors.general}</span>
+                  </div>
+                )}
+                <div className={styles.formGroup}>
+                  <label htmlFor="email" className={styles.label}>
+                    Adresse e-mail
+                  </label>
+                  <div className={styles.inputWrapper}>
+                    <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M3 7l9 6 9-6" />
+                    </svg>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="exemple@email.com"
+                      className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {errors.email && <span className={styles.fieldError}>{errors.email}</span>}
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="password" className={styles.label}>
+                    Mot de passe
+                  </label>
+                  <div className={styles.inputWrapper}>
+                    <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" />
+                      <path d="M7 11V7a5 5 0 0110 0v4" />
+                    </svg>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="•••••••• (minimum 8 caractères)"
+                      className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      className={styles.togglePassword}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        {showPassword ? (
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22" />
+                        ) : (
+                          <>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </>
+                        )}
+                      </svg>
+                    </button>
+                  </div>
+                  {errors.password && <span className={styles.fieldError}>{errors.password}</span>}
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="passwordConfirm" className={styles.label}>
+                    Confirmer le mot de passe
+                  </label>
+                  <div className={styles.inputWrapper}>
+                    <svg className={styles.inputIcon} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" />
+                      <path d="M7 11V7a5 5 0 0110 0v4" />
+                    </svg>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="passwordConfirm"
+                      name="passwordConfirm"
+                      value={formData.passwordConfirm}
+                      onChange={handleInputChange}
+                      placeholder="Confirmer votre mot de passe"
+                      className={`${styles.input} ${errors.passwordConfirm ? styles.inputError : ''}`}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {errors.passwordConfirm && (
+                    <span className={styles.fieldError}>{errors.passwordConfirm}</span>
+                  )}
+                </div>
+                <button type="submit" disabled={isLoading} className={styles.submitButton}>
+                  {isLoading
+                    ? '…'
+                    : tNamespace('auth', 'auth.register.anonymous_upgrade_submit', 'Enregistrer mon compte')}
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
           <h1 className={styles.title}>Créer un compte</h1>
           <p className={styles.subtitle}>
             Rejoignez le réseau national Retrouvons-Les et contribuez à redonner espoir aux familles.
@@ -334,6 +487,8 @@ export const RegisterPage: React.FC = () => {
               <Link to="/privacy" className={styles.link}>Politique de confidentialité</Link>
             </p>
           </div>
+            </>
+          )}
         </div>
 
         {/* Carte bleue */}

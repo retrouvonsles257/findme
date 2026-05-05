@@ -16,7 +16,7 @@ import { cloudinaryService } from '../../services/cloudinary/cloudinaryService';
 import * as dossierAPI from '../../features/dossiers/services/dossierAPI';
 import * as personneAPI from '../../features/personnes/services/personneAPI';
 import { logActivity } from '../../services/audit/auditService';
-import { TypeAction } from '../../@types/enums.types';
+import { NomRole, TypeAction } from '../../@types/enums.types';
 import { FiabiliteSource, SourceLocalisation, TypeLocalisation } from '../../@types/enums.types';
 import { createLocation } from '../../features/geolocalisation/services/geolocationAPI';
 import { mapConfig } from '../../config/map.config';
@@ -124,7 +124,7 @@ export const CreateDossierPage: React.FC = () => {
   const geoTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (currentUser && !['operateur_saisie', 'admin_organisation'].includes(currentUser.role)) {
+    if (currentUser && currentUser.role !== NomRole.AUTORITE && currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
     }
   }, [currentUser, navigate]);

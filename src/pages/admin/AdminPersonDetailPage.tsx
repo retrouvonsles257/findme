@@ -1,17 +1,16 @@
 /**
- * Admin Organisation - Détail personne (héritage Opérateur)
- * Réutilise OperatorPersonDetailPage avec layout Admin.
+ * Admin Organisation - Détail personne (contenu aligné sur le silo Autorité).
  */
 import React from 'react';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
-import { OperatorPersonDetailPage } from '../operator/PersonDetailPage';
+import { PersonDetailPage } from '../authority/PersonDetailPage';
 import { useI18n } from '../../hooks';
 
 export const AdminOrganisationPersonDetailPage: React.FC = () => {
   const { t } = useI18n();
   return (
     <AdminOrganisationLayout title={t('admin.personnes')} activeNav="personnes">
-      <OperatorPersonDetailPage noLayout basePath="/admin" />
+      <PersonDetailPage noLayout basePath="/admin" />
     </AdminOrganisationLayout>
   );
 };

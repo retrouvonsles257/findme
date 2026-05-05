@@ -1,7 +1,8 @@
 /**
  * =====================================================
  * RETROUVONSLES - NGO Routes
- * Routes pour les ONG humanitaires
+ * Non monté dans AppRoutes (étape D) : `/ngo/*` redirige vers `/authority/dashboard`.
+ * Les pages `src/pages/ngo/*` restent utilisées depuis **`/admin/*`** avec `basePath` admin.
  * =====================================================
  */
 
@@ -44,7 +45,7 @@ import { ROUTES } from './routes.config';
  * - Partnerships
  */
 const NGORoutes: React.FC = () => {
-  const ngoRoles = [NomRole.RESPONSABLE_ONG];
+  const ngoRoles = [NomRole.AUTORITE];
   const authUser = useAppSelector(selectUser) as { organisation_id?: string } | null;
   const currentUser = useAppSelector(selectCurrentUser) as { organisation_id?: string } | null;
   const organisationId = currentUser?.organisation_id ?? authUser?.organisation_id ?? null;

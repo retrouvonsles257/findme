@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useAppSelector } from '../../store/hooks';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
@@ -123,7 +124,7 @@ export const PhotosEnAttentePage: React.FC<PhotosEnAttentePageProps> = ({ noLayo
   }, [currentPage, currentUser?.organisation_id]);
 
   useEffect(() => {
-    if (currentUser && !['operateur_saisie', 'admin_organisation'].includes(currentUser.role)) {
+    if (currentUser && currentUser.role !== NomRole.AUTORITE && currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

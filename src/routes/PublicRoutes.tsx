@@ -18,6 +18,7 @@ import {
   HowItWorksPage,
   PreventingPage,
   AppDownloadPage,
+  ContributePage,
 } from '../pages/public';
 
 import { PUBLIC_ROUTES } from './routes.config';
@@ -53,6 +54,7 @@ const PublicRoutes: React.FC = () => {
         <Route path={PUBLIC_ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
         <Route path={PUBLIC_ROUTES.PREVENTING} element={<PreventingPage />} />
         <Route path={PUBLIC_ROUTES.APP} element={<AppDownloadPage />} />
+        <Route path={PUBLIC_ROUTES.CONTRIBUTE} element={<ContributePage />} />
       </Route>
     </Routes>
   );

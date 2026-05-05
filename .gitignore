@@ -15,6 +15,9 @@
 .DS_Store
 .env
 .env.local
+
+# Généré depuis .env (clés Firebase publiques) — ne pas versionner
+public/firebase-messaging-sw.js
 .env.development.local
 .env.test.local
 .env.production.local

@@ -25,6 +25,17 @@
     "login": "Sign in",
     "register": "Sign up"
   },
+  "contribute": {
+    "title": "Contribute without signing up first",
+    "lead": "You can start right away (e.g. submit a sighting). You can add an email and password later to keep access to what you submit.",
+    "anonymous_cta": "Continue without an account (guest)",
+    "login_cta": "I already have an account — sign in",
+    "note": "Guest mode uses a secure session. Register an account so you do not lose access if you switch devices.",
+    "rate_limited": "Too many recent attempts. Try again in {{count}} s.",
+    "navbar_link": "Contribute without an account",
+    "disparitions_banner": "Have information? You can submit a report without creating an account first.",
+    "disparitions_cta": "Submit a sighting"
+  },
   "app_download": {
     "title": "Retrouvons-Les mobile app",
     "lead": "Download links (App Store, Play Store, APK) will be published here very soon.",
@@ -44,6 +55,7 @@
     "title": "Together, Retrouvons-Les",
     "subtitle": "Every minute counts. Harness AI and citizen power to find our missing loved ones.",
     "cases_count": "{{count}} disappearances reported in Cameroon",
+    "hero_guest_cta": "Report without creating an account",
     "search_placeholder": "Name, date or age...",
     "location_placeholder": "Region or city...",
     "search_btn": "Search",

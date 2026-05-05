@@ -179,6 +179,45 @@
   font-size: 0.875rem;
 }
 
+.new-signalement__success-reference {
+  margin: 0.75rem 0 0;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.new-signalement__success-disclaimer {
+  margin: 1rem 0 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  max-width: 28rem;
+}
+
+.new-signalement__uploading-hint {
+  margin: 0.5rem 0 0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.new-signalement__success-guest {
+  margin: 1.25rem 0 0;
+  max-width: 28rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.new-signalement__success-guest-link {
+  font-weight: 600;
+  color: #15803d;
+  text-decoration: underline;
+}
+
+.new-signalement__success-guest-link:hover {
+  color: #166534;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .new-signalement {

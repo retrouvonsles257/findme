@@ -465,6 +465,71 @@ export const authReducer = (
         errors: {},
       };
 
+    case 'auth/signInAnonymous/pending':
+      return {
+        ...state,
+        isAuthenticating: true,
+        error: null,
+        errors: {},
+      };
+
+    case 'auth/signInAnonymous/fulfilled':
+      return {
+        ...state,
+        isAuthenticating: false,
+        user: action.payload.user,
+        session: {
+          access_token: action.payload.accessToken,
+          refresh_token: action.payload.refreshToken,
+          expires_at: action.payload.expiresAt,
+          user: action.payload.user,
+        },
+        error: null,
+        errors: {},
+        loginAttempts: 0,
+        isAccountLocked: false,
+        lockoutExpiration: null,
+      };
+
+    case 'auth/signInAnonymous/rejected':
+      return {
+        ...state,
+        isAuthenticating: false,
+        error: action.payload?.message || 'Connexion sans compte impossible',
+        errors: {},
+      };
+
+    case 'auth/upgradeAnonymous/pending':
+      return {
+        ...state,
+        isAuthenticating: true,
+        error: null,
+        errors: {},
+      };
+
+    case 'auth/upgradeAnonymous/fulfilled':
+      return {
+        ...state,
+        isAuthenticating: false,
+        user: action.payload.user,
+        session: {
+          access_token: action.payload.accessToken,
+          refresh_token: action.payload.refreshToken,
+          expires_at: action.payload.expiresAt,
+          user: action.payload.user,
+        },
+        error: null,
+        errors: {},
+      };
+
+    case 'auth/upgradeAnonymous/rejected':
+      return {
+        ...state,
+        isAuthenticating: false,
+        error: action.payload?.message || 'Enregistrement du compte impossible',
+        errors: {},
+      };
+
     case 'auth/logout/fulfilled':
       return {
         ...state,

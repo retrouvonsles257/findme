@@ -30,7 +30,13 @@ import {
   getUsersByRole,
   getUsersByOrganization,
 } from '../services';
-import { loginThunk, logoutThunk, restoreSessionThunk } from '../../auth/store/authThunks';
+import {
+  loginThunk,
+  logoutThunk,
+  restoreSessionThunk,
+  signInAnonymousThunk,
+  upgradeAnonymousThunk,
+} from '../../auth/store/authThunks';
 
 // ============================================
 // ASYNC THUNKS
@@ -479,6 +485,14 @@ const userSlice = createSlice({
       if (action.payload) {
         state.currentUser = action.payload.user as unknown as UserProfile;
       }
+    });
+
+    builder.addCase(signInAnonymousThunk.fulfilled, (state, action) => {
+      state.currentUser = action.payload.user as unknown as UserProfile;
+    });
+
+    builder.addCase(upgradeAnonymousThunk.fulfilled, (state, action) => {
+      state.currentUser = action.payload.user as unknown as UserProfile;
     });
   },
 });

@@ -135,7 +135,7 @@ export const AdminOrganisationAuditLogsPage: React.FC = () => {
   }, [currentUser?.organisation_id, filterUser, filterAction, filterDate, t]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

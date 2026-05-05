@@ -131,7 +131,7 @@ export const AdminOrganisationStatistiquesPage: React.FC = () => {
   }, [currentUser?.organisation_id]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

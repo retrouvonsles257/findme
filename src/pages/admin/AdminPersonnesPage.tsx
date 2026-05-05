@@ -1,17 +1,16 @@
 /**
- * Admin Organisation - Personnes (héritage Opérateur)
- * Réutilise OperatorPersonsPage avec layout Admin.
+ * Admin Organisation - Personnes (contenu aligné sur le silo Autorité).
  */
 import React from 'react';
 import { AdminOrganisationLayout } from './AdminOrganisationLayout';
-import { OperatorPersonsPage } from '../operator/PersonsPage';
+import { PersonsPage } from '../authority/PersonsPage';
 import { useI18n } from '../../hooks';
 
 export const AdminOrganisationPersonnesPage: React.FC = () => {
   const { t } = useI18n();
   return (
     <AdminOrganisationLayout title={t('admin.personnes')} activeNav="personnes">
-      <OperatorPersonsPage noLayout basePath="/admin" />
+      <PersonsPage noLayout basePath="/admin" />
     </AdminOrganisationLayout>
   );
 };

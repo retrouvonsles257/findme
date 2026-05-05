@@ -7,6 +7,11 @@
 
 import { NomRole } from '../@types/enums.types';
 
+/** Jeux de rôles (3 valeurs en base après migration 20260423). */
+export const ROLES_APP_TOUS: NomRole[] = [NomRole.CITOYEN, NomRole.AUTORITE, NomRole.ADMIN_SYSTEME];
+export const ROLES_APP_AUTORITE: NomRole[] = [NomRole.AUTORITE, NomRole.ADMIN_SYSTEME];
+export const ROLES_APP_ADMIN: NomRole[] = [NomRole.ADMIN_SYSTEME];
+
 // ============================================
 // ROUTE DEFINITIONS
 // ============================================
@@ -166,16 +171,7 @@ export const dashboardRoutes: RouteConfig[] = [
     showInNav: true,
     showInMobileNav: true,
     order: 1,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.AGENT_GENDARMERIE,
-      NomRole.RESPONSABLE_ONG,
-      NomRole.OPERATEUR_SAISIE,
-      NomRole.MODERATEUR,
-      NomRole.CITOYEN_VERIFIE,
-    ],
+    requiredRoles: ROLES_APP_TOUS,
   },
 
   // ============ PERSONNES ============
@@ -190,14 +186,7 @@ export const dashboardRoutes: RouteConfig[] = [
     showInNav: true,
     showInMobileNav: true,
     order: 2,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.AGENT_GENDARMERIE,
-      NomRole.OPERATEUR_SAISIE,
-      NomRole.CITOYEN_VERIFIE,
-    ],
+    requiredRoles: ROLES_APP_TOUS,
     children: [
       {
         path: '/personnes/list',
@@ -242,14 +231,7 @@ export const dashboardRoutes: RouteConfig[] = [
     showInNav: true,
     showInMobileNav: true,
     order: 3,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.AGENT_GENDARMERIE,
-      NomRole.RESPONSABLE_ONG,
-      NomRole.OPERATEUR_SAISIE,
-    ],
+    requiredRoles: ROLES_APP_AUTORITE,
     children: [
       {
         path: '/dossiers/list',
@@ -287,14 +269,7 @@ export const dashboardRoutes: RouteConfig[] = [
     showInNav: true,
     showInMobileNav: true,
     order: 4,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.AGENT_GENDARMERIE,
-      NomRole.RESPONSABLE_ONG,
-      NomRole.OPERATEUR_SAISIE,
-    ],
+    requiredRoles: ROLES_APP_AUTORITE,
     children: [
       {
         path: '/alertes/list',
@@ -338,13 +313,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 6,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.AGENT_GENDARMERIE,
-      NomRole.MODERATEUR,
-    ],
+    requiredRoles: ROLES_APP_AUTORITE,
   },
 
   // ============ UTILISATEURS ============
@@ -358,7 +327,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 7,
-    requiredRoles: [NomRole.SUPER_ADMIN, NomRole.ADMIN_ORGANISATION, NomRole.MODERATEUR],
+    requiredRoles: ROLES_APP_AUTORITE,
     children: [
       {
         path: '/utilisateurs/list',
@@ -388,7 +357,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 8,
-    requiredRoles: [NomRole.SUPER_ADMIN, NomRole.ADMIN_ORGANISATION],
+    requiredRoles: ROLES_APP_ADMIN,
     children: [
       {
         path: '/organisations/list',
@@ -418,12 +387,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 9,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.MODERATEUR,
-      NomRole.CITOYEN_VERIFIE,
-    ],
+    requiredRoles: ROLES_APP_TOUS,
     children: [
       {
         path: '/signalements/list',
@@ -453,12 +417,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 10,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.OPERATEUR_SAISIE,
-    ],
+    requiredRoles: ROLES_APP_AUTORITE,
   },
 
   // ============ DONS ============
@@ -472,7 +431,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 11,
-    requiredRoles: [NomRole.SUPER_ADMIN, NomRole.ADMIN_ORGANISATION],
+    requiredRoles: ROLES_APP_ADMIN,
   },
 
   // ============ IA/ANALYSE ============
@@ -486,12 +445,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 12,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.OFFICIER_POLICE,
-      NomRole.AGENT_GENDARMERIE,
-    ],
+    requiredRoles: ROLES_APP_AUTORITE,
   },
 
   // ============ CAMPAGNES ============
@@ -505,11 +459,7 @@ export const dashboardRoutes: RouteConfig[] = [
     breadcrumb: true,
     showInNav: true,
     order: 13,
-    requiredRoles: [
-      NomRole.SUPER_ADMIN,
-      NomRole.ADMIN_ORGANISATION,
-      NomRole.RESPONSABLE_ONG,
-    ],
+    requiredRoles: ROLES_APP_AUTORITE,
   },
 
   // ============ NOTIFICATIONS ============

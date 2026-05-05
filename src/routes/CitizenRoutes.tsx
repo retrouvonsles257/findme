@@ -42,10 +42,7 @@ import { NomRole } from '../@types/enums.types';
  * - Donations (Orange Money / MTN MoMo)
  */
 const CitizenRoutes: React.FC = () => {
-  const citizenRoles = [
-    NomRole.CITOYEN_STANDARD,
-    NomRole.CITOYEN_VERIFIE
-  ];
+  const citizenRoles = [NomRole.CITOYEN];
 
   return (
     <PrivateRoute>

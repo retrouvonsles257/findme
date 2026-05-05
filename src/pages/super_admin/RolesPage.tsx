@@ -27,30 +27,18 @@ interface Role {
   _count?: { utilisateurs: number };
 }
 
-// Valeurs de l'ENUM nom_role dans la base de données
+// Rôles applicatifs (migration 20260423)
 const NOM_ROLE_OPTIONS = [
-  { value: 'super_admin', label: 'Super Admin' },
-  { value: 'admin_organisation', label: 'Admin Organisation' },
-  { value: 'officier_police', label: 'Officier de Police' },
-  { value: 'agent_gendarmerie', label: 'Agent de Gendarmerie' },
-  { value: 'responsable_ong', label: 'Responsable ONG' },
-  { value: 'operateur_saisie', label: 'Opérateur de Saisie' },
-  { value: 'moderateur', label: 'Modérateur' },
-  { value: 'citoyen_verifie', label: 'Citoyen Vérifié' },
-  { value: 'citoyen_standard', label: 'Citoyen Standard' },
+  { value: 'citoyen', label: 'Citoyen' },
+  { value: 'autorite', label: 'Autorité' },
+  { value: 'admin_systeme', label: 'Administrateur système' },
 ];
 
-// Badges (images) par rôle – public/assets/images/
+// Badges (images) – réutilisation visuelle des niveaux historiques
 const ROLE_BADGE_IMAGES: Record<string, string> = {
-  citoyen_standard: '/assets/images/niveau_0_citoyen_standard.png',
-  citoyen_verifie: '/assets/images/niveau_1_citoyen_verifie.png',
-  operateur_saisie: '/assets/images/niveau_2_operateur_saisie.png',
-  moderateur: '/assets/images/niveau_3_moderateur.png',
-  officier_police: '/assets/images/niveau_4_officier_police.png',
-  agent_gendarmerie: '/assets/images/niveau_4_officier_police.png',
-  responsable_ong: '/assets/images/niveau_5_responsable_ong.png',
-  admin_organisation: '/assets/images/niveau_6_admin_organisation.png',
-  super_admin: '/assets/images/niveau_7_super_admin.png',
+  citoyen: '/assets/images/niveau_0_citoyen_standard.png',
+  autorite: '/assets/images/niveau_4_officier_police.png',
+  admin_systeme: '/assets/images/niveau_7_super_admin.png',
 };
 
 export const SuperAdminRolesPage: React.FC = () => {

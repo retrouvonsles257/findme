@@ -105,7 +105,7 @@ export const AdminOrganisationDashboardPage: React.FC = () => {
   }, [currentUser?.organisation_id, t]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+    if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

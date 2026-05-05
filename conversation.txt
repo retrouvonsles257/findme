@@ -1,0 +1,125 @@
+================================================================================
+RETRouVONSLES — CHANTIER REFONTE RÔLES & PARCOURS (DOCUMENT DE RÉFÉRENCE PROJET)
+================================================================================
+Dernière mise à jour : avril 2026 — À committer dans le dépôt pour ne pas dépendre du chat.
+
+--------------------------------------------------------------------------------
+0. CLARIFICATION PRODUIT (À NE PAS CONFONDRE — VALIDÉ PAR LE PORTEUR)
+--------------------------------------------------------------------------------
+
+Objectif final : 3 TYPES d’utilisateur — chacun avec SES routes, SON UI, SES fonctionnalités.
+  • Pas d’« autorité » qui se retrouve sur l’UI opérateur ou modérateur parce qu’elle a besoin
+    d’une fonctionnalité : les capacités utiles d’opérateur / modérateur sont RAPATRIÉES dans le
+    PARCOURS et l’INTERFACE « autorité » (police / gendarmerie), pas en réutilisant les anciens
+    écrans / routes operator ou moderator comme raccourci.
+  • Pas de mélange confus entre « admin système » et « admin org » au niveau UX : deux espaces
+    distincts ; seules les fonctionnalités importantes de l’ex-admin org qui relèvent de la
+    GESTION DU SYSTÈME sont du ressort de l’admin système (pas « tout l’ancien admin org »).
+
+Ce qui est fusionné vers AUTORITÉ (sens métier / produit), et ce qui ne l’est PAS :
+  • OUI — rapatrier les fonctionnalités de l’OPÉRATEUR et du MODÉRATEUR qui n’existent pas déjà
+    chez les autorités, dans le cadre UI + routes « autorité » (police / gendarmerie).
+  • NON — les fonctionnalités ONG ne sont PAS données à l’autorité (police / gendarmerie). L’ONG
+    n’est pas absorbée dans le parcours autorité.
+  • Portail dédié `/ngo` : **non requis** (décommissionné côté app — redirection vers `/authority/dashboard`).
+    Les écrans ONG en code restent **réutilisables** sous `/admin/*` (basePath admin) si une org en a besoin.
+
+Rôles en base (3) vs silos UX (3) :
+  • En base après migration : citoyen | autorite | admin_systeme.
+  • En UX : trois silos — Citoyen | Autorité (police/gendarmerie + ce qu’on rapatrie d’op./mod.) |
+    Admin système (+ portail org /admin pour admin_systeme avec org, distinct de /super-admin).
+
+--------------------------------------------------------------------------------
+1. VISION PRODUIT (RAPPEL — CORRIGÉ)
+--------------------------------------------------------------------------------
+
+Grand public
+  • Compte non obligatoire au début ; incitation à créer un compte après interactions.
+  • Option retenue (étape A) : comptes invités / anonymes + upgrade vers compte complet.
+  • Signalements « optimistes » : feedback immédiat « bien reçu » ; traitement / tri côté autorités.
+
+Réduction à 3 types / 3 rôles en base
+  • citoyen — grand public ; « vérifié » = statut (attribut).
+  • autorite — police / gendarmerie ; enrichi des manques fonctionnels opérateur / modérateur
+    UNIQUEMENT, intégrés dans l’UI autorité (pas ONG).
+  • admin_systeme — gestion plateforme ; création des comptes autorité : admin système seul.
+
+Après migration 20260423 : admin_systeme unique en base pour le « côté admin ».
+  • /admin : admin_systeme + id_organisation (gestion liée à une organisation).
+  • /super-admin : admin_systeme sans org (gestion globale système).
+
+--------------------------------------------------------------------------------
+2. ACTIVER LES COMPTES ANONYMES (ÉTAPE A — CE QUI MANQUAIT CÔTÉ « COMMENT »)
+--------------------------------------------------------------------------------
+
+La décision A (invité/anonyme) était validée ; le « j’attends » venait du fait de ne pas savoir
+comment activer sur Supabase. Procédure courte :
+
+  1) Supabase Dashboard → Authentication → Providers (ou Sign in / Providers selon UI).
+  2) Activer « Anonymous sign-ins » (ou équivalent).
+  3) Côté app : utiliser le flux Supabase « sign in anonymously » puis « link identity » /
+     upgrade quand l’utilisateur crée un vrai compte (doc Supabase : Anonymous Sign-Ins).
+
+Tant que ce n’est pas fait : l’étape A reste « partielle » uniquement sur cette livraison technique,
+pas sur le choix produit.
+
+--------------------------------------------------------------------------------
+3. PLAN D’ACTION EN ÉTAPES (LÉGER → LOURD) — D CORRIGÉ
+--------------------------------------------------------------------------------
+
+Étape A — Décisions + option anonyme (infra quand prêt).
+Étape B — Cartographie exhaustive des 9 rôles / chemins / Edge / i18n (checklist fermée).
+Étape C — Base : migration, RPC, RLS, Edge, cœur auth (déjà largement avancé en prod + repo).
+Étape D — 3 silos UX stricts : citoyen | autorité | admin système (routes + menus + écrans) ;
+  rapatriement des manques op./mod. DANS l’UI autorité uniquement ; PAS de fusion ONG → autorité ;
+  pas de raccourcis « ouvrir l’UI opérateur pour une autorité ».
+Étape E — Signalements optimistes + triage (métier).
+Étape F — Nettoyage final.
+
+--------------------------------------------------------------------------------
+4. ÉTAT D’AVANCEMENT & SUITE (PRIORITÉ ACTUELLE)
+--------------------------------------------------------------------------------
+
+Étape A : décisions OK ; anonyme = à activer (§2) + implémenter flux app.
+Étape B : À MENER À 100 % AVANT DE CONSIDÉRER LA SUITE COMME « SANS DETTES » — produire une
+  checklist fermée (tableau : fichier / type de référence / action : garder | migrer | supprimer).
+Étape C : migration prod exécutée + correctifs connexion / RPC / portails admin vs super-admin ;
+  finitions possibles (metadata, i18n résiduel, tests documentés).
+
+ORDRE MAINTENANT (demande explicite du porteur) :
+  1) Terminer B à 100 % (inventaire + décisions par occurrence).
+  2) Poursuivre finitions C si la checklist B révèle des trous.
+  3) D : implémenter les 3 silos UI/routes/fonctionnalités sans confusion ONG ni mélange d’écrans.
+
+--------------------------------------------------------------------------------
+5. FICHIERS & ZONES CLÉS (MÉMO TECHNIQUE COURT)
+--------------------------------------------------------------------------------
+
+Migration : supabase/migrations/20260423_roles_trois_profils_rls.sql
+Edge      : supabase/functions/admin-invite-user/index.ts
+            supabase/functions/admin-create-user/index.ts
+Auth app  : src/services/supabase/auth.ts
+            src/features/auth/store/authThunks.ts
+            src/contexts/AuthProvider.tsx
+            src/pages/auth/LoginPage.tsx
+            src/pages/auth/AuthCallbackPage.tsx
+Routes    : src/routes/RoleBasedRoute.tsx
+            src/routes/AdminRoutes.tsx
+            src/routes/SuperAdminRoutes.tsx
+            src/routes/AppRoutes.tsx (operator / moderator / NGO : à traiter en D selon §0)
+Types     : src/@types/enums.types.ts
+Sélecteur : src/features/auth/store/authSelectors.ts (organisation_id)
+
+--------------------------------------------------------------------------------
+6. RISQUES À NE PAS OUBLIER
+--------------------------------------------------------------------------------
+
+• Prod : sauvegardes avant migrations ; .env = bon projet Supabase.
+• Ne pas réintroduire la confusion « ONG = autorité » dans les specs ni dans le code.
+
+Plan d’action détaillé (tâches par étape, sans fichier checklist B séparé) :
+  → documentation/PLAN_ACTION_REFONTE_ROLES.md
+
+================================================================================
+FIN — Mettre à jour ce fichier quand une étape change de statut.
+================================================================================

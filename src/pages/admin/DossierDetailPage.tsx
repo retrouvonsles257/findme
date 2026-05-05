@@ -17,7 +17,7 @@ export const AdminOrganisationDossierDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectCurrentUser);
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+  if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
     navigate('/auth/login');
     return null;
   }

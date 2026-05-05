@@ -25,6 +25,17 @@
     "login": "Se connecter",
     "register": "S'inscrire"
   },
+  "contribute": {
+    "title": "Contribuer sans créer de compte",
+    "lead": "Vous pouvez commencer tout de suite (par ex. un signalement). Vous pourrez ajouter un e-mail et un mot de passe plus tard pour conserver l’accès à vos actions.",
+    "anonymous_cta": "Continuer sans compte (invité)",
+    "login_cta": "J’ai déjà un compte — me connecter",
+    "note": "La connexion invité utilise une session sécurisée. Pensez à enregistrer un compte pour ne rien perdre si vous changez d’appareil.",
+    "rate_limited": "Trop de tentatives récentes. Réessayez dans {{count}} s.",
+    "navbar_link": "Contribuer sans compte",
+    "disparitions_banner": "Vous avez une information ? Vous pouvez signaler sans créer de compte tout de suite.",
+    "disparitions_cta": "Proposer un signalement"
+  },
   "app_download": {
     "title": "Application mobile Retrouvons-Les",
     "lead": "Les liens de téléchargement (App Store, Play Store, APK) seront publiés ici très prochainement.",
@@ -44,6 +55,7 @@
     "title": "Ensemble, Retrouvons-Les",
     "subtitle": "Chaque minute compte. Mobilisez l'IA et la force citoyenne pour retrouver nos proches disparus.",
     "cases_count": "{{count}} disparitions signalées au Cameroun",
+    "hero_guest_cta": "Signaler sans créer de compte",
     "search_placeholder": "Nom, date ou âge...",
     "location_placeholder": "Région ou ville...",
     "search_btn": "Rechercher",

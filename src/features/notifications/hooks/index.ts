@@ -1,3 +1,4 @@
+export { useCitizenPushSync } from './useCitizenPushSync';
 export { useNotifications } from './useNotifications';
 export { useNotificationSettings } from './useNotificationSettings';
 export { useNotificationSubscription } from './useNotificationSubscription';

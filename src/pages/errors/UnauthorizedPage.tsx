@@ -10,8 +10,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { selectUser } from '../../features/auth/store/authSelectors';
 import { clearUsers } from '../../features/users/store/userSlice';
 import { AUTH_ROUTES } from '../../routes/routes.config';
+import { getDashboardPathAfterLogin } from '../../services/supabase/auth';
 import styles from './UnauthorizedPage.module.css';
 
 export const UnauthorizedPage: React.FC = () => {
@@ -19,6 +21,7 @@ export const UnauthorizedPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const currentUser = useAppSelector(selectCurrentUser);
+  const authUser = useAppSelector(selectUser);
 
   useEffect(() => {
     // Log error for monitoring
@@ -34,19 +37,12 @@ export const UnauthorizedPage: React.FC = () => {
   };
 
   const handleGoHome = () => {
-    if (currentUser?.role === 'operateur_saisie') {
-      navigate('/operator');
-    } else if (currentUser?.role === 'moderateur') {
-      navigate('/moderator');
-    } else if (
-      currentUser?.role === 'officier_police' ||
-      currentUser?.role === 'agent_gendarmerie' ||
-      currentUser?.role === 'admin_organisation'
-    ) {
-      navigate('/authority');
-    } else {
+    const u = authUser ?? currentUser;
+    if (!u?.role) {
       navigate('/');
+      return;
     }
+    navigate(getDashboardPathAfterLogin(String(u.role), (u as { organisation_id?: string | null }).organisation_id ?? null));
   };
 
   return (

@@ -103,7 +103,7 @@ export const AdminOrganisationRolesPage: React.FC = () => {
       return;
     }
     const roleName = typeof currentUser.role === 'string' ? currentUser.role : (currentUser.role as any)?.nom_role;
-    if (roleName !== NomRole.ADMIN_ORGANISATION) {
+    if (roleName !== NomRole.ADMIN_SYSTEME) {
       navigate('/auth/login');
       return;
     }

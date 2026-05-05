@@ -193,6 +193,11 @@
   background: #d97706;
 }
 
+.signalements__card-media .signalements__status--other {
+  background: rgba(100, 116, 139, 0.95);
+  color: #f8fafc;
+}
+
 .signalements__card-media .signalements__status--rejected {
   background: #991b1b;
 }
@@ -246,6 +251,12 @@
   background: rgba(245, 158, 11, 0.12);
   color: #92400e;
   border: 1px solid rgba(245, 158, 11, 0.22);
+}
+
+.signalements__status--other {
+  background: rgba(100, 116, 139, 0.15);
+  color: #475569;
+  border: 1px solid rgba(100, 116, 139, 0.28);
 }
 
 .signalements__status--rejected {

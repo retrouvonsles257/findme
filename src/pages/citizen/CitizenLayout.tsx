@@ -6,12 +6,13 @@
  */
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, FormEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useLogout } from '../../features/auth/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
+import { maybeSyncCitizenGpsToProfileDebounced } from '../../features/users/services/citizenLocationSync';
 import { supabase } from '../../config';
 import { 
   Menu, 
@@ -92,8 +93,42 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const currentUser = useAppSelector(selectUser);
   const { logout: performLogout } = useLogout();
   const userId = (currentUser as any)?.id;
+  const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const { unreadCount, fetchNotifications } = useNotifications();
-  
+
+  /** Amorce la position en base pour la diffusion d’alertes (rayon) : le provider global ne poussait pas les coords. */
+  useEffect(() => {
+    if (!userId) return;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    const timer = window.setTimeout(() => {
+      const request = () =>
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            void maybeSyncCitizenGpsToProfileDebounced(
+              userId,
+              pos.coords.latitude,
+              pos.coords.longitude,
+            );
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+        );
+
+      if (navigator.permissions?.query) {
+        void navigator.permissions
+          .query({ name: 'geolocation' as PermissionName })
+          .then((r) => {
+            if (r.state === 'denied') return;
+            request();
+          })
+          .catch(() => request());
+      } else {
+        request();
+      }
+    }, 2500);
+    return () => window.clearTimeout(timer);
+  }, [userId, isGuestSession]);
+
   // États
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -468,6 +503,16 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
 
         {/* Content */}
         <main className={styles.content}>
+          {isGuestSession && (
+            <div className={styles.guestBanner} role="status">
+              <p className={styles.guestBannerText}>
+                <strong>{t('citizen.guestBannerTitle')}</strong> — {t('citizen.guestBannerBody')}
+              </p>
+              <Link className={styles.guestBannerLink} to="/auth/register">
+                {t('citizen.guestBannerCta')}
+              </Link>
+            </div>
+          )}
           {children}
         </main>
       </div>

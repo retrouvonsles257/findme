@@ -104,7 +104,7 @@ export const SidebarAdminOrganisation: React.FC<SidebarAdminOrganisationProps> =
           <div className={styles.sidebar__orgInfo}>
             <p className={styles.sidebar__orgName}>{t('admin.organisation')}</p>
             <p className={styles.sidebar__orgRole}>
-              {currentUser?.role || NomRole.ADMIN_ORGANISATION}
+              {currentUser?.role || NomRole.ADMIN_SYSTEME}
             </p>
           </div>
         )}

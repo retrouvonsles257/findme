@@ -82,12 +82,16 @@ export interface AuthUser {
   email: string;
   prenom?: string;
   nom?: string;
+  identite_verifiee?: boolean;
+  autorite_echelon?: number | null;
   email_confirmed_at?: string;
   emailVerified?: boolean;
   phone?: string;
   typeCompte?: string;
+  type_compte?: string;
   role?: string;
   organisationId?: string;
+  organisation_id?: string;
   permissions?: string[];
   preferences?: Record<string, any>;
   isProfileComplete?: boolean;
@@ -95,6 +99,9 @@ export interface AuthUser {
   aud?: string;
   created_at?: string;
   updated_at?: string;
+  /** Compte Supabase anonyme (invité), avant liaison e-mail / mot de passe. */
+  is_anonymous?: boolean;
+  email_confirme?: boolean;
 }
 
 // ============================================

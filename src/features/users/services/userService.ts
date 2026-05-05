@@ -6,6 +6,7 @@
  */
 
 import type { UserProfile, UserStats, UserPermissions, UserWithMetrics } from '../types';
+import { normalizeAppRole } from '../../../utils/normalizeAppRole';
 
 /**
  * Format user display name
@@ -66,60 +67,41 @@ export const hasPermission = (permissions: string[], permission: string): boolea
  * Get user permissions based on role
  */
 export const getUserPermissions = (role: string): UserPermissions => {
-  const permissionMap: Record<string, UserPermissions> = {
-    super_admin: {
-      canViewUsers: true,
-      canEditUsers: true,
-      canDeleteUsers: true,
-      canManageRoles: true,
-      canViewActivity: true,
-      canExportData: true,
-      canVerifyUsers: true,
-      canSuspendUsers: true,
-    },
-    admin_organisation: {
-      canViewUsers: true,
-      canEditUsers: true,
-      canDeleteUsers: false,
-      canManageRoles: true,
-      canViewActivity: true,
-      canExportData: true,
-      canVerifyUsers: true,
-      canSuspendUsers: true,
-    },
-    moderateur: {
-      canViewUsers: true,
-      canEditUsers: false,
-      canDeleteUsers: false,
-      canManageRoles: false,
-      canViewActivity: true,
-      canExportData: false,
-      canVerifyUsers: true,
-      canSuspendUsers: true,
-    },
-    citoyen_verifie: {
-      canViewUsers: false,
-      canEditUsers: false,
-      canDeleteUsers: false,
-      canManageRoles: false,
-      canViewActivity: false,
-      canExportData: false,
-      canVerifyUsers: false,
-      canSuspendUsers: false,
-    },
-    citoyen_standard: {
-      canViewUsers: false,
-      canEditUsers: false,
-      canDeleteUsers: false,
-      canManageRoles: false,
-      canViewActivity: false,
-      canExportData: false,
-      canVerifyUsers: false,
-      canSuspendUsers: false,
-    },
+  const adminSysteme: UserPermissions = {
+    canViewUsers: true,
+    canEditUsers: true,
+    canDeleteUsers: true,
+    canManageRoles: true,
+    canViewActivity: true,
+    canExportData: true,
+    canVerifyUsers: true,
+    canSuspendUsers: true,
+  };
+  const autorite: UserPermissions = {
+    canViewUsers: true,
+    canEditUsers: true,
+    canDeleteUsers: false,
+    canManageRoles: false,
+    canViewActivity: true,
+    canExportData: true,
+    canVerifyUsers: true,
+    canSuspendUsers: true,
+  };
+  const citoyen: UserPermissions = {
+    canViewUsers: false,
+    canEditUsers: false,
+    canDeleteUsers: false,
+    canManageRoles: false,
+    canViewActivity: false,
+    canExportData: false,
+    canVerifyUsers: false,
+    canSuspendUsers: false,
   };
 
-  return permissionMap[role] || permissionMap.citoyen_standard;
+  const r = normalizeAppRole(role);
+  if (r === 'admin_systeme') return adminSysteme;
+  if (r === 'autorite') return autorite;
+  return citoyen;
 };
 
 /**
@@ -249,19 +231,11 @@ export const isValidPhoneNumber = (phone: string): boolean => {
  * Calculate user role level (for permission hierarchy)
  */
 export const getRoleLevel = (role: string): number => {
-  const levels: Record<string, number> = {
-    super_admin: 7,
-    admin_organisation: 6,
-    responsable_ong: 5,
-    officier_police: 4,
-    agent_gendarmerie: 4,
-    // Aligné avec la documentation: opérateur=2, modérateur=3
-    operateur_saisie: 2,
-    moderateur: 3,
-    citoyen_verifie: 1,
-    citoyen_standard: 0,
-  };
-  return levels[role] || 0;
+  const r = normalizeAppRole(role);
+  if (r === 'admin_systeme') return 100;
+  if (r === 'autorite') return 50;
+  if (r === 'citoyen') return 10;
+  return 0;
 };
 
 /**

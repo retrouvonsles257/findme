@@ -27,8 +27,12 @@ export { SignalementDetailPage } from './SignalementDetailPage';
 export { InvestigationPage } from './InvestigationPage';
 export { IAAnalysisPage } from './IAAnalysisPage';
 
-// Photos moderation
+// Photos moderation & ex-modérateur (silo Autorité)
 export { PhotosModerationPage } from './PhotosModerationPage';
+export { ModerationReportsPage } from './ModerationReportsPage';
+export { ModerationActivityHistoryPage } from './ModerationActivityHistoryPage';
+export { ModerationIdentityVerificationPage } from './ModerationIdentityVerificationPage';
+export { SignalementsFileAvancePage } from './SignalementsFileAvancePage';
 
 // Coordination
 export { CoordinationPage } from './CoordinationPage';
@@ -48,6 +52,11 @@ export { ProfilePage } from './ProfilePage';
 
 // Notifications
 export { NotificationsPage } from './NotificationsPage';
+
+// Personnes (fiches)
+export { PersonsPage } from './PersonsPage';
+export { PersonDetailPage } from './PersonDetailPage';
+export { CreatePersonPage } from './CreatePersonPage';
 
 // Type exports if needed
 export type { };

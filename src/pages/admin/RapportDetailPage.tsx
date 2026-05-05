@@ -97,7 +97,7 @@ export const AdminOrganisationRapportDetailPage: React.FC = () => {
     }
   };
 
-  if (!currentUser || currentUser.role !== NomRole.ADMIN_ORGANISATION) {
+  if (!currentUser || currentUser.role !== NomRole.ADMIN_SYSTEME) {
     navigate('/auth/login');
     return null;
   }

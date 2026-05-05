@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config/supabase.config';
 import {
@@ -14,6 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import styles from './DisparitionsPage.module.css';
+import { CITIZEN_ROUTES, PUBLIC_ROUTES } from '../../routes/routes.config';
 
 interface Dossier {
   id: string;
@@ -259,6 +260,16 @@ export const DisparitionsPage: React.FC = () => {
               {t('public.disparitions.title')}
             </h1>
             <p>{t('public.disparitions.subtitle')}</p>
+          </div>
+
+          <div className={styles.guestBanner}>
+            <span>{t('public.contribute.disparitions_banner')}</span>
+            <Link
+              className={styles.guestBannerCta}
+              to={`${PUBLIC_ROUTES.CONTRIBUTE}?next=${encodeURIComponent(CITIZEN_ROUTES.NEW_SIGNALEMENT)}`}
+            >
+              {t('public.contribute.disparitions_cta')}
+            </Link>
           </div>
 
           {/* Filters */}

@@ -219,8 +219,9 @@ export const CitizenMapPage: React.FC = () => {
         const lng = signalement.longitude_observation ?? signalement.longitude;
         const statut = signalement.statut_validation ?? signalement.etat ?? signalement.statut;
 
-        // Par défaut, n'afficher que les signalements validés (évite d'exposer des brouillons/en_attente sur la carte)
+        // Signalements publiés (validés + diffusion grand public explicite)
         if (statut && statut !== 'valide') return;
+        if (!signalement.visible_detail_public) return;
 
         if (lat && lng) {
           newMarkers.push({

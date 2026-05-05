@@ -25,6 +25,8 @@ export interface Signalement {
   contexte_observation?: string;
   etat_personne_observee?: string;
   statut_validation: 'en_attente' | 'en_verification' | 'valide' | 'invalide' | 'doublonne' | 'spam';
+  /** Diffusion du détail sur fiches / cartes grand public (autorités voient tout via RLS). */
+  visible_detail_public?: boolean;
   // Aligné avec le modèle SQL: priorite_traitement = ('haute' | 'moyenne' | 'basse')
   priorite_traitement?: 'basse' | 'moyenne' | 'haute';
   score_pertinence?: number;
@@ -130,6 +132,7 @@ export interface SignalementUpdatePayload {
   photo_url?: string;
   etat?: 'nouveau' | 'en_cours' | 'valide' | 'rejete' | 'ferme';
   statut_validation?: 'en_attente' | 'en_verification' | 'valide' | 'invalide' | 'doublonne' | 'spam';
+  visible_detail_public?: boolean;
   notes?: string;
   score_correspondance?: number;
 }

@@ -86,6 +86,7 @@ export async function createSignalement(
       ...payload,
       id_utilisateur: userId,
       statut_validation: 'en_attente',
+      visible_detail_public: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -99,7 +100,8 @@ export async function createSignalement(
   await (supabase.from('notification') as any).insert({
     type_notification: 'autre',
     titre: 'Signalement reçu',
-    message: 'Votre signalement a bien été enregistré et sera examiné par nos équipes. Vous serez notifié en cas de mise à jour.',
+    message:
+      'Votre signalement est bien enregistré et transmis aux autorités compétentes. Vous serez notifié en cas de mise à jour. L’affichage public du détail peut être différé après vérification.',
     canal: 'in_app',
     lue: false,
     date_creation: dateCreation,
@@ -167,6 +169,7 @@ export async function getSignalementsByLocation(
     .from('signalement')
     .select('*')
     .eq('statut_validation', 'valide')
+    .eq('visible_detail_public', true)
     .order('date_observation', { ascending: false });
 
   if (error) throw error;
@@ -281,11 +284,14 @@ export async function addSignalementVerification(
         ? 'invalide'
         : 'en_verification';
 
+  const visibleDetailPublic = newStatut === 'valide';
+
   // Update the signalement directly
   const { error: updateError } = await db()
     .from('signalement')
     .update({
       statut_validation: newStatut,
+      visible_detail_public: visibleDetailPublic,
       verifie_par: verificateurId,
       date_verification: new Date().toISOString(),
       commentaire_verification: [

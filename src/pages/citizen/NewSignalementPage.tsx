@@ -7,7 +7,7 @@
  */
 
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
@@ -23,8 +23,7 @@ import {
   Navigation, FileText, Search 
 } from 'lucide-react';
 import styles from './NewSignalementPage.module.css';
-import { NomRole } from '../../@types/enums.types';
-import type { SignalementCreatePayload } from '../../features/signalements/types';
+import type { Signalement, SignalementCreatePayload } from '../../features/signalements/types';
 
 interface UploadedFile {
   file: File;
@@ -40,14 +39,16 @@ export const CitizenNewSignalementPage: React.FC = () => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
+  const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastSubmitAtRef = useRef(0);
 
   const dossierId = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get('dossierId') || undefined;
   }, [location.search]);
 
-  const isVerified = (currentUser as any)?.role === NomRole.CITOYEN_VERIFIE;
+  const isVerified = Boolean((currentUser as any)?.identite_verifiee);
   const maxPhotos = isVerified ? 5 : 1;
 
   // Hooks
@@ -81,6 +82,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
   const [searchPlace, setSearchPlace] = useState('');
   const [searchPlaceLoading, setSearchPlaceLoading] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([3.848, 11.5021]);
+  const [lastCreatedSignalement, setLastCreatedSignalement] = useState<Signalement | null>(null);
 
   // Gérer les changements de formulaire
   const handleInputChange = (
@@ -213,7 +215,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
   // Soumettre le formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!userId) {
       console.error('User not authenticated');
       return;
@@ -224,6 +226,13 @@ export const CitizenNewSignalementPage: React.FC = () => {
       setLocalError(t('citizen.selectDossier') || 'Veuillez sélectionner un dossier avant de soumettre un signalement.');
       return;
     }
+
+    const now = Date.now();
+    if (now - lastSubmitAtRef.current < 12_000) {
+      setLocalError(t('citizen.submitThrottled'));
+      return;
+    }
+    lastSubmitAtRef.current = now;
 
     setStep('uploading');
     let photoUrls: string[] = [];
@@ -285,13 +294,17 @@ export const CitizenNewSignalementPage: React.FC = () => {
 
       setUploadProgress(90);
       setUploadProgress(100);
+      if (newSignalement) {
+        setLastCreatedSignalement(newSignalement);
+      }
       setStep('success');
 
-      // Rediriger après 2 secondes
-      setTimeout(() => navigate('/citizen/my-signalements'), 2000);
+      const redirectMs = isGuestSession ? 6500 : 2000;
+      setTimeout(() => navigate('/citizen/my-signalements'), redirectMs);
       
     } catch (err) {
       console.error('Erreur soumission:', err);
+      lastSubmitAtRef.current = 0;
       setStep('form');
     }
   };
@@ -303,10 +316,30 @@ export const CitizenNewSignalementPage: React.FC = () => {
         <div className={styles['new-signalement']}>
           <div className={styles['new-signalement__success']}>
             <Check size={64} className={styles['new-signalement__success-icon']} />
-            <h2 className={styles['new-signalement__success-title']}>{t('citizen.submitted')}</h2>
+            <h2 className={styles['new-signalement__success-title']}>{t('citizen.submitSuccessTitle')}</h2>
             <p className={styles['new-signalement__success-message']}>
-              {t('citizen.successfullySubmitted')}
+              {t('citizen.submitSuccessBody')}
             </p>
+            {lastCreatedSignalement && (
+              <p className={styles['new-signalement__success-reference']}>
+                {t('citizen.submitSuccessReference', {
+                  ref:
+                    (lastCreatedSignalement as any).numero_signalement ||
+                    String(lastCreatedSignalement.id).slice(0, 8),
+                })}
+              </p>
+            )}
+            <p className={styles['new-signalement__success-disclaimer']}>
+              {t('citizen.submitSuccessDisclaimer')}
+            </p>
+            {isGuestSession && (
+              <p className={styles['new-signalement__success-guest']}>
+                {t('citizen.guestPostSubmitHint')}{' '}
+                <Link to="/auth/register" className={styles['new-signalement__success-guest-link']}>
+                  {t('citizen.guestRegisterCta')}
+                </Link>
+              </p>
+            )}
           </div>
         </div>
       </CitizenLayout>
@@ -320,7 +353,8 @@ export const CitizenNewSignalementPage: React.FC = () => {
         <div className={styles['new-signalement']}>
           <div className={styles['new-signalement__uploading']}>
             <Loader2 size={48} className={styles['new-signalement__loading-spin']} />
-            <h3>{t('citizen.submitting')}</h3>
+            <h3>{t('citizen.transmittingReport')}</h3>
+            <p className={styles['new-signalement__uploading-hint']}>{t('citizen.submitting')}</p>
             <div className={styles['new-signalement__progress-bar']}>
               <div 
                 className={styles['new-signalement__progress-fill']}

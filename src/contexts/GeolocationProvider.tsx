@@ -11,6 +11,19 @@ import {
   GeolocationCoordinates,
   GeolocationContextType,
 } from './GeolocaltionContext';
+import { supabase } from '../config';
+import { maybeSyncCitizenGpsToProfileDebounced } from '../features/users/services/citizenLocationSync';
+
+async function pushCoordsToCitizenProfile(latitude: number, longitude: number): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = user?.id;
+    if (!uid) return;
+    await maybeSyncCitizenGpsToProfileDebounced(uid, latitude, longitude);
+  } catch {
+    /* ignore */
+  }
+}
 
 interface GeolocationProviderProps {
   children: ReactNode;
@@ -79,6 +92,7 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({
           setLocation(coords);
           setError(null);
           setLoading(false);
+          void pushCoordsToCitizenProfile(coords.latitude, coords.longitude);
           resolve(coords);
         },
         (err) => {
@@ -130,6 +144,7 @@ export const GeolocationProvider: React.FC<GeolocationProviderProps> = ({
             const coords = convertCoordinates(position);
             setLocation(coords);
             setError(null);
+            void pushCoordsToCitizenProfile(coords.latitude, coords.longitude);
           },
           (err) => {
             setError(err);

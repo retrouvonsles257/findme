@@ -14,8 +14,12 @@ import { NomRole } from '../../@types/enums.types';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
-import { createAlerte } from '../../features/alertes/services/alerteAPI';
-import { TypeAlerte as TypeAlerteEnum } from '../../@types/enums.types';
+import {
+  createAlerte,
+  diffuserAlerte,
+  updateAlerteStatut,
+} from '../../features/alertes/services/alerteAPI';
+import { TypeAlerte as TypeAlerteEnum, StatutAlerte as StatutAlerteEnum } from '../../@types/enums.types';
 import type { TypeAlerte } from '../../@types';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
@@ -63,7 +67,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
   const { addNotification } = useNotification();
   const initialCriteria = useMemo(() => {
     const orgId = (currentUser as { organisation_id?: string })?.organisation_id;
-    if ((currentUser?.role === NomRole.ADMIN_ORGANISATION || currentUser?.role === NomRole.RESPONSABLE_ONG) && orgId) {
+    if (currentUser?.role === NomRole.AUTORITE && orgId) {
       return { organisation_id: orgId };
     }
     return undefined;
@@ -133,6 +137,12 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
 
     setIsSubmitting(true);
     try {
+      const dossierLie = dossiers.find((d: any) => d.id === formData.id_dossier);
+      const latD =
+        dossierLie?.latitude_disparition != null ? Number(dossierLie.latitude_disparition) : undefined;
+      const lngD =
+        dossierLie?.longitude_disparition != null ? Number(dossierLie.longitude_disparition) : undefined;
+
       const alerte = await createAlerte({
         titre: formData.titre,
         message: formData.message,
@@ -142,15 +152,37 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
         rayon_km: formData.rayon_km,
         canaux_diffusion: formData.canaux_diffusion,
         niveau_urgence_min: formData.niveau_urgence_min,
+        ...(latD != null && lngD != null && !Number.isNaN(latD) && !Number.isNaN(lngD)
+          ? { latitude_centre: latD, longitude_centre: lngD }
+          : {}),
       });
 
-      addNotification({
-        title: t('authority.alertes.createAlerte.messages.alerteCreated'),
-        message: publishNow 
-          ? t('authority.alertes.createAlerte.messages.alerteCreatedAndPublished')
-          : t('authority.alertes.createAlerte.messages.alerteSavedAsDraft'),
-        type: 'success',
-      });
+      if (publishNow) {
+        await updateAlerteStatut(alerte.id, StatutAlerteEnum.EN_COURS);
+        const diffusion = await diffuserAlerte(alerte.id, formData.canaux_diffusion);
+        if (diffusion.nombre_destinataires === 0) {
+          addNotification({
+            title: t('authority.alertes.createAlerte.messages.alerteCreated'),
+            message: t('authority.alertes.createAlerte.messages.publishNoRecipients'),
+            type: 'warning',
+          });
+        } else {
+          addNotification({
+            title: t('authority.alertes.createAlerte.messages.alerteCreated'),
+            message: t('authority.alertes.createAlerte.messages.alerteCreatedAndPublishedWithCount').replace(
+              '{{count}}',
+              String(diffusion.nombre_destinataires),
+            ),
+            type: 'success',
+          });
+        }
+      } else {
+        addNotification({
+          title: t('authority.alertes.createAlerte.messages.alerteCreated'),
+          message: t('authority.alertes.createAlerte.messages.alerteSavedAsDraft'),
+          type: 'success',
+        });
+      }
 
       navigate(`${basePath}/alertes/${alerte.id}`);
     } catch (err: any) {
@@ -162,7 +194,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, addNotification, navigate, basePath]);
+  }, [formData, dossiers, addNotification, navigate, basePath, t]);
 
   // Dossiers actifs uniquement
   const activeDossiers = dossiers.filter((d: any) => 

@@ -82,6 +82,9 @@ export interface Utilisateur {
   derniere_maj_localisation: Timestamp | null;
   ip_derniere_connexion: string | null;
   id_organisation: UUID | null;
+  /** Présent en base après migration 20260423 (défaut false). */
+  identite_verifiee?: boolean;
+  autorite_echelon?: number | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
@@ -93,6 +96,15 @@ export interface UtilisateurRole {
   date_expiration: Timestamp | null;
   attribue_par: UUID | null;
   commentaire: string | null;
+}
+
+/** Jetons FCM (Web Push) enregistrés par appareil / navigateur. */
+export interface UtilisateurFcmToken {
+  id: UUID;
+  id_utilisateur: UUID;
+  token: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface Personne {
@@ -252,6 +264,8 @@ export interface Signalement {
   direction_deplacement: string | null;
   moyen_deplacement: string | null;
   statut_validation: Enums.StatutValidation;
+  /** Si true, le détail peut apparaître sur les vues grand public (dossier visible_public). */
+  visible_detail_public: boolean;
   priorite_traitement: Enums.PrioriteTraitement;
   score_pertinence: number | null;
   raisons_score: Json | null;
@@ -571,6 +585,11 @@ export interface Database {
         Insert: Omit<UtilisateurRole, 'date_attribution'>;
         Update: Partial<UtilisateurRole>;
       };
+      utilisateur_fcm_token: {
+        Row: UtilisateurFcmToken;
+        Insert: Pick<UtilisateurFcmToken, 'id_utilisateur' | 'token'> & Partial<Pick<UtilisateurFcmToken, 'id' | 'created_at' | 'updated_at'>>;
+        Update: Partial<Omit<UtilisateurFcmToken, 'id'>>;
+      };
       personne: {
         Row: Personne;
         Insert: Omit<Personne, 'id' | 'created_at' | 'updated_at'>;
@@ -697,6 +716,18 @@ export interface Database {
           user_id: UUID;
         };
         Returns: number;
+      };
+      get_user_main_role: {
+        Args: { user_id: UUID };
+        Returns: string;
+      };
+      get_user_all_roles: {
+        Args: { p_user_id: UUID };
+        Returns: string[];
+      };
+      get_user_with_role: {
+        Args: { user_id: UUID };
+        Returns: Record<string, unknown>;
       };
     };
   };

@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { useAppSelector } from '../../store/types';
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import styles from './CreateDossierPage.module.css';
 import { triggerDossierAnalysis } from '../../features/ia-analysis';
+import * as personneAPI from '../../features/personnes/services/personneAPI';
 
 interface PersonneFormData {
   nom: string;
@@ -75,6 +76,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
   cancelTo = '/authority/dossiers',
 }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
@@ -85,6 +87,8 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
   const [submitError, setSubmitError] = useState<string>('');
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [photoUploading, setPhotoUploading] = useState(false);
+  /** Si présent dans l’URL (`?personneId=`), on rattache le dossier à cette personne sans la recréer. */
+  const [linkedPersonneId, setLinkedPersonneId] = useState<string | null>(null);
 
   // Carte (sélection + recherche)
   const [showMap, setShowMap] = useState(false);
@@ -125,6 +129,44 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     contact_telephone: '',
     contact_email: '',
   });
+
+  const personneIdFromUrl = searchParams.get('personneId');
+
+  useEffect(() => {
+    if (!personneIdFromUrl?.trim()) {
+      setLinkedPersonneId(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const p = await personneAPI.getPersonneById(personneIdFromUrl.trim());
+        if (!p || cancelled) return;
+        setLinkedPersonneId(String((p as any).id));
+        setPersonneData({
+          nom: String((p as any).nom || ''),
+          prenom: String((p as any).prenom || ''),
+          date_naissance: (p as any).date_naissance
+            ? String((p as any).date_naissance).split('T')[0]
+            : '',
+          sexe: (((p as any).sexe as PersonneFormData['sexe']) || 'non_precise') as PersonneFormData['sexe'],
+          nationalite: String((p as any).nationalite || 'Camerounaise'),
+          taille_cm: (p as any).taille_cm != null ? String((p as any).taille_cm) : '',
+          poids_kg: (p as any).poids_kg != null ? String((p as any).poids_kg) : '',
+          couleur_yeux: String((p as any).couleur_yeux || ''),
+          couleur_cheveux: String((p as any).couleur_cheveux || ''),
+          signes_particuliers: String(
+            (p as any).signes_distinctifs || (p as any).description_physique || '',
+          ),
+        });
+      } catch {
+        setLinkedPersonneId(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [personneIdFromUrl]);
 
   const geocodeMapTiler = async (query: string): Promise<MapSearchLocation[]> => {
     if (!mapConfig.maptiler.apiKey) return [];
@@ -342,32 +384,37 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
         throw new Error(ensureErr?.message || t('authority.createDossier.messages.profileMissing'));
       }
 
-      // 1. Créer la personne (sans photos_supplementaires - elles vont dans la table photo)
-      const { data: personneCreated, error: personneError } = await (supabase as any)
-        .from('personne')
-        .insert({
-          nom: personneData.nom,
-          prenom: personneData.prenom,
-          nom_complet: `${personneData.prenom} ${personneData.nom}`,
-          date_naissance: personneData.date_naissance || null,
-          sexe: personneData.sexe,
-          nationalite: personneData.nationalite,
-          taille_cm: personneData.taille_cm ? parseInt(personneData.taille_cm) : null,
-          poids_kg: personneData.poids_kg ? parseInt(personneData.poids_kg) : null,
-          couleur_yeux: personneData.couleur_yeux || null,
-          couleur_cheveux: personneData.couleur_cheveux || null,
-          signes_distinctifs: personneData.signes_particuliers || null,
-          // Champs saisis à l'étape dossier (schéma SQL: personne.derniers_vetements_portes / accessoires)
-          derniers_vetements_portes: dossierData.vetements_portes || null,
-          accessoires: dossierData.objets_personnels || null,
-          photo_principale: uploadedPhotos[0] || null,
-          cree_par: user.id,
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      // 1. Personne : création ou réutilisation (`?personneId=` depuis fiche personne)
+      let personneIdForDossier: string;
+      if (linkedPersonneId) {
+        personneIdForDossier = linkedPersonneId;
+      } else {
+        const { data: personneCreated, error: personneError } = await (supabase as any)
+          .from('personne')
+          .insert({
+            nom: personneData.nom,
+            prenom: personneData.prenom,
+            nom_complet: `${personneData.prenom} ${personneData.nom}`,
+            date_naissance: personneData.date_naissance || null,
+            sexe: personneData.sexe,
+            nationalite: personneData.nationalite,
+            taille_cm: personneData.taille_cm ? parseInt(personneData.taille_cm) : null,
+            poids_kg: personneData.poids_kg ? parseInt(personneData.poids_kg) : null,
+            couleur_yeux: personneData.couleur_yeux || null,
+            couleur_cheveux: personneData.couleur_cheveux || null,
+            signes_distinctifs: personneData.signes_particuliers || null,
+            derniers_vetements_portes: dossierData.vetements_portes || null,
+            accessoires: dossierData.objets_personnels || null,
+            photo_principale: uploadedPhotos[0] || null,
+            cree_par: user.id,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-      if (personneError) throw personneError;
+        if (personneError) throw personneError;
+        personneIdForDossier = personneCreated.id;
+      }
 
       // 2. Insérer les photos dans la table photo
       if (uploadedPhotos.length > 0) {
@@ -376,7 +423,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
           type_photo: 'portrait',
           est_principale: index === 0,
           visible_public: true,
-          id_personne: personneCreated.id,
+          id_personne: personneIdForDossier,
           uploadee_par: user.id,
           created_at: new Date().toISOString(),
         }));
@@ -398,7 +445,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
         .from('dossier_disparition')
         .insert({
           numero_dossier: numeroDossier,
-          id_personne: personneCreated.id,
+          id_personne: personneIdForDossier,
           id_utilisateur_createur: user.id,
           id_organisation_responsable: currentUser?.organisation_id || null,
           niveau_urgence: dossierData.niveau_urgence,
@@ -455,9 +502,11 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
       });
 
       // Rediriger vers le dossier (admin org reste dans l'espace admin)
-      const isAdminOrg = currentUser?.role === NomRole.ADMIN_ORGANISATION;
+      const isAdminSysteme = currentUser?.role === NomRole.ADMIN_SYSTEME;
       setTimeout(() => {
-        navigate(isAdminOrg ? `/admin/dossiers/${dossierCreated.id}` : `/authority/dossiers/${dossierCreated.id}`);
+        navigate(
+          isAdminSysteme ? `/super-admin/dossiers/${dossierCreated.id}` : `/authority/dossiers/${dossierCreated.id}`
+        );
       }, 1500);
 
     } catch (err: any) {
@@ -472,7 +521,18 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, currentUser, personneData, dossierData, uploadedPhotos, addNotification, navigate, t, language]);
+  }, [
+    user,
+    currentUser,
+    personneData,
+    dossierData,
+    uploadedPhotos,
+    linkedPersonneId,
+    addNotification,
+    navigate,
+    t,
+    language,
+  ]);
 
   const formContent = (
     <div className={styles.container}>

@@ -6,7 +6,20 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../../../config';
+import { maybeSyncCitizenGpsToProfileDebounced } from '../../users/services/citizenLocationSync';
 import type { UseGeolocationReturn, CurrentLocation } from '../types';
+
+async function pushGpsToProfilCitoyen(latitude: number, longitude: number) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = user?.id;
+    if (!uid) return;
+    await maybeSyncCitizenGpsToProfileDebounced(uid, latitude, longitude);
+  } catch {
+    /* ignore */
+  }
+}
 
 export const useGeolocation = (autoStart: boolean = false): UseGeolocationReturn => {
   const [currentLocation, setCurrentLocation] = useState<CurrentLocation | null>(null);
@@ -64,6 +77,7 @@ export const useGeolocation = (autoStart: boolean = false): UseGeolocationReturn
           console.log(`Geolocation: ${location.latitude}, ${location.longitude} (accuracy: ${location.accuracy}m)`);
           setCurrentLocation(location);
           setError(null);
+          void pushGpsToProfilCitoyen(location.latitude, location.longitude);
           resolve(location);
         },
         (err) => {
@@ -100,6 +114,7 @@ export const useGeolocation = (autoStart: boolean = false): UseGeolocationReturn
         console.log(`Tracking update: ${location.latitude}, ${location.longitude} (accuracy: ${location.accuracy}m)`);
         setCurrentLocation(location);
         setError(null);
+        void pushGpsToProfilCitoyen(location.latitude, location.longitude);
       },
       (err) => {
         console.warn('Tracking error:', err.message);

@@ -12,7 +12,7 @@ import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { logActivity } from '../../services/audit/auditService';
-import { TypeAction } from '../../@types/enums.types';
+import { NomRole, TypeAction } from '../../@types/enums.types';
 import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail';
 import { useSignalementsForDossier } from '../../features/signalements/hooks/useSignalementsForDossier';
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
@@ -393,7 +393,7 @@ export const OperatorDossierDetailPage: React.FC = () => {
                 {(() => {
                   const isCreator = Boolean(currentUser?.id) && dossier.id_utilisateur_createur === currentUser?.id;
                   const isAdmin =
-                    currentUser?.role === 'admin_organisation' || currentUser?.role === 'super_admin';
+                    currentUser?.role === NomRole.ADMIN_SYSTEME;
                   return isCreator || isAdmin;
                 })() && (
                   <button 

@@ -6,7 +6,7 @@
  */
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { supabaseAuthService } from '../../../services/supabase/auth';
+import { normalizeAppRole, supabaseAuthService } from '../../../services/supabase/auth';
 import type { 
   LoginCredentials, 
   PasswordResetRequest,
@@ -36,19 +36,29 @@ export interface AuthErrorPayload {
 // ============================================
 
 function convertToUser(serviceUser: any): User {
+  const isAnonymous = Boolean(serviceUser.is_anonymous);
   return {
     id: serviceUser.id,
     email: serviceUser.email,
     nom_complet: `${serviceUser.prenom || ''} ${serviceUser.nom || ''}`.trim() || 'Utilisateur',
     telephone: serviceUser.telephone,
-    role: (serviceUser.role as NomRole) || NomRole.CITOYEN_STANDARD,
+    role: normalizeAppRole(serviceUser.role) as NomRole,
     statut_compte: (serviceUser.statut_compte as StatutCompte) || StatutCompte.ACTIF,
     type_compte: (serviceUser.type_compte as TypeCompte) || TypeCompte.GRAND_PUBLIC,
-    organisation_id: serviceUser.organisation_id,
+    organisation_id: serviceUser.organisation_id ?? serviceUser.id_organisation ?? undefined,
+    identite_verifiee: Boolean(serviceUser.identite_verifiee),
+    autorite_echelon:
+      serviceUser.autorite_echelon === undefined || serviceUser.autorite_echelon === null
+        ? null
+        : Number(serviceUser.autorite_echelon),
     date_creation: new Date().toISOString(),
     derniere_connexion: new Date().toISOString(),
-    email_confirme: true,
+    email_confirme:
+      serviceUser.email_confirme !== undefined
+        ? Boolean(serviceUser.email_confirme)
+        : !isAnonymous,
     telephone_confirme: false,
+    is_anonymous: isAnonymous,
   };
 }
 
@@ -116,6 +126,82 @@ export const registerThunk = createAsyncThunk<
       return rejectWithValue({
         code: 'INVALID_RESPONSE',
         message: 'Invalid registration response',
+      });
+    }
+
+    return {
+      user: convertToUser(result.data.user),
+      accessToken: result.data.access_token,
+      refreshToken: result.data.refresh_token,
+      expiresAt: result.data.expires_at,
+    };
+  }
+);
+
+// ============================================
+// SIGN IN ANONYMOUS THUNK
+// ============================================
+
+export const signInAnonymousThunk = createAsyncThunk<
+  AuthThunkPayload,
+  void,
+  {
+    rejectValue: AuthErrorPayload;
+  }
+>(
+  'auth/signInAnonymous',
+  async (_, { rejectWithValue }) => {
+    const result = await supabaseAuthService.signInAnonymously();
+
+    if (result.error) {
+      return rejectWithValue({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+
+    if (!result.data) {
+      return rejectWithValue({
+        code: 'INVALID_RESPONSE',
+        message: 'Réponse de connexion anonyme invalide',
+      });
+    }
+
+    return {
+      user: convertToUser(result.data.user),
+      accessToken: result.data.access_token,
+      refreshToken: result.data.refresh_token,
+      expiresAt: result.data.expires_at,
+    };
+  }
+);
+
+// ============================================
+// UPGRADE ANONYMOUS ACCOUNT THUNK
+// ============================================
+
+export const upgradeAnonymousThunk = createAsyncThunk<
+  AuthThunkPayload,
+  { email: string; password: string },
+  {
+    rejectValue: AuthErrorPayload;
+  }
+>(
+  'auth/upgradeAnonymous',
+  async (data, { rejectWithValue }) => {
+    const result = await supabaseAuthService.upgradeAnonymousAccount(data);
+
+    if (result.error) {
+      return rejectWithValue({
+        code: result.error.code,
+        message: result.error.message,
+      });
+    }
+
+    if (!result.data) {
+      return rejectWithValue({
+        code: 'INVALID_RESPONSE',
+        message: 'Réponse de mise à jour du compte invalide',
       });
     }
 

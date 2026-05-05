@@ -1069,7 +1069,7 @@ export async function getDemandeVerificationIdentiteById(
 
 /**
  * Traiter une demande (approuver, refuser, demander complément).
- * Lors d'un approuve : met à jour utilisateur.statut_compte = 'actif' et attribue le rôle citoyen_verifie si possible.
+ * Lors d'un approuve : met à jour utilisateur.statut_compte = 'actif' et identite_verifiee = true.
  */
 export async function traiterDemandeVerificationIdentite(
   demandeId: string,
@@ -1098,22 +1098,8 @@ export async function traiterDemandeVerificationIdentite(
       .single();
     if (demande?.id_utilisateur) {
       await db('utilisateur')
-        .update({ statut_compte: 'actif', updated_at: traiteLe })
+        .update({ statut_compte: 'actif', identite_verifiee: true, updated_at: traiteLe })
         .eq('id', demande.id_utilisateur);
-
-      const { data: roleData } = await db('role')
-        .select('id')
-        .eq('nom_role', 'citoyen_verifie')
-        .single();
-      if (roleData) {
-        await (db('utilisateur_role') as any).upsert({
-          id_utilisateur: demande.id_utilisateur,
-          id_role: roleData.id,
-          date_attribution: traiteLe,
-          attribue_par: traiteParUserId,
-          commentaire: commentaire || 'Identité vérifiée',
-        }, { onConflict: 'id_utilisateur,id_role' });
-      }
 
       // Notification de validation du compte (docs : étape 8 - "L'utilisateur reçoit une notification de validation")
       await db('notification').insert({

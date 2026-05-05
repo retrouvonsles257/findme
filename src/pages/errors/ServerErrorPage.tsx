@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { selectUser } from '../../features/auth/store/authSelectors';
+import { getDashboardPathAfterLogin } from '../../services/supabase/auth';
 import styles from './ServerErrorPage.module.css';
 
 interface ErrorDetails {
@@ -23,6 +25,7 @@ export const ServerErrorPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const currentUser = useAppSelector(selectCurrentUser);
+  const authUser = useAppSelector(selectUser);
   const [errorDetails, setErrorDetails] = useState<ErrorDetails>({
     code: 500,
     message: 'Internal Server Error',
@@ -49,19 +52,12 @@ export const ServerErrorPage: React.FC = () => {
   };
 
   const handleGoHome = () => {
-    if (currentUser?.role === 'operateur_saisie') {
-      navigate('/operator');
-    } else if (currentUser?.role === 'moderateur') {
-      navigate('/moderator');
-    } else if (
-      currentUser?.role === 'officier_police' ||
-      currentUser?.role === 'agent_gendarmerie' ||
-      currentUser?.role === 'admin_organisation'
-    ) {
-      navigate('/authority');
-    } else {
+    const u = authUser ?? currentUser;
+    if (!u?.role) {
       navigate('/');
+      return;
     }
+    navigate(getDashboardPathAfterLogin(String(u.role), (u as { organisation_id?: string | null }).organisation_id ?? null));
   };
 
   const handleReportIssue = () => {

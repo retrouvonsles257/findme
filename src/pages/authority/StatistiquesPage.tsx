@@ -47,7 +47,7 @@ export const StatistiquesPage: React.FC = () => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectCurrentUser);
   const initialCriteria = useMemo(() => {
-    if (currentUser?.role === NomRole.ADMIN_ORGANISATION && currentUser?.organisation_id) {
+    if (currentUser?.role === NomRole.AUTORITE && currentUser?.organisation_id) {
       return { organisation_id: currentUser.organisation_id };
     }
     return undefined;

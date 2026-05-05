@@ -12,10 +12,16 @@ import { selectUser, selectUserRole, selectIsAuthenticated, selectAuthLoading } 
 import { NomRole } from '../@types/enums.types';
 import { ERROR_ROUTES, AUTH_ROUTES } from './routes.config';
 
+export type OrganisationScope = 'any' | 'with_organisation' | 'without_organisation';
+
 interface RoleBasedRouteProps {
   children: React.ReactNode;
   requiredRoles: NomRole[];
   fallbackRoute?: string;
+  /**
+   * Pour `admin_systeme` : portail admin org (ligne utilisateur liée à une org) vs super-admin (sans org).
+   */
+  organisationScope?: OrganisationScope;
 }
 
 /**
@@ -28,7 +34,8 @@ interface RoleBasedRouteProps {
 const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   children,
   requiredRoles,
-  fallbackRoute = ERROR_ROUTES.FORBIDDEN
+  fallbackRoute = ERROR_ROUTES.FORBIDDEN,
+  organisationScope = 'any',
 }) => {
   const currentUser = useAppSelector(selectUser);
   const userRole = useAppSelector(selectUserRole);
@@ -59,6 +66,27 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   if (!userRole || !requiredRoles.includes(userRole as NomRole)) {
     console.warn('[RoleBasedRoute] Access denied. User role:', userRole, 'Required:', requiredRoles);
     return <Navigate to={fallbackRoute} replace />;
+  }
+
+  const orgId = currentUser?.organisation_id ?? null;
+  const hasOrg = Boolean(orgId);
+
+  if (
+    userRole === NomRole.ADMIN_SYSTEME &&
+    organisationScope === 'with_organisation' &&
+    !hasOrg
+  ) {
+    console.warn('[RoleBasedRoute] Admin org requis mais pas d\'organisation, redirection super-admin');
+    return <Navigate to="/super-admin/dashboard" replace />;
+  }
+
+  if (
+    userRole === NomRole.ADMIN_SYSTEME &&
+    organisationScope === 'without_organisation' &&
+    hasOrg
+  ) {
+    console.warn('[RoleBasedRoute] Super-admin uniquement mais compte lié à une org, redirection admin org');
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   console.log('[RoleBasedRoute] Access granted. User role:', userRole);

@@ -8,6 +8,7 @@
 import { createClient, AuthChangeEvent, Session, Provider } from '@supabase/supabase-js';
 import { Database } from '../@types/database.types';
 import { envConfig } from './env.config';
+import { normalizeAppRole } from '../utils/normalizeAppRole';
 
 // ============================================
 // VARIABLES D'ENVIRONNEMENT
@@ -238,6 +239,13 @@ export const signInWithPassword = async (email: string, password: string) => {
     email,
     password,
   });
+};
+
+/**
+ * Connexion anonyme (nécessite « Anonymous sign-ins » activé dans le projet Supabase).
+ */
+export const signInAnonymously = async () => {
+  return await supabase.auth.signInAnonymously();
 };
 
 /**
@@ -902,13 +910,15 @@ export const getUserAccessLevel = async (userId: string) => {
     }
 
     const userData = data as any;
+    const nr = normalizeAppRole(String(userData?.role || 'citoyen'));
     return {
-      role: userData?.role || 'utilisateur',
+      role: nr,
       organisationId: userData?.organisation_id,
       status: userData?.status || 'inactive',
-      isAdmin: userData?.role === 'admin',
-      isModerateur: userData?.role === 'moderateur',
-      isOrganisationAdmin: userData?.role === 'organisation_admin',
+      isAdmin: nr === 'admin_systeme',
+      /** Ancien « modérateur » : toute l’autorité regroupée (échelons gérés ailleurs). */
+      isModerateur: nr === 'autorite',
+      isOrganisationAdmin: nr === 'admin_systeme' && Boolean(userData?.organisation_id),
     };
   } catch (error) {
     console.error('[getUserAccessLevel Exception]', error);
@@ -928,19 +938,19 @@ export const checkUserPermission = async (
     
     if (!accessLevel) return false;
 
-    // Admin a toutes les permissions
     if (accessLevel.isAdmin) return true;
 
-    // Vérifications par permission
+    const nr = normalizeAppRole(accessLevel.role);
+
     switch (permission) {
       case 'read':
-        return ['admin', 'moderateur', 'organisation_admin', 'utilisateur'].includes(accessLevel.role);
+        return ['admin_systeme', 'autorite', 'citoyen'].includes(nr);
       case 'write':
-        return ['admin', 'organisation_admin', 'utilisateur'].includes(accessLevel.role);
+        return ['admin_systeme', 'autorite', 'citoyen'].includes(nr);
       case 'delete':
-        return ['admin', 'organisation_admin'].includes(accessLevel.role);
+        return nr === 'admin_systeme';
       case 'moderate':
-        return ['admin', 'moderateur'].includes(accessLevel.role);
+        return nr === 'admin_systeme' || nr === 'autorite';
       default:
         return false;
     }
@@ -963,14 +973,14 @@ export const getUserRole = async (userId: string) => {
 
     if (error) {
       console.error('[getUserRole Error]', error);
-      return 'utilisateur';
+      return 'citoyen';
     }
 
     const userData = data as any;
-    return userData?.role || 'utilisateur';
+    return normalizeAppRole(String(userData?.role || 'citoyen'));
   } catch (error) {
     console.error('[getUserRole Exception]', error);
-    return 'utilisateur';
+    return 'citoyen';
   }
 };
 
@@ -1090,28 +1100,30 @@ export const validateUserAction = async (
       return { allowed: false, reason: 'Profil utilisateur introuvable' };
     }
 
+    const nr = normalizeAppRole(accessLevel.role);
+
     switch (action) {
       case 'create_alerte':
         return {
-          allowed: ['admin', 'moderateur', 'organisation_admin', 'utilisateur'].includes(accessLevel.role),
+          allowed: ['admin_systeme', 'autorite', 'citoyen'].includes(nr),
           reason: 'Vous n\'avez pas la permission de créer des alertes',
         };
 
       case 'modify_personne':
         return {
-          allowed: ['admin', 'organisation_admin'].includes(accessLevel.role),
+          allowed: ['admin_systeme', 'autorite'].includes(nr),
           reason: 'Seuls les administrateurs peuvent modifier les fiches personnes',
         };
 
       case 'moderate_signalement':
         return {
-          allowed: ['admin', 'moderateur'].includes(accessLevel.role),
+          allowed: ['admin_systeme', 'autorite'].includes(nr),
           reason: 'Vous n\'avez pas la permission de modérer',
         };
 
       case 'manage_organisation':
         return {
-          allowed: ['admin', 'organisation_admin'].includes(accessLevel.role),
+          allowed: nr === 'admin_systeme',
           reason: 'Vous n\'avez pas la permission de gérer cette organisation',
         };
 

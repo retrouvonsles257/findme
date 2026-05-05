@@ -78,7 +78,7 @@ export const AlerteDetail: React.FC<AlerteDetailProps> = ({
     }
   };
 
-  const canModify = userRole === NomRole.ADMIN_ORGANISATION || userRole === NomRole.MODERATEUR;
+  const canModify = userRole === NomRole.ADMIN_SYSTEME || userRole === NomRole.AUTORITE;
 
   // ========== RENDER ==========
 

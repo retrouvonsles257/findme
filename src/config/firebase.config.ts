@@ -31,8 +31,10 @@ const firebaseConfig: FirebaseOptions = {
   appId: envConfig.REACT_APP_FIREBASE_APP_ID,
 };
 
-// VAPID Key pour Web Push
-const VAPID_KEY = envConfig.REACT_APP_PUSH_VAPID_PUBLIC_KEY;
+// Clé Web Push FCM (Firebase Console → Cloud Messaging) ou fallback .env PUSH_VAPID
+const VAPID_KEY =
+  (envConfig.REACT_APP_FIREBASE_VAPID_KEY || '').trim() ||
+  (envConfig.REACT_APP_PUSH_VAPID_PUBLIC_KEY || '').trim();
 
 // ============================================
 // VALIDATION DE LA CONFIGURATION
@@ -59,8 +61,8 @@ const validateFirebaseConfig = (): boolean => {
     return false;
   }
 
-  if (!VAPID_KEY) {
-    console.error('[Firebase] VAPID Key manquante pour les notifications push');
+  if (!VAPID_KEY || VAPID_KEY.includes('your-vapid')) {
+    console.error('[Firebase] VAPID Key manquante ou placeholder (REACT_APP_FIREBASE_VAPID_KEY / REACT_APP_PUSH_VAPID_PUBLIC_KEY)');
     return false;
   }
 
@@ -154,6 +156,21 @@ export const getFirebaseAnalytics = (): Analytics | null => {
 // ============================================
 
 /**
+ * Enregistre le service worker FCM (fichier généré dans public/).
+ */
+export const registerMessagingServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
+  if (!('serviceWorker' in navigator)) return null;
+  try {
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+    await navigator.serviceWorker.ready;
+    return reg;
+  } catch (error) {
+    console.error('[Firebase] Échec enregistrement firebase-messaging-sw.js:', error);
+    return null;
+  }
+};
+
+/**
  * Demande la permission pour les notifications
  */
 export const requestNotificationPermission = async (): Promise<boolean> => {
@@ -210,9 +227,15 @@ export const getFCMToken = async (): Promise<string | null> => {
       }
     }
 
-    // Récupérer le token
+    const swReg = await registerMessagingServiceWorker();
+    if (!swReg) {
+      console.warn('[Firebase] Pas de service worker FCM');
+      return null;
+    }
+
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: swReg,
     });
 
     if (token) {
@@ -341,15 +364,15 @@ export const showLocalNotification = (
 
   if (Notification.permission === 'granted') {
     const notification = new Notification(title, {
-      icon: '/assets/icons/icon-192x192.png',
-      badge: '/assets/icons/icon-192x192.png',
+      icon: '/android/mipmap-xxxhdpi/ic_launcher.png',
+      badge: '/android/mipmap-xxxhdpi/ic_launcher.png',
+      vibrate: [180, 120, 180],
       ...options,
     });
 
-    // Auto-close après 5 secondes
     setTimeout(() => {
       notification.close();
-    }, 5000);
+    }, 8000);
 
     notification.onclick = (event) => {
       event.preventDefault();
@@ -357,6 +380,66 @@ export const showLocalNotification = (
       notification.close();
     };
   }
+};
+
+const DEFAULT_NOTIF_ICON = '/android/mipmap-xxxhdpi/ic_launcher.png';
+
+/**
+ * Bannière système à partir d’un message FCM (app au premier plan).
+ */
+export const showNotificationFromFcmPayload = (payload: MessagePayload): void => {
+  if (!('Notification' in window)) {
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    console.warn(
+      '[Firebase] Notification navigateur non affichée : permission ≠ granted (paramètres du site → Notifications).',
+    );
+    return;
+  }
+  const n = payload.notification;
+  const title = (n?.title as string) || 'RetrouvonsLes';
+  const body = (n?.body as string) || '';
+  const data = (payload.data || {}) as Record<string, string>;
+  const clickPath = data.clickUrl || '/citizen/notifications';
+  const tag = data.tag || `rll-${Date.now()}`;
+
+  const inst = new Notification(title, {
+    body,
+    icon: DEFAULT_NOTIF_ICON,
+    badge: DEFAULT_NOTIF_ICON,
+    tag,
+    renotify: true,
+    vibrate: [180, 120, 180],
+    silent: false,
+    requireInteraction: false,
+    data: { clickUrl: clickPath } as NotificationOptions['data'],
+  });
+
+  setTimeout(() => inst.close(), 8000);
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (Ctx) {
+      const ctx = new Ctx();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.frequency.value = 880;
+      o.type = 'sine';
+      g.gain.setValueAtTime(0.12, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 0.2);
+    }
+  } catch {
+    /* son optionnel selon navigateur */
+  }
+  inst.onclick = () => {
+    inst.close();
+    window.focus();
+    window.location.assign(new URL(clickPath, window.location.origin).href);
+  };
 };
 
 // ============================================
@@ -621,12 +704,14 @@ export const cleanupFirebase = (): void => {
 
 const firebaseModule = {
   initializeFirebase,
+  registerMessagingServiceWorker,
   getFCMToken,
   getStoredToken,
   deleteFCMToken,
   requestNotificationPermission,
   onForegroundMessage,
   showLocalNotification,
+  showNotificationFromFcmPayload,
   logAnalyticsEvent,
   areNotificationsSupported,
   getNotificationPermissionStatus,

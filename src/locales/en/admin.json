@@ -30,6 +30,9 @@
     "manageReports": "Manage Reports",
     "manageTeam": "Manage your team members",
     "manageUsers": "Manage users",
+    "roleAutorite": "Authority",
+    "roleCitoyen": "Citizen",
+    "roleAdminSysteme": "System administrator",
 
     "allRoles": "All Roles",
     "policeOfficer": "Police Officer",
@@ -306,15 +309,18 @@
     "welcome": "Welcome",
 
     "role": {
-      "super_admin": "Super Admin",
-      "admin_organisation": "Organization Admin",
-      "officier_police": "Police Officer",
-      "agent_gendarmerie": "Gendarmerie Agent",
-      "responsable_ong": "NGO Manager",
-      "operateur_saisie": "Data Operator",
-      "moderateur": "Moderator",
-      "citoyen_verifie": "Verified Citizen",
-      "citoyen_standard": "Standard Citizen"
+      "citoyen": "Citizen",
+      "autorite": "Authority",
+      "admin_systeme": "System administrator",
+      "super_admin": "System administrator (legacy label)",
+      "admin_organisation": "Authority — organization administration (legacy label)",
+      "officier_police": "Invite profile — command (police / gendarmerie)",
+      "agent_gendarmerie": "Invite profile — command (gendarmerie)",
+      "responsable_ong": "Invite profile — humanitarian coordination",
+      "operateur_saisie": "Invite profile — data entry and cases",
+      "moderateur": "Invite profile — moderation and validation",
+      "citoyen_verifie": "Citizen",
+      "citoyen_standard": "Citizen"
     },
     "status": {
       "actif": "Active",

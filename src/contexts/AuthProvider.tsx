@@ -24,6 +24,7 @@ import {
 } from '../config/supabase.config';
 import { AuthContext, AuthContextType } from './AuthContext';
 import { NomRole, StatutCompte } from '../@types/enums.types';
+import { normalizeAppRole, pickAuthJwtRole } from '../services/supabase/auth';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -32,14 +33,15 @@ interface AuthProviderProps {
 /**
  * Récupérer le rôle via RPC (bypass RLS)
  */
-async function fetchUserRoleViaRPC(userId: string): Promise<NomRole | null> {
+async function fetchUserRoleViaRPC(userId: string): Promise<string | null> {
   try {
     const { data, error } = await (supabase as any).rpc('get_user_main_role', { user_id: userId });
     if (error) {
       console.warn('[AuthProvider] RPC get_user_main_role error:', error);
       return null;
     }
-    return data as NomRole;
+    if (data == null) return null;
+    return normalizeAppRole(data as string);
   } catch (err) {
     console.error('[AuthProvider] Exception fetching role via RPC:', err);
     return null;
@@ -69,19 +71,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(currentSession);
 
         if (currentUser) {
-          // Essayer d'abord le metadata
           const metadata = currentUser.user_metadata as any;
-          let role = metadata?.role as NomRole | null;
-          
-          // Si pas de rôle dans metadata, récupérer via RPC
-          if (!role) {
+          let raw: string | null = pickAuthJwtRole(currentUser as any);
+          if (!raw) {
             console.log('[AuthProvider] No role in metadata, fetching via RPC...');
-            role = await fetchUserRoleViaRPC(currentUser.id);
+            raw = await fetchUserRoleViaRPC(currentUser.id);
           }
-          
-          setUserRole(role);
+          setUserRole(normalizeAppRole(raw) as NomRole);
           setUserStatus(metadata?.statut_compte || 'actif');
-          console.log('[AuthProvider] User role set to:', role);
+          console.log('[AuthProvider] User role set to:', normalizeAppRole(raw));
         }
 
         // Initialiser l'écouteur d'événements auth
@@ -96,16 +94,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else if (updatedSession?.user) {
             setUser(updatedSession.user);
             const metadata = updatedSession.user.user_metadata as any;
-            let role = metadata?.role as NomRole | null;
-            
-            // Si pas de rôle dans metadata, récupérer via RPC
-            if (!role && updatedSession.user.id) {
-              role = await fetchUserRoleViaRPC(updatedSession.user.id);
+            let raw: string | null = pickAuthJwtRole(updatedSession.user as any);
+            if (!raw && updatedSession.user.id) {
+              raw = await fetchUserRoleViaRPC(updatedSession.user.id);
             }
-            
-            setUserRole(role);
+            setUserRole(normalizeAppRole(raw) as NomRole);
             setUserStatus(metadata?.statut_compte || 'actif');
-            console.log('[Auth Event] User role updated to:', role);
+            console.log('[Auth Event] User role updated to:', normalizeAppRole(raw));
           }
         });
       } catch (err) {
@@ -244,7 +239,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
         if (data.user.user_metadata) {
           const meta = data.user.user_metadata as any;
-          setUserRole(meta.role || null);
+          setUserRole(
+            normalizeAppRole(
+              pickAuthJwtRole(data.user as any) ??
+                (typeof meta.role === 'string' ? meta.role : null)
+            ) as NomRole
+          );
           setUserStatus(meta.statut_compte || null);
         }
       }
@@ -277,9 +277,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Déterminer les rôles de l'utilisateur
-  const isAdmin = userRole === NomRole.SUPER_ADMIN;
-  const isModerator = userRole === NomRole.MODERATEUR;
-  const isOrganisationAdmin = userRole === NomRole.ADMIN_ORGANISATION;
+  const isAdmin = userRole === NomRole.ADMIN_SYSTEME;
+  const isModerator = userRole === NomRole.AUTORITE;
+  const isOrganisationAdmin = userRole === NomRole.AUTORITE;
 
   const contextValue: AuthContextType = {
     user,

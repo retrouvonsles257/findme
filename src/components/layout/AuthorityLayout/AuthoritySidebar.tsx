@@ -28,6 +28,10 @@ import {
   KeyRound,
   Map,
   Heart,
+  Contact,
+  ListFilter,
+  History,
+  UserCheck,
 } from 'lucide-react';
 import { useI18n } from '../../../hooks';
 import { supabase } from '../../../config';
@@ -35,21 +39,29 @@ import { AUTH_ROUTES } from '../../../routes/routes.config';
 import { useAppDispatch, useAppSelector } from '../../../store/types';
 import { logoutThunk } from '../../../features/auth/store/authThunks';
 import { selectCurrentUser } from '../../../features/users/store/userSelectors';
-import { selectUserRole } from '../../../features/auth/store/authSelectors';
+import { selectUser, selectUserRole } from '../../../features/auth/store/authSelectors';
+import { NomRole } from '../../../@types/enums.types';
+import { normalizeAppRole } from '../../../utils/normalizeAppRole';
+import { authorityEchelonI18nKey } from '../../../utils/authorityRoleUi';
 import styles from './AuthoritySidebar.module.css';
 
 type AuthorityNavId =
   | 'dashboard'
   | 'dossiers'
+  | 'personnes'
   | 'alertes'
   | 'signalements'
+  | 'file-signalements'
   | 'photos-moderation'
+  | 'rapports-signalements'
   | 'map-view'
   | 'investigation'
   | 'ia-analysis'
   | 'coordination'
   | 'donations'
-  | 'statistiques';
+  | 'statistiques'
+  | 'historique-activite'
+  | 'verifications-identite';
 
 interface AuthorityNavItem {
   id: AuthorityNavId;
@@ -71,9 +83,22 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
     items: [
       { id: 'dashboard', labelKey: 'authority.menu.dashboard', path: '/authority/dashboard', icon: LayoutDashboard },
       { id: 'dossiers', labelKey: 'authority.menu.dossiers', path: '/authority/dossiers', icon: FolderOpen },
+      { id: 'personnes', labelKey: 'authority.menu.personnes', path: '/authority/personnes', icon: Contact },
       { id: 'alertes', labelKey: 'authority.menu.alertes', path: '/authority/alertes', icon: Bell },
       { id: 'signalements', labelKey: 'authority.menu.signalements', path: '/authority/signalements', icon: FileSearch },
+      {
+        id: 'file-signalements',
+        labelKey: 'authority.menu.fileSignalements',
+        path: '/authority/file-signalements',
+        icon: ListFilter,
+      },
       { id: 'photos-moderation', labelKey: 'authority.menu.photosModeration', path: '/authority/photos-moderation', icon: Image },
+      {
+        id: 'rapports-signalements',
+        labelKey: 'authority.menu.reportsSignalements',
+        path: '/authority/rapports-signalements',
+        icon: BarChart3,
+      },
       { id: 'map-view', labelKey: 'authority.menu.mapView', path: '/authority/map-view', icon: Map },
       { id: 'investigation', labelKey: 'authority.menu.investigation', path: '/authority/investigation', icon: Search },
       { id: 'ia-analysis', labelKey: 'authority.menu.analysis', path: '/authority/ia-analysis', icon: Brain },
@@ -84,6 +109,18 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
     groupKey: 'followUp',
     labelKey: 'authority.nav.followUp',
     items: [
+      {
+        id: 'historique-activite',
+        labelKey: 'authority.menu.activityHistory',
+        path: '/authority/historique-activite',
+        icon: History,
+      },
+      {
+        id: 'verifications-identite',
+        labelKey: 'authority.menu.identityVerification',
+        path: '/authority/verifications-identite',
+        icon: UserCheck,
+      },
       { id: 'donations', labelKey: 'authority.menu.donations', path: '/authority/donations', icon: Heart },
       { id: 'statistiques', labelKey: 'authority.menu.statistiques', path: '/authority/statistiques', icon: BarChart3 },
     ],
@@ -97,6 +134,7 @@ export interface AuthoritySidebarProps {
 
 export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onToggle }) => {
   const currentUser = useAppSelector(selectCurrentUser);
+  const authUser = useAppSelector(selectUser);
   const userRole = useAppSelector(selectUserRole);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -205,13 +243,14 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   };
 
   const getRoleLabel = (role: string | null) => {
-    switch (role) {
-      case 'officier_police': return t('authority.roles.officier_police');
-      case 'agent_gendarmerie': return t('authority.roles.agent_gendarmerie');
-      case 'operateur_saisie': return t('authority.roles.operateur_saisie');
-      case 'admin_organisation': return t('authority.roles.admin_organisation');
-      default: return t('authority.roles.default');
+    const r = normalizeAppRole(role ?? '');
+    if (r === NomRole.ADMIN_SYSTEME) return t('authority.roles.admin_systeme');
+    if (r === NomRole.CITOYEN) return t('authority.roles.citoyen');
+    if (r === NomRole.AUTORITE) {
+      const e = authUser?.autorite_echelon ?? (currentUser as { autorite_echelon?: number | null })?.autorite_echelon;
+      return t(authorityEchelonI18nKey(e));
     }
+    return t('authority.roles.default');
   };
 
   return (

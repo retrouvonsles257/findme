@@ -20,16 +20,11 @@ export enum TypeOrganisation {
   AUTRE = 'autre'
 }
 
+/** Rôles en base (enum PostgreSQL `nom_role` après migration 20260423). */
 export enum NomRole {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN_ORGANISATION = 'admin_organisation',
-  OFFICIER_POLICE = 'officier_police',
-  AGENT_GENDARMERIE = 'agent_gendarmerie',
-  RESPONSABLE_ONG = 'responsable_ong',
-  OPERATEUR_SAISIE = 'operateur_saisie',
-  MODERATEUR = 'moderateur',
-  CITOYEN_VERIFIE = 'citoyen_verifie',
-  CITOYEN_STANDARD = 'citoyen_standard'
+  CITOYEN = 'citoyen',
+  AUTORITE = 'autorite',
+  ADMIN_SYSTEME = 'admin_systeme',
 }
 
 export enum StatutCompte {
@@ -554,15 +549,18 @@ export const getEnumLabel = (enumValue: string): string => {
     unicef: 'UNICEF',
     gouvernement: 'Gouvernement',
     
-    // Rôles
-    super_admin: 'Super Administrateur',
-    admin_organisation: 'Administrateur Organisation',
-    officier_police: 'Officier de Police',
-    agent_gendarmerie: 'Agent de Gendarmerie',
-    responsable_ong: 'Responsable ONG',
-    operateur_saisie: 'Opérateur de Saisie',
-    moderateur: 'Modérateur',
-    citoyen_verifie: 'Citoyen Vérifié',
+    // Rôles (3 silos produit + libellés pour chaînes historiques en données)
+    citoyen: 'Citoyen',
+    autorite: 'Autorité',
+    admin_systeme: 'Administrateur système',
+    super_admin: 'Administrateur système (ancien libellé)',
+    admin_organisation: 'Autorité / administration organisation (ancien libellé)',
+    officier_police: 'Autorité — commandement (ancien libellé)',
+    agent_gendarmerie: 'Autorité — commandement (ancien libellé)',
+    responsable_ong: 'Autorité — coordination humanitaire (ancien libellé)',
+    operateur_saisie: 'Autorité — saisie et dossiers (ancien libellé)',
+    moderateur: 'Autorité — modération (ancien libellé)',
+    citoyen_verifie: 'Citoyen',
     citoyen_standard: 'Citoyen',
     
     // Statuts compte

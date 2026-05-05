@@ -109,7 +109,7 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
       addNotification({
         title: t('authority.alertes.alerteDetail.messages.alerteDiffused'),
         message: t('authority.alertes.alerteDetail.messages.alerteSentToUsers').replace('{{count}}', String(result.nombre_destinataires)),
-        type: 'success',
+        type: result.nombre_destinataires === 0 ? 'warning' : 'success',
       });
       // Refresh
       const updated = await getAlerteById(id);
