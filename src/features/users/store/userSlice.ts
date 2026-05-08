@@ -469,7 +469,7 @@ const userSlice = createSlice({
     // ============================================
     // AUTH THUNKS - Sync currentUser with auth state
     // ============================================
-    
+
     // Login success - set currentUser
     builder.addCase(loginThunk.fulfilled, (state, action) => {
       state.currentUser = action.payload.user as unknown as UserProfile;

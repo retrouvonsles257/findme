@@ -38,10 +38,10 @@ export const AuthorityLayout: React.FC<AuthorityLayoutProps> = ({ children }) =>
     <AuthorityLayoutContext.Provider value={{ sidebarOpen, toggleSidebar, setSidebarOpen }}>
       <div className={styles.authorityLayout}>
         <AuthoritySidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-        
+
         <div className={`${styles.mainWrapper} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
           <AuthorityHeader onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
-          
+
           <main className={styles.mainContent}>
             {children}
           </main>

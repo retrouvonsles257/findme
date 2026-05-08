@@ -3,12 +3,12 @@
    =================================================================== */
 
 :root {
-  --sa-primary: #1d4ed8;
-  --sa-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sa-primary: #0ea5e9;
+  --sa-font: var(--font-family, inherit);
 }
 
 .sa-dossiers-critiques {
-  font-family: var(--sa-font);
+  
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
@@ -82,7 +82,7 @@
 }
 
 .sa-dossiers-critiques__filter-group select {
-  font-family: var(--sa-font);
+  
   border: none;
   outline: none;
   font-size: 0.875rem;
@@ -91,7 +91,7 @@
 }
 
 .sa-dossiers-critiques__btn-export {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -215,7 +215,7 @@
 }
 
 .sa-dossiers-critiques__badge {
-  font-family: var(--sa-font);
+  
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -234,12 +234,12 @@
 
 .sa-dossiers-critiques__badge--danger { background: #fee2e2; color: #dc2626; }
 .sa-dossiers-critiques__badge--warning { background: #fef3c7; color: #d97706; }
-.sa-dossiers-critiques__badge--success { background: #dcfce7; color: #16a34a; }
-.sa-dossiers-critiques__badge--info { background: #dbeafe; color: #2563eb; }
+.sa-dossiers-critiques__badge--success { background: #e0f2fe; color: #0284c7; }
+.sa-dossiers-critiques__badge--info { background: #e0f2fe; color: #0ea5e9; }
 .sa-dossiers-critiques__badge--default { background: #f3f4f6; color: #6b7280; }
 
 .sa-dossiers-critiques__days {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #dc2626;
   font-weight: 600;
@@ -249,7 +249,7 @@
 }
 
 .sa-dossiers-critiques__card-title {
-  font-family: var(--sa-font);
+  
   font-size: 1.1rem;
   font-weight: 700;
   color: #1f2937;
@@ -274,7 +274,7 @@
 }
 
 .sa-dossiers-critiques__card-subtitle {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0 0 1rem 0;
@@ -288,7 +288,7 @@
 }
 
 .sa-dossiers-critiques__info-item {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -312,7 +312,7 @@
 }
 
 .sa-dossiers-critiques__card-actions button {
-  font-family: var(--sa-font);
+  
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -345,8 +345,8 @@
 }
 
 .sa-dossiers-critiques__card-actions button:first-child:hover {
-  background: #1e40af;
-  border-color: #1e40af;
+  background: #0284c7;
+  border-color: #0284c7;
   color: white;
 }
 
@@ -366,7 +366,7 @@
 }
 
 .sa-dossiers-critiques__pagination button {
-  font-family: var(--sa-font);
+  
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -440,7 +440,7 @@
 }
 
 .sa-dossiers-critiques__modal-header h2 {
-  font-family: var(--sa-font);
+  
   font-size: 1.2rem;
   font-weight: 700;
   color: #0f172a;
@@ -482,7 +482,7 @@
 }
 
 .sa-dossiers-critiques__details p {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #475569;
   margin: 0;
@@ -502,7 +502,7 @@
 }
 
 .sa-dossiers-critiques__modal-actions button {
-  font-family: var(--sa-font);
+  
   flex: 1;
   min-width: 140px;
   padding: 0.7rem 1.1rem;
@@ -531,15 +531,15 @@
 }
 
 .sa-dossiers-critiques__modal-btn-primary:hover {
-  background: #1e40af;
-  border-color: #1e40af !important;
-  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+  background: #0284c7;
+  border-color: #0284c7 !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.34);
 }
 
 .sa-dossiers-critiques__modal-btn-secondary {
-  background: #059669;
+  background: #0284c7;
   color: white;
-  border: 1px solid #059669 !important;
+  border: 1px solid #0284c7 !important;
 }
 
 .sa-dossiers-critiques__modal-btn-secondary:hover {

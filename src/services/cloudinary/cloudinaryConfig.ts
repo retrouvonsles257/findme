@@ -490,7 +490,7 @@ export const buildCloudinaryUrl = (
   transformations?: CloudinaryTransformation | null
 ): string => {
   if (!cloudinaryConfig.cloudName) {
-    console.warn('Cloudinary cloud name is not configured');
+
     return '';
   }
 

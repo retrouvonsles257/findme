@@ -1,0 +1,20 @@
+.header { background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 20; }
+.container { height: 64px; padding: 0 1rem; display: flex; align-items: center; gap: 1rem; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 0.5rem; color: #0f172a; font-weight: 700; }
+.logoIcon { font-size: 1.2rem; }
+.logoText { font-size: 0.95rem; }
+.searchForm { flex: 1; max-width: 460px; display: flex; }
+.searchInput { flex: 1; border: 1px solid #cbd5e1; border-right: 0; border-radius: 8px 0 0 8px; padding: 0.55rem 0.7rem; }
+.searchBtn { border: 1px solid #cbd5e1; border-radius: 0 8px 8px 0; padding: 0 0.75rem; background: #f8fafc; cursor: pointer; }
+.actions { display: flex; align-items: center; gap: 0.75rem; }
+.notificationBtn { position: relative; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; width: 36px; height: 36px; }
+.notificationBadge { position: absolute; right: -4px; top: -4px; background: #ef4444; color: #fff; border-radius: 999px; min-width: 16px; height: 16px; font-size: 0.625rem; display: flex; align-items: center; justify-content: center; }
+.userMenu { position: relative; }
+.userBtn { display: flex; align-items: center; gap: 0.4rem; border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: 0.2rem 0.5rem 0.2rem 0.25rem; cursor: pointer; }
+.userAvatar { width: 28px; height: 28px; border-radius: 999px; background: #0ea5e9; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+.userName { font-size: 0.8rem; color: #334155; }
+.menuArrow { font-size: 0.7rem; color: #64748b; }
+.userMenuDropdown { position: absolute; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; min-width: 190px; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1); padding: 0.35rem; }
+.menuItem { width: 100%; border: 0; background: transparent; text-align: left; padding: 0.5rem 0.65rem; border-radius: 6px; cursor: pointer; color: #334155; }
+.menuItem:hover { background: #f8fafc; }
+.divider { border: 0; border-top: 1px solid #e2e8f0; margin: 0.35rem 0; }

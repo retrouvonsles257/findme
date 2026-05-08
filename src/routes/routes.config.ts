@@ -57,64 +57,21 @@ export const AUTHORITY_ROUTES = {
   BASE: '/authority',
   DASHBOARD: '/authority/dashboard',
   DOSSIERS: '/authority/dossiers',
+  DOSSIER_NEW: '/authority/dossiers/new',
   DOSSIER_DETAIL: '/authority/dossiers/:id',
+  DOSSIER_EDIT: '/authority/dossiers/:id/edit',
   ALERTES: '/authority/alertes',
   SIGNALEMENTS: '/authority/signalements',
-  INVESTIGATION: '/authority/investigation',
+  FILE_SIGNALEMENTS: '/authority/file-signalements',
   IA_ANALYSIS: '/authority/ia-analysis',
+  IA_RESULTATS: '/authority/ia-resultats',
+  TABLEAU_MODERATION: '/authority/tableau-moderation',
+  INVESTIGATION: '/authority/investigation',
   COORDINATION: '/authority/coordination',
-  STATISTIQUES: '/authority/statistiques'
-} as const;
-
-// ============================================
-// OPERATOR ROUTES — conservés pour chemins / redirections uniquement (UI → /authority).
-// ============================================
-export const OPERATOR_ROUTES = {
-  BASE: '/operator',
-  DASHBOARD: '/operator/dashboard',
-  MY_DOSSIERS: '/operator/my-dossiers',
-  CREATE_DOSSIER: '/operator/create-dossier',
-  EDIT_DOSSIER: '/operator/edit-dossier/:id',
-  DATA_ENTRY: '/operator/data-entry',
-  DOSSIER_DETAIL: '/operator/dossiers/:id'
-} as const;
-
-// ============================================
-// MODERATOR ROUTES — idem opérateur (parcours Autorité).
-// ============================================
-export const MODERATOR_ROUTES = {
-  BASE: '/moderator',
-  DASHBOARD: '/moderator/dashboard',
-  PHOTOS_MODERATION: '/moderator/photos-moderation',
-  SIGNALEMENT_VALIDATION: '/moderator/signalements-validation',
-  REPORTS: '/moderator/reports'
-} as const;
-
-// ============================================
-// NGO ROUTES
-// ============================================
-export const NGO_ROUTES = {
-  BASE: '/ngo',
-  DASHBOARD: '/ngo/dashboard',
-  CASES: '/ngo/cases',
-  CAMPAGNES: '/ngo/campagnes',
-  RESOURCES: '/ngo/resources',
-  PARTNERSHIPS: '/ngo/partnerships'
-} as const;
-
-// ============================================
-// ADMIN ORGANISATION ROUTES
-// ============================================
-export const ADMIN_ROUTES = {
-  BASE: '/admin',
-  DASHBOARD: '/admin/dashboard',
-  USERS: '/admin/utilisateurs',
-  DOSSIERS: '/admin/dossiers',
-  RAPPORTS: '/admin/rapports',
-  STATISTIQUES: '/admin/statistiques',
-  SETTINGS: '/admin/parametres',
-  ROLES: '/admin/roles',
-  AUDIT_LOGS: '/admin/audit-logs'
+  STATISTIQUES: '/authority/statistiques',
+  EQUIPE: '/authority/equipe',
+  EQUIPE_NEW: '/authority/equipe/nouveau',
+  ORG_PARAMETRES: '/authority/organisation/parametres',
 } as const;
 
 // ============================================
@@ -150,22 +107,14 @@ export const ROUTES = {
   auth: AUTH_ROUTES,
   citizen: CITIZEN_ROUTES,
   authority: AUTHORITY_ROUTES,
-  operator: OPERATOR_ROUTES,
-  moderator: MODERATOR_ROUTES,
-  ngo: NGO_ROUTES,
-  admin: ADMIN_ROUTES,
   superAdmin: SUPER_ADMIN_ROUTES,
   errors: ERROR_ROUTES
 } as const;
 
 /** Anciens préfixes `/operator`, `/moderator`, `/ngo` : redirection unique vers le silo Autorité (étape D5). */
-export const LEGACY_SILO_BASES = [
-  ROUTES.operator.BASE,
-  ROUTES.moderator.BASE,
-  ROUTES.ngo.BASE,
-] as const;
+export const LEGACY_SILO_BASES = ['/operator', '/moderator', '/ngo'] as const;
 
-export const LEGACY_SILO_REDIRECT_TARGET = `${ROUTES.authority.BASE}/dashboard` as const;
+export const LEGACY_SILO_REDIRECT_TARGET = `${AUTHORITY_ROUTES.BASE}/dashboard` as const;
 
 /**
  * Helper function to get URL params with dynamic values
@@ -178,12 +127,12 @@ export const getRoute = (
 ): string => {
   const moduleRoutes = ROUTES[module] as Record<string, string>;
   let path = moduleRoutes[routeName];
-  
+
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       path = path.replace(`:${key}`, String(value));
     });
   }
-  
+
   return path;
 };

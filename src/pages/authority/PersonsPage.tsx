@@ -1,6 +1,6 @@
 /**
- * Liste des personnes — silo Autorité (et contenu sans layout pour admin org via `noLayout` + `basePath`).
- * Ne pas importer depuis `pages/operator` : ce fichier est la source pour `/authority/personnes`.
+ * Liste des personnes — espace Autorité (contenu sans layout pour admin org via `noLayout` + `basePath`).
+ * Source de vérité pour `/authority/personnes`.
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -11,7 +11,7 @@ import { NomRole } from '../../@types/enums.types';
 import { AuthorityLayout } from '../../components/layout';
 import * as personneAPI from '../../features/personnes/services/personneAPI';
 import type { Personne } from '../../features/personnes/types';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminListSkeleton } from 'components/skeletons';
 import styles from './PersonsPage.module.css';
 
 const PAGE_SIZE = 20;
@@ -66,11 +66,11 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
   }, [search, page]);
 
   const content = (
-    <div className={styles.operatorPersons}>
-      <div className={styles.operatorPersons__toolbar}>
-        <div className={styles.operatorPersons__search}>
+    <div className={styles.authorityPersons}>
+      <div className={styles.authorityPersons__toolbar}>
+        <div className={styles.authorityPersons__search}>
           <input
-            className={styles.operatorPersons__searchInput}
+            className={styles.authorityPersons__searchInput}
             placeholder="Rechercher (nom, prénom, description...)"
             value={search}
             onChange={(e) => {
@@ -83,7 +83,7 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
         {basePath === '/authority' && (
           <button
             type="button"
-            className={styles.operatorPersons__primaryBtn}
+            className={styles.authorityPersons__primaryBtn}
             onClick={() => navigate(`${basePath}/create-person`)}
           >
             Créer une personne
@@ -92,19 +92,19 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
       </div>
 
       {isLoading && (
-        <div className={styles.operatorPersons__skeletonWrap}>
+        <div className={styles.authorityPersons__skeletonWrap}>
           <AdminListSkeleton cardCount={6} showFilters={true} />
         </div>
       )}
       {!isLoading && error && (
-        <div className={styles.operatorPersons__errorBanner} role="alert">
+        <div className={styles.authorityPersons__errorBanner} role="alert">
           <span>{error}</span>
         </div>
       )}
 
       {!isLoading && !error && (
         <>
-          <div className={styles.operatorPersons__grid}>
+          <div className={styles.authorityPersons__grid}>
             {items.map((p) => {
               const label =
                 (p as any).nom_complet ||
@@ -113,13 +113,13 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
               return (
                 <div
                   key={(p as any).id}
-                  className={styles.operatorPersons__card}
+                  className={styles.authorityPersons__card}
                   onClick={() => navigate(`${basePath}/personnes/${(p as any).id}`)}
                   role="button"
                   tabIndex={0}
                 >
-                  <p className={styles.operatorPersons__name}>{label}</p>
-                  <div className={styles.operatorPersons__meta}>
+                  <p className={styles.authorityPersons__name}>{label}</p>
+                  <div className={styles.authorityPersons__meta}>
                     {(p as any).sexe || '—'}
                     {(p as any).age_estime_min ? ` • ~${(p as any).age_estime_min} ans` : ''}
                     {(p as any).nationalite ? ` • ${(p as any).nationalite}` : ''}
@@ -129,21 +129,21 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
             })}
           </div>
 
-          <div className={styles.operatorPersons__pagination}>
+          <div className={styles.authorityPersons__pagination}>
             <button
               type="button"
-              className={styles.operatorPersons__pageBtn}
+              className={styles.authorityPersons__pageBtn}
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
               Précédent
             </button>
-            <div className={styles.operatorPersons__meta}>
+            <div className={styles.authorityPersons__meta}>
               Page {page} / {totalPages} • {total} résultat(s)
             </div>
             <button
               type="button"
-              className={styles.operatorPersons__pageBtn}
+              className={styles.authorityPersons__pageBtn}
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >

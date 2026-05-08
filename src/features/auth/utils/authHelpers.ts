@@ -389,8 +389,10 @@ export const getRoleLabel = (role: string | null | undefined): string => {
   const labels: Record<string, string> = {
     ADMIN: 'Administrateur',
     SUPER_ADMIN: 'Super Administrateur',
-    MODERATOR: 'Modérateur',
     USER: 'Utilisateur',
+    citoyen: 'Citoyen',
+    autorite: 'Autorité',
+    admin_systeme: 'Administrateur système',
   };
   return labels[role || ''] || 'Rôle inconnu';
 };

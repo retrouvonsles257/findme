@@ -26,7 +26,7 @@ export const SimilaritiesDetection: React.FC<SimilaritiesDetectionProps> = ({
     }
 
     try {
-      console.log('Detecting similarities for image:', inputImageId);
+
       // dispatch logic would go here
       setInputImageId('');
     } catch (err) {

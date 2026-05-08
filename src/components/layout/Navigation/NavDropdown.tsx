@@ -18,7 +18,7 @@ export const NavDropdown: React.FC<NavDropdownProps> = ({ label, icon, items }) 
       <button
         onMouseEnter={(e) => {
           setIsOpen(true);
-          (e.currentTarget as HTMLButtonElement).style.color = '#2563eb';
+          (e.currentTarget as HTMLButtonElement).style.color = '#0ea5e9';
         }}
         onMouseLeave={(e) => {
           setIsOpen(false);
@@ -81,7 +81,7 @@ export const NavDropdown: React.FC<NavDropdownProps> = ({ label, icon, items }) 
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.background = '#f9fafb';
-                (e.currentTarget as HTMLAnchorElement).style.color = '#2563eb';
+                (e.currentTarget as HTMLAnchorElement).style.color = '#0ea5e9';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';

@@ -28,14 +28,14 @@ import {
   CheckCircle,
   Info,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './DossierPublicDetailPage.module.css';
 
 export const CitizenDossierPublicDetailPage: React.FC = () => {
   const { t } = useI18n();
   const { dossierId } = useParams<{ dossierId: string }>();
   const navigate = useNavigate();
-  
+
   const { dossier, isLoading, error, fetchDossier } = useDossierDetail();
   const [activeTab, setActiveTab] = useState<'info' | 'photos' | 'timeline'>('info');
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -80,7 +80,7 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
   // Partager le dossier
   const handleShare = async () => {
     if (!dossier) return;
-    
+
     const d = dossier as any;
     const shareUrl = `${window.location.origin}/citizen/dossier/${dossier.id}`;
     const p = d.personne || {};
@@ -125,7 +125,7 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
     const date = new Date(dateStr);
     const now = new Date();
     const days = Math.floor((now.getTime() - date.getTime()) / 86400000);
-    
+
     if (days === 0) return t('common.today');
     if (days === 1) return t('common.yesterday');
     if (days < 7) return `${days} ${t('common.days')}`;
@@ -139,11 +139,11 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
     if (typeof level === 'number') {
       if (level >= 8) return '#dc2626';
       if (level >= 5) return '#f59e0b';
-      return '#16a34a';
+      return '#0284c7';
     }
     if (level === 'critique') return '#dc2626';
     if (level === 'urgent') return '#f59e0b';
-    return '#16a34a';
+    return '#0284c7';
   };
 
   // Obtenir le label du statut
@@ -292,7 +292,7 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
             <h1 className={styles['dossierDetail__name']}>
               {displayName}
             </h1>
-            
+
             <div className={styles['dossierDetail__status']}>
               <span 
                 className={styles['dossierDetail__status-badge']}

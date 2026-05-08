@@ -54,37 +54,37 @@ const getSupabaseOptions = () => ({
   auth: {
     // Persist session in localStorage
     persistSession: typeof window !== 'undefined',
-    
+
     // Auto refresh token before expiry
     autoRefreshToken: true,
-    
+
     // Detect session from URL (for OAuth redirects)
     detectSessionInUrl: typeof window !== 'undefined',
-    
+
     // Storage key for session
     storageKey: 'retrouvonsles-auth-token',
-    
+
     // Custom storage (localStorage par défaut)
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    
+
     // Flow type for PKCE
     flowType: 'pkce' as const,
   },
-  
+
   global: {
     headers: {
       'x-application-name': 'RetrouvonsLes',
       'x-api-version': '1.0',
     },
   },
-  
+
   // Configuration realtime
   realtime: {
     params: {
       eventsPerSecond: 10,
     },
   },
-  
+
   // Configuration de la base de données
   db: {
     schema: 'public' as const,
@@ -138,8 +138,7 @@ class AuthEventManager {
     }
 
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[Auth Event]', event, session?.user?.email);
-      
+
       // Notifier tous les listeners
       this.listeners.forEach(callback => {
         try {
@@ -191,12 +190,12 @@ export const authEventManager = new AuthEventManager();
 export const getCurrentSession = async (): Promise<Session | null> => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     if (error) {
       console.error('[Get Session Error]', error);
       return null;
     }
-    
+
     return session;
   } catch (error) {
     console.error('[Get Session Exception]', error);
@@ -210,12 +209,12 @@ export const getCurrentSession = async (): Promise<Session | null> => {
 export const getCurrentUser = async () => {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    
+
     if (error) {
       console.error('[Get User Error]', error);
       return null;
     }
-    
+
     return user;
   } catch (error) {
     console.error('[Get User Exception]', error);
@@ -363,7 +362,7 @@ export const query = async <T = any>(
 ): Promise<QueryResponse<T>> => {
   try {
     const result = await queryBuilder;
-    
+
     if (result.error) {
       console.error('[Supabase Query Error]', result.error);
       return {
@@ -377,7 +376,7 @@ export const query = async <T = any>(
         statusText: result.statusText || 'Internal Server Error',
       };
     }
-    
+
     return {
       data: result.data,
       error: null,
@@ -427,27 +426,27 @@ export const getTableData = async <T = any>(
   }
 ) => {
   let query_builder = supabase.from(table).select('*');
-  
+
   if (options?.filter) {
     options.filter.forEach(f => {
       query_builder = query_builder.eq(f.column, f.value);
     });
   }
-  
+
   if (options?.orderBy) {
     query_builder = query_builder.order(options.orderBy, {
       ascending: options?.ascending ?? false,
     });
   }
-  
+
   if (options?.limit) {
     query_builder = query_builder.limit(options.limit);
   }
-  
+
   if (options?.offset) {
     query_builder = query_builder.range(options.offset, options.offset + (options.limit || 10) - 1);
   }
-  
+
   return await query<T[]>(query_builder);
 };
 
@@ -475,7 +474,7 @@ export const updateData = async <T = any>(
   filter: { column: string; value: any }
 ) => {
   const queryBuilder: any = (supabase as any).from(table).update(data);
-  
+
   return await query<T>(queryBuilder.eq(filter.column, filter.value).select());
 };
 
@@ -488,7 +487,7 @@ export const deleteData = async <T = any>(
 ) => {
   let query_builder: any = supabase.from(table).delete();
   query_builder = query_builder.eq(filter.column, filter.value);
-  
+
   return await query<T>(query_builder);
 };
 
@@ -545,13 +544,13 @@ export const personneHelpers = {
     statut?: string;
   }) => {
     let q = supabase.from('personne').select('*');
-    
+
     if (criteria.nom) q = q.ilike('nom', `%${criteria.nom}%`);
     if (criteria.prenom) q = q.ilike('prenom', `%${criteria.prenom}%`);
     if (criteria.dateNaissance) q = q.eq('date_naissance', criteria.dateNaissance);
     if (criteria.region) q = q.eq('region', criteria.region);
     if (criteria.statut) q = q.eq('statut', criteria.statut);
-    
+
     return await query(q.order('created_at', { ascending: false }));
   },
 
@@ -740,7 +739,7 @@ export const photoHelpers = {
   setAsMain: async (personneId: string, photoId: string) => {
     // D'abord, retire le flag main des autres photos
     await updateData('photo', { is_main: false }, { column: 'personne_id', value: personneId });
-    
+
     // Puis, définit celle-ci comme principale
     return await updateData('photo', { is_main: true }, { column: 'id', value: photoId });
   },
@@ -787,7 +786,7 @@ export const getPublicUrl = (bucket: string, path: string): string => {
   const { data } = supabase.storage
     .from(bucket)
     .getPublicUrl(path);
-  
+
   return data.publicUrl;
 };
 
@@ -935,7 +934,7 @@ export const checkUserPermission = async (
 ): Promise<boolean> => {
   try {
     const accessLevel = await getUserAccessLevel(userId);
-    
+
     if (!accessLevel) return false;
 
     if (accessLevel.isAdmin) return true;
@@ -994,7 +993,7 @@ export const canUserAccessResource = async (
 ): Promise<boolean> => {
   try {
     const accessLevel = await getUserAccessLevel(userId);
-    
+
     if (!accessLevel) return false;
 
     // Admin peut accéder à tout
@@ -1025,7 +1024,7 @@ export const canUserAccessResource = async (
           .single() as any);
 
         if (error) return false;
-        
+
         const personneData = data as any;
         // Public ou créé par l'utilisateur
         return personneData?.is_public || personneData?.created_by === userId;
@@ -1042,7 +1041,7 @@ export const canUserAccessResource = async (
           .single() as any);
 
         if (error) return false;
-        
+
         const resourceData = data as any;
         // Créé par l'utilisateur ou créé par quelqu'un de son organisation
         return resourceData?.created_by === userId || 
@@ -1089,13 +1088,13 @@ export const validateUserAction = async (
 ): Promise<{ allowed: boolean; reason?: string }> => {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    
+
     if (error || !user) {
       return { allowed: false, reason: 'Non authentifié' };
     }
 
     const accessLevel = await getUserAccessLevel(user.id);
-    
+
     if (!accessLevel) {
       return { allowed: false, reason: 'Profil utilisateur introuvable' };
     }
@@ -1145,12 +1144,6 @@ export const validateUserAction = async (
  */
 export const initializeSupabase = (): void => {
   authEventManager.initialize();
-  
-  // Log de la version de Supabase
-  console.log('[Supabase] Client initialisé', {
-    url: SUPABASE_URL,
-    version: '2.x',
-  });
 };
 
 /**
@@ -1158,7 +1151,7 @@ export const initializeSupabase = (): void => {
  */
 export const cleanupSupabase = (): void => {
   authEventManager.cleanup();
-  console.log('[Supabase] Client nettoyé');
+
 };
 
 // ============================================

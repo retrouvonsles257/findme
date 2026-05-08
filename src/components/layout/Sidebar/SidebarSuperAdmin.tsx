@@ -11,7 +11,7 @@ import { User } from '../../../@types/auth.types';
 import { useI18n } from '../../../hooks';
 import { NomRole } from '../../../@types/enums.types';
 
-import styles from './SidebarAdminOrganisation.module.css';
+import styles from './SidebarSuperAdmin.module.css';
 
 interface NavigationItem {
   label: string;

@@ -18,7 +18,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #3b82f6;
+  background: #38bdf8;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -28,7 +28,7 @@
 }
 
 .sa-alertes__btn-create:hover {
-  background: #2563eb;
+  background: #0ea5e9;
 }
 
 .sa-alertes__filters {
@@ -155,8 +155,8 @@
 }
 
 .sa-alertes__badge--info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .sa-alertes__badge--default {
@@ -201,13 +201,13 @@
 }
 
 .sa-alertes__btn-edit {
-  color: #059669;
+  color: #0284c7;
 }
 
 .sa-alertes__btn-edit:hover {
-  border-color: #059669;
+  border-color: #0284c7;
   color: #fff;
-  background: #059669;
+  background: #0284c7;
 }
 
 .sa-alertes__btn-cancel {
@@ -264,7 +264,7 @@
 
 .sa-alertes__pagination button:hover:not(:disabled) {
   background: #f8fafc;
-  border-color: #3b82f6;
+  border-color: #38bdf8;
 }
 
 .sa-alertes__pagination button:disabled {

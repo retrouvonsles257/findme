@@ -87,9 +87,9 @@
 }
 
 .createPerson__stepItem--completed .createPerson__stepCircle {
-  background: #10b981;
+  background: #0284c7;
   color: white;
-  border-color: #10b981;
+  border-color: #0284c7;
 }
 
 .createPerson__stepLabel {
@@ -104,7 +104,7 @@
 }
 
 .createPerson__stepItem--completed .createPerson__stepLabel {
-  color: #10b981;
+  color: #0284c7;
 }
 
 .createPerson__stepConnector {
@@ -117,7 +117,7 @@
 }
 
 .createPerson__stepConnector--completed {
-  background: #10b981;
+  background: #0284c7;
 }
 
 /* Alerts */
@@ -140,7 +140,7 @@
 .createPerson__alert--success {
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
-  color: #16a34a;
+  color: #0284c7;
 }
 
 /* Content */
@@ -532,7 +532,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #0284c7 100%);
   border: none;
   border-radius: 10px;
   font-size: 0.9rem;

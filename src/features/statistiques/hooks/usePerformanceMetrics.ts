@@ -92,7 +92,7 @@ export const usePerformanceMetrics = (): UsePerformanceMetricsReturn => {
 
         if (tempsResolutions.length > 0) {
           tempsMoyenResolution = tempsResolutions.reduce((a, b) => a + b, 0) / tempsResolutions.length;
-          
+
           // Calculer la médiane
           const sorted = [...tempsResolutions].sort((a, b) => a - b);
           const mid = Math.floor(sorted.length / 2);
@@ -126,10 +126,10 @@ export const usePerformanceMetrics = (): UsePerformanceMetricsReturn => {
       const debutMois = new Date();
       debutMois.setDate(1);
       debutMois.setHours(0, 0, 0, 0);
-      
+
       let dossiersResolusRecemment = 0;
       let tauxResolutionMensuel = 0;
-      
+
       if (dossiersResolus) {
         dossiersResolusRecemment = dossiersResolus.filter((d: any) => {
           if (!d.date_resolution) return false;

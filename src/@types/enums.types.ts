@@ -548,7 +548,7 @@ export const getEnumLabel = (enumValue: string): string => {
     protection_civile: 'Protection Civile',
     unicef: 'UNICEF',
     gouvernement: 'Gouvernement',
-    
+
     // Rôles (3 silos produit + libellés pour chaînes historiques en données)
     citoyen: 'Citoyen',
     autorite: 'Autorité',
@@ -562,14 +562,14 @@ export const getEnumLabel = (enumValue: string): string => {
     moderateur: 'Autorité — modération (ancien libellé)',
     citoyen_verifie: 'Citoyen',
     citoyen_standard: 'Citoyen',
-    
+
     // Statuts compte
     actif: 'Actif',
     suspendu: 'Suspendu',
     en_attente_verification: 'En attente de vérification',
     desactive: 'Désactivé',
     bloque: 'Bloqué',
-    
+
     // Types disparition
     fugue: 'Fugue',
     enlevement_presume: 'Enlèvement présumé',
@@ -578,31 +578,31 @@ export const getEnumLabel = (enumValue: string): string => {
     migration: 'Migration',
     catastrophe_naturelle: 'Catastrophe naturelle',
     disparition_volontaire: 'Disparition volontaire',
-    
+
     // Statuts dossier
     en_cours: 'En cours',
     retrouve_vivant: 'Retrouvé(e) vivant(e)',
     retrouve_decede: 'Retrouvé(e) décédé(e)',
     classe_sans_suite: 'Classé sans suite',
     transfere: 'Transféré',
-    
+
     // Niveaux urgence
     critique: 'Critique',
     urgent: 'Urgent',
     normal: 'Normal',
     faible: 'Faible',
-    
+
     // Sexe
     masculin: 'Masculin',
     feminin: 'Féminin',
     inconnu: 'Inconnu',
     non_precise: 'Non précisé',
-    
+
     // Par défaut
     autre: 'Autre',
     inconnue: 'Inconnue'
   };
-  
+
   return labels[enumValue] || enumValue;
 };
 

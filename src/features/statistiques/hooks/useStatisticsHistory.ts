@@ -56,7 +56,7 @@ export const useStatisticsHistory = (): UseStatisticsHistoryReturn => {
         weekStart.setDate(weekStart.getDate() - (i * 7 + 7));
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekEnd.getDate() + 7);
-        
+
         const weekLabel = `Sem ${4 - i}`;
         weekTrends.set(weekLabel, {
           period: weekLabel,
@@ -71,12 +71,12 @@ export const useStatisticsHistory = (): UseStatisticsHistoryReturn => {
         dossiers.forEach((d: any) => {
           const createdDate = new Date(d.created_at);
           const weekDiff = Math.floor((now.getTime() - createdDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-          
+
           if (weekDiff >= 0 && weekDiff < 4) {
             const weekIndex = Math.floor(weekDiff);
             const weekLabel = `Sem ${4 - weekIndex}`;
             const entry = weekTrends.get(weekLabel);
-            
+
             if (entry) {
               entry.dossiers += 1;
               if (d.statut_dossier.includes('retrouve')) {
@@ -91,15 +91,15 @@ export const useStatisticsHistory = (): UseStatisticsHistoryReturn => {
       if (signalements) {
         signalements.forEach((s: any) => {
           if (!s.date_observation) return;
-          
+
           const signDate = new Date(s.date_observation);
           const weekDiff = Math.floor((now.getTime() - signDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-          
+
           if (weekDiff >= 0 && weekDiff < 4) {
             const weekIndex = Math.floor(weekDiff);
             const weekLabel = `Sem ${4 - weekIndex}`;
             const entry = weekTrends.get(weekLabel);
-            
+
             if (entry) {
               entry.signalements += 1;
             }

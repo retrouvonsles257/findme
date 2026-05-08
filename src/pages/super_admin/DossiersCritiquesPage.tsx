@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminListSkeleton } from 'components/skeletons';
 import { 
   AlertTriangle, User, Calendar, MapPin, Clock, Eye, Edit2,
   Loader2, AlertCircle, ChevronLeft, ChevronRight, Filter, Download, X, LayoutList, Tag
@@ -46,7 +46,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Filtres
   const [filterStatut, setFilterStatut] = useState<string>('');
   const [filterUrgence, setFilterUrgence] = useState<string>('critique');
@@ -63,7 +63,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
       let countQuery = (supabase as any).from('dossier_disparition').select('id', { count: 'exact', head: true });
       if (filterUrgence) countQuery = countQuery.eq('niveau_urgence', filterUrgence);
       if (filterStatut) countQuery = countQuery.eq('statut_dossier', filterStatut);
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -85,7 +85,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
       const enrichedDossiers = await Promise.all(
         (data || []).map(async (dossier: any) => {
           let declarant, personne;
-          
+
           // Récupérer le créateur (id_utilisateur_createur)
           if (dossier.id_utilisateur_createur) {
             const { data: d } = await (supabase as any)
@@ -95,7 +95,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
               .single();
             declarant = d;
           }
-          
+
           // Récupérer la personne disparue
           if (dossier.id_personne) {
             const { data: p } = await (supabase as any)
@@ -105,7 +105,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
               .single();
             personne = p;
           }
-          
+
           const { count: signalementsCount } = await (supabase as any)
             .from('signalement')
             .select('id', { count: 'exact', head: true })
@@ -113,7 +113,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
 
           // Normaliser le champ de statut pour l'UI (statut_dossier → statut)
           const statut = dossier.statut_dossier || 'en_cours';
-          
+
           // Calculer l'âge si disponible
           let age_moment_disparition: number | undefined;
           if (personne?.date_naissance && dossier.date_disparition) {
@@ -157,7 +157,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       let query = (supabase as any)
         .from('dossier_disparition')
         .select(`
@@ -190,7 +190,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
         'Date disparition', 'Lieu disparition', 'Ville', 'Région', 'Type disparition',
         'Statut dossier', 'Niveau urgence', 'Circonstances', 'Créateur', 'Date création'
       ];
-      
+
       const rows = enrichedDossiers.map((d: any) => [
         d.id,
         d.numero_dossier,
@@ -361,15 +361,15 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
                       {t('super_admin.dossiersCritiquesDaysSince', { count: getDaysSince(dossier.date_disparition) })}
                     </div>
                   </div>
-                  
+
                   <h3 className={styles['sa-dossiers-critiques__card-title']}>
                     <User size={18} />
                     {dossier.prenom_personne} {dossier.nom_personne}
                     {dossier.age_moment_disparition != null && <small>({dossier.age_moment_disparition} {t('common.years')})</small>}
                   </h3>
-                  
+
                   <p className={styles['sa-dossiers-critiques__card-subtitle']}>{dossier.titre}</p>
-                  
+
                   <div className={styles['sa-dossiers-critiques__card-info']}>
                     <div className={styles['sa-dossiers-critiques__info-item']}>
                       <Calendar size={14} />
@@ -386,7 +386,7 @@ export const SuperAdminDossiersCritiquesPage: React.FC = () => {
                       <span>{t('super_admin.dossiersCritiquesSignalementsCount', { count: dossier._signalements ?? 0 })}</span>
                     </div>
                   </div>
-                  
+
                   <div className={styles['sa-dossiers-critiques__card-actions']}>
                     <button type="button" onClick={() => navigate(`/super-admin/dossiers/${dossier.id}`)}>
                       <Eye size={16} />

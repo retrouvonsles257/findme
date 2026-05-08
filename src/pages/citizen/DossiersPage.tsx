@@ -12,7 +12,7 @@ import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { CitizenLayout } from './CitizenLayout';
 import { Search, Filter, MapPin, Calendar, Eye, MessageSquare, AlertCircle } from 'lucide-react';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminListSkeleton } from 'components/skeletons';
 import styles from './DossiersPage.module.css';
 import { StatutDossier } from '../../@types/enums.types';
 
@@ -195,7 +195,7 @@ export const CitizenDossiersPage: React.FC = () => {
       case StatutDossier.EN_COURS:
         return '#ef4444';
       case StatutDossier.RETROUVE_VIVANT:
-        return '#10b981';
+        return '#0284c7';
       case StatutDossier.RETROUVE_DECEDE:
         return '#6b7280';
       case StatutDossier.SUSPENDU:

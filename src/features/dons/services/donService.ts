@@ -275,7 +275,7 @@ export const getDonReceipt = async (donId: string): Promise<{
   montant: string;
 } | null> => {
   const don = await donAPI.getDonById(donId);
-  
+
   if (!don.recu_fiscal_genere || !don.numero_recu) {
     return null;
   }

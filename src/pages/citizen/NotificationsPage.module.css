@@ -45,8 +45,8 @@
 
 .notifications__filter-select:focus {
   outline: none;
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 /* Notifications List Namespace */
@@ -69,12 +69,12 @@
 
 .notifications__card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
-  border-color: #1d4ed8;
+  border-color: #0ea5e9;
 }
 
 .notifications__card--unread {
-  background: rgba(37, 99, 235, 0.04);
-  border-color: #1d4ed8;
+  background: rgba(14, 165, 233, 0.06);
+  border-color: #0ea5e9;
   border-left-width: 3px;
 }
 
@@ -86,15 +86,15 @@
 }
 
 .notifications__icon {
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .notifications__icon--approval {
-  color: #10b981;
+  color: #0284c7;
 }
 
 .notifications__icon--comment {
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .notifications__icon--review {
@@ -147,9 +147,9 @@
 }
 
 .notifications__action-button:hover {
-  border-color: #1d4ed8;
-  color: #1d4ed8;
-  background: rgba(37, 99, 235, 0.08);
+  border-color: #0ea5e9;
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.12);
 }
 
 /* Empty State Namespace */
@@ -242,7 +242,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #1d4ed8;
+  background: #0ea5e9;
   color: #fff;
   border: none;
   border-radius: 0.375rem;
@@ -254,7 +254,7 @@
 
 .notifications__mark-all-button:hover {
   transform: translateY(-1px);
-  background: #1e40af;
+  background: #0284c7;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
 }
 
@@ -294,7 +294,7 @@
 
 .notifications__loading-spin {
   animation: spin 1s linear infinite;
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 @keyframes spin {

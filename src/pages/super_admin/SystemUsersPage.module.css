@@ -1,11 +1,11 @@
 :root { 
-  --sa-primary: #1d4ed8; 
-  --sa-primary-light: rgba(30, 144, 255, 0.92);
-  --sa-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+  --sa-primary: #0ea5e9; 
+  --sa-primary-light: rgba(14, 165, 233, 0.92);
+  --sa-font: var(--font-family, inherit); 
 }
 
 .sa-system-users { 
-  font-family: var(--sa-font); 
+   
   padding: 2rem; 
   background: #f8f9fa; 
   min-height: 100vh; 
@@ -32,7 +32,7 @@
 }
 
 .sa-system-users__search input {
-  font-family: var(--sa-font);
+  
   border: none;
   outline: none;
   font-size: 0.875rem;
@@ -42,7 +42,7 @@
 .sa-system-users__search svg { color: #9ca3af; }
 
 .sa-system-users__add-btn {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -59,11 +59,11 @@
 
 .sa-system-users__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(29, 78, 216, 0.3);
+  box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
 }
 
 .sa-system-users__export-btn {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -180,13 +180,13 @@
 }
 
 .sa-system-users__table { 
-  font-family: var(--sa-font); 
+   
   width: 100%; 
   border-collapse: collapse; 
 }
 
 .sa-system-users__table th { 
-  font-family: var(--sa-font); 
+   
   font-size: 0.875rem; 
   font-weight: 600; 
   color: #6b7280; 
@@ -202,7 +202,7 @@
 }
 
 .sa-system-users__table td { 
-  font-family: var(--sa-font); 
+   
   padding: 0.75rem 1rem; 
   border-bottom: 1px solid #e5e7eb; 
 }
@@ -214,7 +214,7 @@
 }
 
 .sa-system-users__role-badge {
-  font-family: var(--sa-font);
+  
   font-size: 0.7rem;
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
@@ -224,7 +224,7 @@
 }
 
 .sa-system-users__badge { 
-  font-family: var(--sa-font); 
+   
   font-size: 0.75rem; 
   padding: 0.25rem 0.75rem; 
   border-radius: 9999px; 
@@ -232,8 +232,8 @@
 }
 
 .sa-system-users__badge--active {
-  background: #dcfce7; 
-  color: #16a34a;
+  background: #e0f2fe; 
+  color: #0284c7;
 }
 
 .sa-system-users__badge--inactive {
@@ -281,7 +281,7 @@
 }
 
 .sa-system-users__delete-confirm p {
-  font-family: var(--sa-font);
+  
   font-size: 0.75rem;
   color: #dc2626;
   margin: 0 0 0.5rem 0;
@@ -348,7 +348,7 @@
 }
 
 .sa-system-users__modal-header h2 {
-  font-family: var(--sa-font);
+  
   font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
@@ -392,7 +392,7 @@
 }
 
 .sa-system-users__form-field label {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
@@ -400,7 +400,7 @@
 
 .sa-system-users__form-field input,
 .sa-system-users__form-field select {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid #e5e7eb;
@@ -440,7 +440,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   cursor: pointer;
 }
@@ -466,7 +466,7 @@
 }
 
 .sa-system-users__modal-footer button {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -495,7 +495,7 @@
 }
 
 .sa-system-users__modal-footer button[type="submit"]:hover {
-  background: #1e40af;
+  background: #0284c7;
 }
 
 .sa-system-users__modal-footer button:disabled {
@@ -510,7 +510,7 @@
 }
 
 .sa-system-users__view-details p {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #374151;
   margin: 0;
@@ -527,11 +527,11 @@
 }
 
 .sa-system-users__btn-save:hover:not(:disabled) {
-  background: #1e40af !important;
+  background: #0284c7 !important;
 }
 
 .sa-system-users__role-exp-empty {
-  font-family: var(--sa-font);
+  
   font-size: 0.9rem;
   color: #64748b;
   margin: 0;
@@ -550,7 +550,7 @@
 }
 
 .sa-system-users__role-exp-label {
-  font-family: var(--sa-font);
+  
   font-weight: 600;
   font-size: 0.9rem;
   display: block;
@@ -566,7 +566,7 @@
 }
 
 .sa-system-users__role-exp-input {
-  font-family: var(--sa-font);
+  
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #cbd5e1;
@@ -577,7 +577,7 @@
 .sa-system-users__role-exp-input:focus {
   outline: none;
   border-color: var(--sa-primary);
-  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.24);
 }
 
 .sa-system-users__role-exp-help {

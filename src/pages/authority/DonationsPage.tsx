@@ -29,7 +29,7 @@ import { AuthorityLayout } from '../../components/layout';
 import { supabase } from '../../config';
 import { useAuth, useNotification } from '../../contexts';
 import { useI18n } from '../../hooks';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import styles from './DonationsPage.module.css';
 
 // Types basés sur le modèle de données
@@ -131,13 +131,13 @@ export const DonationsPage: React.FC = () => {
         console.error('Erreur chargement dons:', donsError);
       } else {
         setDonations(donsData || []);
-        
+
         // Calculer les stats
         const dons = donsData || [];
         const reussis = dons.filter((d: Don) => d.statut_paiement === 'reussi');
         const ponctuels = dons.filter((d: Don) => d.type_don === 'ponctuel');
         const mensuels = dons.filter((d: Don) => d.type_don === 'mensuel');
-        
+
         setDonStats({
           totalDons: dons.length,
           montantTotal: reussis.reduce((sum: number, d: Don) => sum + d.montant, 0),
@@ -161,12 +161,12 @@ export const DonationsPage: React.FC = () => {
         console.error('Erreur chargement campagnes:', campagnesError);
       } else {
         setCampagnes(campagnesData || []);
-        
+
         // Calculer les stats
         const camps = campagnesData || [];
         const enCours = camps.filter((c: CampagneSensibilisation) => c.statut_campagne === 'en_cours');
         const terminees = camps.filter((c: CampagneSensibilisation) => c.statut_campagne === 'terminee');
-        
+
         setCampagneStats({
           totalCampagnes: camps.length,
           campagnesEnCours: enCours.length,
@@ -229,7 +229,7 @@ export const DonationsPage: React.FC = () => {
   // Badge de statut pour les dons
   const getDonStatusBadge = (statut: string) => {
     const badges: Record<string, { label: string; color: string }> = {
-      reussi: { label: t('authority.donations.status.success'), color: '#10b981' },
+      reussi: { label: t('authority.donations.status.success'), color: '#0284c7' },
       en_attente: { label: t('authority.donations.status.pending'), color: '#f59e0b' },
       echoue: { label: t('authority.donations.status.failed'), color: '#ef4444' },
       rembourse: { label: t('authority.donations.status.refunded'), color: '#6b7280' },
@@ -241,8 +241,8 @@ export const DonationsPage: React.FC = () => {
   // Badge de statut pour les campagnes
   const getCampagneStatusBadge = (statut: string) => {
     const badges: Record<string, { label: string; color: string }> = {
-      en_cours: { label: t('authority.donations.campagneStatus.ongoing'), color: '#3b82f6' },
-      terminee: { label: t('authority.donations.campagneStatus.completed'), color: '#10b981' },
+      en_cours: { label: t('authority.donations.campagneStatus.ongoing'), color: '#38bdf8' },
+      terminee: { label: t('authority.donations.campagneStatus.completed'), color: '#0284c7' },
       planifiee: { label: t('authority.donations.campagneStatus.planned'), color: '#8b5cf6' },
       annulee: { label: t('authority.donations.campagneStatus.cancelled'), color: '#ef4444' },
     };
@@ -517,7 +517,7 @@ export const DonationsPage: React.FC = () => {
                                 {statusBadge.label}
                               </span>
                             </div>
-                            
+
                             <p className={styles.campagneDescription}>
                               {campagne.description || t('authority.donations.noDescription')}
                             </p>
@@ -576,7 +576,7 @@ export const DonationsPage: React.FC = () => {
                 <div className={styles.section}>
                   <div className={styles.statsOverview}>
                     <h2>{t('authority.donations.statsOverview.title')}</h2>
-                    
+
                     <div className={styles.statsRow}>
                       <div className={styles.bigStatCard}>
                         <Heart size={32} className={styles.bigStatIcon} />
@@ -585,7 +585,7 @@ export const DonationsPage: React.FC = () => {
                           <span className={styles.bigStatLabel}>{t('authority.donations.statsOverview.totalCollected')}</span>
                         </div>
                       </div>
-                      
+
                       <div className={styles.bigStatCard}>
                         <Users size={32} className={styles.bigStatIcon} />
                         <div className={styles.bigStatContent}>

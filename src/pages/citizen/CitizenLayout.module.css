@@ -6,8 +6,8 @@
  */
 
 :root {
-  --citizen-primary: #15803d; /* green 700 */
-  --citizen-primary-hover: #166534; /* green 800 */
+  --citizen-primary: #0ea5e9;
+  --citizen-primary-hover: #0284c7;
   --citizen-bg-main: #f1f5f9;
 
   /* Citizen sidebar: dark overlay, image gérée en inline-style pour éviter la résolution webpack */
@@ -482,9 +482,9 @@
 
 .topHeaderSearchInput:focus {
   outline: none;
-  border-color: #1d4ed8;
+  border-color: #0ea5e9;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 .topHeaderRight {
@@ -511,9 +511,9 @@
 }
 
 .topHeaderIconBtn:hover {
-  border-color: #1d4ed8;
-  color: #1d4ed8;
-  background: #eff6ff;
+  border-color: #0ea5e9;
+  color: #0284c7;
+  background: #f0f9ff;
 }
 
 .topHeaderLangCode {
@@ -554,9 +554,9 @@
 }
 
 .topHeaderDonateBtn:hover {
-  border-color: #1d4ed8;
-  color: #1d4ed8;
-  background: #eff6ff;
+  border-color: #0ea5e9;
+  color: #0284c7;
+  background: #f0f9ff;
 }
 
 .topHeaderUserAvatar,
@@ -567,7 +567,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: 600;
@@ -649,9 +649,9 @@
 }
 
 .mobileHeaderIconBtn:hover {
-  border-color: #1d4ed8;
-  color: #1d4ed8;
-  background: #eff6ff;
+  border-color: #0ea5e9;
+  color: #0284c7;
+  background: #f0f9ff;
 }
 
 /* ========== AVATAR MOBILE (header) ========== */
@@ -700,10 +700,10 @@
   gap: 0.75rem 1rem;
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
-  background: linear-gradient(90deg, #ecfdf5 0%, #f0fdf4 100%);
-  border: 1px solid #86efac;
+  background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #7dd3fc;
   border-radius: 10px;
-  color: #14532d;
+  color: #075985;
 }
 
 .guestBannerText {
@@ -718,16 +718,16 @@
   flex-shrink: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #15803d;
+  color: #0284c7;
   text-decoration: none;
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid #22c55e;
+  border: 1px solid #38bdf8;
   background: #fff;
 }
 
 .guestBannerLink:hover {
-  background: #f0fdf4;
+  background: #e0f2fe;
 }
 
 .content {

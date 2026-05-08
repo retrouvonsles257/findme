@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   AlertTriangle, MapPin, Calendar, User, Check, X, Eye, Edit2, Trash2,
   Loader2, AlertCircle, ChevronLeft, ChevronRight, Filter,
@@ -78,7 +78,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [stats, setStats] = useState({ total: 0, pending: 0, validated: 0, rejected: 0 });
-  
+
   // Filtres — par défaut "Tous" pour afficher valides, non valides, etc.
   const [filterStatut, setFilterStatut] = useState<string>('');
 
@@ -139,14 +139,14 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
       const enrichedSignalements = await Promise.all(
         (data || []).map(async (signalement: any) => {
           let dossier = null;
-          
+
           if (signalement.id_dossier) {
             const { data: d } = await (supabase as any)
               .from('dossier_disparition')
               .select('numero_dossier, id_personne')
               .eq('id', signalement.id_dossier)
               .single();
-            
+
             if (d?.id_personne) {
               const { data: personne } = await (supabase as any)
                 .from('personne')
@@ -161,7 +161,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
               dossier = { numero_dossier: d.numero_dossier, personne_nom: '-' };
             }
           }
-          
+
           return {
             ...signalement,
             dossier: dossier || null,
@@ -271,7 +271,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       let query = (supabase as any)
         .from('signalement')
         .select(`
@@ -313,7 +313,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
         'Nom témoin', 'Téléphone témoin', 'Email témoin', 'Accepte contact suivi',
         'Source signalement', 'Signaleur', 'Dossier', 'Personne dossier', 'Date création'
       ];
-      
+
       const rows = enrichedSignalements.map((s: any) => [
         s.id,
         s.numero_signalement || '',
@@ -610,7 +610,7 @@ export const SuperAdminSignalementValidationPage: React.FC = () => {
                 <h2>{t('super_admin.signalementDetailsTitle')}</h2>
                 <button onClick={() => setSelectedSignalement(null)}><X size={20} /></button>
               </div>
-              
+
               <div className={styles['sa-signalement-validation__modal-body']}>
                 <div className={styles['sa-signalement-validation__detail-grid']}>
                   <div className={styles['sa-signalement-validation__detail-item']}>

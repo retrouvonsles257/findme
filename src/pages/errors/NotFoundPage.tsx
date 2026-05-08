@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../store/hooks';
@@ -19,11 +19,6 @@ export const NotFoundPage: React.FC = () => {
   const { t } = useTranslation();
   const currentUser = useAppSelector(selectCurrentUser);
   const authUser = useAppSelector(selectUser);
-
-  useEffect(() => {
-    // Log error for monitoring
-    console.warn('404 Error: Page not found');
-  }, []);
 
   const handleGoBack = () => {
     navigate(-1);

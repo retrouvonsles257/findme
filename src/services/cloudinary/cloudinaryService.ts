@@ -115,7 +115,7 @@ class CloudinaryService {
     onProgress?: (progress: UploadProgress) => void
   ): Promise<UploadResult> {
     const sessionId = this.createUploadSession(file, uploadType);
-    
+
     try {
       const result = await uploadFileToCloudinary(
         file,

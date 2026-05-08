@@ -11,7 +11,7 @@ import { AuthorityLayout } from '../../components/layout';
 import { useAuth } from '../../contexts';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import {
   Bell,
   FileSearch,

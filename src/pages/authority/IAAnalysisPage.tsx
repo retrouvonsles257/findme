@@ -59,7 +59,7 @@ import {
   fetchSimilaritiesResults 
 } from '../../features/ia-analysis/store/iaSlice';
 import { supabase } from '../../config';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import styles from './IAAnalysisPage.module.css';
 
 type AnalysisTab = 'matching' | 'similarities' | 'predictions' | 'results' | 'statistics';
@@ -82,7 +82,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [validationLoading, setValidationLoading] = useState(false);
   const [validationComment, setValidationComment] = useState('');
-  
+
   // États pour les nouvelles fonctionnalités
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [confidenceThreshold, setConfidenceThreshold] = useState(DEFAULT_THRESHOLD);
@@ -96,15 +96,15 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
     precisionRate: number;
   } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  
+
   // Photos pour comparaison côte à côte
   const [dossierPhoto, setDossierPhoto] = useState<string | null>(null);
   const [signalementPhoto, setSignalementPhoto] = useState<string | null>(null);
-  
+
   // Auth pour obtenir l'ID utilisateur
   const { user } = useAuth();
   const currentUser = useAppSelector(selectCurrentUser);
-  
+
   // Hooks IA
   const { 
     results: facialResults, 
@@ -114,7 +114,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
     analyzeFacial,
     isHuggingFaceConfigured,
   } = useFacialRecognition();
-  
+
   const { 
     comparisonResults, 
     locationPredictions, 
@@ -141,7 +141,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
           dispatch(fetchLocationPredictions(arg) as any).unwrap().catch(() => []),
           dispatch(fetchSimilaritiesResults(arg) as any).unwrap().catch(() => []),
         ]);
-        
+
         // Charger les statistiques
         await loadStatistics();
       } catch (err) {
@@ -156,18 +156,18 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
     try {
       const orgId = currentUser?.role === NomRole.AUTORITE ? currentUser?.organisation_id : undefined;
       const allResults = await getResultatsIA(undefined, undefined, orgId);
-      
+
       const confirmed = allResults.filter(r => r.statut_validation === 'confirme').length;
       const falsePos = allResults.filter(r => r.faux_positif === true).length;
       const pending = allResults.filter(r => r.statut_validation === 'en_attente').length;
       const avgTime = allResults.length > 0 
         ? allResults.reduce((sum, r) => sum + (r.temps_traitement_ms || 0), 0) / allResults.length 
         : 0;
-      
+
       // Calcul du taux de précision
       const validated = confirmed + falsePos;
       const precision = validated > 0 ? (confirmed / validated) * 100 : 0;
-      
+
       setIaStatistics({
         totalAnalyses: allResults.length,
         confirmedMatches: confirmed,
@@ -254,11 +254,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
   };
 
   const handleStartAnalysis = useCallback(async () => {
-    console.log('[IAPage] ═══════════════════════════════════════════');
-    console.log('[IAPage] DÉMARRAGE ANALYSE MANUELLE');
-    console.log('[IAPage] Image sélectionnée:', selectedImage?.name, selectedImage?.size, 'bytes');
-    console.log('[IAPage] ═══════════════════════════════════════════');
-    
+
     if (!selectedImage) {
       alert(t('authority.iaAnalysis.messages.selectImage'));
       return;
@@ -267,20 +263,16 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
     setAnalysisStarted(true);
 
     try {
-      console.log('[IAPage] Appel de analyzeFacial...');
-      const result = await analyzeFacial(selectedImage);
-      console.log('[IAPage] Résultat analyse:', result);
-      console.log('[IAPage] Visage détecté:', result?.donnees_interpretees?.face_detected);
-      console.log('[IAPage] Correspondances:', result?.correspondances_trouvees);
-      
+
+      await analyzeFacial(selectedImage);
+
       setActiveTab('results');
       await loadStatistics(); // Refresh stats
-      
+
       // Rafraîchir les résultats après l'analyse
       dispatch(fetchFacialRecognitionResults() as any);
       dispatch(fetchSimilaritiesResults() as any);
-      
-      console.log('[IAPage] Analyse terminée avec succès');
+
     } catch (err) {
       console.error('[IAPage] ERREUR ANALYSE:', err);
       alert('Erreur lors de l\'analyse: ' + (err instanceof Error ? err.message : 'Erreur inconnue'));
@@ -309,10 +301,10 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
     setValidationLoading(true);
     try {
       await confirmIAResult(selectedResult.id, user.id, validationComment || undefined);
-      
+
       // Actions automatiques après confirmation
       await executePostConfirmationActions(selectedResult);
-      
+
       dispatch(fetchFacialRecognitionResults() as any);
       await loadStatistics();
       closeDetailModal();
@@ -362,7 +354,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
           .select('latitude_observation, longitude_observation, lieu_observation')
           .eq('id', result.id_signalement)
           .single();
-        
+
         const lat = signalement?.latitude_observation as number | null | undefined;
         const lng = signalement?.longitude_observation as number | null | undefined;
         const lieu = (signalement?.lieu_observation as string | null | undefined) || null;
@@ -392,7 +384,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
           })
           .eq('id', result.id_dossier);
       }
-      
+
       // 2. Enregistrer dans journal_activite
       await (supabase as any).from('journal_activite').insert({
         type_action: 'validation_ia',
@@ -402,8 +394,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
         id_dossier: result.id_dossier,
         date_action: new Date().toISOString(),
       });
-      
-      console.log('[IAPage] Actions post-confirmation exécutées');
+
     } catch (err) {
       console.error('[IAPage] Erreur actions post-confirmation:', err);
     }
@@ -423,13 +414,13 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
         id_dossier: selectedResult.id_dossier,
         date_action: new Date().toISOString(),
       });
-      
+
       // Mettre à jour le statut du résultat IA
       await (supabase as any)
         .from('resultat_ia')
         .update({ action_generee: 'autre' })
         .eq('id', selectedResult.id);
-      
+
       alert(t('authority.iaAnalysis.actions.investigationLaunched'));
       closeDetailModal();
     } catch (err) {
@@ -449,21 +440,21 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
       let latitude = null;
       let longitude = null;
       let lieu = 'Zone non spécifiée';
-      
+
       if (selectedResult.id_signalement) {
         const { data: signalement } = await (supabase as any)
           .from('signalement')
           .select('latitude_observation, longitude_observation, lieu_observation')
           .eq('id', selectedResult.id_signalement)
           .single();
-        
+
         if (signalement) {
           latitude = signalement.latitude_observation;
           longitude = signalement.longitude_observation;
           lieu = signalement.lieu_observation || lieu;
         }
       }
-      
+
       // Créer l'alerte
       const { error } = await (supabase as any).from('alerte').insert({
         titre: `Alerte IA - Correspondance détectée`,
@@ -479,15 +470,15 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
         date_creation: new Date().toISOString(),
         date_expiration: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 jours
       });
-      
+
       if (error) throw error;
-      
+
       // Mettre à jour le statut du résultat IA
       await (supabase as any)
         .from('resultat_ia')
         .update({ action_generee: 'alerte_creee' })
         .eq('id', selectedResult.id);
-      
+
       alert(t('authority.iaAnalysis.actions.alertCreated'));
       closeDetailModal();
     } catch (err) {
@@ -538,7 +529,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
 
   // Fonction pour obtenir le label de confiance
   const getConfidenceLabel = (score: number) => {
-    if (score >= 80) return { label: t('authority.iaAnalysis.confidence.veryHigh'), color: '#22c55e' };
+    if (score >= 80) return { label: t('authority.iaAnalysis.confidence.veryHigh'), color: '#0ea5e9' };
     if (score >= 60) return { label: t('authority.iaAnalysis.confidence.high'), color: '#84cc16' };
     if (score >= 40) return { label: t('authority.iaAnalysis.confidence.medium'), color: '#eab308' };
     if (score >= 20) return { label: t('authority.iaAnalysis.confidence.low'), color: '#f97316' };
@@ -566,7 +557,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
               {t('authority.iaAnalysis.subtitle')}
             </p>
           </div>
-          
+
           {/* Bouton Configuration */}
           <button 
             className={styles.configButton}
@@ -871,7 +862,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                           {(prediction.zones_predites as any)?.zones?.length || 0} {t('authority.iaAnalysis.predictions.zones')}
                         </span>
                       </div>
-                      
+
                       <div className={styles.predictionMeta}>
                         <div className={styles.metaItem}>
                           <Percent size={16} />
@@ -915,7 +906,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                   <h2>{t('authority.iaAnalysis.results.title')}</h2>
                   <p>{t('authority.iaAnalysis.results.description')}</p>
                 </div>
-                
+
                 {/* Filtres */}
                 <div className={styles.filterButtons}>
                   <button 
@@ -959,7 +950,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                             PRIORITÉ
                           </div>
                         )}
-                        
+
                         <div className={styles.resultCardHeader}>
                           <Camera size={20} />
                           <h4>{t('authority.iaAnalysis.results.facialRecognition')}</h4>
@@ -1092,7 +1083,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
               {iaStatistics ? (
                 <div className={styles.statisticsGrid}>
                   <div className={styles.statCard}>
-                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)' }}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)' }}>
                       <BarChart2 size={24} />
                     </div>
                     <div className={styles.statContent}>
@@ -1102,7 +1093,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                   </div>
 
                   <div className={styles.statCard}>
-                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+                    <div className={styles.statIcon} style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}>
                       <CheckCircle size={24} />
                     </div>
                     <div className={styles.statContent}>
@@ -1167,7 +1158,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                         className={styles.chartFill} 
                         style={{ 
                           width: `${(iaStatistics.confirmedMatches / iaStatistics.totalAnalyses) * 100}%`,
-                          background: '#22c55e'
+                          background: '#0ea5e9'
                         }}
                       />
                       <span>{t('authority.iaAnalysis.statistics.confirmed')}: {((iaStatistics.confirmedMatches / iaStatistics.totalAnalyses) * 100).toFixed(1)}%</span>
@@ -1217,7 +1208,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                   <X size={24} />
                 </button>
               </div>
-              
+
               <div className={styles.modalContent}>
                 {/* Comparaison photos côte à côte */}
                 {(dossierPhoto || signalementPhoto) && (
@@ -1318,7 +1309,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                 {/* Résultats de la détection */}
                 <div className={styles.detailSection}>
                   <h4><User size={18} /> {t('authority.iaAnalysis.modal.detectionResults')}</h4>
-                  
+
                   {selectedResult.donnees_brutes?.image_name && (
                     <div className={styles.detailItem} style={{ marginBottom: '1rem' }}>
                       <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.analyzedImage')}</span>
@@ -1337,7 +1328,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                         )}
                       </span>
                     </div>
-                    
+
                     {(selectedResult.donnees_interpretees?.quality_score || selectedResult.donnees_interpretees?.quality_score === 0) && (
                       <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>{t('authority.iaAnalysis.modal.imageQuality')}</span>
@@ -1355,7 +1346,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                         </span>
                       </div>
                     )}
-                    
+
                     {selectedResult.donnees_interpretees?.faces?.[0] && (
                       <>
                         {selectedResult.donnees_interpretees.faces[0].age_estimate && (
@@ -1444,7 +1435,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                 {selectedResult.statut_validation === 'en_attente' && (
                   <div className={styles.detailSection}>
                     <h4><Activity size={18} /> {t('authority.iaAnalysis.modal.validation')}</h4>
-                    
+
                     <div className={styles.validationComment}>
                       <label>{t('authority.iaAnalysis.modal.comment')}</label>
                       <textarea
@@ -1469,7 +1460,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                         )}
                         <span>{t('authority.iaAnalysis.modal.confirm')}</span>
                       </button>
-                      
+
                       <button
                         className={styles.rejectBtn}
                         onClick={handleRejectResult}
@@ -1482,7 +1473,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                         )}
                         <span>{t('authority.iaAnalysis.modal.reject')}</span>
                       </button>
-                      
+
                       <button
                         className={styles.verifyBtn}
                         onClick={handleNeedsVerification}
@@ -1511,7 +1502,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                         )}
                         <span>{t('authority.iaAnalysis.modal.launchInvestigation')}</span>
                       </button>
-                      
+
                       <button
                         className={styles.createAlertBtn}
                         onClick={handleCreateAlert}
@@ -1570,7 +1561,7 @@ export const IAAnalysisPage: React.FC<IAAnalysisPageProps> = ({ noLayout = false
                   <X size={24} />
                 </button>
               </div>
-              
+
               <div className={styles.configContent}>
                 <div className={styles.configItem}>
                   <label>{t('authority.iaAnalysis.config.confidenceThreshold')}</label>

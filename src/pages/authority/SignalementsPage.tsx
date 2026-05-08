@@ -33,7 +33,7 @@ import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import styles from './SignalementsPage.module.css';
 
 type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide';
@@ -66,7 +66,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
     isLoading: validationLoading, 
     reset: resetValidation 
   } = useSignalementValidation();
-  
+
   const [filter, setFilter] = useState<FilterType>('en_attente');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSignalement, setSelectedSignalement] = useState<string | null>(null);
@@ -182,8 +182,8 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
 
   const getCertitudeColor = (certitude?: string) => {
     switch (certitude) {
-      case 'certain': return '#22c55e';
-      case 'tres_probable': return '#3b82f6';
+      case 'certain': return '#0ea5e9';
+      case 'tres_probable': return '#38bdf8';
       case 'probable': return '#eab308';
       case 'incertain': return '#f97316';
       default: return '#94a3b8';
@@ -301,7 +301,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
             filteredSignalements.map((signalement: any) => {
               const status = signalement.statut_validation || signalement.etat || 'en_attente';
               const isPending = status === 'en_attente' || status === 'nouveau';
-              
+
               return (
                 <div 
                   key={signalement.id} 

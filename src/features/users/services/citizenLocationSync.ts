@@ -4,8 +4,6 @@
  */
 import { supabase } from '../../../config';
 
-const LOG = '[CitizenLocationSync]';
-
 const lastSyncMsByUser = new Map<string, number>();
 const DEBOUNCE_MS = 35000;
 
@@ -43,7 +41,6 @@ export async function maybeSyncCitizenGpsToProfile(
       .maybeSingle();
 
     if (selErr) {
-      console.warn(LOG, 'select_fail', selErr.message);
       return { synced: false, reason: 'select_error' };
     }
     if (!row) return { synced: false, reason: 'no_row' };
@@ -63,18 +60,11 @@ export async function maybeSyncCitizenGpsToProfile(
     });
 
     if (upErr) {
-      console.warn(LOG, 'rpc_maj_position_fail', upErr.message, upErr.code);
       return { synced: false, reason: 'update_error' };
     }
 
-    console.info(LOG, 'sync_ok', {
-      userId: String(userId).slice(0, 8) + '…',
-      lat: latitude.toFixed(5),
-      lng: longitude.toFixed(5),
-    });
     return { synced: true };
   } catch (e: any) {
-    console.warn(LOG, 'exception', e?.message || e);
     return { synced: false, reason: 'exception' };
   }
 }

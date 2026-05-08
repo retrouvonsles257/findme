@@ -106,8 +106,7 @@ export const createDossier = async (
  * Get dossier by ID
  */
 export const getDossierById = async (id: string): Promise<DossierDisparition> => {
-  console.log('[dossierAPI] getDossierById appelé avec ID:', id);
-  
+
   // Récupérer le dossier avec les données de la personne
   const { data, error } = await db
     .from('dossier_disparition')
@@ -119,13 +118,12 @@ export const getDossierById = async (id: string): Promise<DossierDisparition> =>
     console.error('[dossierAPI] Erreur getDossierById:', error);
     throw error;
   }
-  
+
   if (!data) {
-    console.warn('[dossierAPI] Aucune donnée retournée pour ID:', id);
+
     throw new Error('Dossier non trouvé');
   }
-  
-  console.log('[dossierAPI] getDossierById retourne:', data.numero_dossier || 'sans numéro');
+
   return data;
 };
 
@@ -416,7 +414,6 @@ export const getDossierActions = async (dossierId: string): Promise<any[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.warn('Could not fetch actions:', error);
     return [];
   }
   return data || [];
@@ -441,5 +438,7 @@ export const logDossierAction = async (
     created_at: new Date().toISOString(),
   });
 
-  if (error) console.warn('Could not log action:', error);
+  if (error) {
+    return;
+  }
 };

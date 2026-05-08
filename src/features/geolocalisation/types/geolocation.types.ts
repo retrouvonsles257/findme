@@ -148,14 +148,14 @@ export interface GeolocationState {
   currentLocation: CurrentLocation | null;
   locationHistory: LocationDatabase[];
   selectedLocation: LocationDisplay | null;
-  
+
   isTracking: boolean;
   trackingPermission: 'granted' | 'denied' | 'prompt' | 'unknown';
-  
+
   proximityAlerts: ProximityAlert[];
   proximityZones: ProximityZone[];
   activeAlerts: string[]; // Alert IDs
-  
+
   loading: boolean;
   error: string | null;
   filters: {

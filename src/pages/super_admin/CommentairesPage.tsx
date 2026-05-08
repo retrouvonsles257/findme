@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   MessageSquare, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, Lock
@@ -44,7 +44,7 @@ export const SuperAdminCommentairesPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCommentaire, setSelectedCommentaire] = useState<Commentaire | null>(null);
-  
+
   const [filterType, setFilterType] = useState<string>('');
   const [filterConfidentiel, setFilterConfidentiel] = useState<string>('');
 
@@ -56,7 +56,7 @@ export const SuperAdminCommentairesPage: React.FC = () => {
       let countQuery = (supabase as any).from('commentaire').select('id', { count: 'exact', head: true });
       if (filterType) countQuery = countQuery.eq('type_commentaire', filterType);
       if (filterConfidentiel !== '') countQuery = countQuery.eq('confidentiel', filterConfidentiel === 'true');
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -103,7 +103,7 @@ export const SuperAdminCommentairesPage: React.FC = () => {
       c.utilisateur?.email || '-',
       new Date(c.created_at).toLocaleString('fr-FR'),
     ]);
-    
+
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

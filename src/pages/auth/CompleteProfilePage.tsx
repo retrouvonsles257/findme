@@ -179,7 +179,7 @@ export const CompleteProfilePage: React.FC = () => {
         // Déconnecter l'utilisateur et rediriger vers login
         // L'utilisateur devra se reconnecter avec ses identifiants
         await supabaseAuthService.logout();
-        
+
         setTimeout(() => {
           navigate('/auth/login', { 
             replace: true,

@@ -30,7 +30,7 @@ export const ImageComparisonPanel: React.FC<ImageComparisonPanelProps> = ({
 
     try {
       // Dispatch would happen here in real implementation
-      console.log('Comparing images:', image1Id, image2Id);
+
       setImage1Id('');
       setImage2Id('');
     } catch (err) {

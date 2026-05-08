@@ -34,7 +34,7 @@ export interface DecodedToken {
 export const saveTokens = (tokenInfo: TokenInfo): void => {
   try {
     const expiresAt = tokenInfo.expiresAt || Date.now() + (tokenInfo.expiresIn || 3600) * 1000;
-    
+
     localStorage.setItem(
       TOKEN_STORAGE_KEY,
       JSON.stringify({

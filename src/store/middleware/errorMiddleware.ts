@@ -22,7 +22,7 @@ export const errorMiddleware = (store: any) => (next: any) => (action: any) => {
     return next(action);
   } catch (error) {
     console.error('[Error Middleware] Uncaught error:', error);
-    
+
     // Dispatch error action
     store.dispatch({
       type: 'error/uncaught',

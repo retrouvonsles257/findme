@@ -11,7 +11,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   FolderOpen, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, MapPin, Calendar,
@@ -102,7 +102,7 @@ const ITEMS_PER_PAGE = 15;
 
 const SuperAdminDossiersPage: React.FC = () => {
   const { t } = useI18n();
-  
+
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [personnes, setPersonnes] = useState<Personne[]>([]);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
@@ -111,18 +111,18 @@ const SuperAdminDossiersPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedDossier, setSelectedDossier] = useState<Dossier | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Filtres
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState<string>('');
   const [filterUrgence, setFilterUrgence] = useState<string>('');
-  
+
   // Form state - TOUS les champs du modèle SQL
   const [formData, setFormData] = useState({
     numero_dossier: '',
@@ -196,7 +196,7 @@ const SuperAdminDossiersPage: React.FC = () => {
       if (searchTerm) {
         countQuery = countQuery.or(`numero_dossier.ilike.%${searchTerm}%,lieu_disparition.ilike.%${searchTerm}%`);
       }
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -231,7 +231,7 @@ const SuperAdminDossiersPage: React.FC = () => {
             (supabase as any).from('signalement').select('id', { count: 'exact', head: true }).eq('id_dossier', dossier.id),
             (supabase as any).from('alerte').select('id', { count: 'exact', head: true }).eq('id_dossier', dossier.id),
           ]);
-          
+
           return {
             ...dossier,
             nombre_signalements: signalementsResult.count || 0,
@@ -525,7 +525,7 @@ const SuperAdminDossiersPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger TOUS les dossiers avec les filtres actuels
       let query = (supabase as any)
         .from('dossier_disparition')
@@ -576,7 +576,7 @@ const SuperAdminDossiersPage: React.FC = () => {
         'Circonstances résolution', 'État personne retrouvée', 'Nombre signalements',
         'Nombre alertes diffusées', 'Nombre vues fiche', 'Date création', 'Date modification'
       ];
-      
+
       const rows = enrichedDossiers.map((d: any) => [
         d.id,
         d.numero_dossier,
@@ -894,7 +894,7 @@ const SuperAdminDossiersPage: React.FC = () => {
                 <h2>{modalMode === 'create' ? t('super_admin.dossiersCreateDossierModal') : t('super_admin.dossiersEditDossierModal')}</h2>
                 <button type="button" onClick={() => setShowModal(false)} aria-label={t('super_admin.dossiersAriaClose')}><X size={20} /></button>
               </div>
-              
+
               <div className={styles['sa-dossiers__modal-body']}>
                 <div className={styles['sa-dossiers__form-grid']}>
                   <div>

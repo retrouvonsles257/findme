@@ -26,7 +26,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAlertes } from '../../features/alertes/hooks/useAlertes';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import { 
   validateAlerte, 
   cancelAlerte, 
@@ -62,7 +62,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
   const { addNotification } = useNotification();
   const { alertes, loading, error: loadError, fetchAlertes } = useAlertes();
   const { t, language } = useI18n();
-  
+
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAlerte, setSelectedAlerte] = useState<any | null>(null);
@@ -276,7 +276,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
               const isActive = alerte.statut_alerte === 'en_cours';
               const isTerminated = alerte.statut_alerte === 'terminee';
               const isCancelled = alerte.statut_alerte === 'annulee';
-              
+
               return (
                 <div 
                   key={alerte.id} 
@@ -347,7 +347,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
                         </button>
                       </>
                     )}
-                    
+
                     {isActive && (
                       <>
                         <button
@@ -375,7 +375,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
                     >
                       <Eye size={16} />
                     </button>
-                    
+
                     {isDraft && (
                       <button
                         className={styles.actionBtn}

@@ -13,7 +13,7 @@ import { useSignalementsForDossier } from '../../features/signalements/hooks/use
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
 import { useHistoriqueDossier } from '../../features/dossiers/hooks/useHistoriqueDossier';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import { supabase } from '../../config';
 import { useI18n } from '../../hooks';
 import {
@@ -526,7 +526,7 @@ export const SuperAdminDossierDetailPage: React.FC = () => {
                         <div key={d.id} className={styles.itemCard}>
                           <div className={styles.itemHeader}>
                             <h4>{d.nom_fichier}</h4>
-                            <span className={styles.badge} style={{ backgroundColor: d.confidentiel ? '#7c3aed' : '#059669' }}>
+                            <span className={styles.badge} style={{ backgroundColor: d.confidentiel ? '#7c3aed' : '#0284c7' }}>
                               {d.type_document} {d.confidentiel && <Lock size={12} style={{ marginLeft: 4, verticalAlign: 'middle' }} />}
                             </span>
                           </div>

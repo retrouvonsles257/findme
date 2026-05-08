@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import { 
   Shield, Users, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, CheckCircle, Download
@@ -43,20 +43,20 @@ const ROLE_BADGE_IMAGES: Record<string, string> = {
 
 export const SuperAdminRolesPage: React.FC = () => {
   const { t } = useI18n();
-  
+
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [viewingRole, setViewingRole] = useState<Role | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     nom_role: '',
@@ -278,7 +278,7 @@ export const SuperAdminRolesPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       const { data: allRoles, error: fetchError } = await (supabase as any)
         .from('role')
         .select('*')
@@ -300,7 +300,7 @@ export const SuperAdminRolesPage: React.FC = () => {
       const headers = [
         'ID', 'Nom rôle', 'Description', 'Niveau accréditation', 'Permissions', 'Nombre utilisateurs', 'Date création'
       ];
-      
+
       const rows = enrichedRoles.map((r: any) => [
         r.id,
         r.nom_role,
@@ -559,19 +559,19 @@ export const SuperAdminRolesPage: React.FC = () => {
                     <strong>Nom du rôle:</strong>
                     <p>{NOM_ROLE_OPTIONS.find(opt => opt.value === viewingRole.nom_role)?.label || viewingRole.nom_role}</p>
                   </div>
-                  
+
                   {viewingRole.description && (
                     <div>
                       <strong>Description:</strong>
                       <p>{viewingRole.description}</p>
                     </div>
                   )}
-                  
+
                   <div>
                     <strong>Niveau d'accréditation:</strong>
                     <p>{viewingRole.niveau_accreditation} - {getNiveauLabel(viewingRole.niveau_accreditation)}</p>
                   </div>
-                  
+
                   <div>
                     <strong>Nombre d&apos;utilisateurs:</strong>
                     <p>{viewingRole._count?.utilisateurs || 0}</p>
@@ -608,12 +608,12 @@ export const SuperAdminRolesPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div>
                     <strong>Date de création:</strong>
                     <p>{new Date(viewingRole.created_at).toLocaleString('fr-FR')}</p>
                   </div>
-                  
+
                   {viewingRole.permissions && (
                     <div>
                       <strong>Permissions:</strong>

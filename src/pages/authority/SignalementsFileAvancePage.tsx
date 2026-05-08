@@ -3,12 +3,16 @@
  */
 import React from 'react';
 import { AuthorityLayout } from '../../components/layout';
-import { SignalementsValidationPage } from '../moderator/SignalementsValidationPage';
+import { SignalementsValidationPage } from './moderation/SignalementsValidationPage';
 
-export const SignalementsFileAvancePage: React.FC = () => (
-  <AuthorityLayout>
-    <SignalementsValidationPage noLayout />
-  </AuthorityLayout>
-);
+export interface SignalementsFileAvancePageProps {
+  noLayout?: boolean;
+}
+
+export const SignalementsFileAvancePage: React.FC<SignalementsFileAvancePageProps> = ({ noLayout = false }) => {
+  const content = <SignalementsValidationPage noLayout />;
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
+};
 
 export default SignalementsFileAvancePage;

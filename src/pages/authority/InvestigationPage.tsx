@@ -15,7 +15,7 @@ import { supabase } from '../../config';
 import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import {
   Search,
   Calendar,
@@ -57,16 +57,16 @@ export const InvestigationPage: React.FC = () => {
   const { dossiers, isLoading } = useDossiers();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
-  
+
   const [selectedDossier, setSelectedDossier] = useState<string | null>(null);
   const [tab, setTab] = useState<TabType>('timeline');
-  
+
   // Modal states
   const [showAddPreuveModal, setShowAddPreuveModal] = useState(false);
   const [showAddLocalisationModal, setShowAddLocalisationModal] = useState(false);
   const [showAddSuspectModal, setShowAddSuspectModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Form states
   const [newPreuve, setNewPreuve] = useState<NewPreuve>({ titre: '', description: '', type: 'document' });
   const [newLocalisation, setNewLocalisation] = useState<NewLocalisation>({ lieu: '', latitude: '', longitude: '', description: '' });
@@ -95,7 +95,7 @@ export const InvestigationPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const user = (await supabase.auth.getUser()).data.user;
-      
+
       const { error } = await (supabase as any)
         .from('signalement')
         .insert({
@@ -154,7 +154,7 @@ export const InvestigationPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const user = (await supabase.auth.getUser()).data.user;
-      
+
       const { error } = await (supabase as any)
         .from('localisation')
         .insert({
@@ -209,7 +209,7 @@ export const InvestigationPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const user = (await supabase.auth.getUser()).data.user;
-      
+
       // Ajouter comme signalement avec tag suspect
       const { error } = await (supabase as any)
         .from('signalement')
@@ -326,7 +326,7 @@ export const InvestigationPage: React.FC = () => {
                     style={{
                       marginTop: '8px',
                       padding: '6px 12px',
-                      backgroundColor: '#007bff',
+                      backgroundColor: '#0ea5e9',
                       color: 'white',
                       border: 'none',
                       borderRadius: '4px',
@@ -440,7 +440,7 @@ export const InvestigationPage: React.FC = () => {
                             const nom = lines[0]?.replace('[SUSPECT] ', '') || t('authority.investigation.suspects.unknown');
                             const relation = lines[1]?.replace('Relation: ', '') || '';
                             const desc = lines.slice(3).join('\n');
-                            
+
                             return (
                               <div key={sig.id} className={styles.itemCard}>
                                 <h4><User size={16} /> {nom}</h4>
@@ -536,7 +536,7 @@ export const InvestigationPage: React.FC = () => {
               onClick={e => e.stopPropagation()}
             >
               <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={20} /> {t('authority.investigation.modals.addEvidence.title')}</h2>
-              
+
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addEvidence.type')}:</label>
                 <select
@@ -575,8 +575,8 @@ export const InvestigationPage: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAddPreuveModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
-                <button onClick={handleAddPreuve} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                <button onClick={() => setShowAddPreuveModal(false)} style={{ padding: '10px 20px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
+                <button onClick={handleAddPreuve} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#0ea5e9', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                   {isSubmitting ? t('authority.investigation.modals.adding') : t('authority.investigation.modals.addEvidence.add')}
                 </button>
               </div>
@@ -602,7 +602,7 @@ export const InvestigationPage: React.FC = () => {
               onClick={e => e.stopPropagation()}
             >
               <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={20} /> {t('authority.investigation.modals.addLocation.title')}</h2>
-              
+
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addLocation.location')} *:</label>
                 <input
@@ -649,8 +649,8 @@ export const InvestigationPage: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAddLocalisationModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
-                <button onClick={handleAddLocalisation} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                <button onClick={() => setShowAddLocalisationModal(false)} style={{ padding: '10px 20px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
+                <button onClick={handleAddLocalisation} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#0ea5e9', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                   {isSubmitting ? t('authority.investigation.modals.adding') : t('authority.investigation.modals.addLocation.add')}
                 </button>
               </div>
@@ -676,7 +676,7 @@ export const InvestigationPage: React.FC = () => {
               onClick={e => e.stopPropagation()}
             >
               <h2 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><User size={20} /> {t('authority.investigation.modals.addSuspect.title')}</h2>
-              
+
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{t('authority.investigation.modals.addSuspect.name')} *:</label>
                 <input
@@ -711,7 +711,7 @@ export const InvestigationPage: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowAddSuspectModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
+                <button onClick={() => setShowAddSuspectModal(false)} style={{ padding: '10px 20px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.investigation.modals.cancel')}</button>
                 <button onClick={handleAddSuspect} disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                   {isSubmitting ? t('authority.investigation.modals.adding') : t('authority.investigation.modals.addSuspect.add')}
                 </button>

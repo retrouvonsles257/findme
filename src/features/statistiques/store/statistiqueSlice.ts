@@ -83,10 +83,10 @@ const initialState: StatistiquesState = {
   tendances: [],
   demographics: [],
   distributions: [],
-  
+
   isLoading: false,
   error: null,
-  
+
   current_filter: {},
   date_range: {
     debut: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

@@ -68,33 +68,33 @@ export interface AlerteStoreState {
   // Current list
   alertes: Alerte[];
   filteredAlertes: Alerte[];
-  
+
   // Selected
   selectedAlerte: Alerte | null;
   selectedAlertes: string[];
-  
+
   // Pagination
   currentPage: number;
   pageSize: number;
   total: number;
-  
+
   // Filters
   filters: AlerteFilterCriteria;
-  
+
   // Statistics
   statistics: AlerteStatistics | null;
-  
+
   // UI States
   isLoading: boolean;
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
   isDiffusing: boolean;
-  
+
   // Errors
   error: string | null;
   errors: Record<string, string>;
-  
+
   // Sorting
   sortBy: 'date' | 'titre' | 'statut' | 'type';
   sortOrder: 'asc' | 'desc';

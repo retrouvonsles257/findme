@@ -29,7 +29,7 @@ import {
   MessageSquare,
   ArrowLeft,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './AlerteDetailPage.module.css';
 
 export interface AlerteDetailPageProps {
@@ -44,7 +44,7 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
   const alertesListPath = `${basePath}/alertes`;
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
-  
+
   const [alerte, setAlerte] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -129,9 +129,9 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'en_cours':
-        return { label: t('authority.alertes.status.active'), color: '#28a745', icon: <Megaphone size={14} /> };
+        return { label: t('authority.alertes.status.active'), color: '#0ea5e9', icon: <Megaphone size={14} /> };
       case 'terminee':
-        return { label: t('authority.alertes.status.completed'), color: '#6c757d', icon: <CheckCircle size={14} /> };
+        return { label: t('authority.alertes.status.completed'), color: '#64748b', icon: <CheckCircle size={14} /> };
       case 'annulee':
         return { label: t('authority.alertes.status.cancelled'), color: '#dc3545', icon: <XCircle size={14} /> };
       default:
@@ -202,18 +202,18 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
           {/* Info Card */}
           <div className={styles.card}>
             <h2><Clipboard size={20} /> {t('authority.alertes.alerteDetail.sections.information')}</h2>
-            
+
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
                 <label>{t('authority.alertes.alerteDetail.fields.alertType')}</label>
                 <span>{alerte.type_alerte || t('authority.alertes.typeStandard')}</span>
               </div>
-              
+
               <div className={styles.infoItem}>
                 <label>{t('authority.alertes.alerteDetail.fields.creationDate')}</label>
                 <span>{new Date(alerte.created_at).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
               </div>
-              
+
               <div className={styles.infoItem}>
                 <label>{t('authority.alertes.alerteDetail.fields.diffusionDate')}</label>
                 <span>
@@ -222,7 +222,7 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
                     : t('authority.alertes.alerteDetail.fields.notDiffused')}
                 </span>
               </div>
-              
+
               <div className={styles.infoItem}>
                 <label>{t('authority.alertes.alerteDetail.fields.diffusionRadius')}</label>
                 <span>{alerte.rayon_km || 50} {t('authority.alertes.unitKm')}</span>
@@ -302,7 +302,7 @@ export const AlerteDetailPage: React.FC<AlerteDetailPageProps> = ({ noLayout = f
               </button>
             </>
           )}
-          
+
           {isActive && (
             <>
               <button 

@@ -13,7 +13,7 @@ import { useNotification } from '../../contexts';
 import { useAppSelector } from '../../store/types';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { useI18n } from '../../hooks';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import { supabase } from '../../config';
 import { cloudinaryConfig } from '../../config/cloudinary.config';
 import {
@@ -219,7 +219,7 @@ export const ProfilePage: React.FC = () => {
         message: t('authority.profilePage.messages.profileUpdated'),
         type: 'success',
       });
-      
+
       setIsEditing(false);
       loadProfile();
     } catch (err: any) {
@@ -351,13 +351,13 @@ export const ProfilePage: React.FC = () => {
   const getStatutBadge = (statut: string) => {
     switch (statut) {
       case 'actif':
-        return { label: t('authority.profilePage.accountStatus.active'), color: '#28a745', icon: <CheckCircle size={14} /> };
+        return { label: t('authority.profilePage.accountStatus.active'), color: '#0ea5e9', icon: <CheckCircle size={14} /> };
       case 'suspendu':
         return { label: t('authority.profilePage.accountStatus.suspended'), color: '#dc3545', icon: <AlertTriangle size={14} /> };
       case 'en_attente_verification':
         return { label: t('authority.profilePage.accountStatus.pendingVerification'), color: '#ffc107', icon: <Loader2 size={14} /> };
       default:
-        return { label: statut, color: '#6c757d', icon: <User size={14} /> };
+        return { label: statut, color: '#64748b', icon: <User size={14} /> };
     }
   };
 
@@ -479,7 +479,7 @@ export const ProfilePage: React.FC = () => {
           {/* Formulaire d'informations personnelles */}
           <div className={styles.formSection}>
             <h3><User size={18} /> {t('authority.profilePage.sections.personalInfo')}</h3>
-            
+
             <div className={styles.formGrid}>
               <div className={styles.formGroup}>
                 <label>{t('authority.profilePage.fields.lastName')}</label>
@@ -541,7 +541,7 @@ export const ProfilePage: React.FC = () => {
           {/* Section Adresse */}
           <div className={styles.formSection}>
             <h3><MapPin size={18} /> {t('authority.profilePage.sections.address')}</h3>
-            
+
             <div className={styles.formGrid}>
               <div className={styles.formGroupFull}>
                 <label>{t('authority.profilePage.fields.fullAddress')}</label>
@@ -706,7 +706,7 @@ export const ProfilePage: React.FC = () => {
           {/* Section Sécurité */}
           <div className={styles.formSection}>
             <h3><Lock size={18} /> {t('authority.profilePage.sections.security')}</h3>
-            
+
             <div className={styles.securityInfo}>
               <div className={styles.infoItem}>
                 <Building size={16} />

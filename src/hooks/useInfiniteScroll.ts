@@ -29,7 +29,7 @@ export const useInfiniteScroll = (
 
   const loadMore = useCallback(async () => {
     if (isLoading) return;
-    
+
     setIsLoading(true);
     try {
       await onLoadMore();

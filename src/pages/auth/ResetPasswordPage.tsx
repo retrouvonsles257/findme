@@ -132,8 +132,6 @@ export const ResetPasswordPage: React.FC = () => {
           throw result?.payload || new Error('Password reset failed');
         }
 
-        console.log('Password reset with token:', formData.token);
-
         // Show success message
         setIsSuccess(true);
       } catch (error: any) {

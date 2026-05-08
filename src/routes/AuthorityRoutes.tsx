@@ -26,6 +26,12 @@ import {
   SignalementsFileAvancePage,
   InvestigationPage,
   IAAnalysisPage,
+  IAResultsCatalogAuthorityPage,
+  ModerationOverviewAuthorityPage,
+  OrganisationEquipeListAuthorityPage,
+  OrganisationEquipeNewAuthorityPage,
+  OrganisationEquipeDetailAuthorityPage,
+  OrganisationParametresAuthorityPage,
   CoordinationPage,
   MapViewPage,
   DonationsPage,
@@ -45,7 +51,7 @@ import { CoordinationReadProvider } from '../features/coordination/context/Coord
 
 /**
  * AuthorityRoutes Component
- * Routes protégées pour les autorités (niveau 4) et admin d'organisation (niveau 6, héritage création dossiers, alertes, IA)
+ * Routes protégées pour les autorités (incluant comptes rattachés à une organisation).
  * CoordinationReadProvider ici pour qu'il ne se démonte pas à chaque changement de page (badge messages de coordination persistant).
  */
 const AuthorityRoutes: React.FC = () => {
@@ -72,7 +78,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== DOSSIERS ==================== */}
-        
+
         {/* Dossiers List */}
         <Route
           path="/dossiers"
@@ -140,7 +146,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== ALERTES ==================== */}
-        
+
         {/* Alertes List */}
         <Route
           path="/alertes"
@@ -172,7 +178,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== SIGNALEMENTS ==================== */}
-        
+
         {/* Signalements List */}
         <Route
           path="/signalements"
@@ -240,7 +246,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== INVESTIGATION ==================== */}
-        
+
         <Route
           path="/investigation"
           element={
@@ -251,7 +257,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== IA ANALYSIS ==================== */}
-        
+
         <Route
           path="/ia-analysis"
           element={
@@ -261,8 +267,59 @@ const AuthorityRoutes: React.FC = () => {
           }
         />
 
+        <Route
+          path="/ia-resultats"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <IAResultsCatalogAuthorityPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/tableau-moderation"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <ModerationOverviewAuthorityPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/equipe/nouveau"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <OrganisationEquipeNewAuthorityPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/equipe/:id"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <OrganisationEquipeDetailAuthorityPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/equipe"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <OrganisationEquipeListAuthorityPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/organisation/parametres"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <OrganisationParametresAuthorityPage />
+            </RoleBasedRoute>
+          }
+        />
+
         {/* ==================== COORDINATION ==================== */}
-        
+
         <Route
           path="/coordination"
           element={
@@ -273,7 +330,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== MAP VIEW ==================== */}
-        
+
         <Route
           path="/map-view"
           element={
@@ -284,7 +341,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== DONATIONS & CAMPAGNES ==================== */}
-        
+
         <Route
           path="/donations"
           element={
@@ -305,7 +362,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== STATISTIQUES ==================== */}
-        
+
         <Route
           path="/statistiques"
           element={
@@ -316,7 +373,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== PROFILE ==================== */}
-        
+
         <Route
           path="/profile"
           element={
@@ -327,7 +384,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== SETTINGS ==================== */}
-        
+
         <Route
           path="/settings"
           element={
@@ -338,7 +395,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== SECURITY ==================== */}
-        
+
         <Route
           path="/security"
           element={
@@ -349,7 +406,7 @@ const AuthorityRoutes: React.FC = () => {
         />
 
         {/* ==================== NOTIFICATIONS ==================== */}
-        
+
         <Route
           path="/notifications"
           element={

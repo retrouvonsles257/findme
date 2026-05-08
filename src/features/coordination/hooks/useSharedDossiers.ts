@@ -80,7 +80,7 @@ export const useSharedDossiers = (): UseSharedDossiersReturn => {
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement');
       console.error('Fetch shared dossiers error:', err);
-      
+
       // Fallback
       setSharedDossiers([
         {
@@ -126,7 +126,7 @@ export const useSharedDossiers = (): UseSharedDossiersReturn => {
         });
 
       if (insertError) {
-        console.warn('Erreur insertion message:', insertError);
+
         // Ne pas bloquer - le partage est conceptuel
       }
 

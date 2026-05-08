@@ -8,9 +8,10 @@
 
 /* CSS Variables for Authority Theme */
 :root {
-  --authority-primary: #1d4ed8;
-  --authority-primary-light: rgba(30, 144, 255, 0.92);
-  --authority-primary-hover: #1e40af;
+  --authority-primary: #0ea5e9;
+  --authority-primary-light: #38bdf8;
+  --authority-primary-hover: #0284c7;
+  --authority-primary-soft: rgba(14, 165, 233, 0.16);
   --authority-bg-dark: #0f172a;
   --authority-bg-sidebar: #1e293b;
   --authority-bg-main: #f1f5f9;

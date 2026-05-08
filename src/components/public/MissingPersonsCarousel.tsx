@@ -115,7 +115,7 @@ export const MissingPersonsCarousel: React.FC = () => {
 
         if (!cancelled && mountedRef.current) setItems(mapped);
       } catch (err) {
-        console.warn('MissingPersonsCarousel load error:', err);
+
         if (!cancelled && mountedRef.current) setItems([]);
       } finally {
         if (!cancelled && mountedRef.current) setLoading(false);

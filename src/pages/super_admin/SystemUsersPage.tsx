@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase, resetPassword } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   Users, Shield, Mail, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, Building2, ToggleLeft, ToggleRight,
@@ -67,7 +67,7 @@ interface Utilisateur {
 
 export const SuperAdminSystemUsersPage: React.FC = () => {
   const { t } = useI18n();
-  
+
   const [users, setUsers] = useState<Utilisateur[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
@@ -75,18 +75,18 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // États pour fonctionnalités avancées
   const [showRoleExpirationModal, setShowRoleExpirationModal] = useState(false);
   const [selectedUserForRoleExpiration, setSelectedUserForRoleExpiration] = useState<Utilisateur | null>(null);
   const [roleExpirationData, setRoleExpirationData] = useState<{ roleId: string; dateExpiration: string }[]>([]);
-  
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedUser, setSelectedUser] = useState<Utilisateur | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Form state - TOUS les champs du modèle SQL
   const [formData, setFormData] = useState({
     nom: '',
@@ -143,7 +143,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
             .from('utilisateur_role')
             .select('id_role, date_attribution, date_expiration, attribue_par, commentaire, role:role(*)')
             .eq('id_utilisateur', user.id);
-          
+
           return {
             ...user,
             roles: userRoles?.map((ur: any) => {
@@ -473,7 +473,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
     try {
       // Supprimer d'abord les rôles liés
       await (supabase as any).from('utilisateur_role').delete().eq('id_utilisateur', id);
-      
+
       // Puis supprimer l'utilisateur
       const { error: deleteError } = await (supabase as any)
         .from('utilisateur')
@@ -554,7 +554,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger tous les utilisateurs
       const { data: allUsers, error: fetchError } = await (supabase as any)
         .from('utilisateur')
@@ -570,7 +570,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
             .from('utilisateur_role')
             .select('id_role, role:role(*)')
             .eq('id_utilisateur', user.id);
-          
+
           let organisation: Organisation | undefined;
           if (user.id_organisation) {
             const { data: org } = await (supabase as any)
@@ -580,7 +580,7 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
               .single();
             organisation = org;
           }
-          
+
           return {
             ...user,
             roles: userRoles?.map((ur: any) => {

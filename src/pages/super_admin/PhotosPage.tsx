@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   Image, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, CheckCircle, Ban
@@ -47,7 +47,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  
+
   // Filtres
   const [filterType, setFilterType] = useState<string>('');
   const [filterApprouvee, setFilterApprouvee] = useState<string>('');
@@ -62,7 +62,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
       if (filterType) countQuery = countQuery.eq('type_photo', filterType);
       if (filterApprouvee !== '') countQuery = countQuery.eq('approuvee', filterApprouvee === 'true');
       if (filterVisible !== '') countQuery = countQuery.eq('visible_public', filterVisible === 'true');
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -150,7 +150,7 @@ export const SuperAdminPhotosPage: React.FC = () => {
       p.signalement?.numero_signalement || '-',
       p.created_at ? new Date(p.created_at).toLocaleString('fr-FR') : '-',
     ]);
-    
+
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

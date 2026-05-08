@@ -3,12 +3,16 @@
  */
 import React from 'react';
 import { AuthorityLayout } from '../../components/layout';
-import { PhotosModerationPage as ModeratorPhotosModerationPage } from '../moderator/PhotosModerationPage';
+import { PhotosModerationPage as ModeratorPhotosModerationPage } from './moderation/PhotosModerationPage';
 
-export const PhotosModerationPage: React.FC = () => (
-  <AuthorityLayout>
-    <ModeratorPhotosModerationPage noLayout />
-  </AuthorityLayout>
-);
+export interface AuthorityPhotosModerationPageProps {
+  noLayout?: boolean;
+}
+
+export const PhotosModerationPage: React.FC<AuthorityPhotosModerationPageProps> = ({ noLayout = false }) => {
+  const content = <ModeratorPhotosModerationPage noLayout />;
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
+};
 
 export default PhotosModerationPage;

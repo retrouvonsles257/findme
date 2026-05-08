@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   Users, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, CheckCircle
@@ -45,7 +45,7 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLien, setSelectedLien] = useState<LienFiliation | null>(null);
-  
+
   const [filterType, setFilterType] = useState<string>('');
   const [filterStatut, setFilterStatut] = useState<string>('');
 
@@ -57,7 +57,7 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
       let countQuery = (supabase as any).from('lien_filiation').select('id', { count: 'exact', head: true });
       if (filterType) countQuery = countQuery.eq('type_lien', filterType);
       if (filterStatut) countQuery = countQuery.eq('statut_verification', filterStatut);
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -131,7 +131,7 @@ export const SuperAdminLiensFiliationPage: React.FC = () => {
       l.visible_public ? 'Oui' : 'Non',
       new Date(l.created_at).toLocaleString('fr-FR'),
     ]);
-    
+
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

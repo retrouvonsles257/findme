@@ -20,9 +20,9 @@ const corsHeaders: Record<string, string> = {
 
 type CreateBody = {
   email: string;
-  role: string;
   organisationId: string;
   password: string;
+  autoriteEchelon: number;
 };
 
 function jsonResponse(payload: unknown, status = 200) {
@@ -33,6 +33,12 @@ function jsonResponse(payload: unknown, status = 200) {
 }
 
 const MIN_PASSWORD_LENGTH = 8;
+
+function resolveAutoriteEchelon(autoriteEchelonInput: unknown): 1 | 2 | 3 | 4 | null {
+  if (typeof autoriteEchelonInput !== 'number' || !Number.isInteger(autoriteEchelonInput)) return null;
+  if (autoriteEchelonInput < 1 || autoriteEchelonInput > 4) return null;
+  return autoriteEchelonInput as 1 | 2 | 3 | 4;
+}
 
 /** Vérifie le JWT avec le JWKS Supabase (clés asymétriques). Retourne le payload ou null. */
 async function verifySupabaseJwt(req: Request): Promise<{ sub: string } | null> {
@@ -95,12 +101,12 @@ serve(async (req) => {
   }
 
   const email = typeof body.email === 'string' ? body.email.trim() : '';
-  const role = typeof body.role === 'string' ? body.role : 'operateur_saisie';
   const organisationId = typeof body.organisationId === 'string' ? body.organisationId.trim() : '';
   const password = typeof body.password === 'string' ? body.password : '';
+  const autoriteEchelon = resolveAutoriteEchelon(body.autoriteEchelon);
 
-  if (!email || !organisationId || !password) {
-    return jsonResponse({ error: 'email, organisationId and password are required' }, 400);
+  if (!email || !organisationId || !password || !autoriteEchelon) {
+    return jsonResponse({ error: 'email, organisationId, password and autoriteEchelon(1..4) are required' }, 400);
   }
 
   if (password.length < MIN_PASSWORD_LENGTH) {
@@ -111,7 +117,11 @@ serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { data: profile, error: profileError } = await (adminClient as any).from('utilisateur').select('id').eq('id', userId).maybeSingle();
+  const { data: profile, error: profileError } = await (adminClient as any)
+    .from('utilisateur')
+    .select('id, id_organisation')
+    .eq('id', userId)
+    .maybeSingle();
   if (profileError) {
     const detail = profileError?.message || profileError?.code || String(profileError);
     return jsonResponse({ error: 'Erreur lecture profil', detail }, 500);
@@ -122,28 +132,21 @@ serve(async (req) => {
 
   const { data: rolesData } = await (adminClient as any).from('utilisateur_role').select('role:role(nom_role)').eq('id_utilisateur', userId);
   const roles = Array.isArray(rolesData) ? rolesData : rolesData ? [rolesData] : [];
-  const hasSystemAdmin = roles.some((r: any) => r?.role?.nom_role === 'admin_systeme');
+  const roleNames = new Set(
+    roles.map((r: any) => r?.role?.nom_role).filter((n: unknown): n is string => typeof n === 'string' && n.length > 0),
+  );
+  const callerOrgId = profile.id_organisation as string | null | undefined;
+  const hasSystemAdmin = roleNames.has('admin_systeme');
+  const canManageThisOrg =
+    callerOrgId === organisationId &&
+    roleNames.has('autorite');
 
-  if (!hasSystemAdmin) {
-    return jsonResponse({ error: 'Rôle administrateur système requis' }, 403);
+  if (!hasSystemAdmin && !canManageThisOrg) {
+    return jsonResponse(
+      { error: 'Droits insuffisants : administrateur système, ou membre Autorité de cette organisation.' },
+      403,
+    );
   }
-
-  function mapInviteRoleToAutoriteEchelon(r: string): number {
-    switch (r) {
-      case 'operateur_saisie':
-        return 1;
-      case 'moderateur':
-        return 2;
-      case 'responsable_ong':
-        return 3;
-      case 'officier_police':
-      case 'agent_gendarmerie':
-        return 4;
-      default:
-        return 1;
-    }
-  }
-  const autoriteEchelon = mapInviteRoleToAutoriteEchelon(role);
 
   const { data: createData, error: createError } = await adminClient.auth.admin.createUser({
     email,
@@ -151,7 +154,8 @@ serve(async (req) => {
     email_confirm: true,
     user_metadata: {
       organisation_id: organisationId,
-      role,
+      role: 'autorite',
+      autorite_echelon: autoriteEchelon,
       created_by_admin: userId,
     },
   });

@@ -57,13 +57,13 @@
 }
 
 .progressStep.active {
-  background: #007bff;
+  background: #0ea5e9;
   color: white;
 }
 
 .progressStep.active span {
   background: white;
-  color: #007bff;
+  color: #0ea5e9;
 }
 
 /* Form Container */
@@ -138,7 +138,7 @@
 .formGroupFull input:focus,
 .formGroupFull textarea:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: #0ea5e9;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
@@ -254,7 +254,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: #007bff;
+  background: #0ea5e9;
   color: white;
   border: none;
   border-radius: 8px;
@@ -265,7 +265,7 @@
 }
 
 .uploadButton:hover {
-  background: #0056b3;
+  background: #0284c7;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
@@ -317,7 +317,7 @@
   bottom: 4px;
   left: 4px;
   padding: 2px 8px;
-  background: #28a745;
+  background: #0ea5e9;
   color: white;
   font-size: 0.7rem;
   border-radius: 4px;
@@ -335,7 +335,7 @@
 .cancelBtn,
 .backBtn {
   padding: 12px 24px;
-  background: #6c757d;
+  background: #64748b;
   color: white;
   border: none;
   border-radius: 8px;
@@ -351,7 +351,7 @@
 
 .nextBtn {
   padding: 12px 32px;
-  background: #007bff;
+  background: #0ea5e9;
   color: white;
   border: none;
   border-radius: 8px;
@@ -361,12 +361,12 @@
 }
 
 .nextBtn:hover {
-  background: #0056b3;
+  background: #0284c7;
 }
 
 .submitBtn {
   padding: 14px 40px;
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: linear-gradient(135deg, #0ea5e9 0%, #20c997 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -401,7 +401,7 @@
 
 .summarySection h3 {
   font-size: 1rem;
-  color: #007bff;
+  color: #0ea5e9;
   margin-bottom: 12px;
 }
 

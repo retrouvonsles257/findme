@@ -15,7 +15,7 @@ import { CitizenLayout } from './CitizenLayout';
 import { useSignalements } from '../../features/signalements/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
 import { Plus, Eye, Bell, BarChart3, CheckCircle, Clock, AlertTriangle, MapPin, BadgeCheck } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './DashboardPage.module.css';
 
 export const CitizenDashboardPage: React.FC = () => {
@@ -30,7 +30,7 @@ export const CitizenDashboardPage: React.FC = () => {
     isLoading: signalementLoading, 
     fetchSignalements 
   } = useSignalements();
-  
+
   const { 
     notifications, 
     unreadCount,

@@ -127,7 +127,7 @@ export class MapService {
     }
 
     if (this.isInitialized) {
-      console.warn('Map already initialized');
+
       return;
     }
 

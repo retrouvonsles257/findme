@@ -103,9 +103,9 @@ export const PreventingPage: React.FC = () => {
                 <div className={styles.icon}>{tip.icon}</div>
                 <h3>{tip.title}</h3>
               </div>
-              
+
               <p className={styles.tipDescription}>{tip.description}</p>
-              
+
               <ul className={styles.detailsList}>
                 {tip.details.map((detail, idx) => (
                   <li key={idx}>{detail}</li>

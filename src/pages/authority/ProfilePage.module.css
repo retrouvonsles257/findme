@@ -54,16 +54,16 @@
 }
 
 .editBtn {
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   color: white;
 }
 
 .editBtn:hover {
-  background: #1e40af;
+  background: #0284c7;
 }
 
 .saveBtn {
-  background: #28a745;
+  background: #0ea5e9;
   color: white;
 }
 
@@ -106,7 +106,7 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,7 +132,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1d4ed8;
+  color: #0ea5e9;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
@@ -190,7 +190,7 @@
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .statLabel {
@@ -263,8 +263,8 @@
 .formGroup select:focus,
 .formGroupFull input:focus {
   outline: none;
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
 }
 
 .formGroup p,
@@ -298,7 +298,7 @@
 }
 
 .preferenceInfo svg {
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .preferenceInfo h4 {
@@ -354,7 +354,7 @@
 }
 
 .switch input:checked + .slider {
-  background-color: #1d4ed8;
+  background-color: #0ea5e9;
 }
 
 .switch input:checked + .slider:before {
@@ -372,7 +372,7 @@
 
 .statusDot.active {
   background: #d1fae5;
-  color: #28a745;
+  color: #0ea5e9;
 }
 
 .languageSelect {
@@ -387,7 +387,7 @@
 
 .languageSelect:focus {
   outline: none;
-  border-color: #1d4ed8;
+  border-color: #0ea5e9;
 }
 
 /* Range Input */
@@ -399,13 +399,13 @@
 
 .rangeInput input[type="range"] {
   width: 120px;
-  accent-color: #1d4ed8;
+  accent-color: #0ea5e9;
 }
 
 .rangeInput span {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1d4ed8;
+  color: #0ea5e9;
   min-width: 50px;
 }
 
@@ -426,7 +426,7 @@
 }
 
 .infoItem svg {
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .changePasswordBtn {
@@ -522,7 +522,7 @@
 }
 
 .passwordFormActions button[type="submit"] {
-  background: #1d4ed8;
+  background: #0ea5e9;
   border: none;
   color: white;
 }
@@ -557,7 +557,7 @@
 .errorContainer button {
   margin-top: 1.5rem;
   padding: 0.75rem 1.5rem;
-  background: #1d4ed8;
+  background: #0ea5e9;
   color: white;
   border: none;
   border-radius: 8px;

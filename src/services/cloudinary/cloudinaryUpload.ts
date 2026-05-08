@@ -245,7 +245,7 @@ export const uploadFromUrl = async (
     formData.append('tags', tags.join(','));
 
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`;
-    
+
     const response = await fetch(uploadUrl, {
       method: 'POST',
       body: formData,
@@ -315,7 +315,7 @@ export const uploadWithTransformation = async (
     const transformationArray = Object.entries(transformation)
       .map(([key, value]) => `${key}_${value}`)
       .join(',');
-    
+
     if (transformationArray) {
       formData.append('eager', transformationArray);
     }
@@ -337,7 +337,7 @@ export const uploadWithTransformation = async (
     );
 
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`;
-    
+
     const xhr = new XMLHttpRequest();
 
     if (onProgress) {
@@ -437,7 +437,7 @@ export const uploadWithRetry = async (
  */
 export const getUploadUrl = (): string => {
   if (!cloudinaryConfig.cloudName) {
-    console.warn('Cloudinary cloud name is not configured');
+
     return '';
   }
 

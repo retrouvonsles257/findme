@@ -86,11 +86,11 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
 
           <h1 className={styles.title}>Vérifiez votre email</h1>
-          
+
           <p className={styles.subtitle}>
             Nous avons envoyé un lien de confirmation à :
           </p>
-          
+
           <p className={styles.emailHighlight}>{email}</p>
 
           <div className={styles.instructionBox}>

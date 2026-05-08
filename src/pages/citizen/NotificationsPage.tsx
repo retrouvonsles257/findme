@@ -16,7 +16,7 @@ import {
   CheckCircle, MessageCircle, Clock, Check, Trash2, Bell, 
   AlertTriangle, Info, CheckCheck, Settings
 } from 'lucide-react';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminListSkeleton } from 'components/skeletons';
 import styles from './NotificationsPage.module.css';
 
 export const CitizenNotificationsPage: React.FC = () => {
@@ -144,7 +144,7 @@ export const CitizenNotificationsPage: React.FC = () => {
               <option value="unread">{t('citizen.unread')} ({unreadCount})</option>
             </select>
           </div>
-          
+
           <div className={styles['notifications__actions-global']}>
             {unreadCount > 0 && (
               <button

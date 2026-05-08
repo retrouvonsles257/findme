@@ -26,12 +26,6 @@ export function useCitizenPushSync(userId: string | undefined, opts: { isGuest?:
     if (!envConfig.ENABLE_PUSH_NOTIFICATIONS || !envConfig.ENABLE_NOTIFICATIONS) return;
     if (!areNotificationsSupported()) return;
 
-    console.info('[useCitizenPushSync] init', {
-      userId: `${String(userId).slice(0, 8)}…`,
-      pushEnabled: envConfig.ENABLE_PUSH_NOTIFICATIONS,
-      notifEnabled: envConfig.ENABLE_NOTIFICATIONS,
-    });
-
     let cancelled = false;
     let unsubForeground: (() => void) | null = null;
 
@@ -53,7 +47,7 @@ export function useCitizenPushSync(userId: string | undefined, opts: { isGuest?:
           );
           return;
         }
-        console.info('[useCitizenPushSync] token_obtenu', { tokenHint: `${token.slice(0, 10)}…${token.slice(-6)}` });
+
         await upsertFcmToken(userId, token);
       } catch (e: any) {
         console.error(
@@ -76,7 +70,6 @@ export function useCitizenPushSync(userId: string | undefined, opts: { isGuest?:
     if (!userId || isGuest) return;
     if (!envConfig.ENABLE_NOTIFICATIONS) return;
 
-    let realtimeOk = false;
     const filter = `id_utilisateur=eq.${userId}`;
     const channel = supabase
       .channel(`citizen-notification-insert:${userId}`)
@@ -88,32 +81,11 @@ export function useCitizenPushSync(userId: string | undefined, opts: { isGuest?:
           table: 'notification',
           filter,
         },
-        (payload) => {
-          console.info('[useCitizenPushSync] realtime INSERT reçu', {
-            id: (payload as any)?.new?.id,
-            type: (payload as any)?.new?.type_notification,
-          });
+        () => {
           void dispatch(fetchNotifications(userId));
         },
       )
-      .subscribe((status) => {
-        console.info('[useCitizenPushSync] realtime_status', { status, userId: `${String(userId).slice(0, 8)}…` });
-        if (status === 'SUBSCRIBED') {
-          realtimeOk = true;
-          console.info('[useCitizenPushSync] Realtime SUBSCRIBED (sync UI uniquement, sans son local).');
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          if (realtimeOk) {
-            console.warn('[useCitizenPushSync] Realtime perdu (pas de polling de secours activé).', status);
-          } else {
-            console.warn(
-              '[useCitizenPushSync] Realtime indisponible — appliquer la migration ' +
-                '20260507_realtime_publication_notification.sql (publication supabase_realtime + RLS SELECT) ' +
-                'puis recharger.',
-              status,
-            );
-          }
-        }
-      });
+      .subscribe(() => {});
 
     return () => {
       void supabase.removeChannel(channel);

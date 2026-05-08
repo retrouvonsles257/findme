@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import { Settings, Save, Loader2, AlertCircle, CheckCircle, Globe, Database, Mail, Bell, Minus, Plus, RefreshCw } from 'lucide-react';
 import styles from './SystemSettingsPage.module.css';
 

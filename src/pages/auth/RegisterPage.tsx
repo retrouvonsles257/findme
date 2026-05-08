@@ -13,6 +13,7 @@ import { selectCurrentUser } from '../../features/users/store/userSelectors';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { supabaseAuthService } from '../../services/supabase/auth';
 import { upgradeAnonymousThunk } from '../../features/auth/store/authThunks';
+import { appConfig } from '../../config/app.config';
 
 import styles from './RegisterPage.module.css';
 
@@ -103,9 +104,7 @@ export const RegisterPage: React.FC = () => {
       setErrors({});
 
       try {
-        console.log('=== INSCRIPTION CITOYEN ===');
-        console.log('Email:', formData.email);
-        
+
         // Appeler directement le service d'auth (comme inscription.js)
         const result = await supabaseAuthService.register({
           email: formData.email,
@@ -121,8 +120,6 @@ export const RegisterPage: React.FC = () => {
           throw new Error('Erreur lors de la création du compte');
         }
 
-        console.log('✓ Inscription réussie pour:', formData.email);
-        
         // Redirect to verify email page
         navigate('/auth/verify-email', {
           state: { email: formData.email },
@@ -183,7 +180,7 @@ export const RegisterPage: React.FC = () => {
 
       try {
         const result = await supabaseAuthService.handleOAuthSignup(provider);
-        
+
         if (result.error) {
           throw new Error(result.error.message);
         }
@@ -201,8 +198,17 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      <div className={styles.container}>
-        {/* Carte formulaire */}
+      <div className={styles.shell}>
+        <header className={styles.brand}>
+          <p className={styles.brandName}>
+            <span className={styles.brandAccent}>Retrouvons</span>{' '}
+            <span>Les</span>
+          </p>
+          <p className={styles.brandTagline}>
+            Signalement, alertes et entraide autour des personnes disparues.
+          </p>
+        </header>
+
         <div className={styles.formCard}>
           {isGuest ? (
             <>
@@ -317,7 +323,7 @@ export const RegisterPage: React.FC = () => {
             <>
           <h1 className={styles.title}>Créer un compte</h1>
           <p className={styles.subtitle}>
-            Rejoignez le réseau national Retrouvons-Les et contribuez à redonner espoir aux familles.
+            Un compte gratuit vous permet d’enregistrer vos signalements et de recevoir les alertes près de chez vous.
           </p>
 
           <form onSubmit={handleRegister} className={styles.form}>
@@ -422,12 +428,28 @@ export const RegisterPage: React.FC = () => {
                 Au moins 8 caractères
               </div>
               <div className={styles.hint}>
-                <span className={/[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) ? styles.valid : ''}>✓</span>
-                Lettres et chiffres
+                <span
+                  className={
+                    /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) && /\d/.test(formData.password)
+                      ? styles.valid
+                      : ''
+                  }
+                >
+                  ✓
+                </span>
+                Majuscules, minuscules et au moins un chiffre (recommandé)
               </div>
               <div className={styles.hint}>
-                <span className={formData.password ? styles.valid : ''}>✓</span>
-                Sécurité et crypté
+                <span
+                  className={
+                    formData.passwordConfirm.length > 0 && formData.password === formData.passwordConfirm
+                      ? styles.valid
+                      : ''
+                  }
+                >
+                  ✓
+                </span>
+                Les deux mots de passe identiques
               </div>
             </div>
 
@@ -482,43 +504,24 @@ export const RegisterPage: React.FC = () => {
               Déjà un compte ? <Link to="/auth/login" className={styles.link}>Se connecter</Link>
             </p>
             <p className={styles.terms}>
-              En créant un compte, vous acceptez nos{' '}
-              <Link to="/terms" className={styles.link}>Conditions d'utilisation</Link> et notre{' '}
-              <Link to="/privacy" className={styles.link}>Politique de confidentialité</Link>
+              En créant un compte, vous acceptez les{' '}
+              <a href={appConfig.termsUrl} className={styles.link} target="_blank" rel="noopener noreferrer">
+                conditions d’utilisation
+              </a>{' '}
+              et la{' '}
+              <a href={appConfig.privacyUrl} className={styles.link} target="_blank" rel="noopener noreferrer">
+                politique de confidentialité
+              </a>
+              .
             </p>
           </div>
             </>
           )}
         </div>
 
-        {/* Carte bleue */}
-        <div className={styles.blueCard}>
-          <div className={styles.badge}>Solidarité Nationale</div>
-          <h2 className={styles.blueTitle}>Chaque paire d'yeux compte.</h2>
-          <p className={styles.blueText}>
-            Rejoignez des milliers de citoyens engagés dans la recherche de personnes disparues.
-          </p>
-          <ul className={styles.features}>
-            <li>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16.667 5L7.5 14.167 3.333 10" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Alertes locales en temps réel
-            </li>
-            <li>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16.667 5L7.5 14.167 3.333 10" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Contribuez aux recherches
-            </li>
-            <li>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16.667 5L7.5 14.167 3.333 10" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Protection des données garantie
-            </li>
-          </ul>
-        </div>
+        <p className={styles.trustNote}>
+          Vos données sont traitées conformément à notre politique de confidentialité.
+        </p>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { User } from '../../../@types/auth.types';
 import { useI18n } from '../../../hooks';
 
-import styles from './HeaderAdminOrganisation.module.css';
+import styles from './HeaderSuperAdmin.module.css';
 
 export interface HeaderSuperAdminProps {
   currentUser?: User | null;

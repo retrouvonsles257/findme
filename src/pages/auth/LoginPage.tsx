@@ -12,7 +12,7 @@ import { loginThunk, signInAnonymousThunk } from '../../features/auth/store/auth
 import { useI18n } from '../../hooks';
 import { LoginCredentials } from '../../@types/auth.types';
 import styles from './LoginPage.module.css';
-import { getDashboardPathAfterLogin } from '../../services/supabase/auth';
+import { getDashboardPathAfterLogin, supabaseAuthService } from '../../services/supabase/auth';
 import { safeCitizenNextPath } from '../../utils/safeCitizenNext';
 import {
   canAttemptAnonymousSignIn,
@@ -45,7 +45,7 @@ export const LoginPage: React.FC = () => {
     const safe = safeCitizenNextPath(raw, '__invalid__');
     return safe.startsWith('/citizen/') ? safe : null;
   }, [searchParams]);
-  
+
   // Get success message from location state
   const locationState = location.state as LocationState | null;
   const successMessage = locationState?.message;
@@ -118,7 +118,7 @@ export const LoginPage: React.FC = () => {
 
       // Empêcher les soumissions multiples
       if (isLoading) {
-        console.log('[LoginPage] Already logging in, ignoring duplicate submission');
+
         return;
       }
 
@@ -131,28 +131,21 @@ export const LoginPage: React.FC = () => {
 
       try {
         const result = (await dispatch(loginThunk(credentials))) as any;
-        console.log('[LoginPage] Login result:', result);
-        console.log('[LoginPage] Result type:', result?.type);
-        console.log('[LoginPage] Result payload:', result?.payload);
-        
+
         if (!result?.type?.endsWith('/fulfilled')) {
           throw result?.payload || new Error('Connexion échouée');
         }
 
         // Redirection immédiate après succès du login
         const userRole = result.payload?.user?.role as string | undefined;
-        console.log('[LoginPage] User role from payload:', userRole);
-        console.log('[LoginPage] Full payload user:', result.payload?.user);
 
         const orgId = result.payload?.user?.organisation_id ?? null;
         const dashboardUrl = getDashboardPathAfterLogin(userRole || 'citoyen', orgId);
         const target = citizenDeepLinkFromQuery ?? dashboardUrl;
-        console.log('[LoginPage] Dashboard URL:', dashboardUrl);
-        console.log('[LoginPage] About to navigate to:', target);
 
         // Attendre un court instant pour que Redux termine la mise à jour
         setTimeout(() => {
-          console.log('[LoginPage] Navigating now to:', target);
+
           navigate(target, { replace: true });
         }, 100);
       } catch (error: any) {
@@ -201,14 +194,47 @@ export const LoginPage: React.FC = () => {
     }
   }, [dispatch, isLoading, navigate, citizenDeepLinkFromQuery, t]);
 
+  const handleOAuthLogin = useCallback(
+    async (provider: 'google' | 'facebook') => {
+      if (isLoading) return;
+      setIsLoading(true);
+      setErrors({});
+      try {
+        const result = await supabaseAuthService.handleOAuthSignup(provider);
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+        // signInWithOAuth redirige le navigateur vers Google/Facebook
+      } catch (error: unknown) {
+        setErrors({
+          general:
+            error instanceof Error
+              ? error.message
+              : `Connexion ${provider} impossible. Réessayez ou utilisez e-mail / mot de passe.`,
+        });
+        setIsLoading(false);
+      }
+    },
+    [isLoading],
+  );
+
   return (
     <div className={styles.pageWrapper}>
-      <div className={styles.container}>
-        {/* Carte formulaire */}
+      <div className={styles.shell}>
+        <header className={styles.brand}>
+          <p className={styles.brandName}>
+            <span className={styles.brandAccent}>Retrouvons</span>{' '}
+            <span>Les</span>
+          </p>
+          <p className={styles.brandTagline}>
+            Plateforme de signalement et d’entraide pour les personnes disparues.
+          </p>
+        </header>
+
         <div className={styles.formCard}>
           <h1 className={styles.title}>Connexion</h1>
           <p className={styles.subtitle}>
-            Connectez-vous pour continuer les recherches et aider la communauté.
+            Accédez à votre espace sécurisé avec votre adresse e-mail ou un compte social.
           </p>
 
           <form onSubmit={handleLogin} className={styles.form}>
@@ -334,7 +360,12 @@ export const LoginPage: React.FC = () => {
 
             {/* Boutons OAuth */}
             <div className={styles.oauthButtons}>
-              <button type="button" className={styles.oauthButton} disabled={isLoading}>
+              <button
+                type="button"
+                className={styles.oauthButton}
+                disabled={isLoading}
+                onClick={() => void handleOAuthLogin('google')}
+              >
                 <svg width="18" height="18" viewBox="0 0 18 18">
                   <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
                   <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" />
@@ -343,7 +374,12 @@ export const LoginPage: React.FC = () => {
                 </svg>
                 Google
               </button>
-              <button type="button" className={styles.oauthButton} disabled={isLoading}>
+              <button
+                type="button"
+                className={styles.oauthButton}
+                disabled={isLoading}
+                onClick={() => void handleOAuthLogin('facebook')}
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
@@ -355,20 +391,17 @@ export const LoginPage: React.FC = () => {
           {/* Footer */}
           <div className={styles.footer}>
             <p>
-              Pas encore de compte ? <Link to="/auth/register" className={styles.link}>Créer un compte</Link>
+              Pas encore de compte ?{' '}
+              <Link to="/auth/register" className={styles.link}>
+                Créer un compte
+              </Link>
             </p>
           </div>
         </div>
 
-        {/* Carte bleue */}
-        <div className={styles.blueCard}>
-          <div className={styles.badge}>Réseau Actif</div>
-          <h2 className={styles.blueTitle}>Ensemble, ne laissons personne derrière.</h2>
-          <p className={styles.blueText}>
-            Rejoignez le réseau national de recherche et contribuez à redonner espoir aux familles. 
-            Chaque minute compte, chaque contribution peut sauver une vie.
-          </p>
-        </div>
+        <p className={styles.trustNote}>
+          Connexion chiffrée. Ne partagez jamais votre mot de passe.
+        </p>
       </div>
     </div>
   );

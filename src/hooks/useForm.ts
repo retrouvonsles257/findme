@@ -42,7 +42,7 @@ export const useForm = <T extends UseFormState>(
   ) => {
     const { name, value, type } = e.target as any;
     const fieldValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-    
+
     setValues((prev) => ({
       ...prev,
       [name]: fieldValue,
@@ -67,7 +67,7 @@ export const useForm = <T extends UseFormState>(
   const handleSubmit = useCallback(
     (onSubmit: (values: T) => Promise<void> | void) => async (e: React.FormEvent) => {
       e.preventDefault();
-      
+
       if (validate) {
         const validationErrors = validate(values);
         setErrors(validationErrors);

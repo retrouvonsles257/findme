@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import { 
   Megaphone, Calendar, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, MapPin, CheckCircle, Download
@@ -46,20 +46,20 @@ type StatutCampagne = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
 
 export const SuperAdminCampagnesPage: React.FC = () => {
   const { t } = useI18n();
-  
+
   const [campagnes, setCampagnes] = useState<Campagne[]>([]);
   const [organisations, setOrganisations] = useState<{ id: string; nom: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedCampagne, setSelectedCampagne] = useState<Campagne | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Form state - TOUS les champs du modèle SQL
   const [formData, setFormData] = useState({
     titre: '',
@@ -308,7 +308,7 @@ export const SuperAdminCampagnesPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger toutes les campagnes (sans filtres pour l'export complet)
       let query = (supabase as any)
         .from('campagne_sensibilisation')
@@ -328,7 +328,7 @@ export const SuperAdminCampagnesPage: React.FC = () => {
         'Contenu campagne', 'Statut', 'Nombre personnes touchées', 'Nombre interactions',
         'Budget alloué', 'Budget dépensé', 'Organisation', 'Créateur', 'Date création'
       ];
-      
+
       const rows = (allCampagnes || []).map((c: any) => [
         c.id,
         c.titre,

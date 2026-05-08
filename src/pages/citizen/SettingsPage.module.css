@@ -55,7 +55,7 @@
 .settings__success {
   background: #f0fdf4;
   border: 1px solid #86efac;
-  color: #16a34a;
+  color: #0284c7;
 }
 
 /* Section */
@@ -77,7 +77,7 @@
 }
 
 .settings__section-header svg {
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .settings__section-header h2 {
@@ -173,7 +173,7 @@
 }
 
 .settings__toggle input:checked + .settings__toggle-slider {
-  background: #1d4ed8;
+  background: #0ea5e9;
 }
 
 .settings__toggle input:checked + .settings__toggle-slider::before {
@@ -181,7 +181,7 @@
 }
 
 .settings__toggle input:focus + .settings__toggle-slider {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.20);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.24);
 }
 
 /* Select */
@@ -199,8 +199,8 @@
 
 .settings__select:focus {
   outline: none;
-  border-color: #1d4ed8;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 /* Slider */
@@ -227,7 +227,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #1d4ed8;
+  background: #0ea5e9;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.20);
   transition: transform 0.2s ease;
@@ -242,7 +242,7 @@
   height: 18px;
   border: none;
   border-radius: 50%;
-  background: #1d4ed8;
+  background: #0ea5e9;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.20);
 }
@@ -252,7 +252,7 @@
   text-align: right;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 /* Zones d'intérêt */
@@ -305,13 +305,13 @@
 }
 
 .settings__save-btn {
-  background: #1d4ed8;
+  background: #0ea5e9;
   color: #ffffff;
 }
 
 .settings__save-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: #1e40af;
+  background: #0284c7;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
 }
 

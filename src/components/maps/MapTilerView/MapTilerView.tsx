@@ -122,7 +122,7 @@ export const MapTilerView: React.FC<MapTilerViewProps> = ({
       const el = document.createElement('div');
       el.className = styles.customMarker;
       el.style.backgroundColor = markerColors[markerData.type] || '#1d4ed8';
-      
+
       // Add inner dot
       const dot = document.createElement('div');
       dot.className = styles.markerDot;

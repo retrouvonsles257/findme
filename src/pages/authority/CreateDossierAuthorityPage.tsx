@@ -81,7 +81,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
-  
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
@@ -258,7 +258,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     if (!files || files.length === 0) return;
 
     setPhotoUploading(true);
-    
+
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
         const formData = new FormData();
@@ -275,14 +275,14 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
         );
 
         if (!response.ok) throw new Error('Upload failed');
-        
+
         const data = await response.json();
         return data.secure_url;
       });
 
       const urls = await Promise.all(uploadPromises);
       setUploadedPhotos(prev => [...prev, ...urls]);
-      
+
       addNotification({
         title: t('authority.createDossier.messages.photosUploaded'),
         message: `${urls.length} ${urls.length === 1 ? t('authority.createDossier.messages.photoAdded') : t('authority.createDossier.messages.photosAdded')}`,
@@ -440,7 +440,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
 
       // 3. Créer le dossier de disparition
       const numeroDossier = `DOS-${Date.now().toString(36).toUpperCase()}`;
-      
+
       const { data: dossierCreated, error: dossierError } = await (supabase as any)
         .from('dossier_disparition')
         .insert({
@@ -473,15 +473,14 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
 
       // 4. Déclencher l'analyse IA automatique si une photo a été uploadée
       if (uploadedPhotos.length > 0) {
-        console.log('[CreateDossier] Déclenchement analyse IA automatique...');
+
         try {
           const iaResult = await triggerDossierAnalysis(
             dossierCreated.id,
             uploadedPhotos[0], // Photo principale
             user.id
           );
-          console.log('[CreateDossier] Résultat IA:', iaResult);
-          
+
           if (iaResult.success && iaResult.faceDetected) {
             addNotification({
               title: 'Analyse IA effectuée',
@@ -490,7 +489,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
             });
           }
         } catch (iaError) {
-          console.warn('[CreateDossier] Erreur analyse IA (non bloquante):', iaError);
+
           // L'erreur IA ne bloque pas la création du dossier
         }
       }
@@ -575,7 +574,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
           {step === 1 && (
             <div className={styles.formSection}>
               <h2><User size={20} /> {t('authority.createDossier.step1.title')}</h2>
-              
+
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label>{t('authority.createDossier.step1.lastName')}</label>
@@ -698,7 +697,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                     {photoUploading ? <><Loader2 size={16} className={styles.spinner} /> {t('authority.createDossier.step1.uploading')}</> : <><FolderPlus size={16} /> {t('authority.createDossier.step1.addPhotos')}</>}
                   </label>
                 </div>
-                
+
                 {uploadedPhotos.length > 0 && (
                   <div className={styles.photoGrid}>
                     {uploadedPhotos.map((url, index) => (
@@ -730,7 +729,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
           {step === 2 && (
             <div className={styles.formSection}>
               <h2><MapPin size={20} /> {t('authority.createDossier.step2.title')}</h2>
-              
+
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label>{t('authority.createDossier.step2.urgency')}</label>
@@ -971,7 +970,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                   {submitError}
                 </div>
               )}
-              
+
               <div className={styles.summary}>
                 <div className={styles.summarySection}>
                   <h3><User size={16} /> {t('authority.createDossier.step3.person')}</h3>

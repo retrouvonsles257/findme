@@ -3,13 +3,13 @@
    =================================================================== */
 
 :root {
-  --sa-primary: #1d4ed8;
-  --sa-primary-light: rgba(30, 144, 255, 0.92);
-  --sa-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sa-primary: #0ea5e9;
+  --sa-primary-light: rgba(14, 165, 233, 0.92);
+  --sa-font: var(--font-family, inherit);
 }
 
 .sa-roles {
-  font-family: var(--sa-font);
+  
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
@@ -36,7 +36,7 @@
 }
 
 .sa-roles__search input {
-  font-family: var(--sa-font);
+  
   border: none;
   outline: none;
   font-size: 0.875rem;
@@ -46,7 +46,7 @@
 .sa-roles__search svg { color: #9ca3af; }
 
 .sa-roles__add-btn {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -63,7 +63,7 @@
 
 .sa-roles__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(29, 78, 216, 0.3);
+  box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
 }
 
 .sa-roles__error {
@@ -137,7 +137,7 @@
 }
 
 .sa-roles__card:hover {
-  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.14);
   border-color: var(--sa-primary-light);
 }
 
@@ -161,8 +161,8 @@
 .sa-roles__card-icon--purple { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
 .sa-roles__card-icon--red { background: linear-gradient(135deg, #dc2626, #ef4444); }
 .sa-roles__card-icon--orange { background: linear-gradient(135deg, #ea580c, #f97316); }
-.sa-roles__card-icon--blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-.sa-roles__card-icon--green { background: linear-gradient(135deg, #16a34a, #22c55e); }
+.sa-roles__card-icon--blue { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+.sa-roles__card-icon--green { background: linear-gradient(135deg, #0284c7, #0ea5e9); }
 .sa-roles__card-icon--gray { background: linear-gradient(135deg, #6b7280, #9ca3af); }
 
 .sa-roles__badge-img {
@@ -185,7 +185,7 @@
 }
 
 .sa-roles__niveau {
-  font-family: var(--sa-font);
+  
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.75rem;
@@ -195,12 +195,12 @@
 .sa-roles__niveau--purple { background: #f3e8ff; color: #7c3aed; }
 .sa-roles__niveau--red { background: #fee2e2; color: #dc2626; }
 .sa-roles__niveau--orange { background: #ffedd5; color: #ea580c; }
-.sa-roles__niveau--blue { background: #dbeafe; color: #2563eb; }
-.sa-roles__niveau--green { background: #dcfce7; color: #16a34a; }
+.sa-roles__niveau--blue { background: #e0f2fe; color: #0ea5e9; }
+.sa-roles__niveau--green { background: #e0f2fe; color: #0284c7; }
 .sa-roles__niveau--gray { background: #f3f4f6; color: #6b7280; }
 
 .sa-roles__card-title {
-  font-family: var(--sa-font);
+  
   font-size: 1.125rem;
   font-weight: 700;
   color: #1f2937;
@@ -208,7 +208,7 @@
 }
 
 .sa-roles__card-description {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0 0 1rem 0;
@@ -223,7 +223,7 @@
 }
 
 .sa-roles__info-item {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -283,7 +283,7 @@
 }
 
 .sa-roles__delete-confirm p {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #dc2626;
   margin: 0 0 0.5rem 0;
@@ -344,7 +344,7 @@
 }
 
 .sa-roles__modal-header h2 {
-  font-family: var(--sa-font);
+  
   font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
@@ -380,7 +380,7 @@
 }
 
 .sa-roles__form-field label {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
@@ -388,7 +388,7 @@
 
 .sa-roles__form-field input,
 .sa-roles__form-field textarea {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid #e5e7eb;
@@ -403,7 +403,7 @@
 }
 
 .sa-roles__niveau-hint {
-  font-family: var(--sa-font);
+  
   font-size: 0.75rem;
   color: #9ca3af;
   margin-top: 0.25rem;
@@ -418,7 +418,7 @@
 }
 
 .sa-roles__modal-footer button {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -447,7 +447,7 @@
 }
 
 .sa-roles__modal-footer button[type="submit"]:hover {
-  background: #1e40af;
+  background: #0284c7;
 }
 
 .sa-roles__modal-footer button:disabled {
@@ -462,7 +462,7 @@
 }
 
 .sa-roles__users-title {
-  font-family: var(--sa-font);
+  
   font-size: 1rem;
   font-weight: 600;
   color: #1f2937;
@@ -481,7 +481,7 @@
 
 .sa-roles__users-loading,
 .sa-roles__users-empty {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0;
@@ -499,7 +499,7 @@
 }
 
 .sa-roles__user-card {
-  font-family: var(--sa-font);
+  
   padding: 0.75rem 1rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;

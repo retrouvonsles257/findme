@@ -16,7 +16,7 @@ import { usePerformanceMetrics } from '../../features/statistiques/hooks/usePerf
 import { exportStatistics } from '../../features/statistiques/services/statistiqueAPI';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import {
   BarChart2,
   FolderOpen,
@@ -91,7 +91,7 @@ export const StatistiquesPage: React.FC = () => {
         { label: t('authority.dossiers.urgency.critique'), count: 0, color: '#dc3545', icon: AlertTriangle },
         { label: t('authority.dossiers.urgency.urgent'), count: 0, color: '#fd7e14', icon: Zap },
         { label: t('authority.dossiers.urgency.normal'), count: 0, color: '#ffc107', icon: Minus },
-        { label: t('authority.dossiers.urgency.faible'), count: 0, color: '#28a745', icon: CheckCircle },
+        { label: t('authority.dossiers.urgency.faible'), count: 0, color: '#0ea5e9', icon: CheckCircle },
       ];
     }
 
@@ -106,7 +106,7 @@ export const StatistiquesPage: React.FC = () => {
       { label: t('authority.dossiers.urgency.critique'), count: urgenceCounts.critique, color: '#dc3545', icon: AlertTriangle },
       { label: t('authority.dossiers.urgency.urgent'), count: urgenceCounts.urgent, color: '#fd7e14', icon: Zap },
       { label: t('authority.dossiers.urgency.normal'), count: urgenceCounts.normal, color: '#ffc107', icon: Minus },
-      { label: t('authority.dossiers.urgency.faible'), count: urgenceCounts.faible, color: '#28a745', icon: CheckCircle },
+      { label: t('authority.dossiers.urgency.faible'), count: urgenceCounts.faible, color: '#0ea5e9', icon: CheckCircle },
     ];
   })();
 
@@ -117,7 +117,7 @@ export const StatistiquesPage: React.FC = () => {
       percent: stats.totalDossiers > 0 
         ? Math.round((stats.dossierRetrouves / stats.totalDossiers) * 100) 
         : 0,
-      color: '#22c55e',
+      color: '#0ea5e9',
     },
     { 
       status: t('authority.dossiers.status.en_cours'),
@@ -125,7 +125,7 @@ export const StatistiquesPage: React.FC = () => {
       percent: stats.totalDossiers > 0 
         ? Math.round((stats.dossierActifs / stats.totalDossiers) * 100) 
         : 0,
-      color: '#1d4ed8',
+      color: '#0ea5e9',
     },
     { 
       status: t('authority.dossiers.status.suspendu'),
@@ -204,7 +204,7 @@ export const StatistiquesPage: React.FC = () => {
             {/* Key Metrics */}
             <div className={styles.metrics}>
               <div className={styles.metricCard}>
-                <div className={styles.metricIconWrapper} style={{ background: 'linear-gradient(135deg, #1d4ed8, rgba(30, 144, 255, 0.92))' }}>
+                <div className={styles.metricIconWrapper} style={{ background: 'linear-gradient(135deg, #0ea5e9, rgba(14, 165, 233, 0.92))' }}>
                   <FolderOpen size={24} />
                 </div>
                 <div className={styles.metricContent}>
@@ -224,7 +224,7 @@ export const StatistiquesPage: React.FC = () => {
               </div>
 
               <div className={styles.metricCard}>
-                <div className={styles.metricIconWrapper} style={{ background: 'linear-gradient(135deg, #22c55e, #4ade80)' }}>
+                <div className={styles.metricIconWrapper} style={{ background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)' }}>
                   <CheckCircle size={24} />
                 </div>
                 <div className={styles.metricContent}>
@@ -262,7 +262,7 @@ export const StatistiquesPage: React.FC = () => {
                               className={styles.bar}
                               style={{ 
                                 height: `${Math.min((data.dossiers / Math.max(...trendData.map(d => d.dossiers), 1)) * 100, 100)}%`, 
-                                background: 'linear-gradient(to top, #1d4ed8, #60a5fa)'
+                                background: 'linear-gradient(to top, #0ea5e9, #38bdf8)'
                               }}
                               title={`${data.dossiers} ${t('authority.statistiques.tooltips.dossiersSuffix')}`}
                             />
@@ -272,7 +272,7 @@ export const StatistiquesPage: React.FC = () => {
                               className={styles.bar}
                               style={{ 
                                 height: `${Math.min((data.retrouves / Math.max(...trendData.map(d => d.dossiers), 1)) * 100, 100)}%`, 
-                                background: 'linear-gradient(to top, #22c55e, #4ade80)'
+                                background: 'linear-gradient(to top, #0ea5e9, #38bdf8)'
                               }}
                               title={`${data.retrouves} ${t('authority.statistiques.tooltips.foundSuffix')}`}
                             />
@@ -289,11 +289,11 @@ export const StatistiquesPage: React.FC = () => {
                   </div>
                   <div className={styles.legend}>
                     <span className={styles.legendItem}>
-                      <span className={styles.dot} style={{ background: 'linear-gradient(135deg, #1d4ed8, #60a5fa)' }} />
+                      <span className={styles.dot} style={{ background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)' }} />
                       {t('authority.statistiques.legend.dossiers')}
                     </span>
                     <span className={styles.legendItem}>
-                      <span className={styles.dot} style={{ background: 'linear-gradient(135deg, #22c55e, #4ade80)' }} />
+                      <span className={styles.dot} style={{ background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)' }} />
                       {t('authority.statistiques.legend.found')}
                     </span>
                   </div>
@@ -421,7 +421,7 @@ export const StatistiquesPage: React.FC = () => {
               </div>
               <div className={styles.performanceGrid}>
                 <div className={styles.performanceItem}>
-                  <div className={styles.performanceIcon} style={{ backgroundColor: '#dcfce7', color: '#22c55e' }}>
+                  <div className={styles.performanceIcon} style={{ backgroundColor: '#e0f2fe', color: '#0ea5e9' }}>
                     <ArrowUp size={20} />
                   </div>
                   <div className={styles.performanceContent}>
@@ -432,7 +432,7 @@ export const StatistiquesPage: React.FC = () => {
                   </div>
                 </div>
                 <div className={styles.performanceItem}>
-                  <div className={styles.performanceIcon} style={{ backgroundColor: '#dbeafe', color: '#1d4ed8' }}>
+                  <div className={styles.performanceIcon} style={{ backgroundColor: '#e0f2fe', color: '#0ea5e9' }}>
                     <TrendingUp size={20} />
                   </div>
                   <div className={styles.performanceContent}>

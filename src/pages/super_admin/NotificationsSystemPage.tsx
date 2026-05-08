@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   Bell, Filter, Loader2, AlertCircle, ChevronLeft, ChevronRight, 
   Download, X, Eye, CheckCircle, Mail, Smartphone, MessageSquare
@@ -53,7 +53,7 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  
+
   // Filtres
   const [filterType, setFilterType] = useState<string>('');
   const [filterCanal, setFilterCanal] = useState<string>('');
@@ -71,7 +71,7 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
       if (filterCanal) countQuery = countQuery.eq('canal', filterCanal);
       if (filterStatut) countQuery = countQuery.eq('statut_envoi', filterStatut);
       if (filterLue !== '') countQuery = countQuery.eq('lue', filterLue === 'true');
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -145,7 +145,7 @@ export const SuperAdminNotificationsSystemPage: React.FC = () => {
       n.utilisateur?.email || '-',
       n.dossier?.numero_dossier || '-',
     ]);
-    
+
     const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

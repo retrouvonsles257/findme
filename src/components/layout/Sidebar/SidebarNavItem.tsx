@@ -41,12 +41,12 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
           alignItems: 'center',
           gap: '0.75rem',
           padding: '0.75rem 1rem',
-          color: isActive ? '#2563eb' : '#6b7280',
+          color: isActive ? '#0ea5e9' : '#6b7280',
           backgroundColor: isActive ? '#eff6ff' : 'transparent',
           textDecoration: 'none',
           fontSize: '0.875rem',
           fontWeight: isActive ? '600' : '500',
-          borderLeft: isActive ? '4px solid #2563eb' : '4px solid transparent',
+          borderLeft: isActive ? '4px solid #0ea5e9' : '4px solid transparent',
           transition: 'all 0.2s ease',
           cursor: 'pointer',
         }}
@@ -92,7 +92,7 @@ export const SidebarNavItem: React.FC<SidebarNavItemProps> = ({
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.color = '#2563eb';
+                (e.currentTarget as HTMLAnchorElement).style.color = '#0ea5e9';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.color = '#6b7280';

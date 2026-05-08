@@ -62,7 +62,7 @@
 }
 
 .dashboard__stat-card:hover {
-  border-color: #1d4ed8;
+  border-color: #0ea5e9;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
   transform: translateY(-2px);
 }
@@ -81,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1d4ed8;
+  color: #0ea5e9;
   flex-shrink: 0;
 }
 
@@ -134,25 +134,25 @@
 }
 
 .dashboard__action-card:hover {
-  border-color: #1d4ed8;
+  border-color: #0ea5e9;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
   transform: translateY(-2px);
 }
 
 .dashboard__action-card--primary {
-  background: #1d4ed8;
+  background: #0ea5e9;
   border-color: transparent;
   color: #ffffff;
 }
 
 .dashboard__action-card--primary:hover {
-  background: #1e40af;
+  background: #0284c7;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
   transform: translateY(-4px);
 }
 
 .dashboard__action-icon {
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 .dashboard__action-card--primary .dashboard__action-icon {
@@ -212,7 +212,7 @@
 
 .dashboard__loading-spin {
   animation: spin 1s linear infinite;
-  color: #1d4ed8;
+  color: #0ea5e9;
 }
 
 @keyframes spin {

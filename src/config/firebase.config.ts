@@ -88,7 +88,7 @@ const TOKEN_EXPIRATION_DAYS = 60; // FCM tokens typically expire after ~60 days
  */
 export const initializeFirebase = async (): Promise<boolean> => {
   if (isFirebaseInitialized) {
-    console.log('[Firebase] Déjà initialisé');
+
     return true;
   }
 
@@ -101,25 +101,18 @@ export const initializeFirebase = async (): Promise<boolean> => {
 
     // Initialiser l'app Firebase
     firebaseApp = initializeApp(firebaseConfig);
-    console.log('[Firebase] App initialisée');
 
     // Vérifier si les notifications sont supportées
     const messagingSupported = await isSupported();
-    
+
     if (messagingSupported) {
-      // Initialiser Messaging
       messaging = getMessaging(firebaseApp);
-      console.log('[Firebase] Messaging initialisé');
-    } else {
-      console.warn('[Firebase] Messaging non supporté sur ce navigateur');
     }
 
-    // Initialiser Analytics si disponible
     try {
       analytics = getAnalytics(firebaseApp);
-      console.log('[Firebase] Analytics initialisé');
-    } catch (error) {
-      console.warn('[Firebase] Analytics non disponible:', error);
+    } catch {
+      void 0;
     }
 
     isFirebaseInitialized = true;
@@ -181,15 +174,15 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     }
 
     const permission = await Notification.requestPermission();
-    
+
     if (permission === 'granted') {
-      console.log('[Firebase] Permission notifications accordée');
+
       return true;
     } else if (permission === 'denied') {
-      console.warn('[Firebase] Permission notifications refusée');
+
       return false;
     } else {
-      console.warn('[Firebase] Permission notifications en attente');
+
       return false;
     }
   } catch (error) {
@@ -215,7 +208,7 @@ export const getFCMToken = async (): Promise<string | null> => {
 
     // Vérifier le cache et l'expiration
     if (cachedFCMToken && tokenExpirationTime && Date.now() < tokenExpirationTime) {
-      console.log('[Firebase] Token FCM du cache');
+
       return cachedFCMToken;
     }
 
@@ -229,7 +222,7 @@ export const getFCMToken = async (): Promise<string | null> => {
 
     const swReg = await registerMessagingServiceWorker();
     if (!swReg) {
-      console.warn('[Firebase] Pas de service worker FCM');
+
       return null;
     }
 
@@ -242,14 +235,13 @@ export const getFCMToken = async (): Promise<string | null> => {
       // Mettre en cache le token
       cachedFCMToken = token;
       tokenExpirationTime = Date.now() + (TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
-      
+
       // Stocker de manière sécurisée
       storeTokenSecurely(token);
-      
-      console.log('[Firebase] Token FCM obtenu:', token.substring(0, 20) + '...');
+
       return token;
     } else {
-      console.warn('[Firebase] Impossible d\'obtenir le token FCM');
+
       return null;
     }
   } catch (error) {
@@ -270,8 +262,8 @@ const storeTokenSecurely = (token: string): void => {
       // Fallback sur localStorage
       localStorage.setItem(TOKEN_STORAGE_KEY, token);
     }
-  } catch (error) {
-    console.warn('[Firebase] Impossible de stocker le token:', error);
+  } catch {
+    void 0;
   }
 };
 
@@ -287,7 +279,7 @@ export const getStoredToken = (): string | null => {
     }
     return null;
   } catch (error) {
-    console.warn('[Firebase] Impossible de récupérer le token stocké:', error);
+
     return null;
   }
 };
@@ -303,11 +295,11 @@ export const deleteFCMToken = async (): Promise<boolean> => {
     }
 
     await deleteToken(messaging);
-    
+
     // Nettoyer le cache
     cachedFCMToken = null;
     tokenExpirationTime = null;
-    
+
     // Supprimer du stockage
     try {
       if (typeof sessionStorage !== 'undefined') {
@@ -316,11 +308,10 @@ export const deleteFCMToken = async (): Promise<boolean> => {
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(TOKEN_STORAGE_KEY);
       }
-    } catch (error) {
-      console.warn('[Firebase] Erreur suppression du stockage:', error);
+    } catch {
+      void 0;
     }
-    
-    console.log('[Firebase] Token FCM supprimé');
+
     return true;
   } catch (error) {
     console.error('[Firebase] Erreur suppression token:', error);
@@ -343,7 +334,7 @@ export const onForegroundMessage = (callback: NotificationCallback): (() => void
   }
 
   const unsubscribe = onMessage(messaging, (payload) => {
-    console.log('[Firebase] Message reçu en foreground:', payload);
+
     callback(payload);
   });
 
@@ -392,9 +383,6 @@ export const showNotificationFromFcmPayload = (payload: MessagePayload): void =>
     return;
   }
   if (Notification.permission !== 'granted') {
-    console.warn(
-      '[Firebase] Notification navigateur non affichée : permission ≠ granted (paramètres du site → Notifications).',
-    );
     return;
   }
   const n = payload.notification;
@@ -471,7 +459,7 @@ export const NOTIFICATION_TOPICS: Record<string, NotificationTopic> = {
     name: 'regional_alerts',
     description: 'Alertes de votre région',
   },
-  
+
   // Personnes et filiation
   FOUND_PERSONS: {
     name: 'found_persons',
@@ -481,7 +469,7 @@ export const NOTIFICATION_TOPICS: Record<string, NotificationTopic> = {
     name: 'filiation_matches',
     description: 'Correspondances de filiation trouvées',
   },
-  
+
   // Analyse IA
   IA_ANALYSIS_RESULTS: {
     name: 'ia_analysis_results',
@@ -491,7 +479,7 @@ export const NOTIFICATION_TOPICS: Record<string, NotificationTopic> = {
     name: 'facial_recognition_matches',
     description: 'Correspondances de reconnaissance faciale',
   },
-  
+
   // Organisations et utilisateurs
   ORGANISATION_UPDATES: {
     name: 'organisation_updates',
@@ -501,7 +489,7 @@ export const NOTIFICATION_TOPICS: Record<string, NotificationTopic> = {
     name: 'user_verification',
     description: 'Notifications de vérification de compte',
   },
-  
+
   // Campagnes et dons
   CAMPAIGN_UPDATES: {
     name: 'campaign_updates',
@@ -511,7 +499,7 @@ export const NOTIFICATION_TOPICS: Record<string, NotificationTopic> = {
     name: 'donation_notifications',
     description: 'Notifications de donation et financement',
   },
-  
+
   // Système
   SYSTEM_UPDATES: {
     name: 'system_updates',
@@ -549,7 +537,7 @@ export const logAnalyticsEvent = (
   eventParams?: Record<string, any>
 ): void => {
   if (!analytics) {
-    console.warn('[Firebase] Analytics non initialisé');
+
     return;
   }
 
@@ -558,7 +546,7 @@ export const logAnalyticsEvent = (
     import('firebase/analytics').then(({ logEvent }) => {
       if (analytics) {
         logEvent(analytics, eventName, eventParams);
-        console.log('[Firebase] Événement Analytics:', eventName);
+
       }
     });
   } catch (error) {
@@ -575,82 +563,82 @@ export const ANALYTICS_EVENTS = {
   USER_LOGOUT: 'user_logout',
   USER_SIGNUP: 'user_signup',
   USER_PROFILE_UPDATED: 'user_profile_updated',
-  
+
   // Dossiers
   DOSSIER_VIEWED: 'dossier_viewed',
   DOSSIER_SHARED: 'dossier_shared',
   DOSSIER_CREATED: 'dossier_created',
   DOSSIER_UPDATED: 'dossier_updated',
   DOSSIER_CLOSED: 'dossier_closed',
-  
+
   // Personnes
   PERSONNE_CREATED: 'personne_created',
   PERSONNE_VIEWED: 'personne_viewed',
   PERSONNE_FOUND: 'personne_found',
   PERSONNE_MATCHED: 'personne_matched',
-  
+
   // Signalements
   SIGNALEMENT_CREATED: 'signalement_created',
   SIGNALEMENT_VALIDATED: 'signalement_validated',
   SIGNALEMENT_REJECTED: 'signalement_rejected',
   SIGNALEMENT_SHARED: 'signalement_shared',
-  
+
   // Alertes
   ALERT_RECEIVED: 'alert_received',
   ALERT_CLICKED: 'alert_clicked',
   ALERT_SHARED: 'alert_shared',
   ALERT_CREATED: 'alert_created',
   ALERT_DELETED: 'alert_deleted',
-  
+
   // Filiation
   FILIATION_LINK_CREATED: 'filiation_link_created',
   FILIATION_LINK_CONFIRMED: 'filiation_link_confirmed',
   FILIATION_MATCH_FOUND: 'filiation_match_found',
-  
+
   // Analyse IA
   IA_ANALYSIS_TRIGGERED: 'ia_analysis_triggered',
   IA_ANALYSIS_COMPLETED: 'ia_analysis_completed',
   FACIAL_RECOGNITION_PERFORMED: 'facial_recognition_performed',
   FACIAL_RECOGNITION_MATCH_FOUND: 'facial_recognition_match_found',
-  
+
   // Carte
   MAP_VIEWED: 'map_viewed',
   GEOFENCE_ALERT_TRIGGERED: 'geofence_alert_triggered',
   LOCATION_SHARED: 'location_shared',
-  
+
   // Recherche
   SEARCH_PERFORMED: 'search_performed',
   SEARCH_REFINED: 'search_refined',
   FILTER_APPLIED: 'filter_applied',
   ADVANCED_SEARCH_USED: 'advanced_search_used',
-  
+
   // Campagnes
   CAMPAIGN_VIEWED: 'campaign_viewed',
   CAMPAIGN_SHARED: 'campaign_shared',
   CAMPAIGN_CREATED: 'campaign_created',
-  
+
   // Donations
   DONATION_VIEWED: 'donation_viewed',
   DONATION_INITIATED: 'donation_initiated',
   DONATION_COMPLETED: 'donation_completed',
   DONATION_FAILED: 'donation_failed',
-  
+
   // Engagement
   PAGE_VIEW: 'page_view',
   PAGE_DURATION: 'page_duration',
   USER_ENGAGEMENT: 'user_engagement',
   FEATURE_USAGE: 'feature_usage',
-  
+
   // Notifications
   NOTIFICATION_RECEIVED: 'notification_received',
   NOTIFICATION_OPENED: 'notification_opened',
   NOTIFICATION_DISMISSED: 'notification_dismissed',
   NOTIFICATION_SETTINGS_UPDATED: 'notification_settings_updated',
-  
+
   // Organisations
   ORGANISATION_VIEWED: 'organisation_viewed',
   ORGANISATION_JOINED: 'organisation_joined',
-  
+
   // Erreurs et performances
   ERROR_OCCURRED: 'error_occurred',
   API_ERROR: 'api_error',
@@ -695,7 +683,7 @@ export const isFirebaseReady = (): boolean => {
 export const cleanupFirebase = (): void => {
   // Firebase ne nécessite pas de nettoyage explicite
   // mais on peut réinitialiser les flags
-  console.log('[Firebase] Nettoyage effectué');
+
 };
 
 // ============================================

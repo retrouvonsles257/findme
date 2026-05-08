@@ -77,7 +77,7 @@ const getDossierPhotos = async (dossierId: string): Promise<string[]> => {
     .from('photo')
     .select('url_photo')
     .eq('id_dossier', dossierId);
-  
+
   if (error || !data) return [];
   return data.map((p: any) => p.url_photo).filter(Boolean);
 };
@@ -131,7 +131,7 @@ const createAuthorityNotification = async (
       .eq('statut_compte', 'actif');
 
     if (!authorities || authorities.length === 0) {
-      console.log('[IAAutoTrigger] Aucune autorité trouvée pour notification');
+
       return;
     }
 
@@ -159,7 +159,6 @@ const createAuthorityNotification = async (
       });
     }
 
-    console.log(`[IAAutoTrigger] ${authorities.length} notifications envoyées aux autorités`);
   } catch (error) {
     console.error('[IAAutoTrigger] Erreur création notification:', error);
   }
@@ -201,14 +200,9 @@ const logActivity = async (
 export const triggerAutoAnalysis = async (
   request: PhotoAnalysisRequest
 ): Promise<AutoTriggerResult> => {
-  console.log('[IAAutoTrigger] ════════════════════════════════════════════');
-  console.log('[IAAutoTrigger] Déclenchement analyse automatique');
-  console.log('[IAAutoTrigger] Source:', request.source);
-  console.log('[IAAutoTrigger] Photo URL:', request.photoUrl?.substring(0, 50) + '...');
-  console.log('[IAAutoTrigger] ════════════════════════════════════════════');
 
   if (!isHuggingFaceConfigured()) {
-    console.warn('[IAAutoTrigger] Hugging Face non configuré, analyse ignorée');
+
     return {
       success: false,
       faceDetected: false,
@@ -222,7 +216,6 @@ export const triggerAutoAnalysis = async (
   try {
     // 1. Convertir l'URL en File
     const imageFile = await urlToFile(request.photoUrl);
-    console.log('[IAAutoTrigger] Image convertie:', imageFile.name, imageFile.size, 'bytes');
 
     // 2. Analyser le visage
     const analysisResult = await analyzeFacialImage(
@@ -231,40 +224,25 @@ export const triggerAutoAnalysis = async (
       request.userId || 'system'
     );
 
-    console.log('[IAAutoTrigger] Résultat analyse:', {
-      faceDetected: analysisResult.donnees_interpretees?.face_detected,
-      score: analysisResult.score_confiance,
-    });
-
     let matchesFound = 0;
     let notificationsSent = 0;
 
     // 3. Si un visage est détecté, comparer avec les autres dossiers actifs
     if (analysisResult.donnees_interpretees?.face_detected) {
-      console.log('[IAAutoTrigger] Comparaison avec dossiers actifs...');
-      
+
       const activeDossiers = await getActiveDossiersWithPhotos();
-      console.log('[IAAutoTrigger] Dossiers actifs avec photos:', activeDossiers.length);
 
       // Filtrer pour exclure le dossier courant (éviter auto-comparaison)
       const dossiersToCompare = activeDossiers.filter(d => d.id !== request.dossierId);
-      console.log('[IAAutoTrigger] Dossiers à comparer (excluant le courant):', dossiersToCompare.length);
 
       for (const dossier of dossiersToCompare) {
         try {
-          console.log(`[IAAutoTrigger] Comparaison avec dossier ${dossier.numero_dossier}...`);
-          
+
           const dossierImage = await urlToFile(dossier.photoUrl);
           const comparison = await huggingFaceService.calculateImageSimilarity(
             imageFile,
             dossierImage
           );
-
-          console.log(`[IAAutoTrigger] Résultat comparaison ${dossier.numero_dossier}:`, {
-            success: comparison.success,
-            similarity: comparison.similarity,
-            error: comparison.error,
-          });
 
           // Enregistrer toutes les comparaisons avec un score > 30%
           if (comparison.success && comparison.similarity >= 30) {
@@ -302,7 +280,7 @@ export const triggerAutoAnalysis = async (
 
             if (comparison.similarity >= SEUIL_NOTIFICATION) {
               matchesFound++;
-              
+
               // Envoyer notification si score élevé
               await createAuthorityNotification(
                 comparisonResult?.id || analysisResult.id,
@@ -313,8 +291,8 @@ export const triggerAutoAnalysis = async (
               notificationsSent++;
             }
           }
-        } catch (err) {
-          console.warn(`[IAAutoTrigger] Erreur comparaison avec dossier ${dossier.id}:`, err);
+        } catch {
+          void 0;
         }
       }
     }
@@ -330,14 +308,6 @@ export const triggerAutoAnalysis = async (
       request.dossierId,
       request.signalementId
     );
-
-    console.log('[IAAutoTrigger] ════════════════════════════════════════════');
-    console.log('[IAAutoTrigger] RÉSULTAT FINAL:');
-    console.log('[IAAutoTrigger]   Visage détecté:', analysisResult.donnees_interpretees?.face_detected);
-    console.log('[IAAutoTrigger]   Score:', analysisResult.score_confiance);
-    console.log('[IAAutoTrigger]   Correspondances:', matchesFound);
-    console.log('[IAAutoTrigger]   Notifications:', notificationsSent);
-    console.log('[IAAutoTrigger] ════════════════════════════════════════════');
 
     return {
       success: true,

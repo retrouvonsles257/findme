@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import { analyzeFacialImage, getResultatsIA, ResultatIA } from '../../features/ia-analysis/services/iaAPI';
 import { isHuggingFaceConfigured } from '../../services/huggingFaceService';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './DossierDetailPage.module.css';
 
 export interface DossierDetailPageProps {
@@ -144,7 +144,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
     type_preuve: 'aucune',
     nature_filiation: 'biologique',
   });
-  
+
   // États pour l'analyse IA
   const [iaResults, setIaResults] = useState<ResultatIA[]>([]);
   const [loadingIa, setLoadingIa] = useState(false);
@@ -156,7 +156,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   useEffect(() => {
     const loadPhotos = async () => {
       if (!dossier?.id_personne) return;
-      
+
       setLoadingPhotos(true);
       try {
         const { data, error } = await (supabase as any)
@@ -194,7 +194,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
         setLoadingIa(false);
       }
     };
-    
+
     if (activeTab === 'ia') {
       loadIaResults();
     }
@@ -501,7 +501,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
       const response = await fetch(photoUrl);
       const blob = await response.blob();
       const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
-      
+
       const result = await analyzeFacialImage(file, id);
       setIaResults(prev => [result, ...prev]);
     } catch (err) {
@@ -706,7 +706,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                     </button>
                     <button 
                       className={styles.btn}
-                      onClick={() => navigate(bp === '/admin' ? `${bp}/ia?dossierId=${id}` : `${bp}/ia-analysis?dossierId=${id}`)}
+                      onClick={() => navigate(`${bp}/ia-analysis?dossierId=${id}`)}
                     >
                       <Brain size={16} /> {t('authority.dossierDetail.iaAnalysis')}
                     </button>
@@ -756,7 +756,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                           <div className={styles.itemHeader}>
                             <h4>{sig.description || t('authority.dossierDetail.tabs.reports')}</h4>
                             <span className={styles.badge} style={{
-                              backgroundColor: sig.etat === 'valide' ? '#28a745' : sig.etat === 'invalide' ? '#dc3545' : '#ffc107'
+                              backgroundColor: sig.etat === 'valide' ? '#0ea5e9' : sig.etat === 'invalide' ? '#dc3545' : '#ffc107'
                             }}>
                               {sig.etat}
                             </span>
@@ -871,7 +871,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                         <div key={doc.id} className={styles.itemCard}>
                           <div className={styles.itemHeader}>
                             <h4>{doc.nom_fichier}</h4>
-                            <span className={styles.badge} style={{ backgroundColor: doc.confidentiel ? '#6c757d' : '#198754' }}>
+                            <span className={styles.badge} style={{ backgroundColor: doc.confidentiel ? '#64748b' : '#198754' }}>
                               {doc.confidentiel ? t('authority.documents.badges.confidential') : t('authority.documents.badges.public')}
                             </span>
                           </div>
@@ -1075,7 +1075,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                         <div key={loc.id} className={styles.itemCard}>
                           <div className={styles.itemHeader}>
                             <h4>{t('authority.dossierDetail.tabs.locations')}</h4>
-                            <span className={styles.badge} style={{ backgroundColor: '#007bff' }}>
+                            <span className={styles.badge} style={{ backgroundColor: '#0ea5e9' }}>
                               {safeFormatDate(loc.date_localisation)}
                             </span>
                           </div>
@@ -1144,18 +1144,18 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
               {activeTab === 'ia' && (
                 <div className={styles.tabContent}>
                   <h3><Brain size={20} /> {t('authority.dossierDetail.tabs.ia')}</h3>
-                  
+
                   {/* Section Upload pour analyse */}
                   <div className={styles.iaUploadSection}>
                     <h4>{t('authority.dossierDetail.ia.newAnalysis')}</h4>
-                    
+
                     {!isHuggingFaceConfigured() && (
                       <div className={styles.iaWarning}>
                         <AlertCircle size={18} />
                         <span>{t('authority.iaAnalysis.serviceNotConfigured')}</span>
                       </div>
                     )}
-                    
+
                     <div className={styles.iaUploadBox}>
                       <label className={styles.uploadLabel}>
                         <Upload size={32} />
@@ -1167,7 +1167,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                           className={styles.fileInput}
                         />
                       </label>
-                      
+
                       {iaImagePreview && (
                         <div className={styles.iaPreview}>
                           <img src={iaImagePreview} alt="Aperçu" />
@@ -1185,7 +1185,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Analyser une photo existante */}
                     {photos.length > 0 && (
                       <div className={styles.existingPhotosAnalysis}>
@@ -1207,7 +1207,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Résultats IA */}
                   <div className={styles.iaResultsSection}>
                     <h4>{t('authority.dossierDetail.ia.results')}</h4>
@@ -1227,7 +1227,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                               <div className={styles.iaResultScore}>
                                 <span className={styles.scoreLabel}>{t('authority.iaAnalysis.results.reliability')}</span>
                                 <span className={styles.scoreValue} style={{
-                                  color: result.score_confiance >= 70 ? '#22c55e' : 
+                                  color: result.score_confiance >= 70 ? '#0ea5e9' : 
                                          result.score_confiance >= 40 ? '#f59e0b' : '#ef4444'
                                 }}>
                                   {result.score_confiance.toFixed(0)}%
@@ -1252,7 +1252,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                             </div>
                             <button
                               className={styles.viewResultBtn}
-                              onClick={() => navigate(bp === '/admin' ? `${bp}/ia?resultId=${result.id}` : `${bp}/ia-analysis?resultId=${result.id}`)}
+                              onClick={() => navigate(`${bp}/ia-analysis?resultId=${result.id}`)}
                             >
                               <Eye size={14} /> {t('authority.iaAnalysis.actions.viewDetails')}
                             </button>

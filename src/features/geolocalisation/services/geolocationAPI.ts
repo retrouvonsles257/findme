@@ -202,7 +202,7 @@ export const deleteLocation = async (id: string): Promise<void> => {
 export const getProximityZones = async (): Promise<any[]> => {
   // Return empty array - zone_proximite table doesn't exist in schema
   // This functionality would need a database migration to add the table
-  console.warn('getProximityZones: zone_proximite table not in database schema');
+
   return [];
 };
 
@@ -217,7 +217,7 @@ export const createProximityZone = async (zone: {
   nom: string;
   description?: string;
 }): Promise<any> => {
-  console.warn('createProximityZone: zone_proximite table not in database schema');
+
   // Return mock data to prevent errors
   return {
     id: 'mock-' + Date.now(),
@@ -231,7 +231,7 @@ export const createProximityZone = async (zone: {
  * Note: Disabled - zone_proximite table doesn't exist
  */
 export const deleteProximityZone = async (id: string): Promise<void> => {
-  console.warn('deleteProximityZone: zone_proximite table not in database schema');
+
 };
 
 // ============================================
@@ -270,10 +270,10 @@ export const getAlertsNearby = async (
     .order('date_diffusion', { ascending: false });
 
   if (error) throw error;
-  
+
   // Filter by radius client-side
   if (!data) return [];
-  
+
   const earthRadiusKm = 6371;
   return data.filter((alert: any) => {
     if (!alert.latitude_centre || !alert.longitude_centre) return true;

@@ -4,13 +4,13 @@
    =================================================================== */
 
 :root {
-  --sa-primary: #1d4ed8;
-  --sa-primary-light: rgba(30, 144, 255, 0.92);
-  --sa-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --sa-primary: #0ea5e9;
+  --sa-primary-light: rgba(14, 165, 233, 0.92);
+  --sa-font: var(--font-family, inherit);
 }
 
 .sa-organisations {
-  font-family: var(--sa-font);
+  
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
@@ -37,7 +37,7 @@
 }
 
 .sa-organisations__search input {
-  font-family: var(--sa-font);
+  
   border: none;
   outline: none;
   font-size: 0.875rem;
@@ -49,7 +49,7 @@
 }
 
 .sa-organisations__add-btn {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -66,11 +66,11 @@
 
 .sa-organisations__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(29, 78, 216, 0.3);
+  box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
 }
 
 .sa-organisations__export-btn {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -184,18 +184,18 @@
 }
 
 .sa-organisations__card-status {
-  font-family: var(--sa-font);
+  
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  background: #dcfce7;
-  color: #16a34a;
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .sa-organisations__card-title {
-  font-family: var(--sa-font);
+  
   font-size: 1.125rem;
   font-weight: 700;
   color: #1f2937;
@@ -210,7 +210,7 @@
 }
 
 .sa-organisations__info-item {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -257,7 +257,7 @@
 }
 
 .sa-organisations__card-type {
-  font-family: var(--sa-font);
+  
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 500;
@@ -269,8 +269,8 @@
 }
 
 .sa-organisations__card-status--active {
-  background: #dcfce7;
-  color: #16a34a;
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .sa-organisations__card-status--inactive {
@@ -287,7 +287,7 @@
 }
 
 .sa-organisations__delete-confirm p {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #dc2626;
   margin: 0 0 0.5rem 0;
@@ -350,7 +350,7 @@
 }
 
 .sa-organisations__modal-header h2 {
-  font-family: var(--sa-font);
+  
   font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
@@ -391,7 +391,7 @@
 }
 
 .sa-organisations__form-field label {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
@@ -400,7 +400,7 @@
 .sa-organisations__form-field input,
 .sa-organisations__form-field select,
 .sa-organisations__form-field textarea {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid #e5e7eb;
@@ -437,7 +437,7 @@
 }
 
 .sa-organisations__modal-footer button {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -466,7 +466,7 @@
 }
 
 .sa-organisations__modal-footer button[type="submit"]:hover {
-  background: #1e40af;
+  background: #0284c7;
 }
 
 .sa-organisations__modal-footer button:disabled {
@@ -481,7 +481,7 @@
 }
 
 .sa-organisations__view-details p {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #374151;
   margin: 0;
@@ -498,7 +498,7 @@
 }
 
 .sa-organisations__users-title {
-  font-family: var(--sa-font);
+  
   font-size: 1rem;
   font-weight: 600;
   color: #1f2937;
@@ -517,7 +517,7 @@
 
 .sa-organisations__users-loading,
 .sa-organisations__users-empty {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0;
@@ -535,7 +535,7 @@
 }
 
 .sa-organisations__user-card {
-  font-family: var(--sa-font);
+  
   padding: 0.75rem 1rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;

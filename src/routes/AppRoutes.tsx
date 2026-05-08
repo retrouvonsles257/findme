@@ -7,14 +7,13 @@
  */
 
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Import des composants de routes par module
 import PublicRoutes from './PublicRoutes';
 import AuthRoutes from './AuthRoutes';
 import CitizenRoutes from './CitizenRoutes';
 import AuthorityRoutes from './AuthorityRoutes';
-import AdminRoutes from './AdminRoutes';
 import SuperAdminRoutes from './SuperAdminRoutes';
 import ErrorRoutes from './ErrorRoutes';
 import { LEGACY_SILO_BASES, LEGACY_SILO_REDIRECT_TARGET, ROUTES } from './routes.config';
@@ -34,6 +33,48 @@ const LoadingComponent: React.FC = () => (
   </div>
 );
 
+const mapLegacyAdminPath = (pathname: string): string => {
+  const suffix = pathname.replace(/^\/admin/, '') || '/';
+  if (suffix === '/' || suffix === '/dashboard') return '/authority/dashboard';
+  if (suffix === '/utilisateurs') return '/authority/equipe';
+  if (suffix === '/utilisateurs/new') return '/authority/equipe/nouveau';
+  if (suffix.match(/^\/utilisateurs\/[^/]+$/)) return suffix.replace('/utilisateurs/', '/authority/equipe/');
+  if (suffix === '/dossiers') return '/authority/dossiers';
+  if (suffix === '/dossiers/new') return '/authority/dossiers/new';
+  if (suffix.match(/^\/dossiers\/[^/]+\/edit$/)) return suffix.replace('/dossiers/', '/authority/dossiers/');
+  if (suffix.match(/^\/dossiers\/[^/]+$/)) return suffix.replace('/dossiers/', '/authority/dossiers/');
+  if (suffix === '/alertes') return '/authority/alertes';
+  if (suffix === '/alertes/new') return '/authority/alertes/new';
+  if (suffix.match(/^\/alertes\/[^/]+$/)) return suffix.replace('/alertes/', '/authority/alertes/');
+  if (suffix === '/signalements') return '/authority/signalements';
+  if (suffix.match(/^\/signalements\/[^/]+$/)) return suffix.replace('/signalements/', '/authority/signalements/');
+  if (suffix === '/ia' || suffix === '/ia-analysis') return '/authority/ia-analysis';
+  if (suffix === '/coordination') return '/authority/coordination';
+  if (suffix === '/carte') return '/authority/map-view';
+  if (suffix === '/photos-moderation' || suffix === '/photos-en-attente') return '/authority/photos-moderation';
+  if (suffix === '/verification-identite') return '/authority/verifications-identite';
+  if (suffix === '/personnes') return '/authority/personnes';
+  if (suffix.match(/^\/personnes\/[^/]+$/)) return suffix.replace('/personnes/', '/authority/personnes/');
+  if (suffix === '/signalements-en-attente') return '/authority/file-signalements';
+  if (suffix === '/campagnes' || suffix === '/campagnes/create') return '/authority/donations';
+  if (suffix === '/cas' || suffix === '/cas/create') return '/authority/dossiers';
+  if (suffix === '/ressources' || suffix === '/partenariats') return '/authority/coordination';
+  if (suffix === '/rapports' || suffix.match(/^\/rapports\/[^/]+$/)) return '/authority/rapports-signalements';
+  if (suffix === '/statistiques') return '/authority/statistiques';
+  if (suffix === '/profile') return '/authority/profile';
+  if (suffix === '/parametres') return '/authority/organisation/parametres';
+  if (suffix === '/workflows') return '/authority/dashboard';
+  if (suffix === '/donations') return '/authority/donations';
+  if (suffix === '/roles') return '/super-admin/roles';
+  if (suffix === '/audit-logs') return '/super-admin/system-logs';
+  return '/authority/dashboard';
+};
+
+const LegacyAdminRedirect: React.FC = () => {
+  const { pathname, search } = useLocation();
+  return <Navigate to={`${mapLegacyAdminPath(pathname)}${search}`} replace />;
+};
+
 /**
  * AppRoutes Component
  * Composant principal de routing pour toute l'application
@@ -43,7 +84,7 @@ const LoadingComponent: React.FC = () => (
  * - Citizen routes: /citizen/* (citoyens standard et vérifiés)
  * - Authority routes: /authority/* (police, gendarmerie)
  * - (Étape D5) Redirections legacy : `LEGACY_SILO_BASES` → `/authority/dashboard` (voir `routes.config.ts`).
- * - Admin routes: /admin/* (admin d'organisations)
+ * - Legacy admin routes: /admin/* (redirigé vers authority/super-admin)
  * - SuperAdmin routes: /super-admin/* (super administrateur système)
  * - Error routes: /unauthorized, /forbidden, /server-error, 404
  */
@@ -80,8 +121,8 @@ const AppRoutes: React.FC = () => {
           />
         ))}
 
-        {/* Admin Routes */}
-        <Route path={`${ROUTES.admin.BASE}/*`} element={<AdminRoutes />} />
+        {/* Legacy admin prefix */}
+        <Route path="/admin/*" element={<LegacyAdminRedirect />} />
 
         {/* SuperAdmin Routes */}
         <Route path={`${ROUTES.superAdmin.BASE}/*`} element={<SuperAdminRoutes />} />

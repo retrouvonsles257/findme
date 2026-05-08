@@ -24,7 +24,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     if (i18n.language !== savedLanguage) {
       i18n.changeLanguage(savedLanguage);
     }
-    
+
     // Set document language attribute
     document.documentElement.lang = i18n.language;
   }, []);

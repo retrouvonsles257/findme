@@ -113,7 +113,6 @@
   "exampleUser1": "User 1",
   "exampleUser2": "User 2",
   "roleSuperAdmin": "Super Admin",
-  "roleModerator": "Moderator",
   "actionUserLogin": "User login",
   "actionConfigUpdate": "Configuration update",
 

@@ -73,7 +73,7 @@ export const useCoordinationResources = (): UseCoordinationResourcesReturn => {
       if (orgsError) {
         // Table might not exist - use fallback data based on dossiers
         // Table organisation non disponible, utilisation de données agrégées
-        
+
         // Get unique organisations from dossiers - utilise id_organisation_responsable
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { data: _dossiersData } = await (supabase as any)

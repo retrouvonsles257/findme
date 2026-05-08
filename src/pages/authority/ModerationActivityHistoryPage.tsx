@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { AuthorityLayout } from '../../components/layout';
-import { ActivityHistoryPage } from '../moderator/ActivityHistoryPage';
+import { ActivityHistoryPage } from './moderation/ActivityHistoryPage';
 
 export const ModerationActivityHistoryPage: React.FC = () => (
   <AuthorityLayout>

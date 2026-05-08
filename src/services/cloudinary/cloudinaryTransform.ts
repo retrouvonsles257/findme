@@ -475,13 +475,13 @@ export const getImageMetadata = async (
 ): Promise<Record<string, any> | null> => {
   try {
     if (!cloudinaryConfig.cloudName) {
-      console.warn('Cloudinary cloud name is not configured');
+
       return null;
     }
 
     // Note: This requires server-side API calls with authentication
     // Client-side won't work without exposing API secrets
-    console.warn('Use server-side API for accessing image metadata');
+
     return null;
   } catch (error) {
     console.error('Error getting image metadata:', error);
@@ -506,7 +506,6 @@ export const deleteImage = async (
 
     // Note: This is a simplified version
     // Proper deletion requires server-side API calls with authentication
-    console.warn('Use server-side API for deleting images');
 
     return {
       success: false,

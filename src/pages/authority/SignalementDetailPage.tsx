@@ -25,7 +25,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './SignalementDetailPage.module.css';
 
 export interface SignalementDetailPageProps {
@@ -42,7 +42,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
   const { validateSignalement, isLoading: validationLoading } = useSignalementValidation();
-  
+
   const [signalement, setSignalement] = useState<any>(null);
   const [dossier, setDossier] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +73,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
             .select('*, personne:id_personne(*)')
             .eq('id', sigData.id_dossier)
             .single();
-          
+
           if (dosData) setDossier(dosData);
         }
       } catch (err: any) {
@@ -124,7 +124,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
         .select('*')
         .eq('id', id)
         .single();
-      
+
       if (data) setSignalement(data);
       setShowValidationModal(false);
     } catch (err: any) {
@@ -148,12 +148,12 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'valide':
-        return { label: t('authority.signalements.status.validated'), color: '#28a745', icon: <CheckCircle size={14} /> };
+        return { label: t('authority.signalements.status.validated'), color: '#0ea5e9', icon: <CheckCircle size={14} /> };
       case 'invalide':
       case 'rejete':
         return { label: t('authority.signalements.status.rejected'), color: '#dc3545', icon: <XCircle size={14} /> };
       case 'en_verification':
-        return { label: t('authority.signalements.status.inVerification'), color: '#17a2b8', icon: <Search size={14} /> };
+        return { label: t('authority.signalements.status.inVerification'), color: '#38bdf8', icon: <Search size={14} /> };
       default:
         return { label: t('authority.signalements.status.pending'), color: '#ffc107', icon: <Clock size={14} /> };
     }
@@ -221,18 +221,18 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
           {/* Info principale */}
           <div className={styles.card}>
             <h2><MapPin size={20} /> {t('authority.signalementDetail.sections.observationInfo')}</h2>
-            
+
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.observationLocation')}</label>
                 <span>{signalement.lieu_observation || t('authority.signalementDetail.values.notProvided')}</span>
               </div>
-              
+
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.city')}</label>
                 <span>{signalement.ville_observation || t('authority.signalementDetail.values.na')}</span>
               </div>
-              
+
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.observationDate')}</label>
                 <span>
@@ -241,7 +241,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
                     : t('authority.signalementDetail.values.notProvidedFeminine')}
                 </span>
               </div>
-              
+
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.certaintyLevel')}</label>
                 <span>
@@ -388,7 +388,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
                   ? t('authority.signalements.modal.validateTitle')
                   : t('authority.signalements.modal.rejectTitle')}
               </h2>
-              
+
               <div className={styles.formGroup}>
                 <label>{t('authority.signalements.modal.commentLabel')}:</label>
                 <textarea

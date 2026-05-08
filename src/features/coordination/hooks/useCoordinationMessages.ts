@@ -173,7 +173,7 @@ export const useCoordinationMessages = (dossierId?: string): UseCoordinationMess
           id_dossier: dossierFilter || null,
           date_action: new Date().toISOString(),
         });
-        
+
         // Recharger les messages après envoi
         await fetchMessages(dossierFilter);
       } catch (err) {

@@ -83,7 +83,7 @@ const getEnvVariable = (key: string, defaultValue?: string): string => {
   const value = process.env[key] || defaultValue;
 
   if (!value && !defaultValue) {
-    console.warn(`Environment variable ${key} is not set`);
+
   }
 
   return value || '';

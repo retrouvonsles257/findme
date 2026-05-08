@@ -15,7 +15,7 @@ import { useSignalements } from '../../features/signalements/hooks';
 import { CitizenLayout } from './CitizenLayout';
 import { supabase } from '../../config';
 import { Search, Plus, Eye, Trash2, FileText, AlertCircle, MapPin, Calendar } from 'lucide-react';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminListSkeleton } from 'components/skeletons';
 import {
   getRawStatut,
   getCitizenStatusI18nSuffix,

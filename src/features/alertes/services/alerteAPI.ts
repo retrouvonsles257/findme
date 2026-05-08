@@ -237,7 +237,7 @@ export const updateAlerte = async (id: string, input: AlerteUpdateInput): Promis
  */
 export const deleteAlerte = async (id: string): Promise<void> => {
   const user = (await supabase.auth.getUser()).data.user;
-  
+
   // Get alerte info before deletion for logging
   const { data: alerteData } = await (supabase as any).from('alerte').select('titre, id_dossier').eq('id', id).single();
   const alerte = alerteData as { titre?: string; id_dossier?: string } | null;
@@ -336,15 +336,7 @@ export const cancelAlerte = async (
 // DIFFUSION OPERATIONS
 // ============================================
 
-const LOG_DIFFUSE = '[DiffuseAlerte]';
-
-function logDiffuse(phase: string, data: Record<string, unknown>): void {
-  try {
-    console.info(LOG_DIFFUSE, phase, JSON.stringify(data));
-  } catch {
-    console.info(LOG_DIFFUSE, phase, data);
-  }
-}
+function logDiffuse(_phase: string, _data: Record<string, unknown>): void {}
 
 /**
  * Tous les comptes grand_public actifs avec notifications acceptées (pagination PostgREST, évite la limite ~1000 lignes).

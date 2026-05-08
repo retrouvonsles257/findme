@@ -28,7 +28,7 @@ export const AuthCallbackPage: React.FC = () => {
     const processAuthCallback = async () => {
       try {
         setStatusMessage('Vérification de votre session...');
-        
+
         const code = searchParams.get('code');
         const errorParam = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
@@ -48,7 +48,7 @@ export const AuthCallbackPage: React.FC = () => {
 
         // Confirmation email
         await handleEmailConfirmation();
-        
+
       } catch (err) {
         console.error('Auth callback error:', err);
         setError('Une erreur est survenue lors de l\'authentification');
@@ -64,11 +64,9 @@ export const AuthCallbackPage: React.FC = () => {
   const handleOAuthReturn = async (source: string | null) => {
     try {
       setStatusMessage('Traitement de votre connexion OAuth...');
-      
+
       const result = await supabaseAuthService.handleOAuthCallback();
-      
-      console.log('OAuth result:', result);
-      
+
       if (result.success) {
         // Profil incomplet - rediriger vers complete-profile
         if (result.needsProfileCompletion || result.redirect === '/auth/complete-profile') {
@@ -83,41 +81,38 @@ export const AuthCallbackPage: React.FC = () => {
           }, 1500);
           return;
         }
-        
+
         if (result.user?.id) {
           const status = await getUserAccountStatus(result.user.id);
-          console.log('Account status:', status);
-          
+
           if (status === 'en_attente_verification') {
             setStatusMessage('Votre compte est en attente de validation...');
             setTimeout(() => navigate('/auth/verify-email'), 1500);
             return;
           }
-          
+
           if (status === 'suspendu' || status === 'bloque') {
             setError('Votre compte est suspendu. Contactez l\'administrateur.');
             setTimeout(() => navigate('/auth/login'), 3000);
             return;
           }
-          
+
           const userRole = normalizeAppRole(result.role || 'citoyen');
           const orgId =
             (result.profile as { id_organisation?: string } | null)?.id_organisation ??
             pickOrganisationIdFromJwt(result.user as any) ??
             null;
-          console.log('User role:', userRole, 'org:', orgId);
 
           setStatusMessage(`Bienvenue ${result.profile?.prenom || result.user.email}! Redirection...`);
 
           const redirectPath = getDashboardPathAfterLogin(userRole, orgId);
-          console.log('Redirecting to:', redirectPath);
-          
+
           setTimeout(() => {
             navigate(redirectPath);
           }, 1500);
           return;
         }
-        
+
         if (result.emailSent) {
           setStatusMessage('Inscription réussie ! Veuillez vérifier votre email.');
           setTimeout(() => {
@@ -144,12 +139,11 @@ export const AuthCallbackPage: React.FC = () => {
   const handleEmailConfirmation = async () => {
     try {
       setStatusMessage('Vérification de votre email...');
-      
+
       const result = await supabaseAuthService.handleOAuthCallback();
-      
+
       if (result.success && result.user) {
-        console.log('Email confirmation result:', result);
-        
+
         // Vérifier si le profil est complet
         if (result.needsProfileCompletion || result.redirect === '/auth/complete-profile') {
           setStatusMessage('Email vérifié ! Veuillez compléter votre profil...');
@@ -163,7 +157,7 @@ export const AuthCallbackPage: React.FC = () => {
           }, 1500);
           return;
         }
-        
+
         // Profil complet - rediriger vers login
         setStatusMessage('Email vérifié ! Vous pouvez maintenant vous connecter...');
         setTimeout(() => {

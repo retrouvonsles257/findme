@@ -61,7 +61,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #1d4ed8;
+  background: #0ea5e9;
   color: #ffffff;
   border: none;
   border-radius: 0.375rem;
@@ -71,7 +71,7 @@
 }
 
 .dossierDetail__error button:hover {
-  background: #1e40af;
+  background: #0284c7;
 }
 
 /* Back Button */
@@ -111,7 +111,7 @@
   width: 200px;
   height: 200px;
   flex-shrink: 0;
-  background: #1d4ed8;
+  background: #0ea5e9;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -177,8 +177,8 @@
 
 .dossierDetail__status-badge[data-status="resolu"],
 .dossierDetail__status-badge[data-status="retrouve"] {
-  background: rgba(21, 128, 61, 0.12);
-  color: #16a34a;
+  background: rgba(14, 165, 233, 0.14);
+  color: #0284c7;
 }
 
 .dossierDetail__status-badge[data-status="archive"] {
@@ -232,13 +232,13 @@
 }
 
 .dossierDetail__action-primary {
-  background: #1d4ed8;
+  background: #0ea5e9;
   color: #ffffff;
 }
 
 .dossierDetail__action-primary:hover {
   transform: translateY(-2px);
-  background: #1e40af;
+  background: #0284c7;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
 }
 
@@ -250,8 +250,8 @@
 
 .dossierDetail__action-secondary:hover {
   background: #f9fafb;
-  border-color: #1d4ed8;
-  color: #1d4ed8;
+  border-color: #0ea5e9;
+  color: #0ea5e9;
 }
 
 /* Tabs */
@@ -285,7 +285,7 @@
 
 .dossierDetail__tab--active {
   background: #ffffff;
-  color: #1d4ed8;
+  color: #0ea5e9;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -356,7 +356,7 @@
 }
 
 .dossierDetail__location svg {
-  color: #1d4ed8;
+  color: #0ea5e9;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -441,7 +441,7 @@
 .dossierDetail__timeline-dot {
   width: 12px;
   height: 12px;
-  background: #1d4ed8;
+  background: #0ea5e9;
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 4px;
@@ -491,25 +491,25 @@
   display: flex;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  background: rgba(21, 128, 61, 0.10);
+  background: rgba(14, 165, 233, 0.12);
   border: 1px solid #86efac;
   border-radius: 12px;
 }
 
 .dossierDetail__contact svg {
-  color: #16a34a;
+  color: #0284c7;
   flex-shrink: 0;
 }
 
 .dossierDetail__contact h4 {
   margin: 0 0 0.25rem 0;
-  color: #166534;
+  color: #075985;
   font-size: 0.875rem;
 }
 
 .dossierDetail__contact p {
   margin: 0;
-  color: #15803d;
+  color: #0369a1;
   font-size: 1rem;
   font-weight: 600;
 }

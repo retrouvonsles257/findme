@@ -2,6 +2,12 @@
   "users": {
     "title": "Users",
     "subtitle": "User management and profiles",
+    "org_member_roles": {
+      "admin": "Administrator",
+      "moderator": "Moderation team",
+      "member": "Member",
+      "viewer": "Viewer"
+    },
     "my_profile": {
       "title": "My Profile",
       "personal_info": "Personal Information",
@@ -62,9 +68,8 @@
     "roles": {
       "super_admin": "Super Administrator",
       "admin": "Administrator",
-      "moderator": "Moderator",
+      "moderator": "Moderation team",
       "officer": "Police Officer",
-      "ngo_delegate": "NGO Delegate",
       "verified_citizen": "Verified Citizen",
       "citizen": "Citizen"
     },

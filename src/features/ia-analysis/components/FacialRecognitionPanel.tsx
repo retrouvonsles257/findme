@@ -23,7 +23,7 @@ export const FacialRecognitionPanel: React.FC<FacialRecognitionPanelProps> = ({
     error,
     isHuggingFaceConfigured,
   } = useFacialRecognition();
-  
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [dossierId, setDossierId] = useState('');

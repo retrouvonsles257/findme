@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import { 
   Building2, Users, MapPin, Plus, Edit2, Trash2, X, Check, 
   Loader2, AlertCircle, Search, Eye, ToggleLeft, ToggleRight, Download, CheckCircle,
@@ -118,19 +118,19 @@ const DEFAULT_ORGANISATIONS_CONFIG: OrganisationsGlobalConfig = {
 
 export const SuperAdminOrganisationsPage: React.FC = () => {
   const { t } = useI18n();
-  
+
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedOrg, setSelectedOrg] = useState<Organisation | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Form state - TOUS les champs du modèle SQL
   const [formData, setFormData] = useState({
     nom: '',
@@ -152,7 +152,7 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
   // Utilisateurs de l'organisation (modal vue)
   const [orgUsers, setOrgUsers] = useState<any[]>([]);
   const [loadingOrgUsers, setLoadingOrgUsers] = useState(false);
-  
+
   // Configuration globale des types d'organisations
   const [showTypesConfig, setShowTypesConfig] = useState(false);
   const [orgsConfig, setOrgsConfig] = useState<OrganisationsGlobalConfig>(DEFAULT_ORGANISATIONS_CONFIG);
@@ -485,7 +485,7 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger toutes les organisations
       const { data: allOrgs, error: fetchError } = await (supabase as any)
         .from('organisation')
@@ -828,7 +828,7 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
                 <h2>Gérer les types d'organisations et certifications</h2>
                 <button onClick={() => setShowTypesConfig(false)}><X size={20} /></button>
               </div>
-              
+
               <div className={styles['sa-organisations__modal-body']}>
                 {/* Certifications disponibles */}
                 <div style={{ marginBottom: '2rem' }}>
@@ -930,7 +930,7 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
                               Actif
                             </label>
                           </div>
-                          
+
                           <div>
                             <label style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem', display: 'block' }}>
                               Certifications requises pour ce type :
@@ -940,8 +940,8 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
                                 <span
                                   key={cert}
                                   style={{
-                                    background: '#dbeafe',
-                                    color: '#1e40af',
+                                    background: '#e0f2fe',
+                                    color: '#0284c7',
                                     padding: '0.25rem 0.5rem',
                                     borderRadius: '0.25rem',
                                     fontSize: '0.75rem',
@@ -953,7 +953,7 @@ export const SuperAdminOrganisationsPage: React.FC = () => {
                                   {cert}
                                   <button
                                     onClick={() => removeCertificationFromType(type, cert)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#1e40af' }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#0284c7' }}
                                   >
                                     <X size={12} />
                                   </button>

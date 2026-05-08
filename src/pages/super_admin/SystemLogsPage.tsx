@@ -9,7 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { FileText, Clock, User, Filter, Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
 import styles from './SystemLogsPage.module.css';
 
@@ -49,7 +49,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<JournalActivite | null>(null);
-  
+
   // Filtres
   const [filterType, setFilterType] = useState<string>('');
   const [filterDateFrom, setFilterDateFrom] = useState<string>('');
@@ -65,7 +65,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
       if (filterType) countQuery = countQuery.eq('type_action', filterType);
       if (filterDateFrom) countQuery = countQuery.gte('date_action', filterDateFrom);
       if (filterDateTo) countQuery = countQuery.lte('date_action', `${filterDateTo}T23:59:59`);
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -161,7 +161,7 @@ export const SuperAdminSystemLogsPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger tous les logs avec les filtres actuels (sans pagination)
       let query = (supabase as any)
         .from('journal_activite')

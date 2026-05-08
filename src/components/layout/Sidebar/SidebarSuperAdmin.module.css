@@ -1,0 +1,23 @@
+.sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+.collapsed { width: 80px; }
+.toggleBtn { margin: 0.75rem; align-self: flex-end; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 999px; width: 28px; height: 28px; }
+.sidebarHeader { padding: 1rem; display: flex; gap: 0.75rem; align-items: center; border-bottom: 1px solid #e2e8f0; }
+.orgLogo { width: 36px; height: 36px; border-radius: 10px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; }
+.orgInfo { min-width: 0; }
+.orgName { margin: 0; font-weight: 700; color: #0f172a; }
+.orgRole { margin: 0; font-size: 0.75rem; color: #64748b; }
+.navigation { flex: 1; overflow: auto; padding: 0.75rem; }
+.navList { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
+.navItem { margin: 0; }
+.navLink { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.75rem; border-radius: 8px; color: #475569; text-decoration: none; }
+.navLink:hover, .active { background: #f0f9ff; color: #0284c7; }
+.icon { width: 1.1rem; text-align: center; }
+.label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.userSection { border-top: 1px solid #e2e8f0; padding: 0.75rem; }
+.userCard { display: flex; align-items: center; gap: 0.6rem; }
+.userAvatar { width: 34px; height: 34px; border-radius: 999px; background: #0ea5e9; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.userDetails { min-width: 0; }
+.userName { margin: 0; font-size: 0.85rem; color: #0f172a; }
+.userEmail { margin: 0; font-size: 0.75rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.footer { border-top: 1px solid #e2e8f0; padding: 0.75rem; }
+.versionText { margin: 0; text-align: center; font-size: 0.75rem; color: #94a3b8; }

@@ -18,6 +18,8 @@ import {
   Users,
   Image,
   BarChart3,
+  Table2,
+  ClipboardList,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -32,6 +34,7 @@ import {
   ListFilter,
   History,
   UserCheck,
+  UserCog,
 } from 'lucide-react';
 import { useI18n } from '../../../hooks';
 import { supabase } from '../../../config';
@@ -57,11 +60,15 @@ type AuthorityNavId =
   | 'map-view'
   | 'investigation'
   | 'ia-analysis'
+  | 'ia-resultats'
+  | 'tableau-moderation'
   | 'coordination'
   | 'donations'
   | 'statistiques'
   | 'historique-activite'
-  | 'verifications-identite';
+  | 'verifications-identite'
+  | 'equipe'
+  | 'org-parametres';
 
 interface AuthorityNavItem {
   id: AuthorityNavId;
@@ -102,6 +109,12 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
       { id: 'map-view', labelKey: 'authority.menu.mapView', path: '/authority/map-view', icon: Map },
       { id: 'investigation', labelKey: 'authority.menu.investigation', path: '/authority/investigation', icon: Search },
       { id: 'ia-analysis', labelKey: 'authority.menu.analysis', path: '/authority/ia-analysis', icon: Brain },
+      {
+        id: 'ia-resultats',
+        labelKey: 'authority.menu.iaResultsCatalog',
+        path: '/authority/ia-resultats',
+        icon: Table2,
+      },
       { id: 'coordination', labelKey: 'authority.menu.coordination', path: '/authority/coordination', icon: Users },
     ],
   },
@@ -109,6 +122,12 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
     groupKey: 'followUp',
     labelKey: 'authority.nav.followUp',
     items: [
+      {
+        id: 'tableau-moderation',
+        labelKey: 'authority.menu.moderationOverview',
+        path: '/authority/tableau-moderation',
+        icon: ClipboardList,
+      },
       {
         id: 'historique-activite',
         labelKey: 'authority.menu.activityHistory',
@@ -120,6 +139,13 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
         labelKey: 'authority.menu.identityVerification',
         path: '/authority/verifications-identite',
         icon: UserCheck,
+      },
+      { id: 'equipe', labelKey: 'authority.menu.equipe', path: '/authority/equipe', icon: UserCog },
+      {
+        id: 'org-parametres',
+        labelKey: 'authority.menu.orgSettings',
+        path: '/authority/organisation/parametres',
+        icon: Settings,
       },
       { id: 'donations', labelKey: 'authority.menu.donations', path: '/authority/donations', icon: Heart },
       { id: 'statistiques', labelKey: 'authority.menu.statistiques', path: '/authority/statistiques', icon: BarChart3 },

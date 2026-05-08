@@ -76,7 +76,7 @@ export const ForgotPasswordPage: React.FC = () => {
         // Dispatch Supabase password reset request
         const result = (await dispatch(requestPasswordResetThunk({ email }))) as any;
         if (result?.type?.endsWith('/fulfilled')) {
-          console.log('Password reset requested for:', email);
+
           // Show success message
           setIsSubmitted(true);
         } else {

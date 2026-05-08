@@ -188,17 +188,17 @@ export const cloudinaryUploadWidgetConfig = {
 
   // Widget settings
   sources: ['local', 'url', 'camera', 'google_drive'],
-  
+
   resourceType: 'auto',
-  
+
   clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'],
-  
+
   maxFileSize: 50 * 1024 * 1024,
-  
+
   multiple: false,
-  
+
   tags: ['retrouvonsles'],
-  
+
   context: {
     app: 'retrouvonsles',
   },

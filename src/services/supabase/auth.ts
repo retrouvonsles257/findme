@@ -274,14 +274,12 @@ async function isProfileComplete(userId: string): Promise<boolean> {
 // ============================================
 
 class SupabaseAuthService {
-  
+
   /**
    * INSCRIPTION - Exactement comme signUpCitizen dans supabase.js
    */
   async register(data: RegisterData): Promise<AuthResult<AuthSessionData>> {
     try {
-      console.log('=== INSCRIPTION CITOYEN ===');
-      console.log('Email:', data.email);
 
       const { data: authData, error: authError } = await (supabase as any).auth.signUp({
         email: data.email,
@@ -296,14 +294,14 @@ class SupabaseAuthService {
 
       if (authError) {
         console.error('Erreur inscription citoyen:', authError);
-        
+
         let message = authError.message;
         if (authError.message?.includes('User already registered')) {
           message = 'Cette adresse email est déjà utilisée. Veuillez vous connecter.';
         } else if (authError.message?.includes('Invalid email')) {
           message = 'Veuillez entrer une adresse email valide';
         }
-        
+
         return {
           error: {
             code: authError.code || 'SIGNUP_ERROR',
@@ -367,8 +365,6 @@ class SupabaseAuthService {
         });
       }
 
-      console.log('✓ Inscription citoyen réussie');
-
       return {
         data: {
           user: {
@@ -415,7 +411,7 @@ class SupabaseAuthService {
     let allRoles = userWithRole?.roles || ['citoyen'];
 
     if (rpcError || !userWithRole) {
-      console.log('⚠ RPC failed or profile missing, using JWT metadata + base utilisateur...');
+
       const metadata = authUser.user_metadata || {};
       const jwtRole = pickAuthJwtRole(authUser as any);
       mainRole = jwtRole;
@@ -478,8 +474,6 @@ class SupabaseAuthService {
     mainRole = normalizeAppRole(mainRole ?? 'citoyen');
     allRoles = normalizeAppRoles(allRoles);
 
-    console.log('✓ Connexion complète. Rôle:', mainRole);
-
     logActivity({
       type_action: 'connexion',
       id_utilisateur: authUser.id,
@@ -523,8 +517,6 @@ class SupabaseAuthService {
    */
   async login(credentials: LoginCredentials): Promise<AuthResult<AuthSessionData>> {
     try {
-      console.log('=== DÉBUT CONNEXION ===');
-      console.log('Email:', credentials.email);
 
       const { data: authData, error: authError } = await (supabase as any).auth.signInWithPassword({
         email: credentials.email,
@@ -533,14 +525,14 @@ class SupabaseAuthService {
 
       if (authError) {
         console.error('Erreur d\'authentification:', authError);
-        
+
         let message = authError.message;
         if (authError.message?.includes('Invalid login credentials')) {
           message = 'Email ou mot de passe incorrect';
         } else if (authError.message?.includes('Email not confirmed')) {
           message = 'Veuillez confirmer votre email avant de vous connecter';
         }
-        
+
         return {
           error: {
             code: authError.code || 'LOGIN_ERROR',
@@ -558,8 +550,6 @@ class SupabaseAuthService {
           },
         };
       }
-
-      console.log('✓ Authentification réussie, ID:', authData.user.id);
 
       return await this.composeAuthSessionFromSignedInUser(authData.user, {
         access_token: authData.session?.access_token || '',
@@ -689,7 +679,7 @@ class SupabaseAuthService {
   async logout(): Promise<AuthResult<void>> {
     try {
       const { data: { user } } = await (supabase as any).auth.getUser();
-      
+
       if (user) {
         await logActivity({
           type_action: 'deconnexion',
@@ -775,7 +765,6 @@ class SupabaseAuthService {
    */
   async handleOAuthCallback(): Promise<OAuthResult> {
     try {
-      console.log('=== HANDLE OAUTH CALLBACK ===');
 
       const { data: { session }, error: sessionError } = await (supabase as any).auth.getSession();
 
@@ -787,7 +776,6 @@ class SupabaseAuthService {
       }
 
       const user = session.user;
-      console.log('OAuth user:', user.email, user.id);
 
       // Vérifier si le profil existe
       const { data: userProfile, error: profileError } = await (supabase as any)
@@ -796,13 +784,10 @@ class SupabaseAuthService {
         .eq('id', user.id)
         .maybeSingle();
 
-      console.log('User profile check:', { exists: !!userProfile });
-
       const userMetadata = user.user_metadata || {};
 
       // Si le profil n'existe pas, le créer
       if (!userProfile || profileError?.code === 'PGRST116') {
-        console.log('User not found in utilisateur table, creating profile...');
 
         const { data: newProfile, error: createError } = await (supabase as any)
           .from('utilisateur')
@@ -823,8 +808,6 @@ class SupabaseAuthService {
 
         if (createError) {
           console.error('Error creating user profile:', createError);
-        } else {
-          console.log('Profile created with OAuth data');
         }
 
         // Assigner le rôle citoyen
@@ -855,7 +838,7 @@ class SupabaseAuthService {
         const profileComplete = await isProfileComplete(user.id);
 
         if (!profileComplete) {
-          console.log('Profile is incomplete, redirecting to complete-profile');
+
           return {
             success: true,
             user,
@@ -880,7 +863,7 @@ class SupabaseAuthService {
       const profileComplete = await isProfileComplete(user.id);
 
       if (!profileComplete) {
-        console.log('Existing user profile is incomplete');
+
         return {
           success: true,
           user,
@@ -913,7 +896,6 @@ class SupabaseAuthService {
    */
   async completeProfile(data: CompleteProfileData): Promise<AuthResult<any>> {
     try {
-      console.log('Completing profile for user:', data.userId);
 
       const { data: existingUser, error: checkError } = await (supabase as any)
         .from('utilisateur')
@@ -1337,7 +1319,8 @@ export async function getUserAccountStatus(userId: string): Promise<string> {
 }
 
 /**
- * Base URL après auth (OAuth, liens). Même logique que le dashboard : admin org ≠ super-admin.
+ * Base URL après auth (OAuth, liens). Les comptes `admin_systeme` liés à une org
+ * utilisent le silo Autorité ; sans org, ils utilisent le silo Super-admin.
  */
 export const getRedirectPathByRole = (
   role: string,
@@ -1345,7 +1328,7 @@ export const getRedirectPathByRole = (
 ): string => {
   const r = normalizeAppRole(role);
   if (r === 'admin_systeme') {
-    return organisationId ? '/admin' : '/super-admin';
+    return organisationId ? '/authority' : '/super-admin';
   }
   const routes: Record<string, string> = {
     citoyen: '/citizen',
@@ -1355,7 +1338,7 @@ export const getRedirectPathByRole = (
 };
 
 /**
- * Après login : `admin_systeme` + organisation → portail admin org ; sans org → super-admin.
+ * Après login : `admin_systeme` + organisation → silo Autorité ; sans org → Super-admin.
  * (La migration DB fusionne les anciens rôles sur `admin_systeme` ; seul `id_organisation` les distingue.)
  */
 export function getDashboardPathAfterLogin(
@@ -1364,7 +1347,7 @@ export function getDashboardPathAfterLogin(
 ): string {
   const r = normalizeAppRole(role);
   if (r === 'admin_systeme') {
-    return organisationId ? '/admin/dashboard' : '/super-admin/dashboard';
+    return organisationId ? '/authority/dashboard' : '/super-admin/dashboard';
   }
   if (r === 'autorite') return '/authority/dashboard';
   return '/citizen/dashboard';

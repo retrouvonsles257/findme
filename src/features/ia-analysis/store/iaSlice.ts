@@ -28,13 +28,13 @@ export interface IAAnalysisState {
   imageComparisonResults: ResultatIA[];
   locationPredictions: ResultatIA[];
   similaritiesResults: ResultatIA[];
-  
+
   // Résultat courant
   currentFacialAnalysis: ResultatIA | null;
   currentComparison: ResultatIA | null;
   currentLocationPrediction: ResultatIA | null;
   currentSimilarities: ResultatIA | null;
-  
+
   // UI state
   loading: boolean;
   error: string | null;
@@ -146,7 +146,7 @@ const iaSlice = createSlice({
       state.similaritiesResults.unshift(action.payload);
       state.currentSimilarities = action.payload;
     },
-    
+
     // Setters pour les résultats courants
     setCurrentFacialAnalysis: (state, action: PayloadAction<ResultatIA | null>) => {
       state.currentFacialAnalysis = action.payload;
@@ -160,7 +160,7 @@ const iaSlice = createSlice({
     setCurrentSimilarities: (state, action: PayloadAction<ResultatIA | null>) => {
       state.currentSimilarities = action.payload;
     },
-    
+
     // UI state
     setSelectedPersonId: (state, action: PayloadAction<string | null>) => {
       state.selectedPersonId = action.payload;

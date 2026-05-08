@@ -96,9 +96,9 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--authority-primary, #1d4ed8);
+  border-color: var(--authority-primary, #0ea5e9);
   background: white;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 }
 
 /* Right Section */
@@ -115,7 +115,7 @@
   height: 36px;
   padding: 0 1rem;
   border: none;
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   color: white;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -126,7 +126,7 @@
 }
 
 .actionBtn:hover {
-  background: var(--authority-primary-hover, #1e40af);
+  background: var(--authority-primary-hover, #0284c7);
 }
 
 .actionLabel {
@@ -177,7 +177,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
@@ -240,14 +240,14 @@
 }
 
 .languageItem.active {
-  background: #eff6ff;
-  color: var(--authority-primary, #1d4ed8);
+  background: #f0f9ff;
+  color: var(--authority-primary, #0ea5e9);
   font-weight: 500;
 }
 
 .languageItem.active svg:last-child {
   margin-left: auto;
-  color: var(--authority-primary, #1d4ed8);
+  color: var(--authority-primary, #0ea5e9);
 }
 
 /* Notification Badge */
@@ -301,7 +301,7 @@
 .markAllRead {
   border: none;
   background: none;
-  color: var(--authority-primary, #1d4ed8);
+  color: var(--authority-primary, #0ea5e9);
   font-size: 0.75rem;
   cursor: pointer;
   font-family: var(--authority-font);
@@ -399,11 +399,11 @@
 }
 
 .notificationItem.unread {
-  background: rgba(29, 78, 216, 0.04);
+  background: rgba(14, 165, 233, 0.04);
 }
 
 .notificationItem.unread:hover {
-  background: rgba(29, 78, 216, 0.08);
+  background: rgba(14, 165, 233, 0.08);
 }
 
 .unreadDot {
@@ -413,7 +413,7 @@
   transform: translateY(-50%);
   width: 8px;
   height: 8px;
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   border-radius: 50%;
 }
 
@@ -421,8 +421,8 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(29, 78, 216, 0.1);
-  color: var(--authority-primary, #1d4ed8);
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--authority-primary, #0ea5e9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -466,7 +466,7 @@
   padding: 0.875rem;
   border: none;
   background: #f8fafc;
-  color: var(--authority-primary, #1d4ed8);
+  color: var(--authority-primary, #0ea5e9);
   font-size: 0.875rem;
   font-weight: 500;
   font-family: var(--authority-font);
@@ -491,7 +491,7 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background: #1d4ed8;
+  background: #0ea5e9;
   color: white;
   font-size: 0.625rem;
   font-weight: 600;
@@ -549,13 +549,13 @@
 
 .viewBtn:hover {
   background: #f1f5f9;
-  border-color: #1d4ed8;
-  color: #1d4ed8;
+  border-color: #0ea5e9;
+  color: #0ea5e9;
 }
 
 .viewBtn.active {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: #0ea5e9;
+  border-color: #0ea5e9;
   color: white;
 }
 
@@ -625,12 +625,12 @@
 .messageIcon {
   width: 32px;
   height: 32px;
-  background: #e0e7ff;
+  background: #e0f2fe;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1d4ed8;
+  color: #0ea5e9;
   flex-shrink: 0;
 }
 

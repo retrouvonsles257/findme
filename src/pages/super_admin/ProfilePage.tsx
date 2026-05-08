@@ -13,7 +13,7 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { uploadFileToCloudinary } from '../../services/cloudinary';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import { 
   User, Mail, Phone, MapPin, Shield, Lock, Save,
   Loader2, AlertCircle, Check, Eye, EyeOff, Camera,
@@ -64,7 +64,7 @@ export const SuperAdminProfilePage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     nom: '',
@@ -191,7 +191,7 @@ export const SuperAdminProfilePage: React.FC = () => {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setIsSaving(true);
       setError(null);
@@ -253,7 +253,7 @@ export const SuperAdminProfilePage: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setIsChangingPassword(true);
       setError(null);
@@ -408,7 +408,7 @@ export const SuperAdminProfilePage: React.FC = () => {
           {/* Profile Form */}
           <form onSubmit={handleSaveProfile} className={styles['sa-profile__form']}>
             <h3>{t('super_admin.profilePersonalInfo')}</h3>
-            
+
             <div className={styles['sa-profile__form-grid']}>
               <div className={styles['sa-profile__form-field']}>
                 <label><User size={16} /> {t('super_admin.profileLabelName')}</label>
@@ -420,7 +420,7 @@ export const SuperAdminProfilePage: React.FC = () => {
                   placeholder={t('super_admin.profilePlaceholderName')}
                 />
               </div>
-              
+
               <div className={styles['sa-profile__form-field']}>
                 <label><User size={16} /> {t('super_admin.profileLabelPrenom')}</label>
                 <input
@@ -608,7 +608,7 @@ export const SuperAdminProfilePage: React.FC = () => {
           {/* Password Change */}
           <div className={styles['sa-profile__security']}>
             <h3><Lock size={18} /> {t('super_admin.profileSectionSecurity')}</h3>
-            
+
             {!showPasswordForm ? (
               <button 
                 onClick={() => setShowPasswordForm(true)}

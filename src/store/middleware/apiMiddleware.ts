@@ -1,40 +1,14 @@
 /**
  * =====================================================
  * RETROUVONSLES - API Middleware
- * Handles API calls and service integration
+ * Pass-through (aucune interception console).
  * =====================================================
  */
 
-/**
- * API Middleware factory
- * Intercepts API-related actions and handles service calls
- */
-export const apiMiddleware = (store: any) => (next: any) => (action: any) => {
-  // Log API action
-  if (action.type?.includes('api/')) {
-    console.log('[API Middleware]', action.type, action.payload);
-  }
+export const apiMiddleware = (_store: any) => (next: any) => (action: any) =>
+  next(action);
 
-  // Pass through to next middleware
-  const result = next(action);
-
-  return result;
-};
-
-/**
- * Service middleware
- * Handles calls to external services (Supabase, Firebase, etc.)
- */
-export const serviceMiddleware = (store: any) => (next: any) => (action: any) => {
-  // Pass through
-  const result = next(action);
-
-  // Handle service actions post-dispatch
-  if (action.type?.includes('service/')) {
-    console.log('[Service Middleware]', action.type, action.payload);
-  }
-
-  return result;
-};
+export const serviceMiddleware = (_store: any) => (next: any) => (action: any) =>
+  next(action);
 
 export default apiMiddleware;

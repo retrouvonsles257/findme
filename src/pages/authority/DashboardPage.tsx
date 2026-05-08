@@ -55,7 +55,7 @@ export const DashboardPage: React.FC = () => {
   const { signalements, isLoading: signalementsLoading, fetchSignalements } = useSignalements();
   const { alertes, loading: alertesLoading, fetchAlertes } = useAlertes();
   const { t } = useI18n();
-  
+
   const [stats, setStats] = useState<DashboardStats>({
     dossiers_total: 0,
     dossiers_en_cours: 0,
@@ -89,9 +89,9 @@ export const DashboardPage: React.FC = () => {
       const retrouves = dossiers.filter((d: any) => 
         d.statut_dossier === 'retrouve_vivant' || d.statut_dossier === 'retrouve_decede'
       ).length;
-      
+
       const alertesActives = alertes.filter((a: any) => a.statut_alerte === 'en_cours').length;
-      
+
       const signalementsNouveaux = signalements.filter((s: any) => 
         s.statut_validation === 'en_attente' || s.etat === 'nouveau'
       ).length;

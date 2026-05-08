@@ -14,7 +14,7 @@ import {
   ArrowLeft, MapPin, Calendar, Clock, Eye, CheckCircle, 
   XCircle, AlertCircle, Image as ImageIcon
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import {
   getRawStatut,
   getCitizenStatusI18nSuffix,
@@ -122,7 +122,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
     const label = t(`citizen.${getCitizenStatusI18nSuffix(raw)}`);
     const phase = getStatutPhase(raw);
     if (phase === 'ok') {
-      return { icon: <CheckCircle size={20} />, color: '#22c55e', label };
+      return { icon: <CheckCircle size={20} />, color: '#0ea5e9', label };
     }
     if (phase === 'nok') {
       return { icon: <XCircle size={20} />, color: '#ef4444', label };

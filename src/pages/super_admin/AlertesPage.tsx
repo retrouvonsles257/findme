@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   Bell, Plus, Edit2, Trash2, X, Minus, Check,
   Loader2, AlertCircle, Search, Eye, Calendar,
@@ -102,7 +102,7 @@ const DEFAULT_ALERTE_CONFIG: AlerteGlobalConfig = {
 
 const SuperAdminAlertesPage: React.FC = () => {
   const { t } = useI18n();
-  
+
   const [alertes, setAlertes] = useState<Alerte[]>([]);
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,24 +110,24 @@ const SuperAdminAlertesPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedAlerte, setSelectedAlerte] = useState<Alerte | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Filtres
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState<string>('');
   const [filterType, setFilterType] = useState<string>('');
-  
+
   // Configuration globale
   const [showGlobalConfig, setShowGlobalConfig] = useState(false);
   const [globalConfig, setGlobalConfig] = useState<AlerteGlobalConfig>(DEFAULT_ALERTE_CONFIG);
   const [originalGlobalConfig, setOriginalGlobalConfig] = useState<AlerteGlobalConfig>(DEFAULT_ALERTE_CONFIG);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
-  
+
   // Form state - TOUS les champs du modèle SQL
   const [formData, setFormData] = useState({
     titre: '',
@@ -189,7 +189,7 @@ const SuperAdminAlertesPage: React.FC = () => {
       if (searchTerm) {
         countQuery = countQuery.or(`titre.ilike.%${searchTerm}%,message.ilike.%${searchTerm}%`);
       }
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -220,7 +220,7 @@ const SuperAdminAlertesPage: React.FC = () => {
       const enrichedAlertes = await Promise.all(
         (data || []).map(async (alerte: any) => {
           let dossier = alerte.dossier;
-          
+
           // Enrichir le dossier avec la personne si disponible
           if (dossier?.id_personne) {
             const { data: personne } = await (supabase as any)
@@ -230,7 +230,7 @@ const SuperAdminAlertesPage: React.FC = () => {
               .single();
             dossier = { ...dossier, personne };
           }
-          
+
           return {
             ...alerte,
             dossier: dossier || null,
@@ -311,7 +311,7 @@ const SuperAdminAlertesPage: React.FC = () => {
     // Utiliser les valeurs par défaut de la configuration globale
     const defaultRayon = globalConfig.rayon_diffusion_defaut_disparition_standard;
     const defaultCanaux = JSON.stringify(globalConfig.canaux_diffusion_defaut);
-    
+
     setFormData({
       titre: '',
       message: '',
@@ -491,7 +491,7 @@ const SuperAdminAlertesPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger TOUTES les alertes avec les filtres actuels (sans pagination)
       let query = (supabase as any)
         .from('alerte')
@@ -539,7 +539,7 @@ const SuperAdminAlertesPage: React.FC = () => {
         'Commentaire validation', 'Dossier', 'Personne dossier', 'Créateur',
         'Date création', 'Date modification'
       ];
-      
+
       const rows = enrichedAlertes.map((a: any) => [
         a.id,
         a.numero_alerte || '',
@@ -819,7 +819,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                 <h2>{modalMode === 'create' ? t('super_admin.alertesModalCreate') : t('super_admin.alertesModalEdit')}</h2>
                 <button type="button" onClick={() => setShowModal(false)} aria-label={t('common.close')}><X size={20} /></button>
               </div>
-              
+
               <div className={styles['sa-alertes__modal-body']}>
                 <div className={styles['sa-alertes__form-grid']}>
                   <div className={styles['sa-alertes__form-full']}>
@@ -978,7 +978,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                 <h2>{t('super_admin.alertesModalViewTitle')}</h2>
                 <button type="button" onClick={() => { setShowModal(false); setSelectedAlerte(null); }} aria-label={t('common.close')}><X size={20} /></button>
               </div>
-              
+
               <div className={styles['sa-alertes__modal-body']}>
                 <div className={styles['sa-alertes__detail-grid']}>
                   <div><label>{t('super_admin.alertesViewNumero')}:</label><span>{selectedAlerte.numero_alerte || '-'}</span></div>
@@ -1070,7 +1070,7 @@ const SuperAdminAlertesPage: React.FC = () => {
                 <h2>{t('super_admin.alertesConfigTitle')}</h2>
                 <button onClick={() => setShowGlobalConfig(false)}><X size={20} /></button>
               </div>
-              
+
               <div className={styles['sa-alertes__modal-body']}>
                 <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600 }}>{t('super_admin.alertesConfigRayonsTitle')}</h3>
                 <div className={styles['sa-alertes__form-grid']} style={{ marginBottom: '1.5rem' }}>

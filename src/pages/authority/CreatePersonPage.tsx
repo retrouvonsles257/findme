@@ -39,7 +39,7 @@ interface PersonFormData {
   age_estime_max: string;
   nationalite: string;
   langue_parlee: string;
-  
+
   // Physique
   description_physique: string;
   taille_cm: string;
@@ -52,7 +52,7 @@ interface PersonFormData {
   signes_distinctifs: string;
   handicaps_maladies: string;
   groupe_sanguin: string;
-  
+
   // Complémentaire
   numero_identification: string;
   type_identification: string;
@@ -93,7 +93,7 @@ const initialFormData: PersonFormData = {
 };
 
 export interface CreatePersonPageProps {
-  /** Préfixe des routes (`/authority`, `/operator`, …). */
+  /** Préfixe des routes (ex. `/authority`, `/admin`). */
   basePath?: string;
   /** Si true, pas de `AuthorityLayout` (ex. wrapper opérateur legacy). */
   noLayout?: boolean;
@@ -102,14 +102,14 @@ export interface CreatePersonPageProps {
 export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '/authority', noLayout = false }) => {
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectCurrentUser);
-  
+
   const [formData, setFormData] = useState<PersonFormData>(initialFormData);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Photos
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
@@ -130,7 +130,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
         return newErrors;
       });
     }
-    
+
     // Auto-génération du nom complet
     if (field === 'nom' || field === 'prenom') {
       const nom = field === 'nom' ? value : formData.nom;
@@ -147,14 +147,14 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
   const handlePhotosSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    
+
     const newFiles = files.slice(0, 10 - photos.length);
     const validFiles = newFiles.filter(file => {
       if (file.size > 5 * 1024 * 1024) return false;
       if (!file.type.startsWith('image/')) return false;
       return true;
     });
-    
+
     if (validFiles.length > 0) {
       setPhotos(prev => [...prev, ...validFiles]);
       validFiles.forEach(file => {
@@ -175,18 +175,18 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (step === 1) {
       if (!formData.prenom.trim()) newErrors.prenom = 'Le prénom est requis';
       if (!formData.nom.trim()) newErrors.nom = 'Le nom est requis';
     }
-    
+
     if (step === 2) {
       if (!formData.description_physique.trim() || formData.description_physique.length < 20) {
         newErrors.description_physique = 'La description physique est requise (min. 20 caractères)';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -206,13 +206,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
   const handleSubmit = async () => {
     if (currentStep !== 3) return;
     if (!validateStep(3)) return;
-    
+
     setIsSubmitting(true);
     setErrorMessage('');
-    
+
     try {
       let photoUrl = '';
-      
+
       if (photos.length > 0) {
         const uploadResult = await cloudinaryService.uploadFile(
           photos[0],
@@ -224,7 +224,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
           photoUrl = uploadResult.secureUrl;
         }
       }
-      
+
       const personneData = {
         nom: formData.nom,
         prenom: formData.prenom,
@@ -257,7 +257,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
         statut_identite: 'identifie' as const,
         fiabilite_informations: 'probable' as const,
       };
-      
+
       const createdPersonne = await personneAPI.createPersonne(
         personneData as any,
         currentUser?.id || 'anonymous'
@@ -270,7 +270,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
         id_utilisateur: currentUser?.id || null,
         donnees_apres: { id: createdPersonne.id, nom: createdPersonne.nom, prenom: createdPersonne.prenom },
       });
-      
+
       // Insérer les photos dans la table photo
       if (photoUrl && createdPersonne?.id) {
         try {
@@ -293,7 +293,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
             id_utilisateur: currentUser?.id || null,
             donnees_apres: { est_principale: true, id_personne: createdPersonne.id },
           });
-          
+
           // Uploader les photos supplémentaires
           for (let i = 1; i < photos.length; i++) {
             const additionalUpload = await cloudinaryService.uploadFile(
@@ -319,10 +319,10 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
           console.error('Error inserting photos:', photoError);
         }
       }
-      
+
       setSuccessMessage('Fiche de personne créée avec succès!');
       setTimeout(() => navigate(`${basePath}/personnes/${createdPersonne.id}`), 2000);
-      
+
     } catch (err: any) {
       console.error('Error creating person:', err);
       setErrorMessage(err.message || 'Erreur lors de la création de la fiche');
@@ -349,13 +349,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
               <p className={styles.createPerson__subtitle}>Étape {currentStep} sur 3</p>
             </div>
           </div>
-          
+
           <div className={styles.createPerson__stepper}>
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
               const isCompleted = currentStep > step.number;
-              
+
               return (
                 <React.Fragment key={step.number}>
                   <div className={`${styles.createPerson__stepItem} ${isActive ? styles['createPerson__stepItem--active'] : ''} ${isCompleted ? styles['createPerson__stepItem--completed'] : ''}`}>
@@ -380,7 +380,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
             <span>{errorMessage}</span>
           </div>
         )}
-        
+
         {successMessage && (
           <div className={styles.createPerson__alert + ' ' + styles['createPerson__alert--success']}>
             <CheckCircle2 size={20} />
@@ -400,14 +400,14 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                   <p className={styles.createPerson__sectionSubtitle}>Nom, prénom et informations de base</p>
                 </div>
               </div>
-              
+
               {/* Photo upload */}
               <div className={styles.createPerson__photoUpload}>
                 <label className={styles.createPerson__label}>
                   <Camera size={16} />
                   Photos (optionnel)
                 </label>
-                
+
                 <div className={styles.createPerson__photoGrid}>
                   {photoPreviews.map((preview, index) => (
                     <div key={index} className={styles.createPerson__photoItem}>
@@ -418,7 +418,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                       {index === 0 && <span className={styles.createPerson__photoBadge}>Principale</span>}
                     </div>
                   ))}
-                  
+
                   {photos.length < 10 && (
                     <label className={styles.createPerson__photoAdd}>
                       <input type="file" accept="image/*" multiple onChange={handlePhotosSelected} style={{ display: 'none' }} />
@@ -428,7 +428,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                   )}
                 </div>
               </div>
-              
+
               <div className={styles.createPerson__fields}>
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
@@ -442,7 +442,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     />
                     {errors.prenom && <span className={styles.createPerson__error}>{errors.prenom}</span>}
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Nom <span className={styles.createPerson__required}>*</span></label>
                     <input
@@ -455,13 +455,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     {errors.nom && <span className={styles.createPerson__error}>{errors.nom}</span>}
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Alias / Surnom</label>
                     <input type="text" className={styles.createPerson__input} placeholder="Surnom éventuel" value={formData.alias} onChange={(e) => handleInputChange('alias', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Sexe</label>
                     <select className={styles.createPerson__select} value={formData.sexe} onChange={(e) => handleInputChange('sexe', e.target.value)}>
@@ -472,13 +472,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     </select>
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Date de naissance</label>
                     <input type="date" className={styles.createPerson__input} value={formData.date_naissance} onChange={(e) => handleInputChange('date_naissance', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Âge estimé</label>
                     <div className={styles.createPerson__ageRange}>
@@ -489,13 +489,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     </div>
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Nationalité</label>
                     <input type="text" className={styles.createPerson__input} value={formData.nationalite} onChange={(e) => handleInputChange('nationalite', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Langue parlée</label>
                     <input type="text" className={styles.createPerson__input} value={formData.langue_parlee} onChange={(e) => handleInputChange('langue_parlee', e.target.value)} />
@@ -515,7 +515,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                   <p className={styles.createPerson__sectionSubtitle}>Description détaillée de l'apparence</p>
                 </div>
               </div>
-              
+
               <div className={styles.createPerson__fields}>
                 <div className={styles.createPerson__fieldGroup}>
                   <label className={styles.createPerson__label}>Description physique <span className={styles.createPerson__required}>*</span></label>
@@ -528,18 +528,18 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                   />
                   {errors.description_physique && <span className={styles.createPerson__error}>{errors.description_physique}</span>}
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Taille (cm)</label>
                     <input type="number" className={styles.createPerson__input} placeholder="Ex: 170" value={formData.taille_cm} onChange={(e) => handleInputChange('taille_cm', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Poids (kg)</label>
                     <input type="number" className={styles.createPerson__input} placeholder="Ex: 65" value={formData.poids_kg} onChange={(e) => handleInputChange('poids_kg', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Corpulence</label>
                     <select className={styles.createPerson__select} value={formData.corpulence} onChange={(e) => handleInputChange('corpulence', e.target.value)}>
@@ -551,7 +551,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     </select>
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Couleur de peau</label>
@@ -563,12 +563,12 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                       <option value="inconnue">Inconnue</option>
                     </select>
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Couleur cheveux</label>
                     <input type="text" className={styles.createPerson__input} placeholder="Ex: Noir" value={formData.couleur_cheveux} onChange={(e) => handleInputChange('couleur_cheveux', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Type cheveux</label>
                     <select className={styles.createPerson__select} value={formData.type_cheveux} onChange={(e) => handleInputChange('type_cheveux', e.target.value)}>
@@ -582,13 +582,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     </select>
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Couleur yeux</label>
                     <input type="text" className={styles.createPerson__input} placeholder="Ex: Marron" value={formData.couleur_yeux} onChange={(e) => handleInputChange('couleur_yeux', e.target.value)} />
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Groupe sanguin</label>
                     <select className={styles.createPerson__select} value={formData.groupe_sanguin} onChange={(e) => handleInputChange('groupe_sanguin', e.target.value)}>
@@ -604,12 +604,12 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                     </select>
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldGroup}>
                   <label className={styles.createPerson__label}>Signes distinctifs</label>
                   <textarea className={styles.createPerson__textarea} placeholder="Cicatrices, tatouages, marques de naissance..." value={formData.signes_distinctifs} onChange={(e) => handleInputChange('signes_distinctifs', e.target.value)} rows={3} />
                 </div>
-                
+
                 <div className={styles.createPerson__fieldGroup}>
                   <label className={styles.createPerson__label}>Handicaps / Maladies connues</label>
                   <textarea className={styles.createPerson__textarea} placeholder="Handicaps physiques, maladies chroniques..." value={formData.handicaps_maladies} onChange={(e) => handleInputChange('handicaps_maladies', e.target.value)} rows={2} />
@@ -628,7 +628,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                   <p className={styles.createPerson__sectionSubtitle}>Documents, situation familiale et derniers effets</p>
                 </div>
               </div>
-              
+
               <div className={styles.createPerson__fields}>
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
@@ -641,13 +641,13 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                       <option value="aucun">Aucun</option>
                     </select>
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Numéro d'identification</label>
                     <input type="text" className={styles.createPerson__input} placeholder="N° de la pièce" value={formData.numero_identification} onChange={(e) => handleInputChange('numero_identification', e.target.value)} />
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldRow}>
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Situation familiale</label>
@@ -659,23 +659,23 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                       <option value="autre">Autre</option>
                     </select>
                   </div>
-                  
+
                   <div className={styles.createPerson__fieldGroup}>
                     <label className={styles.createPerson__label}>Nombre d'enfants</label>
                     <input type="number" className={styles.createPerson__input} placeholder="0" value={formData.nombre_enfants} onChange={(e) => handleInputChange('nombre_enfants', e.target.value)} min="0" />
                   </div>
                 </div>
-                
+
                 <div className={styles.createPerson__fieldGroup}>
                   <label className={styles.createPerson__label}>Derniers vêtements portés</label>
                   <textarea className={styles.createPerson__textarea} placeholder="Description des vêtements lors de la dernière apparition..." value={formData.derniers_vetements_portes} onChange={(e) => handleInputChange('derniers_vetements_portes', e.target.value)} rows={3} />
                 </div>
-                
+
                 <div className={styles.createPerson__fieldGroup}>
                   <label className={styles.createPerson__label}>Accessoires</label>
                   <textarea className={styles.createPerson__textarea} placeholder="Sac, bijoux, téléphone, etc..." value={formData.accessoires} onChange={(e) => handleInputChange('accessoires', e.target.value)} rows={2} />
                 </div>
-                
+
                 {/* Résumé */}
                 <div className={styles.createPerson__summary}>
                   <h4 className={styles.createPerson__summaryTitle}>Résumé de la fiche</h4>
@@ -720,7 +720,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
             >
               Annuler
             </button>
-            
+
             <div className={styles.createPerson__navBtns}>
               {currentStep > 1 && (
                 <button type="button" onClick={goToPrevStep} className={styles.createPerson__prevBtn} disabled={isSubmitting}>
@@ -728,7 +728,7 @@ export const CreatePersonPage: React.FC<CreatePersonPageProps> = ({ basePath = '
                   Précédent
                 </button>
               )}
-              
+
               {currentStep < 3 ? (
                 <button type="button" onClick={goToNextStep} className={styles.createPerson__nextBtn}>
                   Suivant

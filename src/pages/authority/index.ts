@@ -26,6 +26,18 @@ export { SignalementDetailPage } from './SignalementDetailPage';
 // Investigation & Analyse
 export { InvestigationPage } from './InvestigationPage';
 export { IAAnalysisPage } from './IAAnalysisPage';
+export { IAResultsCatalogAuthorityPage } from './IAResultsCatalogAuthorityPage';
+export { ModerationOverviewAuthorityPage } from './ModerationOverviewAuthorityPage';
+export {
+  OrganisationEquipeListAuthorityPage,
+  OrganisationEquipeNewAuthorityPage,
+  OrganisationEquipeDetailAuthorityPage,
+  OrganisationParametresAuthorityPage,
+} from './OrganisationEquipeAuthorityPages';
+export { OrganisationUsersPage } from './OrganisationUsersPage';
+export { OrganisationUserNewPage } from './OrganisationUserNewPage';
+export { OrganisationUserDetailPage } from './OrganisationUserDetailPage';
+export { OrganisationSettingsPage } from './OrganisationSettingsPage';
 
 // Photos moderation & ex-modérateur (silo Autorité)
 export { PhotosModerationPage } from './PhotosModerationPage';

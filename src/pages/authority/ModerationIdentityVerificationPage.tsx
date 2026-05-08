@@ -5,17 +5,19 @@ import React from 'react';
 import { AuthorityLayout } from '../../components/layout';
 import { useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { IdentityVerificationPage } from '../moderator/IdentityVerificationPage';
+import { IdentityVerificationPage } from './moderation/IdentityVerificationPage';
 
-export const ModerationIdentityVerificationPage: React.FC = () => {
+export interface ModerationIdentityVerificationPageProps {
+  noLayout?: boolean;
+}
+
+export const ModerationIdentityVerificationPage: React.FC<ModerationIdentityVerificationPageProps> = ({ noLayout = false }) => {
   const currentUser = useAppSelector(selectCurrentUser);
   const organisationId = (currentUser as { organisation_id?: string | null })?.organisation_id ?? null;
+  const content = <IdentityVerificationPage noLayout organisationId={organisationId} />;
 
-  return (
-    <AuthorityLayout>
-      <IdentityVerificationPage noLayout organisationId={organisationId} />
-    </AuthorityLayout>
-  );
+  if (noLayout) return content;
+  return <AuthorityLayout>{content}</AuthorityLayout>;
 };
 
 export default ModerationIdentityVerificationPage;

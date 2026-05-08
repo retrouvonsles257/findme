@@ -13,7 +13,7 @@ import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import { 
   RefreshCw, 
   AlertTriangle, 
@@ -34,7 +34,7 @@ export const EditDossierPage: React.FC = () => {
   useAuth(); // Hook call for auth context
   const { addNotification } = useNotification();
   const { t } = useI18n();
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [dossier, setDossier] = useState<any>(null);
@@ -89,7 +89,7 @@ export const EditDossierPage: React.FC = () => {
 
         const loadedNote = (note?.contenu as string | undefined) || '';
         setInitialInternalNotes(loadedNote);
-        
+
         setFormData({
           niveau_urgence: dossierData.niveau_urgence || 'normal',
           statut_dossier: dossierData.statut_dossier || 'en_cours',

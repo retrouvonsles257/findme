@@ -53,7 +53,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         const ws = new WebSocket(wsUrl, protocols);
 
         ws.addEventListener('open', () => {
-          console.log('[WebSocket] Connected to', wsUrl);
+
           setStatus('connected');
           setReconnectAttempts(0);
           wsRef.current = ws;
@@ -99,7 +99,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         });
 
         ws.addEventListener('close', () => {
-          console.log('[WebSocket] Disconnected');
+
           setStatus('closed');
           wsRef.current = null;
 

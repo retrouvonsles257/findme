@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { DashboardSkeleton } from '../admin/skeletons';
+import { DashboardSkeleton } from 'components/skeletons';
 import {
   Building2,
   Users,
@@ -49,7 +49,7 @@ interface DashboardStats {
 export const SuperAdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
-  
+
   const [stats, setStats] = useState<DashboardStats>({
     totalOrganisations: 0,
     totalUsers: 0,
@@ -129,7 +129,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
   }, []);
 
   const statsCards = [
-    { label: t('super_admin.totalOrganisations'), value: stats.totalOrganisations.toString(), icon: Building2, color: '#3b82f6' },
+    { label: t('super_admin.totalOrganisations'), value: stats.totalOrganisations.toString(), icon: Building2, color: '#38bdf8' },
     { label: t('super_admin.totalUsers'), value: stats.totalUsers.toString(), icon: Users, color: '#10b981' },
     { label: t('super_admin.totalDossiers'), value: stats.totalDossiers.toString(), icon: FolderOpen, color: '#f59e0b' },
     { label: t('super_admin.activeDossiers'), value: stats.activeDossiers.toString(), icon: Zap, color: '#ef4444' },
@@ -140,8 +140,8 @@ export const SuperAdminDashboardPage: React.FC = () => {
     { label: t('super_admin.dashboardNotificationsUnread'), value: stats.unreadNotifications.toString(), icon: AlertCircle, color: '#dc2626' },
     { label: t('super_admin.dashboardPhotosPending'), value: stats.pendingPhotos.toString(), icon: Image, color: '#ea580c' },
     { label: t('super_admin.dashboardCommentsConfidential'), value: stats.confidentialComments.toString(), icon: MessageSquare, color: '#7c3aed' },
-    { label: t('super_admin.dashboardDocumentsAttached'), value: stats.totalDocuments.toString(), icon: FileText, color: '#059669' },
-    { label: t('super_admin.systemHealth'), value: '99%', icon: Heart, color: '#22c55e' },
+    { label: t('super_admin.dashboardDocumentsAttached'), value: stats.totalDocuments.toString(), icon: FileText, color: '#0284c7' },
+    { label: t('super_admin.systemHealth'), value: '99%', icon: Heart, color: '#0ea5e9' },
   ];
 
   const quickActions = [

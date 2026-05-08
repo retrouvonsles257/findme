@@ -24,11 +24,9 @@ import validationEn from './en/validation.json';
 import citizenEn from './en/citizen.json';
 import profileEn from './en/profile.json';
 import adminEn from './en/admin.json';
-import operatorEn from './en/operator.json';
-import moderatorEn from './en/moderator.json';
+import moderationEn from './en/moderation.json';
 import authorityEn from './en/authority.json';
 import superAdminEn from './en/super_admin.json';
-import ngoEn from './en/ngo.json';
 import publicEn from './en/public.json';
 
 import commonFr from './fr/common.json';
@@ -45,11 +43,9 @@ import validationFr from './fr/validation.json';
 import citizenFr from './fr/citizen.json';
 import profileFr from './fr/profile.json';
 import adminFr from './fr/admin.json';
-import operatorFr from './fr/operator.json';
-import moderatorFr from './fr/moderator.json';
+import moderationFr from './fr/moderation.json';
 import authorityFr from './fr/authority.json';
 import superAdminFr from './fr/super_admin.json';
-import ngoFr from './fr/ngo.json';
 import publicFr from './fr/public.json';
 
 const resources = {
@@ -61,18 +57,16 @@ const resources = {
     dossiers: dossiersEn,
     signalements: signaiementsEn,
     alertes: alertesEn,
-    users: usersEn,
+    users: (usersEn as { users?: Record<string, unknown> }).users ?? usersEn,
     success: successEn,
     errors: errorsEn,
     validation: validationEn,
     citizen: citizenEn,
     profile: profileEn,
     admin: (adminEn as { admin?: Record<string, unknown> }).admin ?? adminEn,
-    operator: operatorEn,
-    moderator: moderatorEn,
+    moderation: moderationEn,
     authority: authorityEn,
     super_admin: superAdminEn,
-    ngo: ngoEn,
     public: publicEn,
   },
   fr: {
@@ -83,18 +77,16 @@ const resources = {
     dossiers: dossiersFr,
     signalements: signaiementsFr,
     alertes: alertesFr,
-    users: usersFr,
+    users: (usersFr as { users?: Record<string, unknown> }).users ?? usersFr,
     success: successFr,
     errors: errorsFr,
     validation: validationFr,
     citizen: citizenFr,
     profile: profileFr,
     admin: (adminFr as { admin?: Record<string, unknown> }).admin ?? adminFr,
-    operator: operatorFr,
-    moderator: moderatorFr,
+    moderation: moderationFr,
     authority: authorityFr,
     super_admin: superAdminFr,
-    ngo: ngoFr,
     public: publicFr,
   },
 };
@@ -118,16 +110,16 @@ i18n
     fallbackLng: 'fr',
     lng: getInitialLanguage(),
     defaultNS: 'common',
-    ns: ['common', 'auth', 'navigation', 'forms', 'dossiers', 'signalements', 'alertes', 'users', 'success', 'errors', 'validation', 'citizen', 'profile', 'admin', 'operator', 'moderator', 'authority', 'super_admin', 'ngo', 'public'],
-    
+    ns: ['common', 'auth', 'navigation', 'forms', 'dossiers', 'signalements', 'alertes', 'users', 'success', 'errors', 'validation', 'citizen', 'profile', 'admin', 'moderation', 'authority', 'super_admin', 'public'],
+
     keySeparator: '.',
     nsSeparator: '.',
-    
+
     interpolation: {
       escapeValue: false,
       formatSeparator: ',',
     },
-    
+
     detection: {
       order: ['localStorage'],
       caches: ['localStorage'],

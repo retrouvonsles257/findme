@@ -161,8 +161,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
-    } catch (err) {
-      console.debug('Could not play notification sound:', err);
+    } catch {
+      void 0;
     }
   }, []);
 

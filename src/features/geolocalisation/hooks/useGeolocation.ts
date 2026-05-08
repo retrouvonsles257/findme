@@ -74,14 +74,14 @@ export const useGeolocation = (autoStart: boolean = false): UseGeolocationReturn
             heading: position.coords.heading || undefined,
             speed: position.coords.speed || undefined,
           };
-          console.log(`Geolocation: ${location.latitude}, ${location.longitude} (accuracy: ${location.accuracy}m)`);
+
           setCurrentLocation(location);
           setError(null);
           void pushGpsToProfilCitoyen(location.latitude, location.longitude);
           resolve(location);
         },
         (err) => {
-          console.warn('Geolocation error:', err.message);
+
           setError(err.message);
           resolve(null);
         },
@@ -111,13 +111,13 @@ export const useGeolocation = (autoStart: boolean = false): UseGeolocationReturn
           heading: position.coords.heading || undefined,
           speed: position.coords.speed || undefined,
         };
-        console.log(`Tracking update: ${location.latitude}, ${location.longitude} (accuracy: ${location.accuracy}m)`);
+
         setCurrentLocation(location);
         setError(null);
         void pushGpsToProfilCitoyen(location.latitude, location.longitude);
       },
       (err) => {
-        console.warn('Tracking error:', err.message);
+
         setError(err.message);
       },
       {

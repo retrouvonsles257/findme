@@ -17,7 +17,7 @@ import {
   User, Mail, Phone, MapPin, CheckCircle, Camera, 
   Loader2, AlertCircle, Save, Shield, Settings, BadgeCheck
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './ProfilePage.module.css';
 import { StatutCompte } from '../../@types/enums.types';
 
@@ -117,7 +117,7 @@ export const CitizenProfilePage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -451,7 +451,7 @@ export const CitizenProfilePage: React.FC = () => {
                   <Settings size={18} />
                   {t('citizen.notificationPreferences')}
                 </h4>
-                
+
                 <div className={styles['profile__form-group']}>
                   <label className={styles['profile__label']}>
                     {t('citizen.notificationRadius')} (km)

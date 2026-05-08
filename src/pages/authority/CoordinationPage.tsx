@@ -10,7 +10,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthorityLayout } from '../../components/layout';
 import { FolderOpen, MapPin, Calendar, RefreshCw, Send, MessageSquare, Package, Share2, History, User, Phone, Eye, Plus } from 'lucide-react';
-import { AdminCardsGridSkeleton } from '../admin/skeletons';
+import { AdminCardsGridSkeleton } from 'components/skeletons';
 import { 
   useCoordinationMessages,
   useCoordinationResources,
@@ -542,8 +542,8 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowRequestModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.commonActions.cancel')}</button>
-                <button onClick={handleRequestResource} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.coordination.resources.request')}</button>
+                <button onClick={() => setShowRequestModal(false)} style={{ padding: '10px 20px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.commonActions.cancel')}</button>
+                <button onClick={handleRequestResource} style={{ padding: '10px 20px', backgroundColor: '#0ea5e9', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.coordination.resources.request')}</button>
               </div>
             </div>
           </div>
@@ -603,8 +603,8 @@ export const CoordinationPage: React.FC<CoordinationPageProps> = ({ noLayout = f
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowShareModal(false)} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.commonActions.cancel')}</button>
-                <button onClick={handleShareDossier} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.commonActions.share')}</button>
+                <button onClick={() => setShowShareModal(false)} style={{ padding: '10px 20px', backgroundColor: '#64748b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.commonActions.cancel')}</button>
+                <button onClick={handleShareDossier} style={{ padding: '10px 20px', backgroundColor: '#0ea5e9', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('authority.commonActions.share')}</button>
               </div>
             </div>
           </div>

@@ -4,19 +4,19 @@
    =================================================================== */
 
 :root {
-  --sa-doss-primary: #1d4ed8;
-  --sa-doss-primary-hover: #1e40af;
-  --sa-doss-success: #059669;
+  --sa-doss-primary: #0ea5e9;
+  --sa-doss-primary-hover: #0284c7;
+  --sa-doss-success: #0284c7;
   --sa-doss-danger: #dc2626;
   --sa-doss-muted: #64748b;
   --sa-doss-border: #e2e8f0;
   --sa-doss-bg: #f8fafc;
   --sa-doss-card: #ffffff;
-  --sa-doss-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sa-doss-font: var(--font-family, inherit);
 }
 
 .sa-dossiers {
-  font-family: var(--sa-doss-font);
+  
   padding: 1.5rem 2rem 2rem;
   background: var(--sa-doss-bg);
   min-height: 100%;
@@ -57,7 +57,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
-  background: linear-gradient(135deg, var(--sa-doss-primary), #2563eb);
+  background: linear-gradient(135deg, var(--sa-doss-primary), #0ea5e9);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -76,7 +76,7 @@
 
 .sa-dossiers__btn-create:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(29, 78, 216, 0.35);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.34);
 }
 
 .sa-dossiers__btn-export {
@@ -327,7 +327,7 @@
 }
 
 .sa-dossiers__btn-modifier {
-  background: #dbeafe;
+  background: #e0f2fe;
   color: var(--sa-doss-primary);
   border-color: #93c5fd;
 }
@@ -378,7 +378,7 @@
 .sa-dossiers__badge--success { background: #d1fae5; color: #065f46; }
 .sa-dossiers__badge--danger { background: #fee2e2; color: #991b1b; }
 .sa-dossiers__badge--warning { background: #fef3c7; color: #92400e; }
-.sa-dossiers__badge--info { background: #dbeafe; color: #1e40af; }
+.sa-dossiers__badge--info { background: #e0f2fe; color: #0284c7; }
 .sa-dossiers__badge--default { background: #f1f5f9; color: #475569; }
 
 .sa-dossiers__empty {
@@ -551,7 +551,7 @@
 .sa-dossiers__form-grid textarea:focus {
   outline: none;
   border-color: var(--sa-doss-primary);
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 .sa-dossiers__form-grid textarea {

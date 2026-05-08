@@ -78,6 +78,7 @@ export const NAMESPACES = {
   ERRORS: 'errors',
   VALIDATION: 'validation',
   AUTHORITY: 'authority',
+  MODERATION: 'moderation',
 } as const;
 
 export type Namespace = typeof NAMESPACES[keyof typeof NAMESPACES];

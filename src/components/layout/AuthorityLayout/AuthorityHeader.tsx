@@ -309,7 +309,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
           .from('notification')
           .update({ lue: true, date_lecture: new Date().toISOString() })
           .eq('id', parseInt(notif.id));
-        
+
         setNotifications(prev =>
           prev.map(n => n.id === notif.id ? { ...n, lu: true } : n)
         );
@@ -527,7 +527,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                   <X size={16} />
                 </button>
               </div>
-              
+
               {messagesLoading ? (
                 <div className={styles.loadingMessages}>
                   <Loader2 size={24} className={styles.spinner} />
@@ -607,7 +607,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                   <X size={16} />
                 </button>
               </div>
-              
+
               {loadingNotifications ? (
                 <div className={styles.loadingNotifications}>
                   <Loader2 size={24} className={styles.spinner} />

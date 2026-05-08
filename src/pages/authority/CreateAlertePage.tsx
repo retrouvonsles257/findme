@@ -61,7 +61,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
   const alertesListPath = `${basePath}/alertes`;
   const [searchParams] = useSearchParams();
   const preselectedDossierId = searchParams.get('dossier');
-  
+
   useAuth(); // Hook call for auth context
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
@@ -79,7 +79,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
     ? TYPE_OPTIONS.filter((o) => allowedTypes.includes(o.value))
     : TYPE_OPTIONS;
   const defaultType = typeOptions[0]?.value ?? TypeAlerteEnum.DISPARITION_STANDARD;
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titre: '',
@@ -301,7 +301,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
 
           <div className={styles.formSection}>
             <h2><Radio size={20} /> {t('authority.alertes.createAlerte.form.diffusionChannels')}</h2>
-            
+
             <div className={styles.canaux}>
               {[
                 { id: 'push', icon: Smartphone, labelKey: 'push', descKey: 'pushDesc' },

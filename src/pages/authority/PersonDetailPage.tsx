@@ -1,6 +1,6 @@
 /**
- * Fiche personne — silo Autorité (contenu sans layout pour admin org : `noLayout` + `basePath`).
- * Ne pas dépendre de `pages/operator` : source pour `/authority/personnes/:id`.
+ * Fiche personne — espace Autorité (contenu sans layout pour admin org : `noLayout` + `basePath`).
+ * Source pour `/authority/personnes/:id`.
  */
 
 import React, { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ import * as personneAPI from '../../features/personnes/services/personneAPI';
 import * as dossierAPI from '../../features/dossiers/services/dossierAPI';
 import type { Personne } from '../../features/personnes/types';
 import type { DossierDisparition } from '../../@types/database.types';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './PersonDetailPage.module.css';
 
 /** Format a date value for display; avoids rendering a Date object as React child. */
@@ -26,7 +26,7 @@ function safeFormatDate(value: unknown): string {
 
 export interface PersonDetailPageProps {
   noLayout?: boolean;
-  /** `/authority` (défaut), `/admin` (admin org), ou `/operator` (legacy). */
+  /** `/authority` (défaut) ou `/admin` (admin org). */
   basePath?: string;
 }
 
@@ -112,13 +112,7 @@ export const PersonDetailPage: React.FC<PersonDetailPageProps> = ({ noLayout = f
                     className={`${styles.operatorPersonDetail__btn} ${styles.operatorPersonDetail__btnPrimary}`}
                     onClick={() => {
                       const pid = (personne as any).id;
-                      if (basePath === '/admin') {
-                        navigate(`${basePath}/cas/create?personneId=${pid}`);
-                      } else if (basePath === '/authority') {
-                        navigate(`${basePath}/dossiers/new?personneId=${pid}`);
-                      } else {
-                        navigate(`${basePath}/create-dossier?personneId=${pid}`);
-                      }
+                      navigate(`${basePath}/dossiers/new?personneId=${pid}`);
                     }}
                   >
                     Créer un dossier avec cette personne

@@ -36,7 +36,7 @@ export async function upsertFcmToken(userId: string, token: string): Promise<voi
     });
     throw error;
   }
-  console.info(LOG_FCM, 'upsert_ok', { userId: String(userId).slice(0, 8) + '…' });
+
 }
 
 export async function deleteAllFcmTokensForUser(userId: string): Promise<void> {

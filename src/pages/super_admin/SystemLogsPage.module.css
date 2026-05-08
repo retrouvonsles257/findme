@@ -6,12 +6,12 @@
  */
 
 :root {
-  --sa-primary: #1d4ed8;
-  --sa-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --sa-primary: #0ea5e9;
+  --sa-font: var(--font-family, inherit);
 }
 
 .sa-system-logs {
-  font-family: var(--sa-font);
+  
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
@@ -51,7 +51,7 @@
 
 .sa-system-logs__filter-group select,
 .sa-system-logs__filter-group input[type="date"] {
-  font-family: var(--sa-font);
+  
   font-size: 0.85rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
@@ -118,13 +118,13 @@
 }
 
 .sa-system-logs__table {
-  font-family: var(--sa-font);
+  
   width: 100%;
   border-collapse: collapse;
 }
 
 .sa-system-logs__table th {
-  font-family: var(--sa-font);
+  
   font-size: 0.8rem;
   font-weight: 600;
   color: #6b7280;
@@ -142,7 +142,7 @@
 }
 
 .sa-system-logs__table td {
-  font-family: var(--sa-font);
+  
   font-size: 0.875rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #e5e7eb;
@@ -172,7 +172,7 @@
 
 /* Badges type d'action */
 .sa-system-logs__badge {
-  font-family: var(--sa-font);
+  
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -181,13 +181,13 @@
 }
 
 .sa-system-logs__badge--success {
-  background: #dcfce7;
+  background: #e0f2fe;
   color: #166534;
 }
 
 .sa-system-logs__badge--info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .sa-system-logs__badge--primary {
@@ -261,7 +261,7 @@
 }
 
 .sa-system-logs__pagination button {
-  font-family: var(--sa-font);
+  
   display: flex;
   align-items: center;
   gap: 0.35rem;

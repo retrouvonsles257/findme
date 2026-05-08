@@ -252,7 +252,7 @@ export async function getSignalementVerifications(
     console.error('Error fetching verifications:', error);
     return [];
   }
-  
+
   // Transformer en format SignalementVerification
   return (data || []).map((log: any) => ({
     id: log.id,
@@ -385,7 +385,7 @@ export async function getSignalementStats(): Promise<SignalementStats> {
   return stats;
 }
 /**
- * Get pending signalements (en_attente) for operator view
+ * Signalements en attente (vue équipe Autorité / modération)
  * Returns signalements with status 'en_attente' linked to dossiers
  */
 export async function getSignalementsEnAttente(
@@ -472,7 +472,7 @@ export async function getSignalementsByDossierId(dossierId: string): Promise<Sig
     console.error('Error fetching signalements for dossier:', error);
     return [];
   }
-  
+
   // Enrichir avec nom_temoin ou nom utilisateur
   return (data || []).map((sig: any) => ({
     ...sig,

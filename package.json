@@ -45,9 +45,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "validate-env": "node validate-env.js",
-    "check-env": "npm run validate-env",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "check-env": "npm run validate-env"
   },
   "eslintConfig": {
     "extends": [
@@ -68,12 +66,6 @@
     ]
   },
   "devDependencies": {
-    "@storybook/addon-a11y": "^10.1.11",
-    "@storybook/addon-docs": "^10.1.11",
-    "@storybook/preset-create-react-app": "^10.1.11",
-    "@types/redux-mock-store": "^1.5.0",
-    "eslint-plugin-storybook": "^10.1.11",
-    "prop-types": "^15.8.1",
-    "webpack": "^5.104.1"
+    "@types/redux-mock-store": "^1.5.0"
   }
 }

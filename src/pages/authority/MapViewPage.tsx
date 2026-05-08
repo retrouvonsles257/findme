@@ -101,7 +101,7 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
   // Filtrer les signalements
   const filteredSignalements = useMemo(() => {
     if (filters.layer !== 'all' && filters.layer !== 'signalements') return [];
-    
+
     return signalements.filter((sig) => {
       // Vérifier les coordonnées
       const lat = sig.latitude_observation ?? sig.latitude;
@@ -235,7 +235,7 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
   // Gérer le clic sur un marqueur
   const handleMarkerClick = (marker: MapTilerMarker) => {
     const data = marker.data as { type: string; id: string };
-    
+
     if (data.type === 'signalement') {
       const sig = signalements.find(s => s.id === data.id);
       setSelectedItem(sig);
@@ -257,16 +257,16 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
       const statut = item.statut_validation || item.etat;
       const badges: Record<string, { label: string; color: string }> = {
         en_attente: { label: t('authority.map.status.pending'), color: '#f59e0b' },
-        nouveau: { label: t('authority.map.status.new'), color: '#3b82f6' },
+        nouveau: { label: t('authority.map.status.new'), color: '#38bdf8' },
         en_verification: { label: t('authority.map.status.inProgress'), color: '#8b5cf6' },
-        valide: { label: t('authority.map.status.validated'), color: '#10b981' },
+        valide: { label: t('authority.map.status.validated'), color: '#0284c7' },
         invalide: { label: t('authority.map.status.rejected'), color: '#ef4444' },
       };
       return badges[statut] || { label: statut, color: '#6b7280' };
     } else if (type === 'dossier') {
       const badges: Record<string, { label: string; color: string }> = {
-        en_cours: { label: t('authority.map.status.ongoing'), color: '#3b82f6' },
-        retrouve_vivant: { label: t('authority.map.status.foundAlive'), color: '#10b981' },
+        en_cours: { label: t('authority.map.status.ongoing'), color: '#38bdf8' },
+        retrouve_vivant: { label: t('authority.map.status.foundAlive'), color: '#0284c7' },
         retrouve_decede: { label: t('authority.map.status.foundDeceased'), color: '#6b7280' },
         suspendu: { label: t('authority.map.status.suspended'), color: '#f59e0b' },
       };
@@ -470,7 +470,7 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
                       const typeIcon = data.type === 'signalement' ? <Users size={14} /> :
                                        data.type === 'dossier' ? <FolderOpen size={14} /> :
                                        <Bell size={14} />;
-                      
+
                       return (
                         <div
                           key={marker.id}
@@ -510,7 +510,7 @@ export const MapViewPage: React.FC<MapViewPageProps> = ({ noLayout = false }) =>
                       : data.type === 'dossier'
                         ? dossiers.find((d: any) => d.id === data.id)
                         : alertes.find((a: any) => a.id === data.id);
-                    
+
                     if (!item) return null;
 
                     const statusBadge = getStatusBadge(item, data.type);

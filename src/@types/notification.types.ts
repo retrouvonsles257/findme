@@ -70,16 +70,16 @@ export interface RetrouvonsLesNotification extends Notification {
   timestamp: Date;
   isRead: boolean;
   priority?: 'low' | 'normal' | 'high' | 'urgent';
-  
+
   // Metadata
   relatedEntityId?: string;
   relatedEntityType?: string;
   actionUrl?: string;
   actionLabel?: string;
-  
+
   // FCM specific
   fcmMessageId?: string;
-  
+
   // Geolocation (pour les alertes géographiques)
   latitude?: number;
   longitude?: number;
@@ -93,13 +93,13 @@ export interface RetrouvonsLesNotification extends Notification {
 export interface NotificationPreferences {
   id: string;
   userId: string;
-  
+
   // Canaux
   emailNotifications: boolean;
   pushNotifications: boolean;
   smsNotifications: boolean;
   inAppNotifications: boolean;
-  
+
   // Types de notifications
   alertNotifications: boolean;
   personneFound: boolean;
@@ -110,22 +110,22 @@ export interface NotificationPreferences {
   campaignUpdates: boolean;
   donationNotifications: boolean;
   systemUpdates: boolean;
-  
+
   // Timing
   quietHoursStart?: string; // HH:mm format
   quietHoursEnd?: string;
   quietHoursEnabled: boolean;
-  
+
   // Geolocation
   enableGeofenceAlerts: boolean;
   notificationRadiusKm: number;
-  
+
   // Frequency
   dailyDigestEnabled: boolean;
   dailyDigestTime?: string;
   weeklyReportEnabled: boolean;
   weeklyReportDay?: number;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }

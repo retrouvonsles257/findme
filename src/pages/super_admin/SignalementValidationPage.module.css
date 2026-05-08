@@ -221,7 +221,7 @@
 }
 
 .sa-signalement-validation__fiabilite--success {
-  background: #dcfce7;
+  background: #e0f2fe;
   color: #166534;
 }
 
@@ -250,7 +250,7 @@
 }
 
 .sa-signalement-validation__badge--success {
-  background: #dcfce7;
+  background: #e0f2fe;
   color: #166534;
 }
 
@@ -260,8 +260,8 @@
 }
 
 .sa-signalement-validation__badge--info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .sa-signalement-validation__badge--default {
@@ -294,7 +294,7 @@
 }
 
 .sa-signalement-validation__btn-validate {
-  background: #dcfce7 !important;
+  background: #e0f2fe !important;
   color: #166534 !important;
 }
 
@@ -534,8 +534,8 @@
 }
 
 .sa-signalement-validation__btn-validate-large {
-  background: #059669 !important;
-  border-color: #059669 !important;
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
   color: #fff !important;
 }
 

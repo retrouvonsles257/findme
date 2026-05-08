@@ -15,10 +15,6 @@ export type { DashboardLayoutProps } from './DashbordLayout';
 export { AuthorityLayout, useAuthorityLayout, AuthoritySidebar, AuthorityHeader } from './AuthorityLayout/index';
 export type { AuthorityLayoutProps, AuthoritySidebarProps, AuthorityHeaderProps } from './AuthorityLayout/index';
 
-// NGO Layout (aligné Authority)
-export { NGOLayout, NGOSidebar, NGOHeader } from './NGOLayout/index';
-export type { NGOLayoutProps, NGOSidebarProps, NGOHeaderProps } from './NGOLayout/index';
-
 // Header Components
 export { Header } from './Header';
 export type { HeaderProps, HeaderType } from './Header';
@@ -29,10 +25,6 @@ export { HeaderActions } from './Header';
 export { HeaderPublic } from './Header';
 export { HeaderCitizen } from './Header';
 export { HeaderAuthority } from './Header';
-export { HeaderAdminOrganisation } from './Header/HeaderAdminOrganisation';
-export type { HeaderAdminOrganisationProps } from './Header/HeaderAdminOrganisation';
-export { default as HeaderOperator } from './Header/HeaderOperator';
-export { default as HeaderModerator } from './Header/HeaderModerator';
 
 // Footer Components
 export { Footer } from './Footer';
@@ -51,10 +43,6 @@ export { SidebarFooter } from './Sidebar';
 export { SidebarPublic } from './Sidebar';
 export { SidebarCitizen } from './Sidebar';
 export { SidebarAuthority } from './Sidebar';
-export { SidebarAdminOrganisation } from './Sidebar/SidebarAdminOrganisation';
-export type { SidebarAdminOrganisationProps } from './Sidebar/SidebarAdminOrganisation';
-export { default as SidebarOperator } from './Sidebar/SidebarOperator';
-export { default as SidebarModerator } from './Sidebar/SidebarModerator';
 
 // Navigation Components
 export { Navigation } from './Navigation';

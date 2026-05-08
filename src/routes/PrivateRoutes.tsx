@@ -24,8 +24,6 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const loading = useAppSelector(selectAuthLoading);
 
-  console.log('[PrivateRoute] isAuthenticated:', isAuthenticated, 'loading:', loading);
-
   // Attendre le chargement de l'auth state
   if (loading) {
     return (
@@ -42,11 +40,10 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
   // Vérifier l'authentification
   if (!isAuthenticated) {
-    console.warn('[PrivateRoute] Not authenticated, redirecting to login');
+
     return <Navigate to={AUTH_ROUTES.LOGIN} replace />;
   }
 
-  console.log('[PrivateRoute] Authenticated, rendering children');
   return <>{children}</>;
 };
 

@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { StatistiquesSkeleton } from '../admin/skeletons';
+import { StatistiquesSkeleton } from 'components/skeletons';
 import { 
   BarChart3, 
   Users, 
@@ -141,7 +141,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
       // Analyser les données régionales
       const dossiers = dossiersWithRegionResult.data || [];
       const regionMap = new Map<string, { total: number; found: number }>();
-      
+
       dossiers.forEach((d: any) => {
         const region = d.region || 'Non spécifié';
         if (!regionMap.has(region)) {
@@ -231,7 +231,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
 
       // Analyse par âge
       const dossiersWithPersonne = (secondBatch[102] as any)?.data ?? [];
-      
+
       const ageGroups: Record<string, { total: number; found: number }> = {
         '0-5': { total: 0, found: 0 },
         '6-12': { total: 0, found: 0 },
@@ -246,7 +246,7 @@ export const SuperAdminGlobalStatsPage: React.FC = () => {
       (dossiersWithPersonne || []).forEach((d: any) => {
         const personne = d.personne;
         let age: number | null = null;
-        
+
         if (personne?.date_naissance) {
           const birthDate = new Date(personne.date_naissance);
           const today = new Date();

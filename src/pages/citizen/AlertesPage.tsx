@@ -29,7 +29,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { AdminListSkeleton } from '../admin/skeletons';
+import { AdminListSkeleton } from 'components/skeletons';
 import styles from './AlertesPage.module.css';
 
 type FilterType = 'all' | 'active' | 'proximity' | 'closed';
@@ -39,7 +39,7 @@ export const CitizenAlertesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const focusAlerteId = searchParams.get('alerte');
-  
+
   // Hooks
   const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useAlertes();
   const { 
@@ -51,7 +51,7 @@ export const CitizenAlertesPage: React.FC = () => {
     dismissAlert 
   } = useProximityAlerts();
   const { currentLocation, error: geoError, getCurrentLocation } = useGeolocation();
-  
+
   // Local state
   const [filter, setFilter] = useState<FilterType>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);

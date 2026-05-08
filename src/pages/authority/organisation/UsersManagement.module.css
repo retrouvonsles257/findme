@@ -1,0 +1,474 @@
+/**
+ * =====================================================
+ * RETROUVONSLES - Users Management Page Styles
+ * =====================================================
+ */
+
+.usersManagement__container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Header */
+.usersManagement__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.usersManagement__headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+.usersManagement__headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: #0ea5e9;
+  border-radius: 0.75rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.usersManagement__headerIcon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.usersManagement__title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.usersManagement__subtitle {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0.375rem 0 0 0;
+  line-height: 1.5;
+}
+
+/* Filters */
+.usersManagement__filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.usersManagement__searchGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+}
+
+.usersManagement__searchIcon {
+  position: absolute;
+  left: 1rem;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.usersManagement__searchInput {
+  flex: 1;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  background: white;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.usersManagement__searchInput:hover {
+  border-color: #0ea5e9;
+}
+
+.usersManagement__searchInput:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+}
+
+.usersManagement__searchInput::placeholder {
+  color: #94a3b8;
+}
+
+.usersManagement__filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.usersManagement__filterGroup svg {
+  color: #64748b;
+}
+
+.usersManagement__select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  background: white;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.usersManagement__select:hover {
+  border-color: #0ea5e9;
+}
+
+.usersManagement__select:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+}
+
+/* Card */
+.usersManagement__cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Table */
+.usersManagement__table {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.usersManagement__tableHeader {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border-radius: 0.5rem 0.5rem 0 0;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.usersManagement__headerCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.usersManagement__headerCell svg {
+  color: #64748b;
+}
+
+.usersManagement__tableBody {
+  background: white;
+}
+
+.usersManagement__tableRow {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s ease;
+  align-items: center;
+}
+
+.usersManagement__tableRow:hover {
+  background-color: #f8fafc;
+}
+
+.usersManagement__tableRow:last-child {
+  border-bottom: none;
+}
+
+.usersManagement__tableCell {
+  display: flex;
+  align-items: center;
+  font-size: 0.9375rem;
+}
+
+.usersManagement__userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.usersManagement__userName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.usersManagement__email {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Status Badge */
+.usersManagement__statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.usersManagement__statusBadge--active {
+  background-color: #e0f2fe;
+  color: #075985;
+}
+
+.usersManagement__statusBadge--suspended {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.usersManagement__statusBadge--disabled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Actions */
+.usersManagement__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.usersManagement__actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.usersManagement__actionBtn:hover {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.usersManagement__actionBtn--danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Loading State */
+.usersManagement__loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+}
+
+.usersManagement__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #0ea5e9;
+  animation: usersManagement__spin 1s linear infinite;
+}
+
+@keyframes usersManagement__spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.usersManagement__loadingText {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Empty State */
+.usersManagement__emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.usersManagement__emptyIcon {
+  width: 4rem;
+  height: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.usersManagement__emptyText {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .usersManagement__tableHeader,
+  .usersManagement__tableRow {
+    grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr 0.8fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .usersManagement__container {
+    padding: 1.25rem;
+  }
+
+  .usersManagement__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .usersManagement__headerContent {
+    gap: 1rem;
+  }
+
+  .usersManagement__headerIcon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .usersManagement__headerIcon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .usersManagement__title {
+    font-size: 1.5rem;
+  }
+
+  .usersManagement__subtitle {
+    font-size: 0.875rem;
+  }
+
+  .usersManagement__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .usersManagement__searchGroup {
+    max-width: 100%;
+  }
+
+  /* Vue cartes sur mobile : plus de scroll horizontal */
+  .usersManagement__table {
+    overflow-x: visible;
+  }
+
+  .usersManagement__tableHeader {
+    display: none;
+  }
+
+  .usersManagement__tableRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem 1rem;
+    align-items: start;
+    min-width: 0;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: white;
+  }
+
+  .usersManagement__tableRow:last-child {
+    margin-bottom: 0;
+  }
+
+  .usersManagement__tableRow:hover {
+    background: #f8fafc;
+  }
+
+  .usersManagement__tableCell {
+    display: block;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+
+  .usersManagement__tableCell:nth-child(1) {
+    grid-column: 1;
+  }
+
+  .usersManagement__tableCell:nth-child(6) {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .usersManagement__tableCell:nth-child(2),
+  .usersManagement__tableCell:nth-child(3),
+  .usersManagement__tableCell:nth-child(4),
+  .usersManagement__tableCell:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .usersManagement__tableCell[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .usersManagement__actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .usersManagement__container {
+    padding: 1rem;
+  }
+
+  .usersManagement__title {
+    font-size: 1.25rem;
+  }
+
+  .usersManagement__tableRow {
+    padding: 0.75rem;
+  }
+}

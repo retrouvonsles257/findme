@@ -61,7 +61,7 @@
 }
 
 .logoIcon {
-  color: var(--authority-primary, #1d4ed8);
+  color: var(--authority-primary, #0ea5e9);
   flex-shrink: 0;
 }
 
@@ -190,7 +190,7 @@
 }
 
 .navItemActive {
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   color: white;
 }
 
@@ -231,7 +231,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,7 +297,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--authority-primary, #1d4ed8);
+  background: var(--authority-primary, #0ea5e9);
   display: flex;
   align-items: center;
   justify-content: center;

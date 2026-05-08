@@ -29,7 +29,7 @@ import { NomRole } from '../../@types/enums.types';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import styles from './DossiersPage.module.css';
 
 export const DossiersPage: React.FC = () => {
@@ -43,7 +43,7 @@ export const DossiersPage: React.FC = () => {
   }, [currentUser?.role, currentUser?.organisation_id]);
   const { dossiers, isLoading, fetchDossiers } = useDossiers({ initialCriteria });
   const { t, language } = useI18n();
-  
+
   const [filter, setFilter] = useState<'all' | 'en_cours' | 'retrouve' | 'suspendu'>('en_cours');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'urgent' | 'ancien'>('recent');

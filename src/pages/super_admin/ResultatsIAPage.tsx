@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   Brain, User, Calendar, Filter, Loader2, AlertCircle, 
   Eye, ChevronLeft, ChevronRight, CheckCircle, Percent, X,
@@ -58,7 +58,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [stats, setStats] = useState({ total: 0, validated: 0, pending: 0, avgScore: 0 });
-  
+
   // Filtres
   const [filterType, setFilterType] = useState<string>('');
   const [filterStatut, setFilterStatut] = useState<string>('');
@@ -66,7 +66,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
   // Modal view
   const [selectedResultat, setSelectedResultat] = useState<ResultatIA | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // Sélection multiple pour actions en masse
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSelecting, setIsSelecting] = useState(false);
@@ -102,7 +102,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
       let countQuery = (supabase as any).from('resultat_ia').select('id', { count: 'exact', head: true });
       if (filterType) countQuery = countQuery.eq('type_analyse', filterType);
       if (filterStatut) countQuery = countQuery.eq('statut_validation', filterStatut);
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -169,10 +169,10 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
   const handleValidate = async (resultat: ResultatIA, newStatut: 'confirme' | 'infirme' | 'incertain') => {
     try {
       setIsProcessing(true);
-      
+
       // Récupérer l'utilisateur courant pour enregistrer qui a validé
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       const { error: updateError } = await (supabase as any)
         .from('resultat_ia')
         .update({ 
@@ -222,9 +222,9 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
     try {
       setIsProcessingMass(true);
       setError(null);
-      
+
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       const idsArray = Array.from(selectedIds);
       const { error: updateError } = await (supabase as any)
         .from('resultat_ia')
@@ -256,7 +256,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       let query = (supabase as any)
         .from('resultat_ia')
         .select(`
@@ -298,7 +298,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
         'Date validation', 'Commentaire validation', 'Dossier', 'Personne dossier',
         'Signalement', 'Date analyse'
       ];
-      
+
       const rows = enrichedResultats.map((r: any) => [
         r.id,
         r.type_analyse,
@@ -440,7 +440,7 @@ export const SuperAdminResultatsIAPage: React.FC = () => {
               </select>
             </div>
           </div>
-          
+
           {/* Actions en masse */}
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button 

@@ -120,7 +120,7 @@ export const useCoordinationHistory = (): UseCoordinationHistoryReturn => {
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement de l\'historique');
       console.error('Fetch history error:', err);
-      
+
       // Fallback data
       setHistory([
         {

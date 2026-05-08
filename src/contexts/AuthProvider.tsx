@@ -37,7 +37,7 @@ async function fetchUserRoleViaRPC(userId: string): Promise<string | null> {
   try {
     const { data, error } = await (supabase as any).rpc('get_user_main_role', { user_id: userId });
     if (error) {
-      console.warn('[AuthProvider] RPC get_user_main_role error:', error);
+
       return null;
     }
     if (data == null) return null;
@@ -74,17 +74,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const metadata = currentUser.user_metadata as any;
           let raw: string | null = pickAuthJwtRole(currentUser as any);
           if (!raw) {
-            console.log('[AuthProvider] No role in metadata, fetching via RPC...');
+
             raw = await fetchUserRoleViaRPC(currentUser.id);
           }
           setUserRole(normalizeAppRole(raw) as NomRole);
           setUserStatus(metadata?.statut_compte || 'actif');
-          console.log('[AuthProvider] User role set to:', normalizeAppRole(raw));
+
         }
 
         // Initialiser l'écouteur d'événements auth
         authEventManager.addListener('AuthProvider', async (event, updatedSession) => {
-          console.log('[Auth Event]', event);
+
           setSession(updatedSession);
 
           if (event === 'SIGNED_OUT') {
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             setUserRole(normalizeAppRole(raw) as NomRole);
             setUserStatus(metadata?.statut_compte || 'actif');
-            console.log('[Auth Event] User role updated to:', normalizeAppRole(raw));
+
           }
         });
       } catch (err) {

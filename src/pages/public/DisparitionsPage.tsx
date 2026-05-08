@@ -109,7 +109,7 @@ export const DisparitionsPage: React.FC = () => {
 
       // Si erreur RLS sur personne, essayer sans la jointure
       if (err && err.code === '42501') {
-        console.warn('RLS error on personne table, fetching without join');
+
         let fallbackQuery = supabase
           .from('dossier_disparition')
           .select(`

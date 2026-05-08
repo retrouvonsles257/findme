@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
-import { AdminTableSkeleton } from '../admin/skeletons';
+import { AdminTableSkeleton } from 'components/skeletons';
 import { 
   DollarSign, Calendar, User, Search, AlertCircle, 
   Eye, ChevronLeft, ChevronRight, TrendingUp, CreditCard, Filter, Download, Heart
@@ -55,7 +55,7 @@ export const SuperAdminDonsPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [stats, setStats] = useState({ total: 0, completed: 0, pending: 0, average: 0 });
-  
+
   // Filtres
   const [filterStatut, setFilterStatut] = useState<string>('');
   const [filterMode, setFilterMode] = useState<string>('');
@@ -92,7 +92,7 @@ export const SuperAdminDonsPage: React.FC = () => {
       let countQuery = (supabase as any).from('don').select('id', { count: 'exact', head: true });
       if (filterStatut) countQuery = countQuery.eq('statut_paiement', filterStatut);
       if (filterMode) countQuery = countQuery.eq('methode_paiement', filterMode);
-      
+
       const { count } = await countQuery;
       setTotalCount(count || 0);
 
@@ -137,7 +137,7 @@ export const SuperAdminDonsPage: React.FC = () => {
   const exportToCSV = async () => {
     try {
       setIsLoading(true);
-      
+
       // Charger tous les dons avec filtres
       let query = (supabase as any)
         .from('don')

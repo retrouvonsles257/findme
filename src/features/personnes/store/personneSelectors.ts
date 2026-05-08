@@ -113,7 +113,7 @@ export const selectPhotosByPersonne = (state: RootState, personneId: string): Pe
 export const selectGenderDistribution = (state: RootState) => {
   const stats = personneState(state).stats;
   if (!stats) return null;
-  
+
   return {
     male: stats.parSexe.masculin,
     female: stats.parSexe.feminin,
@@ -125,7 +125,7 @@ export const selectGenderDistribution = (state: RootState) => {
 export const selectIdentityStatusDistribution = (state: RootState) => {
   const stats = personneState(state).stats;
   if (!stats) return null;
-  
+
   return {
     identified: stats.parStatutIdentite.identifie,
     partiallyIdentified: stats.parStatutIdentite.partiellement_identifie,

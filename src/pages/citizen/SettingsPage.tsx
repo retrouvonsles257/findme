@@ -32,7 +32,7 @@ import {
   Gauge,
   Activity,
 } from 'lucide-react';
-import { AdminDetailSkeleton } from '../admin/skeletons';
+import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './SettingsPage.module.css';
 
 interface InterestZone {
@@ -49,16 +49,16 @@ interface Settings {
   notifications_email: boolean;
   notifications_sms: boolean;
   notifications_son: boolean;
-  
+
   // Géolocalisation
   geolocalisation_active: boolean;
   rayon_notification_km: number;
   partager_position: boolean;
-  
+
   // Affichage
   langue: string;
   theme: 'light' | 'dark' | 'auto';
-  
+
   // Confidentialité
   profil_public: boolean;
   afficher_activite: boolean;
@@ -224,7 +224,7 @@ export const CitizenSettingsPage: React.FC = () => {
           await deleteAllFcmTokensForUser(userId);
           await deleteFCMToken();
         } catch (e) {
-          console.warn('[Settings] Nettoyage jetons FCM:', e);
+
         }
       }
 
@@ -295,7 +295,7 @@ export const CitizenSettingsPage: React.FC = () => {
             <Bell size={22} />
             <h2>{t('citizen.notificationSettings')}</h2>
           </div>
-          
+
           <div className={styles['settings__options']}>
             <div className={styles['settings__option']}>
               <div className={styles['settings__option-info']}>
@@ -359,7 +359,7 @@ export const CitizenSettingsPage: React.FC = () => {
             <MapPin size={22} />
             <h2>{t('citizen.locationSettings')}</h2>
           </div>
-          
+
           <div className={styles['settings__options']}>
             <div className={styles['settings__option']}>
               <div className={styles['settings__option-info']}>
@@ -429,7 +429,7 @@ export const CitizenSettingsPage: React.FC = () => {
             <Globe size={22} />
             <h2>{t('citizen.displaySettings')}</h2>
           </div>
-          
+
           <div className={styles['settings__options']}>
             <div className={styles['settings__option']}>
               <div className={styles['settings__option-info']}>
@@ -476,7 +476,7 @@ export const CitizenSettingsPage: React.FC = () => {
             <Shield size={22} />
             <h2>{t('citizen.privacySettings')}</h2>
           </div>
-          
+
           <div className={styles['settings__options']}>
             <div className={styles['settings__option']}>
               <div className={styles['settings__option-info']}>
@@ -522,7 +522,7 @@ export const CitizenSettingsPage: React.FC = () => {
             <MapPin size={22} />
             <h2>{t('citizen.interestZones')}</h2>
           </div>
-          
+
           <div className={styles['settings__options']}>
             {settings.zones_interet.map((zone) => (
               <div key={zone.id} className={styles['settings__option']}>
@@ -609,7 +609,7 @@ export const CitizenSettingsPage: React.FC = () => {
             <RefreshCw size={18} />
             {t('citizen.resetSettings')}
           </button>
-          
+
           <button
             className={styles['settings__save-btn']}
             onClick={handleSave}

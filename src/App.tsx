@@ -75,9 +75,9 @@ const App: React.FC = () => {
       const maptilerApiKey = envConfig.REACT_APP_MAPTILER_API_KEY;
       if (maptilerApiKey) {
         maptilerConfig.initialize(maptilerApiKey);
-        console.log('[App] MapTiler initialized successfully');
+
       } else {
-        console.warn('[App] MapTiler API key not configured');
+
       }
 
       // FCM : public/firebase-messaging-sw.js (généré au prestart/prebuild depuis .env)

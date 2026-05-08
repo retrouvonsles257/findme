@@ -50,13 +50,13 @@ export const CitizenMapPage: React.FC = () => {
   const navigate = useNavigate();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  
+
   // Hooks
   const { dossiers, isLoading: loadingDossiers, fetchDossiers } = useDossiers();
   const { signalements, isLoading: loadingSignalements, fetchSignalements } = useSignalements();
   const { alertes, loading: loadingAlertes, fetchAlertes } = useAlertes();
   const { currentLocation, getCurrentLocation } = useGeolocation();
-  
+
   // State
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
@@ -102,7 +102,7 @@ export const CitizenMapPage: React.FC = () => {
 
         // Ajouter les contrôles de navigation
         map.addControl(new maplibregl.NavigationControl(), 'top-right');
-        
+
         // Ajouter le contrôle de géolocalisation avec zoom automatique
         const geolocateControl = new maplibregl.GeolocateControl({
           positionOptions: { 
@@ -113,7 +113,7 @@ export const CitizenMapPage: React.FC = () => {
           trackUserLocation: true,
         });
         map.addControl(geolocateControl, 'top-right');
-        
+
         // Déclencher la géolocalisation automatiquement après le chargement de la carte
         map.on('load', () => {
           // Demander la position de l'utilisateur avec haute précision
@@ -121,7 +121,7 @@ export const CitizenMapPage: React.FC = () => {
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 const { longitude, latitude, accuracy } = position.coords;
-                console.log(`Position obtenue: ${latitude}, ${longitude} (précision: ${accuracy}m)`);
+
                 map.flyTo({
                   center: [longitude, latitude],
                   zoom: accuracy < 100 ? 15 : accuracy < 500 ? 13 : 12,
@@ -129,7 +129,7 @@ export const CitizenMapPage: React.FC = () => {
                 });
               },
               (error) => {
-                console.warn('Geolocation error:', error.message);
+
                 // Rester sur la vue par défaut du Cameroun
               },
               { 
@@ -140,12 +140,12 @@ export const CitizenMapPage: React.FC = () => {
             );
           }
         });
-        
+
         map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
 
         mapRef.current = map;
         setMapError(null);
-        
+
       } catch (err: any) {
         console.error('Map init error:', err);
         setMapError(err.message);
@@ -288,7 +288,7 @@ export const CitizenMapPage: React.FC = () => {
 
   // Ajouter les marqueurs sur la carte MapLibre
   const markersRef = useRef<maplibregl.Marker[]>([]);
-  
+
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -299,7 +299,7 @@ export const CitizenMapPage: React.FC = () => {
     // Ajouter les nouveaux marqueurs
     filteredMarkers.forEach((marker) => {
       const color = getMarkerColor(marker);
-      
+
       // Créer l'élément du marqueur
       const el = document.createElement('div');
       el.className = 'map-marker';
@@ -329,7 +329,7 @@ export const CitizenMapPage: React.FC = () => {
           <div style="padding: 8px;">
             <strong>${marker.title}</strong>
             ${marker.description ? `<p style="margin: 4px 0 0; font-size: 12px; color: #666;">${marker.description}</p>` : ''}
-            ${detailHref ? `<button onclick="window.location.href='${detailHref}'" style="margin-top: 8px; padding: 4px 8px; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
+            ${detailHref ? `<button onclick="window.location.href='${detailHref}'" style="margin-top: 8px; padding: 4px 8px; background: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.viewDetails')}</button>` : ''}
           </div>
         `);
 
@@ -362,7 +362,7 @@ export const CitizenMapPage: React.FC = () => {
   // Naviguer vers les détails
   const handleViewDetails = () => {
     if (!selectedMarker) return;
-    
+
     if (selectedMarker.type === 'dossier') {
       navigate(`/citizen/dossier/${selectedMarker.id}`);
     } else if (selectedMarker.type === 'signalement') {
@@ -375,18 +375,18 @@ export const CitizenMapPage: React.FC = () => {
 
   // Obtenir la couleur selon le type
   const getMarkerColor = (marker: MapMarker) => {
-    if (marker.type === 'user') return '#16a34a';
+    if (marker.type === 'user') return '#0284c7';
     if (marker.type === 'dossier') {
       // Supporte à la fois les anciens niveaux numériques et les ENUM (critique/urgent/normal/faible)
       const u = marker.urgence;
       if (typeof u === 'number') {
         if (u >= 8) return '#dc2626';
         if (u >= 5) return '#f59e0b';
-        return '#1d4ed8';
+        return '#0ea5e9';
       }
       if (u === 'critique') return '#dc2626';
       if (u === 'urgent') return '#f59e0b';
-      return '#1d4ed8';
+      return '#0ea5e9';
     }
     return '#8b5cf6';
   };
@@ -507,7 +507,7 @@ export const CitizenMapPage: React.FC = () => {
             ref={mapContainerRef} 
             className={styles['mapPage__map']}
           />
-          
+
           {/* Sidebar avec liste des marqueurs */}
           {selectedMarker && (
             <div className={styles['mapPage__sidebar']}>

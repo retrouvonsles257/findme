@@ -13,32 +13,32 @@ export interface Statistique {
   id: string;
   date: string;
   type: 'global' | 'regional' | 'temporal';
-  
+
   // Global stats
   total_personnes?: number;
   total_dossiers?: number;
   total_signalements?: number;
   total_alertes?: number;
-  
+
   // Resolution stats
   personnes_retrouvees?: number;
   personnes_decedees?: number;
   taux_resolution?: number; // percentage 0-100
-  
+
   // Geographic distribution
   region?: string;
   nombre_cas_region?: number;
   taux_resolution_region?: number;
-  
+
   // Demographics
   tranche_age_principale?: string;
   sexe_principal?: string;
-  
+
   // Time metrics
   temps_moyen_resolution_jours?: number;
   temps_min_resolution_jours?: number;
   temps_max_resolution_jours?: number;
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -133,18 +133,18 @@ export interface StatistiquesState {
   tendances: TendanceTemporelle[];
   demographics: DemographieStats[];
   distributions: DistributionType[];
-  
+
   // UI State
   isLoading: boolean;
   error: string | null;
-  
+
   // Filters
   current_filter: StatistiquesFilter;
   date_range: {
     debut: string;
     fin: string;
   };
-  
+
   // Pagination
   selected_region?: string;
   selected_period?: string;

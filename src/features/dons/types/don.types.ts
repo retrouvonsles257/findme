@@ -98,33 +98,33 @@ export interface DonStoreState {
   // Current list
   dons: Don[];
   filteredDons: Don[];
-  
+
   // Selected
   selectedDon: Don | null;
   selectedDons: string[];
-  
+
   // Pagination
   currentPage: number;
   pageSize: number;
   total: number;
-  
+
   // Filters
   filters: DonFilterCriteria;
-  
+
   // Statistics
   statistics: DonStatistics | null;
-  
+
   // UI States
   isLoading: boolean;
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
   isProcessingPayment: boolean;
-  
+
   // Errors
   error: string | null;
   errors: Record<string, string>;
-  
+
   // Sorting
   sortBy: 'date' | 'montant' | 'statut' | 'type';
   sortOrder: 'asc' | 'desc';

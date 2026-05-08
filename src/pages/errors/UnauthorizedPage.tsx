@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -22,11 +22,6 @@ export const UnauthorizedPage: React.FC = () => {
   const { t } = useTranslation();
   const currentUser = useAppSelector(selectCurrentUser);
   const authUser = useAppSelector(selectUser);
-
-  useEffect(() => {
-    // Log error for monitoring
-    console.warn('401 Error: Unauthorized access attempt');
-  }, []);
 
   const handleLogin = () => {
     // Clear user data before navigating to login

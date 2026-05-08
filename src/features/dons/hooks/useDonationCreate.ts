@@ -74,7 +74,7 @@ export const useDonationCreate = (): UseDonationCreateReturn => {
 
   const validateForm = useCallback((data: donService.DonFormData): boolean => {
     const errors = donService.validateDonForm(data);
-    
+
     if (Object.keys(errors).length > 0) {
       setState((prev) => ({
         ...prev,

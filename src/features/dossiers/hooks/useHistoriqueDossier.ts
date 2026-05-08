@@ -82,11 +82,11 @@ export const useHistoriqueDossier = (): UseHistoriqueDossierReturn => {
         setHistorique(mapped);
       } else {
         // Si aucune table n'existe, retourner vide
-        console.warn('Aucune table d\'historique trouvée');
+
         setHistorique([]);
       }
     } catch (err: any) {
-      console.warn('Could not fetch historique:', err.message);
+
       setHistorique([]);
     } finally {
       setIsLoading(false);

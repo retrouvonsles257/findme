@@ -233,24 +233,12 @@ export const analyzeFacialImage = async (
   dossierId?: string,
   declenchePar?: string,
 ): Promise<ResultatIA> => {
-  console.log('[IA] ═══════════════════════════════════════════');
-  console.log('[IA] ANALYSE FACIALE - DÉBUT');
-  console.log('[IA] Fichier:', imageFile.name);
-  console.log('[IA] Taille:', (imageFile.size / 1024).toFixed(1), 'KB');
-  console.log('[IA] ═══════════════════════════════════════════');
 
   try {
     // Appeler le service Hugging Face
     const analysis = await huggingFaceService.analyzeFace(imageFile);
     const primaryFace = analysis.faces?.[0];
     const faceDescription = analysis.faceDetected ? buildFaceDescription(primaryFace) : null;
-
-    console.log('[IA] Résultat Hugging Face:', {
-      faceDetected: analysis.faceDetected,
-      quality: analysis.overallQuality + '%',
-      faces: analysis.faces.length,
-      time: analysis.processingTime + 'ms',
-    });
 
     // Construire le résultat à sauvegarder
     const resultData: CreateResultatIAInput = {
@@ -297,34 +285,20 @@ export const analyzeFacialImage = async (
 
     // Sauvegarder en base
     const savedResult = await createResultatIA(resultData);
-    
-    console.log('[IA] ═══════════════════════════════════════════');
-    console.log('[IA] RÉSULTAT SAUVEGARDÉ EN BASE');
-    console.log('[IA] ID:', savedResult.id);
-    console.log('[IA] Visage détecté:', analysis.faceDetected ? 'OUI ✓' : 'NON ✗');
-    if (analysis.faceDetected && analysis.faces[0]) {
-      console.log('[IA] Âge estimé:', analysis.faces[0].age || 'N/A');
-      console.log('[IA] Émotion:', analysis.faces[0].emotions?.[0]?.label || 'N/A');
-    }
-    
+
     // 2. Si un visage est détecté, rechercher des correspondances "low-cost"
     //    IMPORTANT: on évite ici de re-faire une analyse image↔image pour chaque dossier (trop coûteux).
     //    On compare une description faciale (ex: age/gender/emotion) via un seul appel de similarité.
     if (analysis.faceDetected && faceDescription) {
-      console.log('[IA] Recherche de correspondances (text similarity) ...');
 
       try {
         // 2.1 Charger des candidats déjà analysés (on ne peut matcher que ce qui a été analysé auparavant)
-        const { data: candidateAnalyses, error: candidatesError } = await db
+        const { data: candidateAnalyses, error: _candidatesError } = await db
           .from('resultat_ia')
           .select('id, id_dossier, donnees_interpretees, date_analyse, type_analyse')
           .eq('type_analyse', 'reconnaissance_faciale')
           .order('date_analyse', { ascending: false })
           .limit(80);
-
-        if (candidatesError) {
-          console.warn('[IA] Impossible de charger candidats pour correspondances:', candidatesError);
-        }
 
         const rawCandidates = (candidateAnalyses || [])
           // enlever notre propre résultat
@@ -351,8 +325,6 @@ export const analyzeFacialImage = async (
         // Limiter le coût
         const candidatesToCompare = filteredCandidates.slice(0, 25);
         const candidatesConsidered = candidatesToCompare.length;
-
-        console.log('[IA] Candidats retenus:', candidatesConsidered, '(sur', rawCandidates.length, 'analyses disponibles)');
 
         let similarCases: any[] = [];
 
@@ -396,8 +368,6 @@ export const analyzeFacialImage = async (
               .filter((m) => m.similarity_score >= 30)
               .sort((a, b) => b.similarity_score - a.similarity_score)
               .slice(0, 10);
-          } else {
-            console.warn('[IA] Similarité (text) échouée:', similarity);
           }
         }
 
@@ -417,9 +387,7 @@ export const analyzeFacialImage = async (
           .update({ correspondances_trouvees: updatedCorrespondances })
           .eq('id', savedResult.id);
 
-        if (updateErr) {
-          console.warn('[IA] Impossible de sauvegarder correspondances sur resultat_ia:', updateErr);
-        } else {
+        if (!updateErr) {
           (savedResult as any).correspondances_trouvees = updatedCorrespondances;
         }
 
@@ -447,23 +415,21 @@ export const analyzeFacialImage = async (
             id_dossier: dossierId,
             declenche_par: declenchePar,
           } as any);
-        } catch (createSimErr) {
-          console.warn('[IA] Impossible de créer resultat_ia detection_similitudes:', createSimErr);
+        } catch {
+          void 0;
         }
       } catch (searchErr) {
         console.error('[IA] Erreur recherche correspondances (text):', searchErr);
       }
     }
-    
-    console.log('[IA] ═══════════════════════════════════════════');
-    
+
     return savedResult;
 
   } catch (error) {
     console.error('[IA] ═══════════════════════════════════════════');
     console.error('[IA] ERREUR ANALYSE:', error);
     console.error('[IA] ═══════════════════════════════════════════');
-    
+
     // Sauvegarder l'erreur
     const errorResult: CreateResultatIAInput = {
       type_analyse: 'reconnaissance_faciale',
@@ -547,18 +513,15 @@ export const compareImages = async (
   dossierId?: string,
   declenchePar?: string,
 ): Promise<ResultatIA> => {
-  console.log('[IA] Démarrage comparaison d\'images Hugging Face...');
 
   if (!isHuggingFaceConfigured()) {
-    console.warn('[IA] Hugging Face non configuré, utilisation du mode simulation');
+
     return compareImagesSimulated(image1.name, image2.name, dossierId, declenchePar);
   }
 
   try {
     // Calculer la similarité avec Hugging Face
     const similarityResult = await huggingFaceService.calculateImageSimilarity(image1, image2);
-
-    console.log('[IA] Résultat similarité:', similarityResult);
 
     const resultData: CreateResultatIAInput = {
       type_analyse: 'comparaison_photos',
@@ -641,7 +604,6 @@ export const detectObjectsInImage = async (
   dossierId?: string,
   declenchePar?: string,
 ): Promise<ResultatIA> => {
-  console.log('[IA] Détection d\'objets via analyse hybride...');
 
   // Utiliser l'analyse faciale qui inclut classification
   const analysis = await huggingFaceService.analyzeFace(imageFile);
@@ -732,18 +694,17 @@ export const detectSimilarities = async (
   dossierId?: string,
   declenchePar?: string,
 ): Promise<ResultatIA> => {
-  console.log('[IA] Démarrage détection de similarités...');
 
   // Analyser l'image avec Hugging Face
   let imageAnalysis: any = {};
-  
+
   if (isHuggingFaceConfigured()) {
     try {
       const [classification, caption] = await Promise.all([
         huggingFaceService.classifyImage(imageFile),
         huggingFaceService.generateCaption(imageFile),
       ]);
-      
+
       imageAnalysis = {
         classifications: classification.classifications,
         caption: caption.caption,

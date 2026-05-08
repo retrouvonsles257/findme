@@ -28,38 +28,34 @@ const LOCAL_PROXY_URL = '/api/huggingface/models';
  */
 export const HF_MODELS = {
   // === ANALYSE FACIALE (MODULE 1, 6) ===
-  
+
   // Détection d'émotions faciales (happy, sad, angry, neutral, surprise, fear, disgust)
   EMOTION_DETECTION: 'dima806/facial_emotions_image_detection',
-  
+
   // Estimation d'âge (0-2, 3-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69, 70+)
   AGE_CLASSIFICATION: 'nateraw/vit-age-classifier',
-  
+
   // Classification de genre (male/female)
   GENDER_CLASSIFICATION: 'rizvandwiki/gender-classification',
-  
+
   // Émotions alternatives (backup)
   EMOTION_BACKUP: 'trpakov/vit-face-expression',
-  
+
   // === DÉTECTION D'OBJETS (MODULE 8) ===
-  
+
   // Détection de personnes et objets dans l'image
   OBJECT_DETECTION: 'facebook/detr-resnet-50',
-  
+
   // === ANALYSE DE VÊTEMENTS (MODULE 7) ===
-  
+
   // Classification zero-shot pour vêtements et accessoires
   ZERO_SHOT_CLASSIFICATION: 'facebook/bart-large-mnli',
-  
+
   // === SIMILARITÉ ET CLUSTERING (MODULE 2, 5) ===
-  
+
   // Similarité textuelle pour comparer descriptions et regrouper cas
   TEXT_SIMILARITY: 'sentence-transformers/all-MiniLM-L6-v2',
 };
-
-console.log('[HuggingFace] Service initialisé - Modèles pour analyse faciale');
-console.log('[HuggingFace] Mode:', isDevelopment ? 'development' : 'production');
-console.log('[HuggingFace] API configurée:', !!HF_API_KEY && HF_API_KEY.length > 10);
 
 // ============================================
 // TYPES
@@ -162,16 +158,15 @@ const callHuggingFaceAPI = async (
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`[HuggingFace] Appel ${model} (${attempt + 1}/${maxRetries + 1})`);
 
       const url = isDevelopment ? `${LOCAL_PROXY_URL}/${model}` : `https://router.huggingface.co/hf-inference/models/${model}`;
-      
+
       const headers: Record<string, string> = {
         'Authorization': `Bearer ${HF_API_KEY}`,
       };
 
       let requestBody: BodyInit;
-      
+
       if (body instanceof Blob) {
         requestBody = body;
         // Ne pas définir Content-Type pour les blobs, le navigateur le fait automatiquement
@@ -193,9 +188,9 @@ const callHuggingFaceAPI = async (
       if (response.status === 503) {
         const errorData = await response.json().catch(() => ({ estimated_time: 15 }));
         const waitTime = Math.min((errorData.estimated_time || 15) * 1000, 30000);
-        console.log(`[HuggingFace] Modèle en chargement, attente ${waitTime/1000}s...`);
+
         lastError = 'Modèle en cours de chargement';
-        
+
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
@@ -204,13 +199,12 @@ const callHuggingFaceAPI = async (
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`[HuggingFace] ✓ ${model} - ${processingTime}ms`);
+
         return { success: true, data, model, processingTime };
       }
 
       const errorText = await response.text().catch(() => '');
       lastError = `Erreur ${response.status}: ${errorText.substring(0, 100)}`;
-      console.warn(`[HuggingFace] ✗ ${model}: ${lastError}`);
 
       if (attempt < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -219,7 +213,7 @@ const callHuggingFaceAPI = async (
     } catch (error) {
       lastError = error instanceof Error ? error.message : 'Erreur réseau';
       console.error(`[HuggingFace] Exception ${model}:`, lastError);
-      
+
       if (attempt < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
@@ -256,7 +250,7 @@ export const detectEmotions = async (
 
   // Fallback vers modèle backup
   if (!result.success) {
-    console.log('[HuggingFace] Tentative avec modèle de backup pour émotions...');
+
     const backupResult = await callHuggingFaceAPI(HF_MODELS.EMOTION_BACKUP, imageFile);
     if (backupResult.success && Array.isArray(backupResult.data)) {
       return {
@@ -460,13 +454,13 @@ export const generateCaseSummary = (caseData: {
   additionalInfo?: string;
 }): string => {
   const parts: string[] = [];
-  
+
   if (caseData.gender) parts.push(caseData.gender);
   if (caseData.age) parts.push(`${caseData.age} years old`);
   if (caseData.lastLocation) parts.push(`last seen at ${caseData.lastLocation}`);
   if (caseData.clothing) parts.push(`wearing ${caseData.clothing}`);
   if (caseData.additionalInfo) parts.push(caseData.additionalInfo);
-  
+
   return parts.join(', ') || 'Missing person';
 };
 
@@ -494,11 +488,6 @@ export const analyzeFace = async (
   const rawResponses: any[] = [];
   const errors: string[] = [];
 
-  console.log('[HuggingFace] ════════════════════════════════════════════════════════');
-  console.log('[HuggingFace] ANALYSE FACIALE COMPLÈTE');
-  console.log('[HuggingFace] Fichier:', imageFile.name, '|', (imageFile.size / 1024).toFixed(1), 'KB');
-  console.log('[HuggingFace] ════════════════════════════════════════════════════════');
-
   // Exécuter toutes les analyses en parallèle
   const [emotionsResult, ageResult, genderResult, objectsResult] = await Promise.all([
     detectEmotions(imageFile),
@@ -521,47 +510,15 @@ export const analyzeFace = async (
   if (!genderResult.success) errors.push(`Genre: ${genderResult.error}`);
   if (!objectsResult.success) errors.push(`Objets: ${objectsResult.error}`);
 
-  // Afficher les résultats
-  console.log('[HuggingFace] ────────────────────────────────────────────────────────');
-  console.log('[HuggingFace] RÉSULTATS:');
-  
   const emotionsOK = emotionsResult.success && (emotionsResult as any).emotions?.length > 0;
   const ageOK = ageResult.success && (ageResult as any).ageEstimate;
   const genderOK = genderResult.success && (genderResult as any).gender;
   const personOK = objectsResult.success && (objectsResult as any).personBox;
 
-  if (emotionsOK) {
-    const top = (emotionsResult as any).emotions[0];
-    console.log(`[HuggingFace]   Émotions: ✓ ${top.label} (${(top.score * 100).toFixed(1)}%)`);
-  } else {
-    console.log(`[HuggingFace]   Émotions: ✗ ${emotionsResult.error}`);
-  }
-
-  if (ageOK) {
-    console.log(`[HuggingFace]   Âge: ✓ ${(ageResult as any).ageEstimate} (${((ageResult as any).confidence * 100).toFixed(1)}%)`);
-  } else {
-    console.log(`[HuggingFace]   Âge: ✗ ${ageResult.error}`);
-  }
-
-  if (genderOK) {
-    console.log(`[HuggingFace]   Genre: ✓ ${(genderResult as any).gender} (${((genderResult as any).confidence * 100).toFixed(1)}%)`);
-  } else {
-    console.log(`[HuggingFace]   Genre: ✗ ${genderResult.error}`);
-  }
-
-  if (personOK) {
-    console.log(`[HuggingFace]   Personne: ✓ détectée avec bounding box`);
-  } else {
-    console.log(`[HuggingFace]   Personne: ✗ ${objectsResult.error || 'non détectée'}`);
-  }
-
   // Déterminer si un visage est détecté
   // Un visage est détecté si au moins 2 des 3 analyses faciales (émotions, âge, genre) fonctionnent
   const faceSignals = [emotionsOK, ageOK, genderOK].filter(Boolean).length;
   const faceDetected = faceSignals >= 2 || (faceSignals >= 1 && personOK);
-
-  console.log('[HuggingFace] ────────────────────────────────────────────────────────');
-  console.log(`[HuggingFace] VISAGE DÉTECTÉ: ${faceDetected ? 'OUI ✓' : 'NON ✗'} (${faceSignals}/3 signaux positifs)`);
 
   // Construire les données du visage
   const faces = faceDetected ? [{
@@ -596,19 +553,6 @@ export const analyzeFace = async (
     rawResponses,
     errors: errors.length > 0 ? errors : undefined,
   };
-
-  console.log('[HuggingFace] ════════════════════════════════════════════════════════');
-  console.log('[HuggingFace] RÉSULTAT FINAL:');
-  console.log(`[HuggingFace]   Visage: ${result.faceDetected ? 'OUI ✓' : 'NON ✗'}`);
-  console.log(`[HuggingFace]   Qualité: ${result.overallQuality}%`);
-  console.log(`[HuggingFace]   Temps: ${result.processingTime}ms`);
-  if (result.faceDetected && result.faces[0]) {
-    const face = result.faces[0];
-    console.log(`[HuggingFace]   → Âge: ${face.age || 'N/A'}`);
-    console.log(`[HuggingFace]   → Genre: ${face.gender || 'N/A'}`);
-    console.log(`[HuggingFace]   → Émotion: ${face.emotions?.[0]?.label || 'N/A'}`);
-  }
-  console.log('[HuggingFace] ════════════════════════════════════════════════════════');
 
   return result;
 };
@@ -663,12 +607,6 @@ export const calculateImageSimilarity = async (
 ): Promise<{ similarity: number; processingTime: number; success: boolean; error?: string; details?: any }> => {
   const startTime = Date.now();
 
-  console.log('[HuggingFace] ════════════════════════════════════════════════════════');
-  console.log('[HuggingFace] CALCUL DE SIMILARITÉ FACIALE');
-  console.log('[HuggingFace] Image 1:', image1.name);
-  console.log('[HuggingFace] Image 2:', image2.name);
-  console.log('[HuggingFace] ════════════════════════════════════════════════════════');
-
   try {
     // Analyser les deux visages
     const [analysis1, analysis2] = await Promise.all([
@@ -690,9 +628,6 @@ export const calculateImageSimilarity = async (
     const desc1 = generateFaceDescription(analysis1);
     const desc2 = generateFaceDescription(analysis2);
 
-    console.log('[HuggingFace] Description 1:', desc1);
-    console.log('[HuggingFace] Description 2:', desc2);
-
     // Calculer la similarité textuelle
     const textSimilarity = await calculateTextSimilarity(desc1, desc2);
 
@@ -713,12 +648,6 @@ export const calculateImageSimilarity = async (
     }
 
     const finalSimilarity = Math.min(100, textSimilarity + attributeBonus);
-
-    console.log('[HuggingFace] ────────────────────────────────────────────────────────');
-    console.log(`[HuggingFace] Similarité textuelle: ${textSimilarity.toFixed(1)}%`);
-    console.log(`[HuggingFace] Bonus attributs: +${attributeBonus}%`);
-    console.log(`[HuggingFace] SIMILARITÉ FINALE: ${finalSimilarity.toFixed(1)}%`);
-    console.log('[HuggingFace] ════════════════════════════════════════════════════════');
 
     return {
       similarity: finalSimilarity,
@@ -748,32 +677,32 @@ export const calculateImageSimilarity = async (
 export const huggingFaceService = {
   isConfigured: isHuggingFaceConfigured,
   models: HF_MODELS,
-  
+
   // === MODULE 1 & 6: Reconnaissance faciale & Estimation âge ===
   detectEmotions,
   estimateAge,
   classifyGender,
   analyzeFace,
-  
+
   // === MODULE 2: Similarité faciale ===
   calculateImageSimilarity,
-  
+
   // === MODULE 5: Regroupement de cas similaires ===
   findSimilarCases,
   generateCaseSummary,
-  
+
   // === MODULE 7: Analyse de vêtements ===
   analyzeClothing,
   detectClothingColor,
-  
+
   // === MODULE 8: Détection d'objets ===
   detectObjects,
   detectFaceSegmentation,
-  
+
   // Compatibilité
   classifyImage,
   generateCaption,
-  
+
   // Utilitaires
   fileToBase64,
   urlToBlob,

@@ -242,12 +242,12 @@ export const CitizenNewSignalementPage: React.FC = () => {
       if (files.length > 0) {
         setUploadProgress(10);
         const filesToUpload = files.map((f) => f.file);
-        
+
         const uploadResults = await uploadMultipleFiles(filesToUpload, {
           type: 'signalement',
           tags: ['signalement', userId],
         });
-        
+
         setUploadProgress(50);
         photoUrls = uploadResults.filter((r) => r.success).map((r) => r.url || '');
       }
@@ -301,7 +301,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
 
       const redirectMs = isGuestSession ? 6500 : 2000;
       setTimeout(() => navigate('/citizen/my-signalements'), redirectMs);
-      
+
     } catch (err) {
       console.error('Erreur soumission:', err);
       lastSubmitAtRef.current = 0;
@@ -617,7 +617,7 @@ export const CitizenNewSignalementPage: React.FC = () => {
                 <Camera size={18} />
                 {t('citizen.attachPhotos')}
               </label>
-              
+
               <div 
                 className={styles['new-signalement__file-upload']}
                 onClick={openFileSelector}
