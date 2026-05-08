@@ -16,8 +16,6 @@ import {
   analyzeFacialImage, 
   ResultatIA,
   updateResultatIAValidation,
-  StatutValidationIA,
-  ActionGeneree,
 } from './iaAPI';
 import { huggingFaceService, isHuggingFaceConfigured } from '../../../services/huggingFaceService';
 
@@ -123,12 +121,27 @@ const createAuthorityNotification = async (
   type: 'correspondance_ia' | 'match_prioritaire'
 ): Promise<void> => {
   try {
-    // Récupérer les utilisateurs autorités (niveau 4+)
-    const { data: authorities } = await db
+    let organisationId: string | null = null;
+    if (dossierId) {
+      const { data: dossier } = await db
+        .from('dossier_disparition')
+        .select('id_organisation_responsable')
+        .eq('id', dossierId)
+        .maybeSingle();
+      organisationId = (dossier as any)?.id_organisation_responsable || null;
+    }
+
+    let authorityQuery = db
       .from('utilisateur')
       .select('id')
       .eq('type_compte', 'autorite')
-      .eq('statut_compte', 'actif');
+      .eq('statut_compte', 'actif')
+      .eq('accepte_notifications', true);
+    if (organisationId) {
+      authorityQuery = authorityQuery.eq('id_organisation', organisationId);
+    }
+
+    const { data: authorities } = await authorityQuery;
 
     if (!authorities || authorities.length === 0) {
 
@@ -145,15 +158,17 @@ const createAuthorityNotification = async (
     for (const auth of authorities) {
       await db.from('notification').insert({
         id_utilisateur: auth.id,
-        type: type,
+        type_notification: 'correspondance_ia',
         titre,
         message,
         priorite,
+        canal: 'push',
         lue: false,
         donnees_supplementaires: {
           resultat_ia_id: resultatIaId,
           dossier_id: dossierId,
           score,
+          type_match: type,
         },
         date_creation: new Date().toISOString(),
       });
@@ -401,7 +416,7 @@ export const confirmIAResult = async (
         type_notification: 'personne_retrouvee',
         titre: 'Correspondance confirmée',
         message: 'Une correspondance a été confirmée par les autorités pour un dossier que vous avez créé. Consultez le dossier pour plus de détails.',
-        canal: 'in_app',
+        canal: 'push',
         lue: false,
         date_creation: new Date().toISOString(),
         id_utilisateur: createurId,

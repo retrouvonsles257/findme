@@ -46,10 +46,23 @@ interface PersonneFormData {
 }
 
 interface DossierFormData {
+  type_disparition:
+    | 'fugue'
+    | 'enlevement_presume'
+    | 'accident'
+    | 'conflit_arme'
+    | 'migration'
+    | 'catastrophe_naturelle'
+    | 'disparition_volontaire'
+    | 'inconnue'
+    | 'autre';
+  precision_lieu: 'exacte' | 'approximative' | 'inconnue';
   niveau_urgence: 'critique' | 'urgent' | 'normal' | 'faible';
   date_disparition: string;
+  date_derniere_observation: string;
   lieu_disparition: string;
   ville_disparition: string;
+  region_disparition: string;
   pays_disparition: string;
   latitude_disparition: number | null;
   longitude_disparition: number | null;
@@ -62,6 +75,25 @@ interface DossierFormData {
   contact_nom: string;
   contact_telephone: string;
   contact_email: string;
+}
+
+interface FiliationDraft {
+  id: string;
+  type_lien:
+    | 'pere_biologique'
+    | 'mere_biologique'
+    | 'frere_biologique'
+    | 'soeur_biologique'
+    | 'conjoint'
+    | 'enfant_biologique'
+    | 'tuteur_legal'
+    | 'autre';
+  nom: string;
+  prenom: string;
+  telephone_contact: string;
+  email_contact: string;
+  precision_lien: string;
+  personne_contact_principal: boolean;
 }
 
 export interface CreateDossierAuthorityPageProps {
@@ -89,12 +121,19 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
   const [photoUploading, setPhotoUploading] = useState(false);
   /** Si présent dans l’URL (`?personneId=`), on rattache le dossier à cette personne sans la recréer. */
   const [linkedPersonneId, setLinkedPersonneId] = useState<string | null>(null);
+  const [filiationDrafts, setFiliationDrafts] = useState<FiliationDraft[]>([]);
 
   // Carte (sélection + recherche)
   const [showMap, setShowMap] = useState(false);
   const [geoResults, setGeoResults] = useState<MapSearchLocation[]>([]);
   const [isGeoSearching, setIsGeoSearching] = useState(false);
   const geoTimerRef = useRef<number | null>(null);
+  const COUNTRY_OPTIONS: string[] = [
+    'Cameroun', 'Congo', 'Gabon', 'Tchad', 'Nigéria', 'Niger', 'Bénin', 'Togo',
+    'Ghana', "Côte d'Ivoire", 'Sénégal', 'Mali', 'Burkina Faso', 'Guinée', 'Rwanda',
+    'Burundi', 'Kenya', 'Ouganda', 'Tanzanie', 'Afrique du Sud', 'France', 'Belgique',
+    'Suisse', 'Canada', 'États-Unis', 'Royaume-Uni', 'Allemagne', 'Italie', 'Espagne',
+  ];
 
   // Formulaire personne
   const [personneData, setPersonneData] = useState<PersonneFormData>({
@@ -112,10 +151,14 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
 
   // Formulaire dossier
   const [dossierData, setDossierData] = useState<DossierFormData>({
+    type_disparition: 'inconnue',
+    precision_lieu: 'inconnue',
     niveau_urgence: 'normal',
     date_disparition: new Date().toISOString().split('T')[0],
+    date_derniere_observation: '',
     lieu_disparition: '',
     ville_disparition: '',
+    region_disparition: '',
     pays_disparition: 'Cameroun',
     latitude_disparition: null,
     longitude_disparition: null,
@@ -129,6 +172,9 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     contact_telephone: '',
     contact_email: '',
   });
+  const hasPreciseLocation =
+    dossierData.latitude_disparition != null && dossierData.longitude_disparition != null;
+  const localizationQuality: 'precise' | 'unknown' = hasPreciseLocation ? 'precise' : 'unknown';
 
   const personneIdFromUrl = searchParams.get('personneId');
 
@@ -233,6 +279,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
       ...prev,
       latitude_disparition: loc.lat,
       longitude_disparition: loc.lng,
+      precision_lieu: 'exacte',
       // UX: si lieu_disparition est vide, remplir avec le résultat
       lieu_disparition: prev.lieu_disparition?.trim() ? prev.lieu_disparition : loc.name,
     }));
@@ -243,6 +290,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
       ...prev,
       latitude_disparition: lat,
       longitude_disparition: lng,
+      precision_lieu: 'exacte',
     }));
   };
 
@@ -304,6 +352,66 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
+  const createEmptyFiliationDraft = (): FiliationDraft => ({
+    id: crypto.randomUUID(),
+    type_lien: 'pere_biologique',
+    nom: '',
+    prenom: '',
+    telephone_contact: '',
+    email_contact: '',
+    precision_lien: '',
+    personne_contact_principal: false,
+  });
+
+  const addFiliationDraft = () => {
+    setFiliationDrafts((prev) => [...prev, createEmptyFiliationDraft()]);
+  };
+
+  const removeFiliationDraft = (id: string) => {
+    setFiliationDrafts((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
+  const updateFiliationDraft = <K extends keyof FiliationDraft>(
+    id: string,
+    key: K,
+    value: FiliationDraft[K],
+  ) => {
+    setFiliationDrafts((prev) =>
+      prev.map((entry) => {
+        if (entry.id !== id) return entry;
+        if (key === 'personne_contact_principal' && value === true) {
+          return { ...entry, personne_contact_principal: true };
+        }
+        return { ...entry, [key]: value };
+      }),
+    );
+    if (key === 'personne_contact_principal' && value === true) {
+      setFiliationDrafts((prev) =>
+        prev.map((entry) =>
+          entry.id === id
+            ? { ...entry, personne_contact_principal: true }
+            : { ...entry, personne_contact_principal: false },
+        ),
+      );
+    }
+  };
+
+  const computeFiliationSourceAndCible = (
+    typeLien: FiliationDraft['type_lien'],
+    missingPersonId: string,
+    relativePersonId: string,
+  ): { id_personne_source: string; id_personne_cible: string } => {
+    const relativeIsSource = new Set<FiliationDraft['type_lien']>([
+      'pere_biologique',
+      'mere_biologique',
+      'tuteur_legal',
+    ]);
+    if (relativeIsSource.has(typeLien)) {
+      return { id_personne_source: relativePersonId, id_personne_cible: missingPersonId };
+    }
+    return { id_personne_source: missingPersonId, id_personne_cible: relativePersonId };
+  };
+
   // Validation étape 1
   const validateStep1 = (): boolean => {
     if (!personneData.nom.trim() || !personneData.prenom.trim()) {
@@ -323,6 +431,18 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
       addNotification({
         title: t('authority.createDossier.messages.requiredFields'),
         message: t('authority.createDossier.messages.dateLocationRequired'),
+        type: 'error',
+      });
+      return false;
+    }
+    if (
+      dossierData.diffusion_autorisee &&
+      (dossierData.latitude_disparition == null || dossierData.longitude_disparition == null)
+    ) {
+      addNotification({
+        title: 'Localisation requise',
+        message:
+          'La diffusion d’alerte nécessite une localisation précise (carte/recherche). Ajoutez des coordonnées ou désactivez "Diffusion autorisée".',
         type: 'error',
       });
       return false;
@@ -450,17 +570,25 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
           id_organisation_responsable: currentUser?.organisation_id || null,
           niveau_urgence: dossierData.niveau_urgence,
           statut_dossier: 'en_cours',
-          type_disparition: 'inconnue', // Valeur valide de l'enum type_disparition
+          type_disparition: dossierData.type_disparition,
           date_disparition: new Date(dossierData.date_disparition).toISOString(),
+          date_derniere_observation: dossierData.date_derniere_observation
+            ? new Date(dossierData.date_derniere_observation).toISOString()
+            : null,
           lieu_disparition: dossierData.lieu_disparition,
           ville_disparition: dossierData.ville_disparition || null,
+          region_disparition: dossierData.region_disparition || null,
           pays_disparition: dossierData.pays_disparition || 'Cameroun',
           latitude_disparition: dossierData.latitude_disparition,
           longitude_disparition: dossierData.longitude_disparition,
+          precision_lieu: dossierData.precision_lieu,
           circonstances: dossierData.circonstances || 'Non précisées', // Champ obligatoire
           derniere_activite_connue: dossierData.derniere_activite_connue || null,
           visible_public: dossierData.visible_public,
-          diffusion_autorisee: dossierData.diffusion_autorisee,
+          diffusion_autorisee:
+            dossierData.diffusion_autorisee &&
+            dossierData.latitude_disparition != null &&
+            dossierData.longitude_disparition != null,
           contact_famille_principale: dossierData.contact_nom || null,
           telephone_contact: dossierData.contact_telephone || null,
           email_contact: dossierData.contact_email || null,
@@ -471,7 +599,75 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
 
       if (dossierError) throw dossierError;
 
-      // 4. Déclencher l'analyse IA automatique si une photo a été uploadée
+      if (
+        dossierData.diffusion_autorisee &&
+        (dossierData.latitude_disparition == null || dossierData.longitude_disparition == null)
+      ) {
+        addNotification({
+          title: 'Diffusion désactivée automatiquement',
+          message:
+            'Le dossier a été créé sans coordonnées GPS. Pour éviter des alertes à 0 destinataire, "Diffusion autorisée" a été désactivé.',
+          type: 'warning',
+        });
+      }
+
+      // 4 bis. Créer les affiliations familiales saisies lors de la création
+      const filiationEntries = filiationDrafts.filter(
+        (entry) =>
+          entry.nom.trim() &&
+          entry.prenom.trim() &&
+          (entry.telephone_contact.trim() || entry.email_contact.trim()),
+      );
+      if (filiationEntries.length > 0) {
+        try {
+          for (const entry of filiationEntries) {
+            const { data: relativePerson, error: relativeError } = await (supabase as any)
+              .from('personne')
+              .insert({
+                nom: entry.nom.trim(),
+                prenom: entry.prenom.trim(),
+                nom_complet: `${entry.prenom.trim()} ${entry.nom.trim()}`.trim(),
+                cree_par: user.id,
+              })
+              .select('id')
+              .single();
+            if (relativeError || !relativePerson?.id) {
+              throw relativeError || new Error('Impossible de créer la personne affiliée');
+            }
+
+            const { id_personne_source, id_personne_cible } = computeFiliationSourceAndCible(
+              entry.type_lien,
+              personneIdForDossier,
+              relativePerson.id,
+            );
+
+            const { error: filiationError } = await (supabase as any).from('lien_filiation').insert({
+              type_lien: entry.type_lien,
+              id_personne_source,
+              id_personne_cible,
+              precision_lien: entry.precision_lien || null,
+              nature_filiation: 'biologique',
+              statut_verification: 'declare_famille',
+              type_preuve: 'aucune',
+              telephone_contact: entry.telephone_contact || null,
+              email_contact: entry.email_contact || null,
+              personne_contact_principal: entry.personne_contact_principal,
+              cree_par: user.id,
+              modifie_par: user.id,
+            });
+            if (filiationError) throw filiationError;
+          }
+        } catch (filiationCreateError) {
+          addNotification({
+            title: 'Dossier créé, filiation partielle',
+            message:
+              'Le dossier a bien été créé, mais certaines affiliations familiales n’ont pas pu être enregistrées. Tu peux les compléter depuis le détail du dossier.',
+            type: 'warning',
+          });
+        }
+      }
+
+      // 5. Déclencher l'analyse IA automatique si une photo a été uploadée
       if (uploadedPhotos.length > 0) {
 
         try {
@@ -525,6 +721,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     currentUser,
     personneData,
     dossierData,
+    filiationDrafts,
     uploadedPhotos,
     linkedPersonneId,
     addNotification,
@@ -732,6 +929,26 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
 
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
+                  <label>Type de disparition</label>
+                  <select
+                    value={dossierData.type_disparition}
+                    onChange={(e) =>
+                      setDossierData({ ...dossierData, type_disparition: e.target.value as DossierFormData['type_disparition'] })
+                    }
+                  >
+                    <option value="inconnue">Inconnue</option>
+                    <option value="fugue">Fugue</option>
+                    <option value="enlevement_presume">Enlèvement présumé</option>
+                    <option value="accident">Accident</option>
+                    <option value="migration">Migration</option>
+                    <option value="disparition_volontaire">Disparition volontaire</option>
+                    <option value="catastrophe_naturelle">Catastrophe naturelle</option>
+                    <option value="conflit_arme">Conflit armé</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
                   <label>{t('authority.createDossier.step2.urgency')}</label>
                   <select
                     value={dossierData.niveau_urgence}
@@ -751,6 +968,15 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                     value={dossierData.date_disparition}
                     onChange={(e) => setDossierData({ ...dossierData, date_disparition: e.target.value })}
                     required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Date dernière observation (optionnel)</label>
+                  <input
+                    type="date"
+                    value={dossierData.date_derniere_observation}
+                    onChange={(e) => setDossierData({ ...dossierData, date_derniere_observation: e.target.value })}
                   />
                 </div>
 
@@ -776,18 +1002,55 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                 </div>
 
                 <div className={styles.formGroup}>
+                  <label>Région</label>
+                  <input
+                    type="text"
+                    value={dossierData.region_disparition}
+                    onChange={(e) => setDossierData({ ...dossierData, region_disparition: e.target.value })}
+                    placeholder="Ex: Centre, Littoral..."
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
                   <label>{t('authority.createDossier.step2.country')}</label>
                   <input
                     type="text"
+                    list="country-options"
                     value={dossierData.pays_disparition}
                     onChange={(e) => setDossierData({ ...dossierData, pays_disparition: e.target.value })}
                   />
+                  <datalist id="country-options">
+                    {COUNTRY_OPTIONS.map((country) => (
+                      <option key={country} value={country} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Précision du lieu</label>
+                  <select
+                    value={dossierData.precision_lieu}
+                    onChange={(e) =>
+                      setDossierData({ ...dossierData, precision_lieu: e.target.value as DossierFormData['precision_lieu'] })
+                    }
+                  >
+                    <option value="inconnue">Inconnue</option>
+                    <option value="approximative">Approximative</option>
+                    <option value="exacte">Exacte</option>
+                  </select>
                 </div>
 
                 {/* Carte pour localisation précise */}
                 <div className={styles.formGroupFull}>
                   <div className={styles.mapHeader}>
                     <label>{t('authority.createDossier.step2.map.title')}</label>
+                    <span
+                      className={`${styles.locationQualityBadge} ${
+                        localizationQuality === 'precise' ? styles.qualityPrecise : styles.qualityUnknown
+                      }`}
+                    >
+                      Qualite localisation: {localizationQuality === 'precise' ? 'precise' : 'inconnue'}
+                    </span>
                     <button
                       type="button"
                       className={styles.mapToggle}
@@ -925,6 +1188,117 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                 </div>
               </div>
 
+              <h3 style={{ marginTop: '24px' }}>Filiation et proches (multi-contacts)</h3>
+              <p style={{ margin: '0 0 12px 0', color: '#64748b', fontSize: '0.92rem' }}>
+                Ajoute ici les proches à lier directement à la personne disparue. Un seul proche peut être marqué comme contact principal.
+              </p>
+              <button
+                type="button"
+                className={styles.nextBtn}
+                style={{ width: 'fit-content', padding: '10px 14px' }}
+                onClick={addFiliationDraft}
+              >
+                + Ajouter un proche
+              </button>
+              {filiationDrafts.length > 0 && (
+                <div style={{ marginTop: 12, display: 'grid', gap: 12 }}>
+                  {filiationDrafts.map((entry, index) => (
+                    <div
+                      key={entry.id}
+                      style={{
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        padding: 12,
+                        background: '#f8fafc',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong>Proche #{index + 1}</strong>
+                        <button
+                          type="button"
+                          className={styles.cancelBtn}
+                          style={{ padding: '6px 10px' }}
+                          onClick={() => removeFiliationDraft(entry.id)}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                      <div className={styles.formGrid} style={{ marginTop: 10 }}>
+                        <div className={styles.formGroup}>
+                          <label>Lien</label>
+                          <select
+                            value={entry.type_lien}
+                            onChange={(e) =>
+                              updateFiliationDraft(entry.id, 'type_lien', e.target.value as FiliationDraft['type_lien'])
+                            }
+                          >
+                            <option value="pere_biologique">Père biologique</option>
+                            <option value="mere_biologique">Mère biologique</option>
+                            <option value="frere_biologique">Frère biologique</option>
+                            <option value="soeur_biologique">Soeur biologique</option>
+                            <option value="conjoint">Conjoint(e)</option>
+                            <option value="enfant_biologique">Enfant biologique</option>
+                            <option value="tuteur_legal">Tuteur légal</option>
+                            <option value="autre">Autre</option>
+                          </select>
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Prénom</label>
+                          <input
+                            type="text"
+                            value={entry.prenom}
+                            onChange={(e) => updateFiliationDraft(entry.id, 'prenom', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Nom</label>
+                          <input
+                            type="text"
+                            value={entry.nom}
+                            onChange={(e) => updateFiliationDraft(entry.id, 'nom', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Téléphone</label>
+                          <input
+                            type="tel"
+                            value={entry.telephone_contact}
+                            onChange={(e) => updateFiliationDraft(entry.id, 'telephone_contact', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Email</label>
+                          <input
+                            type="email"
+                            value={entry.email_contact}
+                            onChange={(e) => updateFiliationDraft(entry.id, 'email_contact', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Précision</label>
+                          <input
+                            type="text"
+                            value={entry.precision_lien}
+                            onChange={(e) => updateFiliationDraft(entry.id, 'precision_lien', e.target.value)}
+                            placeholder="Ex: frère aîné, oncle maternel..."
+                          />
+                        </div>
+                      </div>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={entry.personne_contact_principal}
+                          onChange={(e) =>
+                            updateFiliationDraft(entry.id, 'personne_contact_principal', e.target.checked)
+                          }
+                        />
+                        Contact principal
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Options de diffusion */}
               <h3 style={{ marginTop: '24px' }}>{t('authority.createDossier.step2.diffusionOptions')}</h3>
               <div className={styles.checkboxGroup}>
@@ -940,7 +1314,22 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                   <input
                     type="checkbox"
                     checked={dossierData.diffusion_autorisee}
-                    onChange={(e) => setDossierData({ ...dossierData, diffusion_autorisee: e.target.checked })}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      const hasCoords =
+                        dossierData.latitude_disparition != null &&
+                        dossierData.longitude_disparition != null;
+                      if (next && !hasCoords) {
+                        addNotification({
+                          title: 'Localisation requise',
+                          message:
+                            'Impossible d’activer "Diffusion autorisée" sans localisation. Utilise la recherche/ carte pour positionner le lieu.',
+                          type: 'warning',
+                        });
+                        return;
+                      }
+                      setDossierData({ ...dossierData, diffusion_autorisee: next });
+                    }}
                   />
                   {t('authority.createDossier.step2.diffusionAuthorized')}
                 </label>
@@ -984,12 +1373,18 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                 <div className={styles.summarySection}>
                   <h3><MapPin size={16} /> {t('authority.createDossier.step3.disappearance')}</h3>
                   <p><strong>{t('authority.createDossier.step3.urgency')}:</strong> {t(`authority.dossiers.urgency.${dossierData.niveau_urgence}`)}</p>
+                  <p><strong>Type:</strong> {dossierData.type_disparition}</p>
                   <p><strong>{t('authority.createDossier.step3.date')}:</strong> {new Date(dossierData.date_disparition).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}</p>
+                  <p><strong>Date dernière observation:</strong> {dossierData.date_derniere_observation || t('authority.createDossier.step3.notProvided')}</p>
                   <p><strong>{t('authority.createDossier.step3.location')}:</strong> {dossierData.lieu_disparition}</p>
                   <p><strong>{t('authority.createDossier.step3.city')}:</strong> {dossierData.ville_disparition || t('authority.createDossier.step3.notProvided')}</p>
+                  <p><strong>Région:</strong> {dossierData.region_disparition || t('authority.createDossier.step3.notProvided')}</p>
+                  <p><strong>Pays:</strong> {dossierData.pays_disparition || t('authority.createDossier.step3.notProvided')}</p>
                   {dossierData.latitude_disparition && dossierData.longitude_disparition && (
                     <p><strong>{t('authority.createDossier.step2.map.coords')}:</strong> {dossierData.latitude_disparition.toFixed(6)}, {dossierData.longitude_disparition.toFixed(6)}</p>
                   )}
+                  <p><strong>Qualité localisation:</strong> {localizationQuality === 'precise' ? 'précise' : 'inconnue'}</p>
+                  <p><strong>Précision lieu:</strong> {dossierData.precision_lieu}</p>
                   {dossierData.circonstances && (
                     <p><strong>{t('authority.createDossier.step3.circumstances')}:</strong> {dossierData.circonstances.substring(0, 100)}...</p>
                   )}
@@ -1005,6 +1400,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
                   <h3>{t('authority.createDossier.step3.options')}</h3>
                   <p><strong>{t('authority.createDossier.step3.visiblePublic')}:</strong> {dossierData.visible_public ? t('authority.createDossier.step3.yes') : t('authority.createDossier.step3.no')}</p>
                   <p><strong>{t('authority.createDossier.step3.diffusionAuthorized')}:</strong> {dossierData.diffusion_autorisee ? t('authority.createDossier.step3.yes') : t('authority.createDossier.step3.no')}</p>
+                  <p><strong>Affiliations proches:</strong> {filiationDrafts.length}</p>
                 </div>
               </div>
 

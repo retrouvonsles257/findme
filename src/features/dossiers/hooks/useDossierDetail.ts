@@ -24,8 +24,8 @@ export const useDossierDetail = (): UseDossierDetailReturn => {
       const enriched = dossierService.enrichDossierForDisplay(raw);
       setDossier(enriched);
 
-      // Increment view counter
-      await dossierAPI.updateDossierStatistics(dossierId, 'vues');
+      // Increment unique view counter (1 person = 1 unique view)
+      await dossierAPI.recordUniqueDossierView(dossierId);
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement');
       console.error('Fetch dossier detail error:', err);

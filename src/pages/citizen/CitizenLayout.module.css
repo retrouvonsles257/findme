@@ -19,7 +19,7 @@
   --citizen-text-muted: #64748b;
   --citizen-sidebar-text: rgba(255, 255, 255, 0.88);
   --citizen-sidebar-text-strong: #ffffff;
-  --citizen-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --citizen-font: var(--font-family-base, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 70px;
   --nav-padding-x: 0.75rem;

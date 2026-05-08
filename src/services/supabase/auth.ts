@@ -185,17 +185,31 @@ async function loadLoginFallbackFromDb(userId: string): Promise<{
 // HELPER FUNCTIONS (Using RPC functions to bypass RLS)
 // ============================================
 
+function isRpcUnavailableError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { code?: string; message?: string; details?: string };
+  const code = String(e.code || '');
+  const msg = `${e.message || ''} ${e.details || ''}`;
+  return (
+    code === 'PGRST202' ||
+    code === '42883' ||
+    /404|introuvable|not find|schema cache|does not exist/i.test(msg)
+  );
+}
+
 async function getUserMainRole(userId: string): Promise<string | null> {
   try {
     // Use RPC function with SECURITY DEFINER to bypass RLS
     const { data, error } = await (supabase as any)
-      .rpc('get_user_main_role', { user_id: userId });
+      .rpc('get_user_main_role', { p_user_id: userId });
 
     if (error) {
-      console.error('Error getting user role via RPC:', error);
-      // Fallback: JWT metadata (user + app)
-      const { data: userData } = await supabase.auth.getUser();
-      return normalizeAppRole(pickAuthJwtRole(userData?.user as any));
+      if (!isRpcUnavailableError(error)) {
+        console.error('Error getting user role via RPC:', error);
+      }
+      // Fallback: JWT metadata (session locale uniquement — évite AuthSessionMissingError)
+      const { data: sessionData } = await supabase.auth.getSession();
+      return normalizeAppRole(pickAuthJwtRole(sessionData?.session?.user as any));
     }
 
     return normalizeAppRole(data as string | null);
@@ -212,9 +226,11 @@ async function getUserAllRoles(userId: string): Promise<string[]> {
       .rpc('get_user_all_roles', { p_user_id: userId });
 
     if (error) {
-      console.error('Error getting user roles via RPC:', error);
-      const { data: userData } = await supabase.auth.getUser();
-      const role = pickAuthJwtRole(userData?.user as any);
+      if (!isRpcUnavailableError(error)) {
+        console.error('Error getting user roles via RPC:', error);
+      }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const role = pickAuthJwtRole(sessionData?.session?.user as any);
       return normalizeAppRoles(role ? [role] : []);
     }
 
@@ -403,7 +419,7 @@ class SupabaseAuthService {
     session: { access_token: string; refresh_token: string; expires_at: number | null | undefined },
   ): Promise<AuthResult<AuthSessionData>> {
     const { data: userWithRole, error: rpcError } = await (supabase as any).rpc('get_user_with_role', {
-      user_id: authUser.id,
+      p_user_id: authUser.id,
     });
 
     let userProfile = userWithRole;

@@ -194,7 +194,10 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 /**
  * Récupère le token FCM avec cache et gestion d'expiration
  */
-export const getFCMToken = async (): Promise<string | null> => {
+export const getFCMToken = async (
+  allowPermissionPrompt: boolean = true,
+  forceRefresh: boolean = false,
+): Promise<string | null> => {
   try {
     if (!messaging) {
       console.error('[Firebase] Messaging non initialisé');
@@ -206,14 +209,39 @@ export const getFCMToken = async (): Promise<string | null> => {
       return null;
     }
 
+    if (forceRefresh) {
+      try {
+        await deleteToken(messaging);
+        // Laisser le navigateur révoquer l’ancienne souscription push avant d’en créer une nouvelle
+        await new Promise((r) => setTimeout(r, 350));
+      } catch {
+        // noop: on continue pour regénérer un token
+      }
+      cachedFCMToken = null;
+      tokenExpirationTime = null;
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
+      } catch {
+        // noop
+      }
+    }
+
     // Vérifier le cache et l'expiration
-    if (cachedFCMToken && tokenExpirationTime && Date.now() < tokenExpirationTime) {
+    if (!forceRefresh && cachedFCMToken && tokenExpirationTime && Date.now() < tokenExpirationTime) {
 
       return cachedFCMToken;
     }
 
     // Vérifier la permission
     if (Notification.permission !== 'granted') {
+      if (!allowPermissionPrompt) {
+        return null;
+      }
       const granted = await requestNotificationPermission();
       if (!granted) {
         return null;
@@ -226,24 +254,29 @@ export const getFCMToken = async (): Promise<string | null> => {
       return null;
     }
 
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: swReg,
-    });
-
-    if (token) {
-      // Mettre en cache le token
-      cachedFCMToken = token;
-      tokenExpirationTime = Date.now() + (TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
-
-      // Stocker de manière sécurisée
-      storeTokenSecurely(token);
-
-      return token;
-    } else {
-
-      return null;
+    let lastErr: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration: swReg,
+        });
+        if (token) {
+          cachedFCMToken = token;
+          tokenExpirationTime = Date.now() + (TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
+          storeTokenSecurely(token);
+          return token;
+        }
+      } catch (e) {
+        lastErr = e;
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+        }
+      }
     }
+
+    console.error('[Firebase] Erreur récupération token:', lastErr);
+    return null;
   } catch (error) {
     console.error('[Firebase] Erreur récupération token:', error);
     return null;

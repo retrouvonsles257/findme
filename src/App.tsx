@@ -31,7 +31,7 @@ import { envConfig } from './config';
 // Routes
 import AppRoutes from './routes/AppRoutes';
 import { AuthSessionRestorer } from './features/auth/components/AuthSessionRestorer';
-import { CitizenPushGlobalSync } from './features/notifications/components';
+import { UserPushGlobalSync } from './features/notifications/components';
 
 // Styles
 import './styles/index.ts';
@@ -98,7 +98,7 @@ const App: React.FC = () => {
           <LanguageProvider>
             <I18nProvider>
               <AuthProvider>
-                <CitizenPushGlobalSync />
+                <UserPushGlobalSync />
                 <GeolocationProvider>
                   <NotificationProvider>
                     <WebSocketProvider>

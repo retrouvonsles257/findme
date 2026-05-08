@@ -77,7 +77,14 @@
       "volontaire": "Volontaire",
       "involontaire": "Involontaire",
       "suspicion_enlevement": "Suspicion d'enlèvement",
-      "fugue": "Fugue"
+      "fugue": "Fugue",
+      "enlevement_presume": "Enlèvement présumé",
+      "accident": "Accident",
+      "conflit_arme": "Conflit armé",
+      "migration": "Migration",
+      "catastrophe_naturelle": "Catastrophe naturelle",
+      "disparition_volontaire": "Disparition volontaire",
+      "autre": "Autre"
     },
     "stats": {
       "total": "Total",

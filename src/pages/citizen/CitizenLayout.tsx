@@ -95,38 +95,94 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const userId = (currentUser as any)?.id;
   const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const { unreadCount, fetchNotifications } = useNotifications();
+  const PERM_ONBOARDING_DONE_KEY = 'citizen_perm_onboarding_done_v1';
+  const PERM_NOTIF_ASKED_KEY = 'citizen_perm_notif_asked_v1';
+  const PERM_GEO_ASKED_KEY = 'citizen_perm_geo_asked_v1';
 
-  /** Amorce la position en base pour la diffusion d’alertes (rayon) : le provider global ne poussait pas les coords. */
+  /** Onboarding permissions (une fois): notifications puis localisation. */
   useEffect(() => {
     if (!userId) return;
-    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
-    const timer = window.setTimeout(() => {
-      const request = () =>
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            void maybeSyncCitizenGpsToProfileDebounced(
-              userId,
-              pos.coords.latitude,
-              pos.coords.longitude,
-            );
-          },
-          () => {},
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
-        );
+    if (isGuestSession) return;
+    if (typeof window === 'undefined') return;
 
-      if (navigator.permissions?.query) {
-        void navigator.permissions
-          .query({ name: 'geolocation' as PermissionName })
-          .then((r) => {
-            if (r.state === 'denied') return;
-            request();
-          })
-          .catch(() => request());
+    let cancelled = false;
+    const run = async () => {
+      const done = localStorage.getItem(PERM_ONBOARDING_DONE_KEY) === 'true';
+      if (done) return;
+
+      // 1) Notifications d'abord (une seule demande si permission "default")
+      if ('Notification' in window) {
+        const notifAsked = localStorage.getItem(PERM_NOTIF_ASKED_KEY) === 'true';
+        if (!notifAsked && Notification.permission === 'default') {
+          try {
+            await Notification.requestPermission();
+          } catch {
+            // noop
+          } finally {
+            localStorage.setItem(PERM_NOTIF_ASKED_KEY, 'true');
+          }
+        }
       } else {
-        request();
+        localStorage.setItem(PERM_NOTIF_ASKED_KEY, 'true');
       }
-    }, 2500);
-    return () => window.clearTimeout(timer);
+
+      if (cancelled) return;
+
+      // 2) Ensuite localisation (une seule demande si état "prompt")
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        const geoAsked = localStorage.getItem(PERM_GEO_ASKED_KEY) === 'true';
+        const requestGeo = () =>
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              if (!cancelled) {
+                void maybeSyncCitizenGpsToProfileDebounced(
+                  userId,
+                  pos.coords.latitude,
+                  pos.coords.longitude,
+                );
+              }
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+          );
+
+        if (!geoAsked) {
+          if (navigator.permissions?.query) {
+            try {
+              const r = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+              if (r.state === 'granted') {
+                requestGeo();
+                localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+              } else if (r.state === 'prompt') {
+                requestGeo();
+                localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+              } else {
+                localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+              }
+            } catch {
+              requestGeo();
+              localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+            }
+          } else {
+            requestGeo();
+            localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+          }
+        }
+      } else {
+        localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+      }
+
+      localStorage.setItem(PERM_ONBOARDING_DONE_KEY, 'true');
+    };
+
+    const timer = window.setTimeout(() => {
+      void run();
+    }, 1200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [userId, isGuestSession]);
 
   // États

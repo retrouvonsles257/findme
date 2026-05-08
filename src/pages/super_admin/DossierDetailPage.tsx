@@ -172,10 +172,22 @@ export const SuperAdminDossierDetailPage: React.FC = () => {
     if (!type) return t('authority.dossierDetail.fields.notProvided') || 'Non renseigné';
     const key = `authority.dossiers.disappearanceType.${type}`;
     const tr = t(key);
-    return tr !== key ? tr : type;
+    if (tr !== key) return tr;
+    return type
+      .split('_')
+      .join(' ')
+      .replace(/\b\w/g, (c: string) => c.toUpperCase());
   };
 
   const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+  const stats = {
+    reports: signalements.length || dossier?.nombre_signalements || 0,
+    alerts: alertes.length || dossier?.nombre_alertes_diffusees || 0,
+    views: dossier?.nombre_vues_fiche || 0,
+    locations: localisations.length,
+    docs: documents.length,
+    ia: resultatsIa.length,
+  };
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'info', label: t('authority.dossierDetail.tabs.info') || 'Info', icon: <Info size={16} /> },
@@ -354,15 +366,27 @@ export const SuperAdminDossierDetailPage: React.FC = () => {
                       <div className={styles.statGrid}>
                         <div className={styles.stat}>
                           <span className={styles.statLabel}>{t('authority.dossierDetail.stats.reports')}</span>
-                          <span className={styles.statValue}>{dossier.nombre_signalements ?? 0}</span>
+                          <span className={styles.statValue}>{stats.reports}</span>
                         </div>
                         <div className={styles.stat}>
                           <span className={styles.statLabel}>{t('authority.dossierDetail.stats.alerts')}</span>
-                          <span className={styles.statValue}>{dossier.nombre_alertes_diffusees ?? 0}</span>
+                          <span className={styles.statValue}>{stats.alerts}</span>
                         </div>
                         <div className={styles.stat}>
                           <span className={styles.statLabel}>{t('authority.dossierDetail.stats.views')}</span>
-                          <span className={styles.statValue}>{dossier.nombre_vues_fiche ?? 0}</span>
+                          <span className={styles.statValue}>{stats.views}</span>
+                        </div>
+                        <div className={styles.stat}>
+                          <span className={styles.statLabel}>Localisations</span>
+                          <span className={styles.statValue}>{stats.locations}</span>
+                        </div>
+                        <div className={styles.stat}>
+                          <span className={styles.statLabel}>Documents</span>
+                          <span className={styles.statValue}>{stats.docs}</span>
+                        </div>
+                        <div className={styles.stat}>
+                          <span className={styles.statLabel}>Analyses IA</span>
+                          <span className={styles.statValue}>{stats.ia}</span>
                         </div>
                       </div>
                     </div>
@@ -435,8 +459,28 @@ export const SuperAdminDossierDetailPage: React.FC = () => {
               {activeTab === 'localisations' && (
                 <div className={styles.tabContent}>
                   <h3><MapPin size={20} /> Localisations</h3>
-                  {localisations.length > 0 ? (
+                  {localisations.length > 0 || dossier.latitude_disparition != null || dossier.longitude_disparition != null ? (
                     <div className={styles.itemsList}>
+                      {localisations.length === 0 && (
+                        <div className={styles.itemCard}>
+                          <div className={styles.itemHeader}>
+                            <h4>Point de disparition (dossier)</h4>
+                            <span className={styles.badge} style={{ backgroundColor: '#007bff' }}>
+                              {new Date(dossier.date_disparition).toLocaleDateString(locale)}
+                            </span>
+                          </div>
+                          <p><strong>Lieu:</strong> {dossier.lieu_disparition || '—'}</p>
+                          <p>
+                            <strong>Zone:</strong>{' '}
+                            {[dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
+                              .filter(Boolean)
+                              .join(', ') || '—'}
+                          </p>
+                          {dossier.latitude_disparition != null && dossier.longitude_disparition != null && (
+                            <p><strong>Coordonnées:</strong> {Number(dossier.latitude_disparition).toFixed(4)}, {Number(dossier.longitude_disparition).toFixed(4)}</p>
+                          )}
+                        </div>
+                      )}
                       {localisations.map((loc: any) => (
                         <div key={loc.id} className={styles.itemCard}>
                           <div className={styles.itemHeader}>
@@ -445,11 +489,14 @@ export const SuperAdminDossierDetailPage: React.FC = () => {
                               {new Date(loc.date_localisation).toLocaleDateString(locale)}
                             </span>
                           </div>
-                          <p><strong>Lieu:</strong> {loc.lieu_localisation || '—'}</p>
+                          <p><strong>Lieu:</strong> {loc.adresse || loc.point_interet || '—'}</p>
                           {loc.latitude != null && loc.longitude != null && (
                             <p><strong>Coordonnées:</strong> {Number(loc.latitude).toFixed(4)}, {Number(loc.longitude).toFixed(4)}</p>
                           )}
-                          {loc.rayon_recherche && <p><strong>Rayon:</strong> {loc.rayon_recherche} km</p>}
+                          <p>
+                            <strong>Zone:</strong>{' '}
+                            {[loc.ville, loc.region, loc.pays].filter(Boolean).join(', ') || '—'}
+                          </p>
                           {loc.description && <p><strong>Description:</strong> {loc.description}</p>}
                         </div>
                       ))}

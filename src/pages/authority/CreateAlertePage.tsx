@@ -17,6 +17,7 @@ import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import {
   createAlerte,
   diffuserAlerte,
+  estimateDiffusionForInput,
   updateAlerteStatut,
 } from '../../features/alertes/services/alerteAPI';
 import { TypeAlerte as TypeAlerteEnum, StatutAlerte as StatutAlerteEnum } from '../../@types/enums.types';
@@ -81,6 +82,14 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
   const defaultType = typeOptions[0]?.value ?? TypeAlerteEnum.DISPARITION_STANDARD;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [diffusionEstimate, setDiffusionEstimate] = useState<{
+    destinataires: number;
+    excludedSansPosition: number;
+    excludedHorsRayon: number;
+  } | null>(null);
+  const [confirmZeroRecipientsOpen, setConfirmZeroRecipientsOpen] = useState(false);
+  const [zeroRecipientsSummary, setZeroRecipientsSummary] = useState('');
   const [formData, setFormData] = useState({
     titre: '',
     message: '',
@@ -132,7 +141,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
   };
 
   // Soumission
-  const handleSubmit = useCallback(async (publishNow: boolean) => {
+  const handleSubmit = useCallback(async (publishNow: boolean, forcePublishWhenZero = false) => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -142,6 +151,50 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
         dossierLie?.latitude_disparition != null ? Number(dossierLie.latitude_disparition) : undefined;
       const lngD =
         dossierLie?.longitude_disparition != null ? Number(dossierLie.longitude_disparition) : undefined;
+
+      const hasGeoCenter =
+        latD != null &&
+        lngD != null &&
+        !Number.isNaN(latD) &&
+        !Number.isNaN(lngD);
+
+      if (publishNow && !hasGeoCenter) {
+        addNotification({
+          title: t('authority.alertes.createAlerte.messages.error'),
+          message:
+            'Publication bloquée: le dossier lié n’a pas de localisation (latitude/longitude). Ajoutez une position sur le dossier ou gardez cette alerte en brouillon.',
+          type: 'error',
+        });
+        return;
+      }
+
+      let estimationSummary = '';
+      if (publishNow) {
+        setIsEstimating(true);
+        const estimate = await estimateDiffusionForInput({
+          id_dossier: formData.id_dossier,
+          latitude_centre: latD,
+          longitude_centre: lngD,
+          rayon_km: formData.rayon_km,
+        });
+        setDiffusionEstimate({
+          destinataires: estimate.destinataires.length,
+          excludedSansPosition: estimate.excludedSansPosition,
+          excludedHorsRayon: estimate.excludedHorsRayon,
+        });
+        estimationSummary = `Estimation: ${estimate.destinataires.length} destinataire(s) potentiels, ${estimate.excludedSansPosition} sans position partagée, ${estimate.excludedHorsRayon} hors rayon.`;
+
+        if (estimate.destinataires.length === 0 && !forcePublishWhenZero) {
+          setZeroRecipientsSummary(estimationSummary);
+          setConfirmZeroRecipientsOpen(true);
+          addNotification({
+            title: 'Vérification requise',
+            message: 'Aucun destinataire estimé. Confirmez explicitement si vous voulez publier malgré tout.',
+            type: 'warning',
+          });
+          return;
+        }
+      }
 
       const alerte = await createAlerte({
         titre: formData.titre,
@@ -169,10 +222,10 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
         } else {
           addNotification({
             title: t('authority.alertes.createAlerte.messages.alerteCreated'),
-            message: t('authority.alertes.createAlerte.messages.alerteCreatedAndPublishedWithCount').replace(
+            message: `${t('authority.alertes.createAlerte.messages.alerteCreatedAndPublishedWithCount').replace(
               '{{count}}',
               String(diffusion.nombre_destinataires),
-            ),
+            )} ${estimationSummary}`.trim(),
             type: 'success',
           });
         }
@@ -192,16 +245,21 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
         type: 'error',
       });
     } finally {
+      setIsEstimating(false);
       setIsSubmitting(false);
     }
   }, [formData, dossiers, addNotification, navigate, basePath, t]);
 
   // Dossiers actifs uniquement
   const activeDossiers = dossiers.filter((d: any) => 
-    d.statut_dossier === 'en_cours' && d.diffusion_autorisee !== false
+    d.statut_dossier === 'en_cours' &&
+    d.diffusion_autorisee !== false &&
+    d.latitude_disparition != null &&
+    d.longitude_disparition != null
   );
 
   const content = (
+    <>
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
@@ -233,7 +291,12 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
               </select>
               {activeDossiers.length === 0 && (
                 <small style={{ color: '#999', marginTop: '4px' }}>
-                  {t('authority.alertes.createAlerte.form.noActiveDossiers')}
+                  {t('authority.alertes.createAlerte.form.noActiveDossiers')} (Les dossiers sans localisation sont exclus de la diffusion d’alerte.)
+                </small>
+              )}
+              {diffusionEstimate && (
+                <small className={styles.estimateInline}>
+                  Estimation actuelle: {diffusionEstimate.destinataires} destinataire(s), {diffusionEstimate.excludedSansPosition} sans position partagée, {diffusionEstimate.excludedHorsRayon} hors rayon.
                 </small>
               )}
             </div>
@@ -367,10 +430,12 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
             <button 
               onClick={() => handleSubmit(true)}
               className={styles.publishBtn}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isEstimating}
             >
               {isSubmitting ? (
                 <><Loader2 size={16} className={styles.spinner} /> {t('authority.alertes.createAlerte.actions.creating')}</>
+              ) : isEstimating ? (
+                <><Loader2 size={16} className={styles.spinner} /> Vérification des destinataires...</>
               ) : (
                 <><Megaphone size={16} /> {t('authority.alertes.createAlerte.actions.createAndPublish')}</>
               )}
@@ -378,6 +443,37 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
           </div>
         </div>
       </div>
+      {confirmZeroRecipientsOpen && (
+        <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3>Confirmer une publication a 0 destinataire</h3>
+            <p>{zeroRecipientsSummary}</p>
+            <p>
+              Cette alerte risque de ne toucher aucun citoyen. Corrigez idealement la localisation du dossier ou augmentez le rayon.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={() => setConfirmZeroRecipientsOpen(false)}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={() => {
+                  setConfirmZeroRecipientsOpen(false);
+                  void handleSubmit(true, true);
+                }}
+              >
+                Publier malgre tout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 
   if (noLayout) return content;

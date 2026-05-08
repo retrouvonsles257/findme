@@ -118,26 +118,38 @@ export const CitizenMapPage: React.FC = () => {
         map.on('load', () => {
           // Demander la position de l'utilisateur avec haute précision
           if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const { longitude, latitude, accuracy } = position.coords;
+            const recenter = () =>
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  const { longitude, latitude, accuracy } = position.coords;
 
-                map.flyTo({
-                  center: [longitude, latitude],
-                  zoom: accuracy < 100 ? 15 : accuracy < 500 ? 13 : 12,
-                  duration: 2000,
-                });
-              },
-              (error) => {
+                  map.flyTo({
+                    center: [longitude, latitude],
+                    zoom: accuracy < 100 ? 15 : accuracy < 500 ? 13 : 12,
+                    duration: 2000,
+                  });
+                },
+                () => {
+                  // Rester sur la vue par défaut du Cameroun
+                },
+                {
+                  enableHighAccuracy: true,
+                  timeout: 15000,
+                  maximumAge: 0,
+                }
+              );
 
-                // Rester sur la vue par défaut du Cameroun
-              },
-              { 
-                enableHighAccuracy: true, 
-                timeout: 15000,
-                maximumAge: 0 // Ne pas utiliser de cache pour avoir la position la plus récente
-              }
-            );
+            // Ne pas reprompter: centrage auto uniquement si permission déjà accordée.
+            if (navigator.permissions?.query) {
+              void navigator.permissions
+                .query({ name: 'geolocation' as PermissionName })
+                .then((result) => {
+                  if (result.state === 'granted') {
+                    recenter();
+                  }
+                })
+                .catch(() => {});
+            }
           }
         });
 

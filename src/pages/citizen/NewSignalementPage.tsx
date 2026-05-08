@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
@@ -16,11 +16,14 @@ import { useGeolocation } from '../../features/geolocalisation/hooks';
 import { uploadMultipleFiles } from '../../services/cloudinary';
 import { geocodingService } from '../../services/maptiler';
 import { supabase } from '../../config';
+import { mapConfig } from '../../config/map.config';
 import { CitizenLayout } from './CitizenLayout';
 import { MapTilerView } from '../../components/maps/MapTilerView/MapTilerView';
+import { MapSearch } from '../../components/maps';
+import type { MapSearchLocation } from '../../components/maps';
 import { 
   Upload, Check, MapPin, Camera, X, Loader2, AlertCircle, 
-  Navigation, FileText, Search 
+  Navigation, FileText
 } from 'lucide-react';
 import styles from './NewSignalementPage.module.css';
 import type { Signalement, SignalementCreatePayload } from '../../features/signalements/types';
@@ -79,10 +82,11 @@ export const CitizenNewSignalementPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [step, setStep] = useState<'form' | 'uploading' | 'success'>('form');
   const [localError, setLocalError] = useState<string | null>(null);
-  const [searchPlace, setSearchPlace] = useState('');
-  const [searchPlaceLoading, setSearchPlaceLoading] = useState(false);
+  const [geoResults, setGeoResults] = useState<MapSearchLocation[]>([]);
+  const [isGeoSearching, setIsGeoSearching] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([3.848, 11.5021]);
   const [lastCreatedSignalement, setLastCreatedSignalement] = useState<Signalement | null>(null);
+  const geoTimerRef = useRef<number | null>(null);
 
   // Gérer les changements de formulaire
   const handleInputChange = (
@@ -106,38 +110,70 @@ export const CitizenNewSignalementPage: React.FC = () => {
     }
   }, [getCurrentLocation]);
 
-  // Recherche d'un lieu sur la carte (géocodage)
-  const handleSearchPlace = useCallback(async () => {
-    const query = searchPlace.trim();
-    if (!query) return;
-    setSearchPlaceLoading(true);
-    setLocalError(null);
-    try {
-      const results = await geocodingService.forwardGeocode(query, { limit: 1 });
-      if (results.length > 0) {
-        const r = results[0];
-        const coords = r.geometry?.coordinates ?? r.center;
-        if (coords) {
-          const lng = coords[0];
-          const lat = coords[1];
-          setFormData((prev) => ({
-            ...prev,
-            latitude: lat,
-            longitude: lng,
-            lieu_observation: r.name || query,
-          }));
-          setMapCenter([lat, lng]);
-        }
-      } else {
-        setLocalError(t('citizen.placeNotFound') || 'Lieu non trouvé.');
+  const geocodeMapTiler = async (query: string): Promise<MapSearchLocation[]> => {
+    const key = mapConfig.maptiler.apiKey || '';
+    if (!key || !query.trim()) return [];
+    const endpoint = `https://api.maptiler.com/geocoding/${encodeURIComponent(query.trim())}.json?key=${key}&language=fr&limit=5`;
+    const resp = await fetch(endpoint);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const features = Array.isArray(data?.features) ? data.features : [];
+    return features
+      .map((f: any) => {
+        const [lng, lat] = Array.isArray(f?.center) ? f.center : [null, null];
+        if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+        return {
+          id: String(f.id || `${lat}-${lng}`),
+          name: String(f.place_name || f.text || query),
+          lat,
+          lng,
+          type: 'sighting' as const,
+          region: String(f?.context?.[0]?.text || f?.place_name || ''),
+        } as MapSearchLocation;
+      })
+      .filter(Boolean) as MapSearchLocation[];
+  };
+
+  const handleGeoSearch = useCallback((query: string) => {
+    if (!query || query.trim().length < 2) {
+      setGeoResults([]);
+      setIsGeoSearching(false);
+      if (geoTimerRef.current) {
+        window.clearTimeout(geoTimerRef.current);
+        geoTimerRef.current = null;
       }
-    } catch (err) {
-      console.error('Geocode error:', err);
-      setLocalError(t('citizen.searchError') || 'Erreur de recherche.');
-    } finally {
-      setSearchPlaceLoading(false);
+      return;
     }
-  }, [searchPlace, t]);
+    const q = query.trim();
+    setIsGeoSearching(true);
+    if (geoTimerRef.current) {
+      window.clearTimeout(geoTimerRef.current);
+      geoTimerRef.current = null;
+    }
+    geoTimerRef.current = window.setTimeout(async () => {
+      try {
+        const results = await geocodeMapTiler(q);
+        setGeoResults(results);
+      } catch {
+        setGeoResults([]);
+      } finally {
+        setIsGeoSearching(false);
+        geoTimerRef.current = null;
+      }
+    }, 250);
+  }, []);
+
+  const handleGeoSelect = (loc: MapSearchLocation) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: loc.lat,
+      longitude: loc.lng,
+      lieu_observation: loc.name,
+      region_observation: prev.region_observation || (loc.region || ''),
+    }));
+    setMapCenter([loc.lat, loc.lng]);
+    setLocalError(null);
+  };
 
   // Clic sur la carte : définir la position
   const handleMapClick = useCallback(async (lat: number, lng: number) => {
@@ -151,6 +187,14 @@ export const CitizenNewSignalementPage: React.FC = () => {
     } catch {
       // ignore reverse geocode failure
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (geoTimerRef.current) {
+        window.clearTimeout(geoTimerRef.current);
+      }
+    };
   }, []);
 
   // Centre carte pour affichage (position choisie ou défaut)
@@ -462,27 +506,13 @@ export const CitizenNewSignalementPage: React.FC = () => {
                 {t('citizen.locationMapHint') || 'Recherchez un lieu, utilisez votre position ou cliquez sur la carte.'}
               </p>
               <div className={styles['new-signalement__location-row']}>
-                <input
-                  type="text"
-                  value={searchPlace}
-                  onChange={(e) => setSearchPlace(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchPlace())}
+                <MapSearch
                   placeholder={t('citizen.searchOnMap') || 'Rechercher un lieu...'}
-                  className={styles['new-signalement__input']}
+                  onSearch={handleGeoSearch}
+                  onLocationSelect={handleGeoSelect}
+                  results={geoResults}
+                  isLoading={isGeoSearching}
                 />
-                <button
-                  type="button"
-                  className={styles['new-signalement__geo-button']}
-                  onClick={handleSearchPlace}
-                  disabled={searchPlaceLoading}
-                  title={t('citizen.searchPlace') || 'Rechercher'}
-                >
-                  {searchPlaceLoading ? (
-                    <Loader2 size={18} className={styles['new-signalement__loading-spin']} />
-                  ) : (
-                    <Search size={18} />
-                  )}
-                </button>
                 <button
                   type="button"
                   className={styles['new-signalement__geo-button']}

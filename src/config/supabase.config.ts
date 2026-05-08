@@ -204,18 +204,20 @@ export const getCurrentSession = async (): Promise<Session | null> => {
 };
 
 /**
- * Récupère l'utilisateur courant
+ * Récupère l'utilisateur courant (session locale).
+ * Ne pas utiliser getUser() ici sans session : avec @supabase/supabase-js récent,
+ * cela lève AuthSessionMissingError avant restauration du JWT depuis le stockage.
  */
 export const getCurrentUser = async () => {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error) {
-      console.error('[Get User Error]', error);
+      console.error('[Get Session Error]', error);
       return null;
     }
 
-    return user;
+    return session?.user ?? null;
   } catch (error) {
     console.error('[Get User Exception]', error);
     return null;

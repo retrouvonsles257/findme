@@ -5,7 +5,7 @@
  * =====================================================
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail';
 import { useSignalementsForDossier } from '../../features/signalements/hooks/useSignalementsForDossier';
@@ -100,11 +100,13 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   // Fonction pour traduire le type de disparition
   const getDisappearanceTypeLabel = (type: string) => {
     if (!type) return t('authority.dossierDetail.fields.notProvided');
-    // Les types de disparition peuvent être : 'inconnue', 'volontaire', 'involontaire', etc.
     const typeKey = `authority.dossiers.disappearanceType.${type}`;
     const translated = t(typeKey);
-    // Si la traduction retourne la clé elle-même, retourner le type original
-    return translated !== typeKey ? translated : type;
+    if (translated !== typeKey) return translated;
+    return type
+      .split('_')
+      .join(' ')
+      .replace(/\b\w/g, (c: string) => c.toUpperCase());
   };
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
   const { historique, fetchHistorique } = useHistoriqueDossier();
@@ -227,36 +229,49 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   }, [id, activeTab]);
 
   // Charger la filiation de la personne du dossier + options de personnes
-  useEffect(() => {
-    const loadFiliation = async () => {
-      const personneId = dossier?.id_personne as string | undefined;
-      if (!personneId) return;
-
-      setLoadingFiliations(true);
-      setFiliationError('');
-      try {
-        const { data, error: filError } = await (supabase as any)
-          .from('lien_filiation')
-          .select(
-            `
-            *,
-            personne_source:personne!lien_filiation_id_personne_source_fkey(id, nom, prenom),
-            personne_cible:personne!lien_filiation_id_personne_cible_fkey(id, nom, prenom)
-          `
-          )
-          .or(`id_personne_source.eq.${personneId},id_personne_cible.eq.${personneId}`)
-          .order('created_at', { ascending: false });
-
-        if (filError) throw filError;
-        setFiliations(data || []);
-      } catch (err: any) {
-        setFiliations([]);
-        setFiliationError(err?.message || t('authority.filiation.messages.loadError'));
-      } finally {
-        setLoadingFiliations(false);
+  const loadFiliation = useCallback(async () => {
+    const personneId = dossier?.id_personne as string | undefined;
+    if (!personneId) return;
+    setLoadingFiliations(true);
+    setFiliationError('');
+    try {
+      const { data, error: filError } = await (supabase as any)
+        .from('lien_filiation')
+        .select('*')
+        .or(`id_personne_source.eq.${personneId},id_personne_cible.eq.${personneId}`)
+        .order('created_at', { ascending: false });
+      if (filError) throw filError;
+      const rows = data || [];
+      const ids = Array.from(
+        new Set(
+          rows
+            .flatMap((row: any) => [row.id_personne_source, row.id_personne_cible])
+            .filter(Boolean),
+        ),
+      );
+      const personnesById = new Map<string, any>();
+      if (ids.length > 0) {
+        const { data: personnesData } = await (supabase as any)
+          .from('personne')
+          .select('id, nom, prenom')
+          .in('id', ids);
+        (personnesData || []).forEach((p: any) => personnesById.set(String(p.id), p));
       }
-    };
+      const enriched = rows.map((row: any) => ({
+        ...row,
+        personne_source: row.id_personne_source ? personnesById.get(String(row.id_personne_source)) || null : null,
+        personne_cible: row.id_personne_cible ? personnesById.get(String(row.id_personne_cible)) || null : null,
+      }));
+      setFiliations(enriched);
+    } catch (err: any) {
+      setFiliations([]);
+      setFiliationError(err?.message || t('authority.filiation.messages.loadError'));
+    } finally {
+      setLoadingFiliations(false);
+    }
+  }, [dossier?.id_personne, t]);
 
+  useEffect(() => {
     const loadPersonnesOptions = async () => {
       setLoadingPersonnesOptions(true);
       try {
@@ -274,10 +289,10 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
     };
 
     if (activeTab === 'filiation') {
-      loadFiliation();
+      void loadFiliation();
       loadPersonnesOptions();
     }
-  }, [activeTab, dossier?.id_personne, t]);
+  }, [activeTab, loadFiliation]);
 
   // Gérer la sélection d'image pour l'analyse IA
   const handleIaFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -394,20 +409,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   };
 
   const reloadFiliations = async () => {
-    const personneId = dossier?.id_personne as string | undefined;
-    if (!personneId) return;
-    const { data } = await (supabase as any)
-      .from('lien_filiation')
-      .select(
-        `
-        *,
-        personne_source:personne!lien_filiation_id_personne_source_fkey(id, nom, prenom),
-        personne_cible:personne!lien_filiation_id_personne_cible_fkey(id, nom, prenom)
-      `
-      )
-      .or(`id_personne_source.eq.${personneId},id_personne_cible.eq.${personneId}`)
-      .order('created_at', { ascending: false });
-    setFiliations(data || []);
+    await loadFiliation();
   };
 
   const handleCreateFiliation = async () => {
@@ -520,6 +522,18 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
     }
   }, [id, fetchDossier, fetchSignalements, fetchLocalisations, fetchHistorique]);
 
+  const alertsCount = Array.isArray((dossier as any)?.alertes)
+    ? (dossier as any).alertes.length
+    : dossier?.nombre_alertes_diffusees || 0;
+  const computedStats = {
+    reports: signalements.length || dossier?.nombre_signalements || 0,
+    alerts: alertsCount,
+    views: dossier?.nombre_vues_fiche || 0,
+    locations: localisations.length,
+    docs: documents.length,
+    ia: iaResults.length,
+  };
+
   const content = (
     <div className={styles.container}>
         {isLoading ? (
@@ -612,6 +626,26 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                         <p>{dossier.lieu_disparition || t('authority.dossierDetail.fields.notProvided')}</p>
                       </div>
                       <div className={styles.infoItem}>
+                        <label><MapPin size={14} /> Zone:</label>
+                        <p>
+                          {[dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
+                            .filter(Boolean)
+                            .join(', ') || t('authority.dossierDetail.fields.notProvided')}
+                        </p>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <label><Clock size={14} /> Dernière observation:</label>
+                        <p>{safeFormatDate(dossier.date_derniere_observation)}</p>
+                      </div>
+                      <div className={styles.infoItem}>
+                        <label><MapPin size={14} /> Coordonnées:</label>
+                        <p>
+                          {dossier.latitude_disparition != null && dossier.longitude_disparition != null
+                            ? `${Number(dossier.latitude_disparition).toFixed(5)}, ${Number(dossier.longitude_disparition).toFixed(5)}`
+                            : t('authority.dossierDetail.fields.notProvided')}
+                        </p>
+                      </div>
+                      <div className={styles.infoItem}>
                         <label><FileText size={14} /> {t('authority.dossierDetail.fields.circumstances')}:</label>
                         <p>{dossier.circonstances || t('authority.dossierDetail.fields.notProvided')}</p>
                       </div>
@@ -675,19 +709,37 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                         <div className={styles.stat}>
                           <span className={styles.statLabel}>{t('authority.dossierDetail.stats.reports')}</span>
                           <span className={styles.statValue}>
-                            {dossier.nombre_signalements || 0}
+                            {computedStats.reports}
                           </span>
                         </div>
                         <div className={styles.stat}>
                           <span className={styles.statLabel}>{t('authority.dossierDetail.stats.alerts')}</span>
                           <span className={styles.statValue}>
-                            {dossier.nombre_alertes_diffusees || 0}
+                            {computedStats.alerts}
                           </span>
                         </div>
                         <div className={styles.stat}>
                           <span className={styles.statLabel}>{t('authority.dossierDetail.stats.views')}</span>
                           <span className={styles.statValue}>
-                            {dossier.nombre_vues_fiche || 0}
+                            {computedStats.views}
+                          </span>
+                        </div>
+                        <div className={styles.stat}>
+                          <span className={styles.statLabel}>Localisations</span>
+                          <span className={styles.statValue}>
+                            {computedStats.locations}
+                          </span>
+                        </div>
+                        <div className={styles.stat}>
+                          <span className={styles.statLabel}>Documents</span>
+                          <span className={styles.statValue}>
+                            {computedStats.docs}
+                          </span>
+                        </div>
+                        <div className={styles.stat}>
+                          <span className={styles.statLabel}>Analyses IA</span>
+                          <span className={styles.statValue}>
+                            {computedStats.ia}
                           </span>
                         </div>
                       </div>
@@ -1069,8 +1121,34 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
               {activeTab === 'localisations' && (
                 <div className={styles.tabContent}>
                   <h3><MapPin size={20} /> {t('authority.dossierDetail.tabs.locations')}</h3>
-                  {localisations.length > 0 ? (
+                  {localisations.length > 0 || dossier.latitude_disparition != null || dossier.longitude_disparition != null ? (
                     <div className={styles.itemsList}>
+                      {localisations.length === 0 && (
+                        <div className={styles.itemCard}>
+                          <div className={styles.itemHeader}>
+                            <h4>Point de disparition (dossier)</h4>
+                            <span className={styles.badge} style={{ backgroundColor: '#0ea5e9' }}>
+                              {safeFormatDate(dossier.date_disparition)}
+                            </span>
+                          </div>
+                          <p>
+                            <strong>{t('authority.dossierDetail.fields.location')}:</strong>{' '}
+                            {dossier.lieu_disparition || t('authority.dossierDetail.fields.notProvided')}
+                          </p>
+                          <p>
+                            <strong>Zone:</strong>{' '}
+                            {[dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
+                              .filter(Boolean)
+                              .join(', ') || t('authority.dossierDetail.fields.notProvided')}
+                          </p>
+                          {dossier.latitude_disparition != null && dossier.longitude_disparition != null && (
+                            <p>
+                              <strong>{t('authority.location.coordinates')}:</strong>{' '}
+                              {Number(dossier.latitude_disparition).toFixed(4)}, {Number(dossier.longitude_disparition).toFixed(4)}
+                            </p>
+                          )}
+                        </div>
+                      )}
                       {localisations.map((loc: any) => (
                         <div key={loc.id} className={styles.itemCard}>
                           <div className={styles.itemHeader}>

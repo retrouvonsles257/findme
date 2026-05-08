@@ -35,7 +35,7 @@ interface AuthProviderProps {
  */
 async function fetchUserRoleViaRPC(userId: string): Promise<string | null> {
   try {
-    const { data, error } = await (supabase as any).rpc('get_user_main_role', { user_id: userId });
+    const { data, error } = await (supabase as any).rpc('get_user_main_role', { p_user_id: userId });
     if (error) {
 
       return null;

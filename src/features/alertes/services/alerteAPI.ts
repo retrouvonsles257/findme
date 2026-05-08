@@ -292,6 +292,59 @@ export const updateAlerteStatut = async (
 
   const result = await updateAlerte(id, updateData);
 
+  // Notification FCM autorités: informer l'équipe des changements de cycle de vie d'alerte.
+  try {
+    const { data: alertCtx } = await (supabase as any)
+      .from('alerte')
+      .select('id, id_dossier, titre, numero_alerte, dossier_disparition:id_dossier(id_organisation_responsable)')
+      .eq('id', id)
+      .maybeSingle();
+    const orgId = (alertCtx as any)?.dossier_disparition?.id_organisation_responsable as string | undefined;
+    if (orgId) {
+      const { data: authorities } = await (supabase as any)
+        .from('utilisateur')
+        .select('id')
+        .eq('type_compte', 'autorite')
+        .eq('statut_compte', 'actif')
+        .eq('accepte_notifications', true)
+        .eq('id_organisation', orgId);
+      const nowIso = new Date().toISOString();
+      const lifecycleTitle =
+        statut === 'en_cours'
+          ? 'Alerte diffusée'
+          : statut === 'annulee'
+            ? 'Alerte annulée'
+            : statut === 'terminee'
+              ? 'Alerte clôturée'
+              : 'Alerte mise à jour';
+      const lifecycleMessage = `L’alerte ${(alertCtx as any)?.numero_alerte || id} « ${(alertCtx as any)?.titre || ''} » est passée au statut "${statut}".`;
+      const rows = (authorities || [])
+        .filter((a: any) => a.id && a.id !== user.id)
+        .map((a: any) => ({
+          id_utilisateur: a.id,
+          type_notification: 'autre',
+          titre: lifecycleTitle,
+          message: lifecycleMessage,
+          canal: 'push',
+          priorite: statut === 'en_cours' ? 'haute' : 'moyenne',
+          lue: false,
+          date_creation: nowIso,
+          id_alerte: id,
+          id_dossier: (alertCtx as any)?.id_dossier || null,
+          donnees_supplementaires: {
+            event: 'alerte_lifecycle',
+            statut,
+            commentaire: commentaire || null,
+          },
+        }));
+      if (rows.length > 0) {
+        await (supabase as any).from('notification').insert(rows);
+      }
+    }
+  } catch (e) {
+    console.error('[alerteAPI] authority lifecycle notification failed:', e);
+  }
+
   // Log action in journal_activite
   const actionLabels: Record<string, string> = {
     'en_cours': 'Publication/Diffusion d\'alerte',
@@ -336,7 +389,14 @@ export const cancelAlerte = async (
 // DIFFUSION OPERATIONS
 // ============================================
 
-function logDiffuse(_phase: string, _data: Record<string, unknown>): void {}
+function logDiffuse(phase: string, data: Record<string, unknown>): void {
+  const payload = {
+    ts: new Date().toISOString(),
+    phase,
+    ...data,
+  };
+  console.info('[alerte-diffusion]', payload);
+}
 
 /**
  * Tous les comptes grand_public actifs avec notifications acceptées (pagination PostgREST, évite la limite ~1000 lignes).
@@ -416,6 +476,21 @@ export type DiffusionDestinatairesResult = {
   totalNotifiables: number;
 };
 
+export type DiffusionEstimateInput = {
+  id_dossier?: string;
+  latitude_centre?: number | null;
+  longitude_centre?: number | null;
+  rayon_km?: number;
+};
+
+export type DiffusionEstimateResult = DiffusionDestinatairesResult & {
+  rayon_km: number;
+  latitude_centre: number | null;
+  longitude_centre: number | null;
+  configStrictGeo: boolean;
+  configAllowSansCentre: boolean;
+};
+
 /**
  * Même logique de filtrage que {@link diffuserAlerte} (strict geo + option sans centre).
  */
@@ -493,6 +568,49 @@ export function computeDestinatairesAlerteDiffusion(
     excludedHorsRayon,
     geoFallbackApplied,
     totalNotifiables,
+  };
+}
+
+/**
+ * Estime les destinataires avant création/publication d'une alerte.
+ * Utilise en priorité un centre explicite, sinon tente de le déduire du dossier.
+ */
+export async function estimateDiffusionForInput(
+  input: DiffusionEstimateInput,
+): Promise<DiffusionEstimateResult> {
+  let lat = input.latitude_centre ?? null;
+  let lng = input.longitude_centre ?? null;
+
+  const latMissing =
+    lat == null || lng == null || Number.isNaN(Number(lat)) || Number.isNaN(Number(lng));
+  if (latMissing && input.id_dossier) {
+    const { data: dossier } = await supabase
+      .from('dossier_disparition')
+      .select('latitude_disparition, longitude_disparition')
+      .eq('id', input.id_dossier)
+      .maybeSingle();
+    const d = dossier as { latitude_disparition?: number | null; longitude_disparition?: number | null } | null;
+    if (d?.latitude_disparition != null && d?.longitude_disparition != null) {
+      const dl = Number(d.latitude_disparition);
+      const dg = Number(d.longitude_disparition);
+      if (!Number.isNaN(dl) && !Number.isNaN(dg)) {
+        lat = dl;
+        lng = dg;
+      }
+    }
+  }
+
+  const alertRayonKm = input.rayon_km ?? 50;
+  const rawUsers = await fetchAllCitoyensNotifiables();
+  const computed = computeDestinatairesAlerteDiffusion(rawUsers, lat, lng, alertRayonKm);
+
+  return {
+    ...computed,
+    rayon_km: alertRayonKm,
+    latitude_centre: lat,
+    longitude_centre: lng,
+    configStrictGeo: envConfig.ALERTE_DIFFUSION_STRICT_GEO_ONLY,
+    configAllowSansCentre: envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO,
   };
 }
 

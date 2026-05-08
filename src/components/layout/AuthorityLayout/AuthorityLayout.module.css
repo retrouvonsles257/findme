@@ -23,7 +23,7 @@
   --authority-sidebar-collapsed: 0px;
   --authority-header-height: 56px;
   --authority-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --authority-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --authority-font: var(--font-family-base, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
   /* Skeleton (AdminListSkeleton / AdminDetailSkeleton / AdminTableSkeleton / AdminCardsGridSkeleton) */
   --skeleton-base: #e2e8f0;
   --skeleton-shine: #f1f5f9;

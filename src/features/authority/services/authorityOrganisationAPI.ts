@@ -1099,12 +1099,14 @@ export async function traiterDemandeVerificationIdentite(
 
   if (updateError) throw updateError;
 
+  const { data: demande } = await db('demande_verification_identite')
+    .select('id_utilisateur')
+    .eq('id', demandeId)
+    .single();
+  if (!demande?.id_utilisateur) return;
+
   if (action === 'approuve') {
-    const { data: demande } = await db('demande_verification_identite')
-      .select('id_utilisateur')
-      .eq('id', demandeId)
-      .single();
-    if (demande?.id_utilisateur) {
+    if (demande.id_utilisateur) {
       await db('utilisateur')
         .update({ statut_compte: 'actif', identite_verifiee: true, updated_at: traiteLe })
         .eq('id', demande.id_utilisateur);
@@ -1114,12 +1116,32 @@ export async function traiterDemandeVerificationIdentite(
         type_notification: 'autre',
         titre: 'Compte vérifié',
         message: 'Votre demande de vérification d\'identité a été acceptée. Vous avez maintenant le statut Citoyen vérifié.',
-        canal: 'in_app',
+        canal: 'push',
         lue: false,
         date_creation: traiteLe,
         id_utilisateur: demande.id_utilisateur,
       });
     }
+    return;
+  }
+
+  if (action === 'refuse' || action === 'complement_demande') {
+    await db('notification').insert({
+      type_notification: 'autre',
+      titre: action === 'refuse' ? 'Vérification refusée' : 'Complément demandé',
+      message:
+        action === 'refuse'
+          ? 'Votre demande de vérification d’identité a été refusée. Consultez le motif et soumettez une nouvelle demande si nécessaire.'
+          : 'Un complément est nécessaire pour finaliser votre vérification d’identité. Consultez les détails puis renvoyez les pièces demandées.',
+      canal: 'push',
+      lue: false,
+      date_creation: traiteLe,
+      id_utilisateur: demande.id_utilisateur,
+      donnees_supplementaires: {
+        demande_verification_id: demandeId,
+        statut: action,
+      },
+    });
   }
 }
 

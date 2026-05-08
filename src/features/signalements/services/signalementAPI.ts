@@ -20,6 +20,47 @@ import type {
 // Helper to bypass Supabase typing issues
 const db = () => (supabase as any);
 
+async function notifyAuthoritiesForNewSignalement(signalementId: string, dossierId: string): Promise<void> {
+  try {
+    const { data: dossier } = await db()
+      .from('dossier_disparition')
+      .select('id_organisation_responsable, numero_dossier')
+      .eq('id', dossierId)
+      .maybeSingle();
+
+    const organisationId = (dossier as any)?.id_organisation_responsable as string | undefined;
+    if (!organisationId) return;
+
+    const { data: authorities } = await db()
+      .from('utilisateur')
+      .select('id')
+      .eq('type_compte', 'autorite')
+      .eq('statut_compte', 'actif')
+      .eq('accepte_notifications', true)
+      .eq('id_organisation', organisationId);
+
+    const nowIso = new Date().toISOString();
+    const rows = (authorities || []).map((u: any) => ({
+      id_utilisateur: u.id,
+      type_notification: 'autre',
+      titre: 'Nouveau signalement à traiter',
+      message: `Un nouveau signalement a été soumis pour le dossier ${(dossier as any)?.numero_dossier || dossierId}.`,
+      canal: 'push',
+      priorite: 'haute',
+      lue: false,
+      id_dossier: dossierId,
+      date_creation: nowIso,
+      donnees_supplementaires: { signalement_id: signalementId, dossier_id: dossierId, event: 'signalement_created' },
+    }));
+
+    if (rows.length > 0) {
+      await db().from('notification').insert(rows);
+    }
+  } catch (error) {
+    console.error('[signalementAPI] notifyAuthoritiesForNewSignalement error:', error);
+  }
+}
+
 /**
  * Get all signalements with pagination.
  * Si filter.organisation_id est fourni, ne retourne que les signalements dont le dossier appartient à cette organisation.
@@ -102,12 +143,15 @@ export async function createSignalement(
     titre: 'Signalement reçu',
     message:
       'Votre signalement est bien enregistré et transmis aux autorités compétentes. Vous serez notifié en cas de mise à jour. L’affichage public du détail peut être différé après vérification.',
-    canal: 'in_app',
+    canal: 'push',
     lue: false,
     date_creation: dateCreation,
     id_utilisateur: userId,
     donnees_supplementaires: data?.id ? { signalement_id: data.id } : undefined,
   });
+  if (data?.id && payload.id_dossier) {
+    await notifyAuthoritiesForNewSignalement(data.id, payload.id_dossier);
+  }
 
   return data;
 }
@@ -276,6 +320,13 @@ export async function addSignalementVerification(
   verificateurId: string,
   payload: SignalementValidationPayload
 ): Promise<SignalementVerification> {
+  const nowIso = new Date().toISOString();
+  const { data: signalementOwner } = await db()
+    .from('signalement')
+    .select('id_utilisateur, id_dossier')
+    .eq('id', signalementId)
+    .maybeSingle();
+
   // Determine new status based on decision
   const newStatut =
     payload.decision === 'approuve'
@@ -293,7 +344,7 @@ export async function addSignalementVerification(
       statut_validation: newStatut,
       visible_detail_public: visibleDetailPublic,
       verifie_par: verificateurId,
-      date_verification: new Date().toISOString(),
+      date_verification: nowIso,
       commentaire_verification: [
         `Décision: ${payload.decision}`,
         payload.raison ? `Raison: ${payload.raison}` : null,
@@ -302,7 +353,7 @@ export async function addSignalementVerification(
       ]
         .filter(Boolean)
         .join(' | '),
-      updated_at: new Date().toISOString(),
+      updated_at: nowIso,
     })
     .eq('id', signalementId);
 
@@ -329,6 +380,34 @@ export async function addSignalementVerification(
   if (logError) {
     console.error('Error logging action:', logError);
     // Continue even if logging fails
+  }
+
+  // Notification citoyen: résultat de validation du signalement (push + centre in-app)
+  const ownerId = (signalementOwner as any)?.id_utilisateur as string | undefined;
+  if (ownerId) {
+    const idDossier = (signalementOwner as any)?.id_dossier as string | undefined;
+    const isApproved = payload.decision === 'approuve';
+    const titre = isApproved ? 'Signalement validé' : payload.decision === 'rejete' ? 'Signalement rejeté' : 'Signalement en vérification';
+    const message = isApproved
+      ? 'Votre signalement a été validé par une autorité. Merci pour votre contribution.'
+      : payload.decision === 'rejete'
+        ? 'Votre signalement a été rejeté après vérification. Consultez le détail pour le motif.'
+        : 'Votre signalement nécessite des vérifications complémentaires.';
+    await (supabase.from('notification') as any).insert({
+      type_notification: isApproved ? 'signalement_valide' : 'autre',
+      titre,
+      message,
+      canal: 'push',
+      lue: false,
+      date_creation: nowIso,
+      id_utilisateur: ownerId,
+      id_dossier: idDossier,
+      donnees_supplementaires: {
+        signalement_id: signalementId,
+        decision: payload.decision,
+        score_confiance: payload.score_confiance,
+      },
+    });
   }
 
   // Return a verification object

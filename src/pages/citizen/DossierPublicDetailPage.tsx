@@ -217,6 +217,11 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
   const displayName = p.nom_complet || `${p.prenom || ''} ${p.nom || ''}`.trim() || d.numero_dossier || '—';
   const mainPhoto = p.photo_principale || null;
   const views = d.nombre_vues_fiche ?? d.nombre_vues ?? 0;
+  const publicStats = {
+    signalements: d.nombre_signalements ?? 0,
+    alertes: d.nombre_alertes_diffusees ?? 0,
+    vues: views,
+  };
 
   const getAgeDisplay = () => {
     if (p.date_naissance) {
@@ -441,6 +446,33 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
                         ? `${d.ville_disparition}, ${d.region_disparition}`
                         : d.ville_disparition || d.region_disparition || ''}
                     </p>
+                    <p className={styles['dossierDetail__location-city']}>
+                      {d.pays_disparition || ''}
+                    </p>
+                    {d.latitude_disparition != null && d.longitude_disparition != null && (
+                      <p className={styles['dossierDetail__location-city']}>
+                        Coordonnées: {Number(d.latitude_disparition).toFixed(4)}, {Number(d.longitude_disparition).toFixed(4)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistiques */}
+              <div className={styles['dossierDetail__section']}>
+                <h3>Statistiques</h3>
+                <div className={styles['dossierDetail__field-grid']}>
+                  <div className={styles['dossierDetail__field']}>
+                    <label>Signalements</label>
+                    <span>{publicStats.signalements}</span>
+                  </div>
+                  <div className={styles['dossierDetail__field']}>
+                    <label>Alertes</label>
+                    <span>{publicStats.alertes}</span>
+                  </div>
+                  <div className={styles['dossierDetail__field']}>
+                    <label>{t('citizen.views')}</label>
+                    <span>{publicStats.vues}</span>
                   </div>
                 </div>
               </div>

@@ -266,7 +266,14 @@
       "volontaire": "Voluntary",
       "involontaire": "Involuntary",
       "suspicion_enlevement": "Suspected abduction",
-      "fugue": "Runaway"
+      "fugue": "Runaway",
+      "enlevement_presume": "Presumed abduction",
+      "accident": "Accident",
+      "conflit_arme": "Armed conflict",
+      "migration": "Migration",
+      "catastrophe_naturelle": "Natural disaster",
+      "disparition_volontaire": "Voluntary disappearance",
+      "autre": "Other"
     },
     "stats": {
       "total": "Total",

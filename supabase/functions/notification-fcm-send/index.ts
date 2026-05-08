@@ -149,7 +149,13 @@ type Supa = ReturnType<typeof createClient>;
 /**
  * Chemin SPA citoyen pour le clic sur la notification (aligné avec CitizenRoutes).
  */
-async function resolveCitizenClickPath(supabase: Supa, record: Record<string, unknown>): Promise<string> {
+async function resolveClickPath(
+  supabase: Supa,
+  record: Record<string, unknown>,
+  userType: string | null | undefined,
+): Promise<string> {
+  const isAuthority = userType === 'autorite';
+  const base = isAuthority ? '/authority' : '/citizen';
   const urlAction = strVal(record.url_action);
   if (urlAction?.startsWith('/')) {
     return urlAction;
@@ -157,7 +163,7 @@ async function resolveCitizenClickPath(supabase: Supa, record: Record<string, un
 
   const idDossier = strVal(record.id_dossier);
   if (idDossier) {
-    return `/citizen/dossier/${idDossier}`;
+    return isAuthority ? `/authority/dossiers/${idDossier}` : `/citizen/dossier/${idDossier}`;
   }
 
   const idAlerte = strVal(record.id_alerte);
@@ -165,25 +171,27 @@ async function resolveCitizenClickPath(supabase: Supa, record: Record<string, un
     const { data: al } = await supabase.from('alerte').select('id_dossier').eq('id', idAlerte).maybeSingle();
     const dossierFromAlert = al && typeof al === 'object' ? strVal((al as { id_dossier?: unknown }).id_dossier) : null;
     if (dossierFromAlert) {
-      return `/citizen/dossier/${dossierFromAlert}`;
+      return isAuthority ? `/authority/dossiers/${dossierFromAlert}` : `/citizen/dossier/${dossierFromAlert}`;
     }
-    return `/citizen/alerts?alerte=${encodeURIComponent(idAlerte)}`;
+    return isAuthority
+      ? `/authority/alertes?alerte=${encodeURIComponent(idAlerte)}`
+      : `/citizen/alerts?alerte=${encodeURIComponent(idAlerte)}`;
   }
 
   const extra = readDonneesSupp(record);
   if (extra) {
     const sid = strVal(extra.signalement_id);
-    if (sid) return `/citizen/signalement/${sid}`;
+    if (sid) return isAuthority ? `/authority/signalements/${sid}` : `/citizen/signalement/${sid}`;
     const dIa = strVal(extra.dossier_id);
-    if (dIa) return `/citizen/dossier/${dIa}`;
+    if (dIa) return isAuthority ? `/authority/dossiers/${dIa}` : `/citizen/dossier/${dIa}`;
   }
 
   const typeN = strVal(record.type_notification);
   if (typeN === 'nouvelle_alerte') {
-    return '/citizen/alerts';
+    return isAuthority ? '/authority/alertes' : '/citizen/alerts';
   }
 
-  return '/citizen/notifications';
+  return `${base}/notifications`;
 }
 
 serve(async (req) => {
@@ -337,7 +345,7 @@ serve(async (req) => {
     logLine('skip', {
       reqId,
       reason: 'no_fcm_tokens',
-      hint: 'citoyen doit ouvrir lapp citoyen et accepter les notifications pour enregistrer utilisateur_fcm_token',
+      hint: 'lutilisateur doit ouvrir son espace (citoyen/autorite), accepter les notifications et enregistrer un token FCM',
     });
     return json({ ok: true, skipped: true, reason: 'no fcm tokens', reqId });
   }
@@ -361,7 +369,7 @@ serve(async (req) => {
   }
 
   const baseUrl = (Deno.env.get('PUBLIC_APP_URL') || 'https://localhost:3000').replace(/\/$/, '');
-  const clickPath = await resolveCitizenClickPath(supabase, record);
+  const clickPath = await resolveClickPath(supabase, record, u.type_compte);
   logLine('click_path', { reqId, clickPath: clickPath.slice(0, 120) });
   const link = `${baseUrl}${clickPath}`;
   const title = String(record.titre || 'RetrouvonsLes');

@@ -42,10 +42,94 @@ function generateDossierNumber(): string {
   return `DOS-${year}${month}${day}-${random}`;
 }
 
+const ANON_VIEWER_STORAGE_KEY = 'retrouvonsles.viewer_id';
+
+function getAnonymousViewerId(): string {
+  if (typeof window === 'undefined') return 'server';
+  try {
+    const existing = window.localStorage.getItem(ANON_VIEWER_STORAGE_KEY);
+    if (existing?.trim()) return existing;
+    const next = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`).toString();
+    window.localStorage.setItem(ANON_VIEWER_STORAGE_KEY, next);
+    return next;
+  } catch {
+    return 'fallback';
+  }
+}
+
 // Type-safe Supabase wrapper
 const db = {
   from: (table: string) => (supabase.from(table) as any),
 };
+
+async function notifyDossierStatusChange(
+  dossierId: string,
+  previousStatus: string | null | undefined,
+  nextStatus: string,
+): Promise<void> {
+  try {
+    if (!nextStatus || previousStatus === nextStatus) return;
+
+    const { data: dossier } = await db
+      .from('dossier_disparition')
+      .select('numero_dossier, id_organisation_responsable, id_utilisateur_createur')
+      .eq('id', dossierId)
+      .maybeSingle();
+    if (!dossier) return;
+
+    const title = nextStatus === 'retrouve_vivant' || nextStatus === 'retrouve_decede'
+      ? 'Mise à jour majeure du dossier'
+      : 'Statut du dossier mis à jour';
+    const message = `Le dossier ${(dossier as any).numero_dossier || dossierId} est passé de "${previousStatus || 'inconnu'}" à "${nextStatus}".`;
+    const nowIso = new Date().toISOString();
+
+    const { data: authorities } = await db
+      .from('utilisateur')
+      .select('id')
+      .eq('type_compte', 'autorite')
+      .eq('statut_compte', 'actif')
+      .eq('accepte_notifications', true)
+      .eq('id_organisation', (dossier as any).id_organisation_responsable);
+
+    const { data: reporters } = await db
+      .from('signalement')
+      .select('id_utilisateur')
+      .eq('id_dossier', dossierId)
+      .not('id_utilisateur', 'is', null);
+
+    const recipients = new Set<string>();
+    if ((dossier as any).id_utilisateur_createur) recipients.add((dossier as any).id_utilisateur_createur);
+    (reporters || []).forEach((r: any) => r.id_utilisateur && recipients.add(r.id_utilisateur));
+    (authorities || []).forEach((a: any) => a.id && recipients.add(a.id));
+
+    const typeNotification = nextStatus === 'retrouve_vivant' || nextStatus === 'retrouve_decede'
+      ? 'personne_retrouvee'
+      : 'mise_a_jour_dossier';
+
+    const rows = Array.from(recipients).map((idUtilisateur) => ({
+      id_utilisateur: idUtilisateur,
+      type_notification: typeNotification,
+      titre: title,
+      message,
+      canal: 'push',
+      priorite: nextStatus === 'retrouve_vivant' || nextStatus === 'retrouve_decede' ? 'haute' : 'moyenne',
+      lue: false,
+      id_dossier: dossierId,
+      date_creation: nowIso,
+      donnees_supplementaires: {
+        event: 'dossier_status_changed',
+        previous_status: previousStatus,
+        next_status: nextStatus,
+        dossier_id: dossierId,
+      },
+    }));
+    if (rows.length > 0) {
+      await db.from('notification').insert(rows);
+    }
+  } catch (error) {
+    console.error('[dossierAPI] notifyDossierStatusChange error:', error);
+  }
+}
 
 // ============================================
 // CRUD OPERATIONS
@@ -216,6 +300,12 @@ export const updateDossier = async (
   id: string,
   input: DossierUpdateInput,
 ): Promise<DossierDisparition> => {
+  let previousStatus: string | null = null;
+  if (input.statut_dossier) {
+    const { data: previous } = await db.from('dossier_disparition').select('statut_dossier').eq('id', id).maybeSingle();
+    previousStatus = (previous as any)?.statut_dossier || null;
+  }
+
   const updateData = {
     ...input,
     derniere_activite: new Date().toISOString(),
@@ -227,6 +317,9 @@ export const updateDossier = async (
     .single();
 
   if (error) throw error;
+  if (input.statut_dossier) {
+    await notifyDossierStatusChange(id, previousStatus, input.statut_dossier);
+  }
   return (data || {}) as DossierDisparition;
 };
 
@@ -376,6 +469,59 @@ export const updateDossierStatistics = async (
 };
 
 /**
+ * Enregistre une vue unique de fiche dossier.
+ * - Utilisateur connecté: viewer_fingerprint = user:<id>
+ * - Visiteur anonyme: viewer_fingerprint = visitor:<device_id localStorage>
+ * Puis synchronise nombre_vues_fiche = nombre de viewers uniques.
+ */
+export const recordUniqueDossierView = async (dossierId: string): Promise<void> => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const viewerFingerprint = user?.id
+      ? `user:${user.id}`
+      : `visitor:${getAnonymousViewerId()}`;
+
+    const { data: existing } = await db
+      .from('dossier_vue')
+      .select('id, vues_count')
+      .eq('id_dossier', dossierId)
+      .eq('viewer_fingerprint', viewerFingerprint)
+      .maybeSingle();
+
+    if (existing?.id) {
+      await db
+        .from('dossier_vue')
+        .update({
+          last_seen_at: new Date().toISOString(),
+          vues_count: ((existing as any).vues_count || 0) + 1,
+        })
+        .eq('id', existing.id);
+    } else {
+      await db.from('dossier_vue').insert({
+        id_dossier: dossierId,
+        id_utilisateur: user?.id ?? null,
+        viewer_fingerprint: viewerFingerprint,
+        source: 'web',
+      });
+    }
+
+    const { count } = await db
+      .from('dossier_vue')
+      .select('id', { count: 'exact', head: true })
+      .eq('id_dossier', dossierId);
+
+    await db
+      .from('dossier_disparition')
+      .update({ nombre_vues_fiche: count || 0 })
+      .eq('id', dossierId);
+  } catch (error) {
+    console.error('[dossierAPI] recordUniqueDossierView error:', error);
+  }
+};
+
+/**
  * Mark dossier as resolved
  */
 export const markDossierAsResolved = async (
@@ -385,6 +531,8 @@ export const markDossierAsResolved = async (
   longitude?: number,
   etat?: string,
 ): Promise<DossierDisparition> => {
+  const { data: previous } = await db.from('dossier_disparition').select('statut_dossier').eq('id', dossierId).maybeSingle();
+  const previousStatus = (previous as any)?.statut_dossier || null;
   const updateData = {
     statut_dossier: StatutDossier.RETROUVE_VIVANT,
     date_resolution: new Date().toISOString(),
@@ -401,6 +549,7 @@ export const markDossierAsResolved = async (
     .single();
 
   if (error) throw error;
+  await notifyDossierStatusChange(dossierId, previousStatus, StatutDossier.RETROUVE_VIVANT);
   return (data || {}) as DossierDisparition;
 };
 

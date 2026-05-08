@@ -718,7 +718,7 @@ export interface Database {
         Returns: number;
       };
       get_user_main_role: {
-        Args: { user_id: UUID };
+        Args: { p_user_id: UUID };
         Returns: string;
       };
       get_user_all_roles: {
@@ -726,7 +726,7 @@ export interface Database {
         Returns: string[];
       };
       get_user_with_role: {
-        Args: { user_id: UUID };
+        Args: { p_user_id: UUID };
         Returns: Record<string, unknown>;
       };
     };

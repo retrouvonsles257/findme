@@ -91,6 +91,11 @@
   font-size: 0.8rem;
 }
 
+.estimateInline {
+  color: #475569 !important;
+  margin-top: 8px !important;
+}
+
 .formRow {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -261,6 +266,65 @@
 
 .spinner {
   animation: spin 1s linear infinite;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.56);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.24);
+  padding: 1rem 1rem 0.75rem;
+}
+
+.modalCard h3 {
+  margin: 0 0 0.5rem 0;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.modalCard p {
+  margin: 0 0 0.5rem 0;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.modalCancelBtn,
+.modalConfirmBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modalCancelBtn {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.modalConfirmBtn {
+  background: #b91c1c;
+  color: #ffffff;
 }
 
 @keyframes spin {

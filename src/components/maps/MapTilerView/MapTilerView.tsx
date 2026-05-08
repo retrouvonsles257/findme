@@ -50,10 +50,23 @@ export const MapTilerView: React.FC<MapTilerViewProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maptilersdk.Map | null>(null);
   const markersRef = useRef<maptilersdk.Marker[]>([]);
+  const onMapClickRef = useRef<typeof onMapClick>(onMapClick);
+  const lastMarkersSigRef = useRef('');
+  const lastCenterRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
+  const initialCenterRef = useRef<[number, number]>(center);
+  const initialZoomRef = useRef<number>(zoom);
+  const initialInteractiveRef = useRef<boolean>(interactive);
+  const initialShowControlsRef = useRef<boolean>(showControls);
   const [isMapReady, setIsMapReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const centerLat = center[0];
+  const centerLng = center[1];
 
-  // Initialize map
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
+  // Initialize map only once to avoid re-creation on form typing
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -73,12 +86,12 @@ export const MapTilerView: React.FC<MapTilerViewProps> = ({
       mapInstance = new maptilersdk.Map({
         container: mapContainer.current,
         style: maptilersdk.MapStyle.STREETS,
-        center: [center[1], center[0]], // MapTiler uses [lng, lat]
-        zoom: zoom,
-        interactive: interactive,
-        navigationControl: showControls,
-        geolocateControl: showControls,
-        scaleControl: showControls,
+        center: [initialCenterRef.current[1], initialCenterRef.current[0]], // MapTiler uses [lng, lat]
+        zoom: initialZoomRef.current,
+        interactive: initialInteractiveRef.current,
+        navigationControl: initialShowControlsRef.current,
+        geolocateControl: initialShowControlsRef.current,
+        scaleControl: initialShowControlsRef.current,
       });
 
       map.current = mapInstance;
@@ -89,11 +102,9 @@ export const MapTilerView: React.FC<MapTilerViewProps> = ({
       });
 
       // Map click event
-      if (onMapClick) {
-        mapInstance.on('click', (e) => {
-          onMapClick(e.lngLat.lat, e.lngLat.lng);
-        });
-      }
+      mapInstance.on('click', (e) => {
+        onMapClickRef.current?.(e.lngLat.lat, e.lngLat.lng);
+      });
     } catch (err) {
       console.error('Error initializing MapTiler:', err);
       setError('Failed to initialize map');
@@ -106,11 +117,16 @@ export const MapTilerView: React.FC<MapTilerViewProps> = ({
         map.current = null;
       }
     };
-  }, [center, zoom, interactive, showControls, onMapClick]);
+  }, []);
 
   // Update markers when they change
   useEffect(() => {
     if (!map.current || !isMapReady) return;
+    const signature = markers
+      .map((m) => `${m.id}:${m.lat}:${m.lng}:${m.type}:${m.label}`)
+      .join('|');
+    if (signature === lastMarkersSigRef.current) return;
+    lastMarkersSigRef.current = signature;
 
     // Remove existing markers
     markersRef.current.forEach((marker) => marker.remove());
@@ -165,13 +181,23 @@ export const MapTilerView: React.FC<MapTilerViewProps> = ({
   // Update center when it changes
   useEffect(() => {
     if (map.current && isMapReady) {
+      const prev = lastCenterRef.current;
+      if (
+        prev &&
+        prev.lat === centerLat &&
+        prev.lng === centerLng &&
+        prev.zoom === zoom
+      ) {
+        return;
+      }
+      lastCenterRef.current = { lat: centerLat, lng: centerLng, zoom };
       map.current.flyTo({
-        center: [center[1], center[0]],
+        center: [centerLng, centerLat],
         zoom: zoom,
         duration: 1000,
       });
     }
-  }, [center, zoom, isMapReady]);
+  }, [centerLat, centerLng, zoom, isMapReady]);
 
   if (error) {
     return (

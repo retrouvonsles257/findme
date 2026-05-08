@@ -6,6 +6,15 @@ import { supabase } from '../../../config';
 const LOG_FCM = '[FCMToken]';
 
 export async function upsertFcmToken(userId: string, token: string): Promise<void> {
+  const { error: rpcErr } = await (supabase as any).rpc('register_fcm_token', { p_token: token });
+  if (!rpcErr) return;
+
+  console.warn(LOG_FCM, 'register_fcm_token_rpc_unavailable_fallback', {
+    userId: String(userId).slice(0, 8) + '…',
+    message: rpcErr.message,
+    code: (rpcErr as any).code,
+  });
+
   const { error: pruneErr } = await (supabase as any)
     .from('utilisateur_fcm_token')
     .delete()
