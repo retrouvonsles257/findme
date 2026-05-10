@@ -154,7 +154,10 @@ export const getFirebaseAnalytics = (): Analytics | null => {
 export const registerMessagingServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if (!('serviceWorker' in navigator)) return null;
   try {
-    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+      scope: '/',
+      updateViaCache: 'none',
+    });
     await navigator.serviceWorker.ready;
     return reg;
   } catch (error) {
@@ -162,6 +165,57 @@ export const registerMessagingServiceWorker = async (): Promise<ServiceWorkerReg
     return null;
   }
 };
+
+function isPushRegistrationFailedError(e: unknown): boolean {
+  const msg = `${e instanceof Error ? e.message : String(e)}`.toLowerCase();
+  return (
+    msg.includes('push service') ||
+    msg.includes('registration failed') ||
+    msg.includes('messaging/registration') ||
+    (typeof DOMException !== 'undefined' &&
+      e instanceof DOMException &&
+      e.name === 'AbortError' &&
+      msg.includes('registration'))
+  );
+}
+
+/** Révoque l’ancien SW FCM + souscription pour repartir d’un état propre (erreur « push service » Chrome/Edge). */
+async function resetFirebaseMessagingServiceWorker(m: Messaging): Promise<void> {
+  try {
+    await deleteToken(m);
+  } catch {
+    /* noop */
+  }
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const reg of regs) {
+      const urls = [
+        reg.active?.scriptURL,
+        reg.waiting?.scriptURL,
+        reg.installing?.scriptURL,
+      ].filter(Boolean) as string[];
+      if (urls.some((u) => u.includes('firebase-messaging-sw'))) {
+        await reg.unregister();
+      }
+    }
+  } catch {
+    /* noop */
+  }
+  await new Promise((r) => setTimeout(r, 1200));
+}
+
+/** Attend que le SW firebase-messaging soit actif (évite getToken avant subscription push). */
+async function waitForFirebaseSwActive(reg: ServiceWorkerRegistration, timeoutMs: number): Promise<void> {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    const url = reg.active?.scriptURL || '';
+    if (url.includes('firebase-messaging-sw')) {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 120));
+  }
+  console.warn('[Firebase] firebase-messaging-sw.js pas encore actif après', timeoutMs, 'ms (tentative getToken quand même)');
+}
 
 /**
  * Demande la permission pour les notifications
@@ -209,6 +263,17 @@ export const getFCMToken = async (
       return null;
     }
 
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      const host = window.location.hostname;
+      if (host !== 'localhost' && host !== '127.0.0.1') {
+        console.error(
+          '[Firebase] Push FCM nécessite un contexte sécurisé (HTTPS ou localhost). Hôte actuel :',
+          host,
+        );
+        return null;
+      }
+    }
+
     if (forceRefresh) {
       try {
         await deleteToken(messaging);
@@ -248,34 +313,104 @@ export const getFCMToken = async (
       }
     }
 
-    const swReg = await registerMessagingServiceWorker();
-    if (!swReg) {
+    const applyToken = (token: string): string => {
+      cachedFCMToken = token;
+      tokenExpirationTime = Date.now() + (TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
+      storeTokenSecurely(token);
+      return token;
+    };
 
+    const tryGetTokenWithReg = async (
+      swReg: ServiceWorkerRegistration,
+    ): Promise<{ token: string | null; lastError: unknown }> => {
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const token = await getToken(messaging!, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: swReg,
+          });
+          if (token) {
+            return { token: applyToken(token), lastError: null };
+          }
+        } catch (e) {
+          lastError = e;
+          if (attempt < 2) {
+            await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+          }
+        }
+      }
+      return { token: null, lastError };
+    };
+
+    /** Fallback : laisser le SDK résoudre le SW (évite certains échecs « push service » si l’association explicite pose problème). */
+    const tryGetTokenImplicitSw = async (): Promise<{ token: string | null; lastError: unknown }> => {
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const token = await getToken(messaging!, { vapidKey: VAPID_KEY });
+          if (token) {
+            return { token: applyToken(token), lastError: null };
+          }
+        } catch (e) {
+          lastError = e;
+          if (attempt < 1) {
+            await new Promise((r) => setTimeout(r, 600));
+          }
+        }
+      }
+      return { token: null, lastError };
+    };
+
+    let swReg = await registerMessagingServiceWorker();
+    if (!swReg) {
       return null;
     }
+    try {
+      await swReg.update();
+    } catch {
+      /* noop */
+    }
+    await waitForFirebaseSwActive(swReg, 15000);
 
-    let lastErr: unknown = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const token = await getToken(messaging, {
-          vapidKey: VAPID_KEY,
-          serviceWorkerRegistration: swReg,
-        });
-        if (token) {
-          cachedFCMToken = token;
-          tokenExpirationTime = Date.now() + (TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
-          storeTokenSecurely(token);
-          return token;
+    let { token: tok, lastError } = await tryGetTokenWithReg(swReg);
+    if (tok) {
+      return tok;
+    }
+
+    if (lastError && isPushRegistrationFailedError(lastError)) {
+      console.warn('[Firebase] Échec push service — reset SW FCM + nouvelle tentative');
+      await resetFirebaseMessagingServiceWorker(messaging);
+      swReg = await registerMessagingServiceWorker();
+      if (swReg) {
+        try {
+          await swReg.update();
+        } catch {
+          /* noop */
         }
-      } catch (e) {
-        lastErr = e;
-        if (attempt < 2) {
-          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+        await waitForFirebaseSwActive(swReg, 15000);
+        const second = await tryGetTokenWithReg(swReg);
+        if (second.token) {
+          return second.token;
         }
+        lastError = second.lastError;
       }
     }
 
-    console.error('[Firebase] Erreur récupération token:', lastErr);
+    if (lastError && isPushRegistrationFailedError(lastError)) {
+      console.warn('[Firebase] Dernière tentative getToken sans serviceWorkerRegistration explicite');
+      const third = await tryGetTokenImplicitSw();
+      if (third.token) {
+        return third.token;
+      }
+      lastError = third.lastError;
+    }
+
+    console.error('[Firebase] Erreur récupération token:', lastError, {
+      isSecureContext: typeof window !== 'undefined' ? window.isSecureContext : undefined,
+      protocol: typeof window !== 'undefined' ? window.location.protocol : undefined,
+      host: typeof window !== 'undefined' ? window.location.hostname : undefined,
+    });
     return null;
   } catch (error) {
     console.error('[Firebase] Erreur récupération token:', error);
@@ -320,34 +455,38 @@ export const getStoredToken = (): string | null => {
 /**
  * Supprime le token FCM et nettoie le cache
  */
+/**
+ * Vide le cache mémoire + stockage local du jeton (changement de compte ou déconnexion).
+ * N’appelle pas l’API Firebase — utiliser avec {@link deleteFCMToken} pour révoquer la souscription push.
+ */
+export const clearFcmTokenClientCache = (): void => {
+  cachedFCMToken = null;
+  tokenExpirationTime = null;
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    void 0;
+  }
+};
+
 export const deleteFCMToken = async (): Promise<boolean> => {
   try {
     if (!messaging) {
-      console.error('[Firebase] Messaging non initialisé');
+      clearFcmTokenClientCache();
       return false;
     }
 
     await deleteToken(messaging);
-
-    // Nettoyer le cache
-    cachedFCMToken = null;
-    tokenExpirationTime = null;
-
-    // Supprimer du stockage
-    try {
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-      }
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-      }
-    } catch {
-      void 0;
-    }
-
+    clearFcmTokenClientCache();
     return true;
   } catch (error) {
     console.error('[Firebase] Erreur suppression token:', error);
+    clearFcmTokenClientCache();
     return false;
   }
 };
@@ -728,6 +867,7 @@ const firebaseModule = {
   registerMessagingServiceWorker,
   getFCMToken,
   getStoredToken,
+  clearFcmTokenClientCache,
   deleteFCMToken,
   requestNotificationPermission,
   onForegroundMessage,

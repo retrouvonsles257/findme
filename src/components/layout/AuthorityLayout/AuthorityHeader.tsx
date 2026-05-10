@@ -7,12 +7,11 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Menu,
   Search,
   Bell,
-  Plus,
   RefreshCw,
   FileSearch,
   AlertTriangle,
@@ -31,6 +30,7 @@ import {
 import { supabase } from '../../../config';
 import { useI18n } from '../../../hooks';
 import { useAppSelector } from '../../../store/types';
+import { selectUser } from '../../../features/auth/store/authSelectors';
 import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { getLanguageName } from '../../../locales';
 import { useCoordinationMessages } from '../../../features/coordination';
@@ -39,7 +39,7 @@ import styles from './AuthorityHeader.module.css';
 
 // Interface adaptée au modèle de données réel
 interface NotificationDB {
-  id: number;
+  id: string | number;
   type_notification: string;
   titre: string;
   message: string;
@@ -70,8 +70,12 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   sidebarOpen,
 }) => {
   const navigate = useNavigate();
+  const authReduxUser = useAppSelector(selectUser) as { id?: string } | null;
   const currentUser = useAppSelector(selectCurrentUser);
   const { user: authUser } = useAuth();
+  /** Même source que CitizenLayout / useCitizenPushSync (auth Redux), avec repli profil users + AuthContext. */
+  const notificationUserId =
+    authReduxUser?.id ?? (currentUser as { id?: string } | null)?.id ?? authUser?.id ?? undefined;
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -84,51 +88,29 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   const notificationRef = useRef<HTMLDivElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
-  const [photoProfil, setPhotoProfil] = useState<string | null>(null);
-
-  const loadPhotoProfil = useCallback(async (uid: string) => {
-    try {
-      const { data } = await (supabase as any)
-        .from('utilisateur')
-        .select('photo_profil')
-        .eq('id', uid)
-        .maybeSingle();
-      setPhotoProfil(data?.photo_profil || null);
-    } catch {
-      setPhotoProfil(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentUser?.id) loadPhotoProfil(currentUser.id);
-    else setPhotoProfil(null);
-  }, [currentUser?.id, loadPhotoProfil, location.pathname]);
-
-  const getInitials = () => {
-    const u = currentUser as { nom_complet?: string; email?: string } | null;
-    if (u?.nom_complet) {
-      const parts = u.nom_complet.trim().split(/\s+/).filter(Boolean);
-      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-      if (parts[0]) return parts[0].slice(0, 2).toUpperCase();
-    }
-    if (u?.email) return u.email.slice(0, 2).toUpperCase();
-    return 'U';
-  };
 
   // Hook pour les messages de coordination (badge = non lus, marquer comme lu à l'ouverture)
-  const { messages, loading: messagesLoading, unreadCount: unreadMessagesCount, markAsRead: markMessagesAsRead } = useCoordinationMessages();
+  const {
+    messages,
+    loading: messagesLoading,
+    unreadCount: unreadMessagesCount,
+    markAsRead: markMessagesAsRead,
+  } = useCoordinationMessages();
 
-  // À l'ouverture du dropdown messages : marquer comme lus les messages des autres (même id que CoordinationReadContext = useAuth)
-  const prevShowMessages = useRef(false);
+  // Marquer comme lus les messages des autres à l’ouverture du panneau, y compris après chargement asynchrone.
+  const markedMessageIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    const userId = authUser?.id ?? currentUser?.id;
-    if (showMessages && !prevShowMessages.current && userId && messages.length > 0) {
-      const fromOthers = messages.filter((m) => m.author_id !== userId).map((m) => m.id);
-      if (fromOthers.length > 0) markMessagesAsRead(fromOthers);
+    if (!showMessages) return;
+    const userId = authUser?.id ?? (currentUser as { id?: string } | null)?.id;
+    if (!userId || messagesLoading) return;
+    const fromOthers = messages
+      .filter((m) => m.author_id !== userId && !markedMessageIdsRef.current.has(m.id))
+      .map((m) => m.id);
+    if (fromOthers.length > 0) {
+      fromOthers.forEach((id) => markedMessageIdsRef.current.add(id));
+      void markMessagesAsRead(fromOthers);
     }
-    prevShowMessages.current = showMessages;
-  }, [showMessages, authUser?.id, currentUser?.id, messages, markMessagesAsRead]);
+  }, [showMessages, messagesLoading, messages, authUser?.id, currentUser, markMessagesAsRead]);
 
   // Fermer les dropdowns quand on clique en dehors
   useEffect(() => {
@@ -167,7 +149,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 
   // Charger les notifications réelles depuis Supabase
   const fetchNotifications = useCallback(async () => {
-    if (!currentUser?.id) return;
+    if (!notificationUserId) return;
 
     setLoadingNotifications(true);
     try {
@@ -175,7 +157,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       const { data, error } = await (supabase as any)
         .from('notification')
         .select('id, type_notification, titre, message, lue, date_creation, url_action')
-        .eq('id_utilisateur', currentUser.id)
+        .eq('id_utilisateur', notificationUserId)
         .order('date_creation', { ascending: false })
         .limit(10);
 
@@ -195,7 +177,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     } finally {
       setLoadingNotifications(false);
     }
-  }, [currentUser?.id]);
+  }, [notificationUserId]);
 
   // Fallback: créer des notifications basées sur les signalements validés
   const fetchFallbackNotifications = async () => {
@@ -263,42 +245,42 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Subscription temps réel pour les nouvelles notifications
+  // Realtime INSERT (aligné citoyen : même filtre id_utilisateur + rechargement liste fiable)
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!notificationUserId) return;
 
+    const channelName = `authority-header-notif:${notificationUserId}`;
     const channel = supabase
-      .channel('notifications')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'notification',
-          filter: `id_utilisateur=eq.${currentUser.id}`,
+          filter: `id_utilisateur=eq.${notificationUserId}`,
         },
-        (payload) => {
-          const newNotif = normalizeNotification(payload.new as NotificationDB);
-          setNotifications(prev => [newNotif, ...prev].slice(0, 10));
-          setUnreadCount(prev => prev + 1);
-        }
+        () => {
+          void fetchNotifications();
+        },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[AuthorityHeader] Realtime notifications:', status, channelName);
+        }
+      });
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
-  }, [currentUser?.id]);
+  }, [notificationUserId, fetchNotifications]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/authority/search?q=${encodeURIComponent(searchQuery)}`);
+    const q = searchQuery.trim();
+    if (q) {
+      navigate(`/authority/search?q=${encodeURIComponent(q)}`);
     }
-  };
-
-  const handleNewDossier = () => {
-    navigate('/authority/dossiers/new');
   };
 
   const handleNotificationClick = async (notif: Notification) => {
@@ -308,7 +290,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
         await (supabase as any)
           .from('notification')
           .update({ lue: true, date_lecture: new Date().toISOString() })
-          .eq('id', parseInt(notif.id));
+          .eq('id', /^\d+$/.test(String(notif.id)) ? parseInt(String(notif.id), 10) : notif.id);
 
         setNotifications(prev =>
           prev.map(n => n.id === notif.id ? { ...n, lu: true } : n)
@@ -335,14 +317,14 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
   };
 
   const markAllAsRead = async () => {
-    if (!currentUser?.id) return;
+    if (!notificationUserId) return;
 
     try {
       // Marquer toutes les notifications DB comme lues
       await (supabase as any)
         .from('notification')
         .update({ lue: true, date_lecture: new Date().toISOString() })
-        .eq('id_utilisateur', currentUser.id)
+        .eq('id_utilisateur', notificationUserId)
         .eq('lue', false);
 
       setNotifications(prev => prev.map(n => ({ ...n, lu: true })));
@@ -416,29 +398,26 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       </div>
 
       {/* Center Section: Search */}
-      <form className={styles.searchForm} onSubmit={handleSearch}>
-        <Search size={18} className={styles.searchIcon} />
+      <form className={styles.searchForm} onSubmit={handleSearch} action="#" method="get">
+        <Search size={18} className={styles.searchIcon} aria-hidden />
         <input
-          type="text"
+          type="search"
+          name="authoritySearch"
+          autoComplete="off"
           placeholder={t('authority.header.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className={styles.searchInput}
         />
+        <button type="submit" className={styles.searchSubmitBtn} aria-label={t('authority.search.submit')}>
+          <Search size={18} />
+        </button>
       </form>
 
       {/* Right Section: Actions */}
       <div className={styles.rightSection}>
-        <button 
-          className={styles.actionBtn}
-          onClick={handleNewDossier}
-          title={t('authority.header.newDossier')}
-        >
-          <Plus size={20} />
-          <span className={styles.actionLabel}>{t('authority.header.new')}</span>
-        </button>
-
-        <button 
+        <button
+          type="button"
           className={styles.iconBtn}
           onClick={() => {
             fetchNotifications();
@@ -450,7 +429,8 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 
         {/* Language Selector */}
         <div className={styles.languageWrapper} ref={languageMenuRef}>
-          <button 
+          <button
+            type="button"
             className={styles.iconBtn}
             onClick={() => setShowLanguageMenu(!showLanguageMenu)}
             title={t('authority.header.changeLanguage')}
@@ -480,7 +460,8 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
 
         {/* Mini Messagerie */}
         <div className={styles.messagesWrapper} ref={messagesRef}>
-          <button 
+          <button
+            type="button"
             className={styles.iconBtn}
             onClick={() => setShowMessages(!showMessages)}
             title={t('authority.header.coordinationMessages')}
@@ -499,6 +480,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                 <span>{t('authority.header.coordinationMessages')}</span>
                 <div className={styles.viewOptions}>
                   <button
+                    type="button"
                     className={`${styles.viewBtn} ${messageView === 'list' ? styles.active : ''}`}
                     onClick={() => setMessageView('list')}
                     title={t('authority.header.messagesView.list')}
@@ -506,6 +488,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                     <List size={14} />
                   </button>
                   <button
+                    type="button"
                     className={`${styles.viewBtn} ${messageView === 'compact' ? styles.active : ''}`}
                     onClick={() => setMessageView('compact')}
                     title={t('authority.header.messagesView.compact')}
@@ -513,6 +496,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                     <Grid size={14} />
                   </button>
                   <button
+                    type="button"
                     className={`${styles.viewBtn} ${messageView === 'expanded' ? styles.active : ''}`}
                     onClick={() => setMessageView('expanded')}
                     title={t('authority.header.messagesView.expanded')}
@@ -520,7 +504,8 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                     <Maximize2 size={14} />
                   </button>
                 </div>
-                <button 
+                <button
+                  type="button"
                   className={styles.closeBtn}
                   onClick={() => setShowMessages(false)}
                 >
@@ -564,7 +549,8 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                 </div>
               )}
 
-              <button 
+              <button
+                type="button"
                 className={styles.viewAllBtn}
                 onClick={() => {
                   navigate('/authority/coordination');
@@ -578,7 +564,8 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
         </div>
 
         <div className={styles.notificationWrapper} ref={notificationRef}>
-          <button 
+          <button
+            type="button"
             className={styles.iconBtn}
             onClick={() => setShowNotifications(!showNotifications)}
             title={t('authority.header.notifications')}
@@ -596,11 +583,12 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
               <div className={styles.notificationHeader}>
                 <span>{t('authority.header.notifications')}</span>
                 {unreadCount > 0 && (
-                  <button className={styles.markAllRead} onClick={markAllAsRead}>
+                  <button type="button" className={styles.markAllRead} onClick={markAllAsRead}>
                     {t('authority.header.markAllRead')}
                   </button>
                 )}
-                <button 
+                <button
+                  type="button"
                   className={styles.closeBtn}
                   onClick={() => setShowNotifications(false)}
                 >
@@ -642,7 +630,8 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                 </div>
               )}
 
-              <button 
+              <button
+                type="button"
                 className={styles.viewAllBtn}
                 onClick={handleViewAllNotifications}
               >
@@ -652,20 +641,6 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
           )}
         </div>
 
-        <button
-          type="button"
-          className={styles.headerAvatarBtn}
-          onClick={() => navigate('/authority/profile')}
-          title={t('authority.sidebar.editProfile') || 'Profil'}
-        >
-          <div className={styles.headerAvatarPlaceholder}>
-            {photoProfil ? (
-              <img src={photoProfil} alt="" className={styles.headerAvatarImg} />
-            ) : (
-              getInitials()
-            )}
-          </div>
-        </button>
       </div>
     </header>
   );

@@ -716,7 +716,7 @@ export const diffuserAlerte = async (
     idSample,
   });
 
-  const canal = (canaux && canaux[0]) || 'in_app';
+  const canal = (canaux && canaux[0]) || 'push';
   const dateCreation = new Date().toISOString();
 
   const notifications = destinataires.map((user: any) => ({

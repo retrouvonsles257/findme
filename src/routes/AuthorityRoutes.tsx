@@ -23,11 +23,9 @@ import {
   ModerationReportsPage,
   ModerationActivityHistoryPage,
   ModerationIdentityVerificationPage,
-  SignalementsFileAvancePage,
   InvestigationPage,
   IAAnalysisPage,
   IAResultsCatalogAuthorityPage,
-  ModerationOverviewAuthorityPage,
   OrganisationEquipeListAuthorityPage,
   OrganisationEquipeNewAuthorityPage,
   OrganisationEquipeDetailAuthorityPage,
@@ -42,6 +40,7 @@ import {
   PersonsPage,
   PersonDetailPage,
   CreatePersonPage,
+  AuthoritySearchPage,
 } from '../pages/authority';
 
 import PrivateRoute from './PrivateRoutes';
@@ -201,11 +200,7 @@ const AuthorityRoutes: React.FC = () => {
 
         <Route
           path="/file-signalements"
-          element={
-            <RoleBasedRoute requiredRoles={authorityRoles}>
-              <SignalementsFileAvancePage />
-            </RoleBasedRoute>
-          }
+          element={<Navigate to="/authority/signalements?vue=traitement" replace />}
         />
 
         <Route
@@ -276,14 +271,7 @@ const AuthorityRoutes: React.FC = () => {
           }
         />
 
-        <Route
-          path="/tableau-moderation"
-          element={
-            <RoleBasedRoute requiredRoles={authorityRoles}>
-              <ModerationOverviewAuthorityPage />
-            </RoleBasedRoute>
-          }
-        />
+        <Route path="/tableau-moderation" element={<Navigate to="/authority/signalements?vue=traitement" replace />} />
 
         <Route
           path="/equipe/nouveau"
@@ -412,6 +400,15 @@ const AuthorityRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={authorityRoles}>
               <NotificationsPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/search"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <AuthoritySearchPage />
             </RoleBasedRoute>
           }
         />

@@ -14,7 +14,6 @@ import { selectUser } from '../../../features/auth/store/authSelectors';
 import { useLogout } from '../../../features/auth/hooks/useLogout';
 import { supabase } from '../../../config';
 import {
-  Home,
   CheckCircle,
   Image,
   BarChart3,
@@ -36,18 +35,18 @@ import styles from './ModerationLayout.module.css';
 
 const db = () => supabase as any;
 
-type ModerationNavId = 'dashboard' | 'profile' | 'validation' | 'photos' | 'reports' | 'ia' | 'identity' | 'map' | 'notifications' | 'history' | 'donations';
+type ModerationNavId = 'profile' | 'validation' | 'photos' | 'reports' | 'ia' | 'identity' | 'map' | 'notifications' | 'history' | 'donations';
 
 interface ModerationNavItem {
   id: ModerationNavId;
   labelKey: string;
   path: string;
-  icon: typeof Home;
+  icon: typeof CheckCircle;
   badge?: number;
 }
 
 interface ModerationNavGroup {
-  groupKey: 'principal' | 'moderation' | 'suivi';
+  groupKey: 'moderation' | 'suivi';
   labelKey: string;
   items: ModerationNavItem[];
 }
@@ -62,17 +61,10 @@ interface ModerationLayoutProps {
 
 const MODERATION_NAV_BASE: (Omit<ModerationNavGroup, 'items'> & { items: (Omit<ModerationNavItem, 'badge'> & { badgeKey?: boolean })[] })[] = [
   {
-    groupKey: 'principal',
-    labelKey: 'moderation.nav.principal',
-    items: [
-      { id: 'dashboard', labelKey: 'common.dashboard', path: '/authority/tableau-moderation', icon: Home },
-    ],
-  },
-  {
     groupKey: 'moderation',
     labelKey: 'moderation.nav.moderation',
     items: [
-      { id: 'validation', labelKey: 'moderation.validation', path: '/authority/file-signalements', icon: CheckCircle },
+      { id: 'validation', labelKey: 'moderation.validation', path: '/authority/signalements?vue=traitement', icon: CheckCircle },
       { id: 'photos', labelKey: 'moderation.photoModeration', path: '/authority/photos-moderation', icon: Image },
       { id: 'ia', labelKey: 'moderation.iaResults', path: '/authority/ia-resultats', icon: Brain },
       { id: 'identity', labelKey: 'moderation.identityVerification', path: '/authority/verifications-identite', icon: UserCheck },

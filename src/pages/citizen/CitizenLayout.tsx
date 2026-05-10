@@ -13,6 +13,12 @@ import { selectUser } from '../../features/auth/store/authSelectors';
 import { useLogout } from '../../features/auth/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
 import { maybeSyncCitizenGpsToProfileDebounced } from '../../features/users/services/citizenLocationSync';
+import {
+  CITIZEN_PERM_GEO_ASKED_KEY,
+  CITIZEN_PERM_NOTIF_ASKED_KEY,
+  CITIZEN_PERM_ONBOARDING_DONE_KEY,
+  PUSH_NOTIFICATION_ONBOARDING_DELAY_MS,
+} from '../../features/notifications/constants/citizenPushOnboarding';
 import { supabase } from '../../config';
 import { 
   Menu, 
@@ -95,14 +101,13 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const userId = (currentUser as any)?.id;
   const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const { unreadCount, fetchNotifications } = useNotifications();
-  const PERM_ONBOARDING_DONE_KEY = 'citizen_perm_onboarding_done_v1';
-  const PERM_NOTIF_ASKED_KEY = 'citizen_perm_notif_asked_v1';
-  const PERM_GEO_ASKED_KEY = 'citizen_perm_geo_asked_v1';
+  const PERM_ONBOARDING_DONE_KEY = CITIZEN_PERM_ONBOARDING_DONE_KEY;
+  const PERM_NOTIF_ASKED_KEY = CITIZEN_PERM_NOTIF_ASKED_KEY;
+  const PERM_GEO_ASKED_KEY = CITIZEN_PERM_GEO_ASKED_KEY;
 
-  /** Onboarding permissions (une fois): notifications puis localisation. */
+  /** Onboarding permissions (une fois): notifications puis localisation — y compris invité anonyme (auth.uid() valide). */
   useEffect(() => {
     if (!userId) return;
-    if (isGuestSession) return;
     if (typeof window === 'undefined') return;
 
     let cancelled = false;
@@ -177,13 +182,13 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
 
     const timer = window.setTimeout(() => {
       void run();
-    }, 1200);
+    }, PUSH_NOTIFICATION_ONBOARDING_DELAY_MS);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [userId, isGuestSession]);
+  }, [userId]);
 
   // États
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -250,12 +250,9 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
     }
   }, [formData, dossiers, addNotification, navigate, basePath, t]);
 
-  // Dossiers actifs uniquement
-  const activeDossiers = dossiers.filter((d: any) => 
-    d.statut_dossier === 'en_cours' &&
-    d.diffusion_autorisee !== false &&
-    d.latitude_disparition != null &&
-    d.longitude_disparition != null
+  // Dossiers actifs éligibles à la liaison (géoloc. optionnelle : message si absent lors de la publication)
+  const activeDossiers = dossiers.filter(
+    (d: any) => d.statut_dossier === 'en_cours' && d.diffusion_autorisee !== false,
   );
 
   const content = (
@@ -291,7 +288,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
               </select>
               {activeDossiers.length === 0 && (
                 <small style={{ color: '#999', marginTop: '4px' }}>
-                  {t('authority.alertes.createAlerte.form.noActiveDossiers')} (Les dossiers sans localisation sont exclus de la diffusion d’alerte.)
+                  {t('authority.alertes.createAlerte.form.noActiveDossiers')}
                 </small>
               )}
               {diffusionEstimate && (
@@ -399,7 +396,10 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
               <div className={styles.previewCard}>
                 <div className={styles.previewHeader}>
                   <span className={styles.previewType}>
-                    {formData.type_alerte.toUpperCase()}
+                    {(() => {
+                      const opt = typeOptions.find((o) => o.value === formData.type_alerte);
+                      return opt ? t(opt.labelKey) : formData.type_alerte;
+                    })()}
                   </span>
                   <span className={styles.previewRadius}>
                     <MapPin size={14} /> {formData.rayon_km} {t('authority.alertes.unitKm')}

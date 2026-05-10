@@ -62,7 +62,7 @@ const db = {
   from: (table: string) => (supabase.from(table) as any),
 };
 
-async function notifyDossierStatusChange(
+export async function notifyDossierStatusChange(
   dossierId: string,
   previousStatus: string | null | undefined,
   nextStatus: string,
@@ -129,6 +129,47 @@ async function notifyDossierStatusChange(
   } catch (error) {
     console.error('[dossierAPI] notifyDossierStatusChange error:', error);
   }
+}
+
+/**
+ * Met à jour des champs sur `dossier_disparition` et envoie les notifications push
+ * (via insert `notification`) si `statut_dossier` change réellement.
+ * À utiliser pour les écrans qui ne passent pas par {@link updateDossier}.
+ */
+export async function patchDossierAndNotify(
+  id: string,
+  patch: Record<string, unknown>,
+): Promise<DossierDisparition> {
+  const { data: prevRow, error: prevErr } = await db
+    .from('dossier_disparition')
+    .select('statut_dossier')
+    .eq('id', id)
+    .maybeSingle();
+  if (prevErr) throw prevErr;
+  const previousStatus = (prevRow as any)?.statut_dossier ?? null;
+
+  const updatePayload: Record<string, unknown> = {
+    ...patch,
+    derniere_activite: new Date().toISOString(),
+  };
+
+  const { data, error } = await db
+    .from('dossier_disparition')
+    .update(updatePayload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  if (Object.prototype.hasOwnProperty.call(patch, 'statut_dossier')) {
+    const nextStatus = patch.statut_dossier as string;
+    if (nextStatus && nextStatus !== previousStatus) {
+      await notifyDossierStatusChange(id, previousStatus, nextStatus);
+    }
+  }
+
+  return data as DossierDisparition;
 }
 
 // ============================================

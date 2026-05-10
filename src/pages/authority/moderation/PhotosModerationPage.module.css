@@ -206,6 +206,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.25rem;
+  align-items: stretch;
 }
 
 .photos-moderation__card {
@@ -214,6 +215,10 @@
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .photos-moderation__card:hover {
@@ -282,6 +287,10 @@
 /* Card Content */
 .photos-moderation__card-content {
   padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .photos-moderation__card-meta {
@@ -323,28 +332,36 @@
   margin: 0;
 }
 
-/* Actions (grille : en colonne sur petit écran) */
+/* Actions : même ligne, ancrées en bas de carte (hauteur uniforme dans la grille) */
 .photos-moderation__actions {
   display: flex;
   gap: 0.5rem;
   padding: 0 1rem 1rem;
-  flex-wrap: wrap;
+  margin-top: auto;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  align-self: stretch;
 }
 
 .photos-moderation__action-btn {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
+  min-height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.6rem 0.5rem;
   border: none;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .photos-moderation__action-btn:disabled {

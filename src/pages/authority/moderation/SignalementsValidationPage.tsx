@@ -68,7 +68,6 @@ export const SignalementsValidationPage: React.FC<SignalementsValidationPageProp
     signalements, 
     isLoading, 
     pagination,
-    stats,
     fetchSignalements,
     searchSignalements,
     updateSignalement,
@@ -484,28 +483,6 @@ export const SignalementsValidationPage: React.FC<SignalementsValidationPageProp
           <div className={styles['validation__error']}>
             <AlertTriangle size={20} />
             {errorMessage}
-          </div>
-        )}
-
-        {/* Stats rapides */}
-        {stats && (
-          <div className={styles['validation__quick-stats']}>
-            <div className={styles['validation__stat']}>
-              <span className={styles['validation__stat-value']}>{stats.parEtat?.nouveau || 0}</span>
-              <span className={styles['validation__stat-label']}>{t('moderation.pendingLabel')}</span>
-            </div>
-            <div className={styles['validation__stat']}>
-              <span className={styles['validation__stat-value']}>{stats.parEtat?.en_cours || 0}</span>
-              <span className={styles['validation__stat-label']}>{t('moderation.enCours')}</span>
-            </div>
-            <div className={styles['validation__stat']}>
-              <span className={styles['validation__stat-value']}>{stats.parEtat?.valide || 0}</span>
-              <span className={styles['validation__stat-label']}>{t('moderation.valides')}</span>
-            </div>
-            <div className={styles['validation__stat']}>
-              <span className={styles['validation__stat-value']}>{stats.derniers7jours || 0}</span>
-              <span className={styles['validation__stat-label']}>{t('moderation.thisWeek')}</span>
-            </div>
           </div>
         )}
 

@@ -42,6 +42,7 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
   }, [currentUser, navigate]);
 
   useEffect(() => {
+    const ac = new AbortController();
     const handle = window.setTimeout(async () => {
       try {
         setIsLoading(true);
@@ -51,18 +52,30 @@ export const PersonsPage: React.FC<PersonsPageProps> = ({ noLayout = false, base
           page,
           PAGE_SIZE,
         );
-        setItems(data);
+        if (ac.signal.aborted) return;
+        const seen = new Set<string>();
+        const unique = (data || []).filter((p: Personne) => {
+          const id = (p as { id?: string }).id;
+          if (!id || seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+        setItems(unique);
         setTotal(count);
       } catch (e: any) {
+        if (ac.signal.aborted) return;
         setError(e?.message || 'Erreur lors du chargement des personnes');
         setItems([]);
         setTotal(0);
       } finally {
-        setIsLoading(false);
+        if (!ac.signal.aborted) setIsLoading(false);
       }
     }, 250);
 
-    return () => window.clearTimeout(handle);
+    return () => {
+      ac.abort();
+      window.clearTimeout(handle);
+    };
   }, [search, page]);
 
   const content = (

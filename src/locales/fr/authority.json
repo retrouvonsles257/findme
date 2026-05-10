@@ -552,6 +552,11 @@
     "operational": "Opérationnel",
     "followUp": "Suivi"
   },
+  "search": {
+    "hint": "Saisissez un terme puis validez (Entrée ou bouton) pour lancer la recherche.",
+    "submit": "Rechercher",
+    "emptyPersonnes": "Aucune personne ne correspond à cette recherche."
+  },
   "header": {
       "searchPlaceholder": "Rechercher un dossier, une personne...",
       "new": "Nouveau",
@@ -575,7 +580,7 @@
       }
     },
   "sidebar": {
-    "appName": "Retrouvons-Les",
+    "appName": "Retrouvons\u2011Les",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "editProfile": "Modifier le profil",
@@ -821,7 +826,14 @@
   "addNote": "Add Note",
   "assignTeam": "Assigner l'équipe",
   "signalements": {
+    "pageHeading": "Signalements",
     "title": "Validation des Signalements",
+    "tabs": {
+      "list": "Vue liste",
+      "treatment": "File de traitement",
+      "aria": "Modes d'affichage des signalements"
+    },
+    "treatmentSubtitle": "Filtres avancés, prévisualisation dossier et validation détaillée",
     "subtitle": "{{count}} signalement en attente de validation",
     "subtitlePlural": "{{count}} signalements en attente de validation",
     "refresh": "Actualiser",
@@ -1229,27 +1241,65 @@
     },
     "sections": {
       "observationInfo": "Informations de l'observation",
+      "context": "Contexte de l'observation",
       "description": "Description",
+      "reporter": "Signaleur (compte)",
       "witnessInfo": "Informations du témoin",
       "photos": "Photos",
       "linkedDossier": "Dossier lié",
       "metadata": "Métadonnées"
     },
+    "reporter": {
+      "name": "Nom",
+      "email": "E-mail"
+    },
+    "precision": {
+      "exacte": "Lieu exact",
+      "approximative": "Lieu approximatif",
+      "inconnue": "Lieu inconnu",
+      "generale": "Zone générale",
+      "not_specified": "Non précisé"
+    },
     "fields": {
+      "reportNumber": "Numéro de signalement",
       "observationLocation": "Lieu d'observation",
       "city": "Ville",
+      "region": "Région",
+      "country": "Pays",
       "observationDate": "Date d'observation",
       "certaintyLevel": "Niveau de certitude",
+      "locationPrecision": "Précision du lieu",
+      "observationDistance": "Distance d'observation",
       "gpsCoordinates": "Coordonnées GPS",
+      "observationContext": "Contexte",
+      "observationDuration": "Durée d'observation",
+      "observedPersonState": "État de la personne observée",
+      "accompaniment": "Accompagnement",
+      "travelDirection": "Direction du déplacement",
+      "travelMeans": "Moyen de déplacement",
+      "acceptsFollowUp": "Accepte un suivi de contact",
+      "source": "Source",
+      "priority": "Priorité de traitement",
+      "publicDetail": "Détail visible publiquement",
+      "transmittedToAuthorities": "Transmis aux autorités",
+      "transmissionDate": "Date de transmission",
+      "recipientAuthority": "Autorité destinataire",
+      "actionsTaken": "Actions entreprises",
       "createdAt": "Créé le",
+      "updatedAt": "Dernière mise à jour",
       "relevanceScore": "Score de pertinence",
-      "matchScore": "Score de correspondance"
+      "matchScore": "Score de correspondance",
+      "verificationComment": "Commentaire de vérification",
+      "verificationDate": "Date de vérification",
+      "scoreReasons": "Motifs du score"
     },
     "values": {
       "notProvided": "Non renseigné",
       "notProvidedFeminine": "Non renseignée",
       "na": "N/A",
-      "noDescription": "Aucune description fournie"
+      "noDescription": "Aucune description fournie",
+      "yes": "Oui",
+      "no": "Non"
     },
     "witness": {
       "anonymous": "Ce signalement a été fait de manière anonyme",

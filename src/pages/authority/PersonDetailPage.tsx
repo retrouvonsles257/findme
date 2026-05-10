@@ -83,33 +83,33 @@ export const PersonDetailPage: React.FC<PersonDetailPageProps> = ({ noLayout = f
     'Personne';
 
   const content = (
-    <div className={styles.operatorPersonDetail}>
+    <div className={styles.authorityPersonDetail}>
         {isLoading && (
-          <div className={styles.operatorPersonDetail__skeletonWrap}>
+          <div className={styles.authorityPersonDetail__skeletonWrap}>
             <AdminDetailSkeleton blockCount={3} linesPerBlock={4} />
           </div>
         )}
         {!isLoading && error && (
-          <div className={styles.operatorPersonDetail__errorBanner} role="alert">
+          <div className={styles.authorityPersonDetail__errorBanner} role="alert">
             <span>{error}</span>
           </div>
         )}
 
         {!isLoading && !error && personne && (
           <>
-            <div className={styles.operatorPersonDetail__card}>
-              <div className={styles.operatorPersonDetail__header}>
+            <div className={styles.authorityPersonDetail__card}>
+              <div className={styles.authorityPersonDetail__header}>
                 <div>
-                  <h2 className={styles.operatorPersonDetail__title}>{title}</h2>
-                  <div className={styles.operatorPersonDetail__meta}>
+                  <h2 className={styles.authorityPersonDetail__title}>{title}</h2>
+                  <div className={styles.authorityPersonDetail__meta}>
                     {(personne as any).sexe || '—'}
                     {(personne as any).nationalite ? ` • ${(personne as any).nationalite}` : ''}
                   </div>
                 </div>
 
-                <div className={styles.operatorPersonDetail__btnRow}>
+                <div className={styles.authorityPersonDetail__btnRow}>
                   <button
-                    className={`${styles.operatorPersonDetail__btn} ${styles.operatorPersonDetail__btnPrimary}`}
+                    className={`${styles.authorityPersonDetail__btn} ${styles.authorityPersonDetail__btnPrimary}`}
                     onClick={() => {
                       const pid = (personne as any).id;
                       navigate(`${basePath}/dossiers/new?personneId=${pid}`);
@@ -118,7 +118,7 @@ export const PersonDetailPage: React.FC<PersonDetailPageProps> = ({ noLayout = f
                     Créer un dossier avec cette personne
                   </button>
                   <button
-                    className={styles.operatorPersonDetail__btn}
+                    className={styles.authorityPersonDetail__btn}
                     onClick={() => navigate(`${basePath}/personnes`)}
                   >
                     Retour liste
@@ -127,155 +127,157 @@ export const PersonDetailPage: React.FC<PersonDetailPageProps> = ({ noLayout = f
               </div>
             </div>
 
-            <div className={styles.operatorPersonDetail__card}>
-              <h3 className={styles.operatorPersonDetail__sectionTitle}>Identité</h3>
-              <div className={styles.operatorPersonDetail__grid}>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Nom</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nom ?? '—'}</p>
+            <div className={styles.authorityPersonDetail__card}>
+              <h3 className={styles.authorityPersonDetail__sectionTitle}>Identité</h3>
+              <div className={styles.authorityPersonDetail__grid}>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Nom</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).nom ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Prénom</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).prenom ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Prénom</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).prenom ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Nom complet</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nom_complet ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Nom complet</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).nom_complet ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Alias</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).alias ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Alias</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).alias ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Sexe</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).sexe ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Sexe</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).sexe ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Date de naissance</p>
-                  <p className={styles.operatorPersonDetail__v}>{safeFormatDate((personne as any).date_naissance)}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Date de naissance</p>
+                  <p className={styles.authorityPersonDetail__v}>{safeFormatDate((personne as any).date_naissance)}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Âge estimé</p>
-                  <p className={styles.operatorPersonDetail__v}>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Âge estimé</p>
+                  <p className={styles.authorityPersonDetail__v}>
                     {(personne as any).age_estime_min != null ? (personne as any).age_estime_min : '—'}
                     {(personne as any).age_estime_max != null ? ` - ${(personne as any).age_estime_max}` : ''}
                   </p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Nationalité</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nationalite ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Nationalité</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).nationalite ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Autres nationalités</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).autres_nationalites ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Autres nationalités</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).autres_nationalites ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Langue(s) parlée(s)</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).langue_parlee ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Langue(s) parlée(s)</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).langue_parlee ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>N° identification</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).numero_identification ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>N° identification</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).numero_identification ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Type identification</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).type_identification ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Type identification</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).type_identification ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Statut identité</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).statut_identite ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Statut identité</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).statut_identite ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Fiabilité des informations</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).fiabilite_informations ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Fiabilité des informations</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).fiabilite_informations ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Situation familiale</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).situation_familiale ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Situation familiale</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).situation_familiale ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Nombre d'enfants</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).nombre_enfants != null ? (personne as any).nombre_enfants : '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Nombre d'enfants</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).nombre_enfants != null ? (personne as any).nombre_enfants : '—'}</p>
                 </div>
               </div>
             </div>
 
-            <div className={styles.operatorPersonDetail__card}>
-              <h3 className={styles.operatorPersonDetail__sectionTitle}>Description physique</h3>
-              <div className={styles.operatorPersonDetail__grid}>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Taille (cm)</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).taille_cm != null ? (personne as any).taille_cm : '—'}</p>
+            <div className={styles.authorityPersonDetail__card}>
+              <h3 className={styles.authorityPersonDetail__sectionTitle}>Description physique</h3>
+              <div className={styles.authorityPersonDetail__grid}>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Taille (cm)</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).taille_cm != null ? (personne as any).taille_cm : '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Poids (kg)</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).poids_kg != null ? (personne as any).poids_kg : '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Poids (kg)</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).poids_kg != null ? (personne as any).poids_kg : '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Corpulence</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).corpulence ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Corpulence</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).corpulence ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Couleur de peau</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).couleur_peau ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Couleur de peau</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).couleur_peau ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Couleur des cheveux</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).couleur_cheveux ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Couleur des cheveux</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).couleur_cheveux ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Type de cheveux</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).type_cheveux ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Type de cheveux</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).type_cheveux ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Couleur des yeux</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).couleur_yeux ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Couleur des yeux</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).couleur_yeux ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Signes distinctifs</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).signes_distinctifs ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Signes distinctifs</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).signes_distinctifs ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Handicaps / maladies</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).handicaps_maladies ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Handicaps / maladies</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).handicaps_maladies ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Groupe sanguin</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).groupe_sanguin ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Groupe sanguin</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).groupe_sanguin ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Derniers vêtements portés</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).derniers_vetements_portes ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Derniers vêtements portés</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).derniers_vetements_portes ?? '—'}</p>
                 </div>
-                <div className={styles.operatorPersonDetail__kv}>
-                  <p className={styles.operatorPersonDetail__k}>Accessoires</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).accessoires ?? '—'}</p>
+                <div className={styles.authorityPersonDetail__kv}>
+                  <p className={styles.authorityPersonDetail__k}>Accessoires</p>
+                  <p className={styles.authorityPersonDetail__v}>{(personne as any).accessoires ?? '—'}</p>
                 </div>
               </div>
               {(personne as any).description_physique && (
-                <div style={{ marginTop: '0.75rem' }}>
-                  <p className={styles.operatorPersonDetail__k}>Description physique (texte)</p>
-                  <p className={styles.operatorPersonDetail__v}>{(personne as any).description_physique}</p>
+                <div className={styles.authorityPersonDetail__descriptionBlock}>
+                  <p className={styles.authorityPersonDetail__k}>Description physique (texte)</p>
+                  <p className={`${styles.authorityPersonDetail__v} ${styles.authorityPersonDetail__descriptionText}`}>
+                    {(personne as any).description_physique}
+                  </p>
                 </div>
               )}
             </div>
 
-            <div className={styles.operatorPersonDetail__card}>
-              <h3 className={styles.operatorPersonDetail__sectionTitle}>Dossiers liés</h3>
+            <div className={styles.authorityPersonDetail__card}>
+              <h3 className={styles.authorityPersonDetail__sectionTitle}>Dossiers liés</h3>
               {dossiers.length === 0 ? (
-                <div className={styles.operatorPersonDetail__state}>Aucun dossier lié pour l’instant.</div>
+                <div className={styles.authorityPersonDetail__state}>Aucun dossier lié pour l’instant.</div>
               ) : (
-                <div className={styles.operatorPersonDetail__list}>
+                <div className={styles.authorityPersonDetail__list}>
                   {dossiers.map((d: any) => (
                     <div
                       key={d.id}
-                      className={styles.operatorPersonDetail__listItem}
+                      className={styles.authorityPersonDetail__listItem}
                       onClick={() => navigate(`${basePath}/dossiers/${d.id}`)}
                       role="button"
                       tabIndex={0}
                     >
                       <strong>{d.numero_dossier || `DOS-${String(d.id).slice(0, 6)}`}</strong>
-                      <div className={styles.operatorPersonDetail__meta}>
+                      <div className={styles.authorityPersonDetail__meta}>
                         {d.statut_dossier} • {d.ville_disparition || d.lieu_disparition || '—'}
                       </div>
                     </div>

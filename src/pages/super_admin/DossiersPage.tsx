@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
+import { patchDossierAndNotify } from '../../features/dossiers/services/dossierAPI';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { AdminTableSkeleton } from 'components/skeletons';
 import { 
@@ -445,11 +446,7 @@ const SuperAdminDossiersPage: React.FC = () => {
         if (insertError) throw insertError;
       } else if (modalMode === 'edit' && selectedDossier) {
         dossierData.updated_at = new Date().toISOString();
-        const { error: updateError } = await (supabase as any)
-          .from('dossier_disparition')
-          .update(dossierData)
-          .eq('id', selectedDossier.id);
-        if (updateError) throw updateError;
+        await patchDossierAndNotify(selectedDossier.id, dossierData);
       }
 
       setShowModal(false);
@@ -504,15 +501,11 @@ const SuperAdminDossiersPage: React.FC = () => {
   // Fonction pour archiver un dossier (selon doc NIVEAU 7)
   const handleArchive = async (dossierId: string) => {
     try {
-      const { error: updateError } = await (supabase as any)
-        .from('dossier_disparition')
-        .update({
-          statut_dossier: 'classe_sans_suite',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', dossierId);
-
-      if (updateError) throw updateError;
+      const nowIso = new Date().toISOString();
+      await patchDossierAndNotify(dossierId, {
+        statut_dossier: 'classe_sans_suite',
+        updated_at: nowIso,
+      });
       loadData();
     } catch (err: any) {
       console.error('Erreur archivage:', err);

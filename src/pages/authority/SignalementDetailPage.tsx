@@ -28,6 +28,26 @@ import {
 import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './SignalementDetailPage.module.css';
 
+function normalizeCertitudeKey(raw: string | null | undefined): string {
+  if (raw == null || raw === '') return 'notSpecified';
+  return String(raw).trim().toLowerCase().replace(/-/g, '_');
+}
+
+function withSignalementPhotoUrls(sigData: any) {
+  if (!sigData) return sigData;
+  const raw = sigData.photos;
+  const arr = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const urls = arr
+    .map((p: { url_cloudinary?: string; url_thumbnail?: string | null }) => p?.url_cloudinary || p?.url_thumbnail)
+    .filter(Boolean) as string[];
+  const { photos: _nested, ...rest } = sigData;
+  return {
+    ...rest,
+    photos: urls.length ? urls : Array.isArray(rest.photos) ? rest.photos : [],
+    photo_url: urls[0] ?? rest.photo_url ?? null,
+  };
+}
+
 export interface SignalementDetailPageProps {
   noLayout?: boolean;
   /** Base path for links (e.g. /admin when used from admin org). Default /authority */
@@ -45,13 +65,14 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
 
   const [signalement, setSignalement] = useState<any>(null);
   const [dossier, setDossier] = useState<any>(null);
+  const [reporter, setReporter] = useState<{ nom?: string; prenom?: string; email?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [validationComment, setValidationComment] = useState('');
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [pendingDecision, setPendingDecision] = useState<'approuve' | 'rejete' | null>(null);
 
-  // Charger le signalement
+  // Charger le signalement (+ photos liées, dossier)
   useEffect(() => {
     const loadSignalement = async () => {
       if (!id) return;
@@ -64,17 +85,36 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
           .single();
 
         if (sigError) throw sigError;
-        setSignalement(sigData);
 
-        // Charger le dossier lié si existe
+        const { data: photoRows } = await (supabase as any)
+          .from('photo')
+          .select('id, url_cloudinary, url_thumbnail')
+          .eq('id_signalement', id);
+
+        setSignalement(withSignalementPhotoUrls({ ...sigData, photos: photoRows || [] }));
+
+        setReporter(null);
+        const uid = sigData.id_utilisateur as string | undefined;
+        if (uid) {
+          const { data: rep } = await (supabase as any)
+            .from('utilisateur')
+            .select('nom, prenom, email')
+            .eq('id', uid)
+            .maybeSingle();
+          if (rep) setReporter(rep);
+        }
+
+        setDossier(null);
         if (sigData.id_dossier) {
-          const { data: dosData } = await (supabase as any)
+          const { data: dosData, error: dosErr } = await (supabase as any)
             .from('dossier_disparition')
-            .select('*, personne:id_personne(*)')
+            .select(
+              'id, numero_dossier, statut_dossier, id_personne, personne:personne(id, prenom, nom, nom_complet)',
+            )
             .eq('id', sigData.id_dossier)
             .single();
 
-          if (dosData) setDossier(dosData);
+          if (!dosErr && dosData) setDossier(dosData);
         }
       } catch (err: any) {
         setLoadError(err?.message || t('authority.signalementDetail.messages.loadError'));
@@ -89,7 +129,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
     };
 
     loadSignalement();
-  }, [id, addNotification, navigate]);
+  }, [id, addNotification, t]);
 
   // Ouvrir modal validation
   const openValidationModal = (decision: 'approuve' | 'rejete') => {
@@ -118,14 +158,14 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
         type: 'success',
       });
 
-      // Refresh
-      const { data } = await (supabase as any)
-        .from('signalement')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (data) setSignalement(data);
+      const { data: sigData } = await (supabase as any).from('signalement').select('*').eq('id', id).single();
+      if (sigData) {
+        const { data: photoRows } = await (supabase as any)
+          .from('photo')
+          .select('id, url_cloudinary, url_thumbnail')
+          .eq('id_signalement', id);
+        setSignalement(withSignalementPhotoUrls({ ...sigData, photos: photoRows || [] }));
+      }
       setShowValidationModal(false);
     } catch (err: any) {
       addNotification({
@@ -193,6 +233,65 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
                       signalement.statut_validation === 'en_verification' ||
                       !signalement.statut_validation;
 
+  const precisionNorm = signalement.precision_localisation
+    ? normalizeCertitudeKey(signalement.precision_localisation)
+    : '';
+  const precisionKey = signalement.precision_localisation
+    ? `authority.signalementDetail.precision.${precisionNorm || 'not_specified'}`
+    : null;
+  const precisionLabel = precisionKey
+    ? (() => {
+        const tr = t(precisionKey);
+        return tr === precisionKey ? String(signalement.precision_localisation) : tr;
+      })()
+    : null;
+
+  const certKey = `authority.signalements.certitude.${normalizeCertitudeKey(signalement.niveau_certitude)}`;
+  const certitudeLabel = (() => {
+    const translated = t(certKey);
+    return translated === certKey ? t('authority.signalements.certitude.notSpecified') : translated;
+  })();
+
+  const lat = signalement.latitude_observation != null ? Number(signalement.latitude_observation) : NaN;
+  const lng = signalement.longitude_observation != null ? Number(signalement.longitude_observation) : NaN;
+  const hasGps = Number.isFinite(lat) && Number.isFinite(lng);
+
+  const dossierPerson = dossier
+    ? Array.isArray(dossier.personne)
+      ? dossier.personne[0]
+      : dossier.personne
+    : null;
+
+  const photoUrlsUnique = (() => {
+    const raw = (signalement.photos || []) as string[];
+    const fromList = raw.filter((u) => typeof u === 'string' && u.length > 0);
+    const set = new Set<string>(fromList);
+    if (signalement.photo_url && typeof signalement.photo_url === 'string') set.add(signalement.photo_url);
+    return [...set];
+  })();
+
+  const formatJson = (v: unknown) => {
+    if (v == null) return null;
+    if (typeof v === 'string') return v.trim() || null;
+    try {
+      return JSON.stringify(v, null, 2);
+    } catch {
+      return String(v);
+    }
+  };
+
+  const boolLabel = (v: boolean | null | undefined) =>
+    v === true ? t('authority.signalementDetail.values.yes') : v === false ? t('authority.signalementDetail.values.no') : null;
+
+  const hasContextSection = Boolean(
+    signalement.contexte_observation ||
+      signalement.duree_observation ||
+      signalement.etat_personne_observee ||
+      signalement.accompagnement ||
+      signalement.direction_deplacement ||
+      signalement.moyen_deplacement,
+  );
+
   const content = (
       <div className={styles.container}>
         {/* Header */}
@@ -223,6 +322,13 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
             <h2><MapPin size={20} /> {t('authority.signalementDetail.sections.observationInfo')}</h2>
 
             <div className={styles.infoGrid}>
+              {signalement.numero_signalement && (
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.reportNumber')}</label>
+                  <span>{signalement.numero_signalement}</span>
+                </div>
+              )}
+
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.observationLocation')}</label>
                 <span>{signalement.lieu_observation || t('authority.signalementDetail.values.notProvided')}</span>
@@ -231,6 +337,16 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.city')}</label>
                 <span>{signalement.ville_observation || t('authority.signalementDetail.values.na')}</span>
+              </div>
+
+              <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.region')}</label>
+                <span>{signalement.region_observation || t('authority.signalementDetail.values.na')}</span>
+              </div>
+
+              <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.country')}</label>
+                <span>{signalement.pays_observation || t('authority.signalementDetail.values.na')}</span>
               </div>
 
               <div className={styles.infoItem}>
@@ -244,23 +360,77 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
 
               <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.certaintyLevel')}</label>
-                <span>
-                  {t(
-                    `authority.signalements.certitude.${signalement.niveau_certitude || 'probable'}`
-                  )}
-                </span>
+                <span>{certitudeLabel}</span>
               </div>
 
-              {signalement.latitude_observation && signalement.longitude_observation && (
+              <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.locationPrecision')}</label>
+                <span>{precisionLabel || signalement.precision_localisation || t('authority.signalementDetail.values.na')}</span>
+              </div>
+
+              {signalement.distance_observation && (
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.observationDistance')}</label>
+                  <span>{signalement.distance_observation}</span>
+                </div>
+              )}
+
+              {hasGps && (
                 <div className={styles.infoItem}>
                   <label>{t('authority.signalementDetail.fields.gpsCoordinates')}</label>
                   <span>
-                    {signalement.latitude_observation.toFixed(4)}, {signalement.longitude_observation.toFixed(4)}
+                    {lat.toFixed(4)}, {lng.toFixed(4)}
                   </span>
                 </div>
               )}
             </div>
           </div>
+
+          {hasContextSection ? (
+            <div className={styles.card}>
+              <h2>
+                <FileText size={20} /> {t('authority.signalementDetail.sections.context')}
+              </h2>
+              <div className={styles.infoGrid}>
+                {signalement.contexte_observation && (
+                  <div className={styles.infoItem} style={{ gridColumn: '1 / -1' }}>
+                    <label>{t('authority.signalementDetail.fields.observationContext')}</label>
+                    <span>{signalement.contexte_observation}</span>
+                  </div>
+                )}
+                {signalement.duree_observation && (
+                  <div className={styles.infoItem}>
+                    <label>{t('authority.signalementDetail.fields.observationDuration')}</label>
+                    <span>{signalement.duree_observation}</span>
+                  </div>
+                )}
+                {signalement.etat_personne_observee && (
+                  <div className={styles.infoItem}>
+                    <label>{t('authority.signalementDetail.fields.observedPersonState')}</label>
+                    <span>{signalement.etat_personne_observee}</span>
+                  </div>
+                )}
+                {signalement.accompagnement && (
+                  <div className={styles.infoItem}>
+                    <label>{t('authority.signalementDetail.fields.accompaniment')}</label>
+                    <span>{signalement.accompagnement}</span>
+                  </div>
+                )}
+                {signalement.direction_deplacement && (
+                  <div className={styles.infoItem}>
+                    <label>{t('authority.signalementDetail.fields.travelDirection')}</label>
+                    <span>{signalement.direction_deplacement}</span>
+                  </div>
+                )}
+                {signalement.moyen_deplacement && (
+                  <div className={styles.infoItem}>
+                    <label>{t('authority.signalementDetail.fields.travelMeans')}</label>
+                    <span>{signalement.moyen_deplacement}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
 
           {/* Description */}
           <div className={styles.card}>
@@ -269,6 +439,24 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
               <p>{signalement.description || t('authority.signalementDetail.values.noDescription')}</p>
             </div>
           </div>
+
+          {reporter && (
+            <div className={styles.card}>
+              <h2><User size={20} /> {t('authority.signalementDetail.sections.reporter')}</h2>
+              <div className={styles.infoGrid}>
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.reporter.name')}</label>
+                  <span>
+                    {`${reporter.prenom || ''} ${reporter.nom || ''}`.trim() || t('authority.signalementDetail.values.na')}
+                  </span>
+                </div>
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.reporter.email')}</label>
+                  <span>{reporter.email || t('authority.signalementDetail.values.na')}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Témoin */}
           <div className={styles.card}>
@@ -291,20 +479,25 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
                   <label>{t('authority.signalementDetail.witness.email')}</label>
                   <span>{signalement.email_temoin || t('authority.signalementDetail.values.notProvided')}</span>
                 </div>
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.acceptsFollowUp')}</label>
+                  <span>{boolLabel(signalement.accepte_contact_suivi) ?? t('authority.signalementDetail.values.na')}</span>
+                </div>
               </div>
             )}
           </div>
 
           {/* Photos */}
-          {(signalement.photos && signalement.photos.length > 0) || signalement.photo_url ? (
+          {photoUrlsUnique.length > 0 ? (
             <div className={styles.card}>
               <h2><Camera size={20} /> {t('authority.signalementDetail.sections.photos')}</h2>
               <div className={styles.photosGrid}>
-                {signalement.photo_url && (
-                  <img src={signalement.photo_url} alt={t('authority.signalementDetail.photos.altMain')} />
-                )}
-                {signalement.photos?.map((url: string, idx: number) => (
-                  <img key={idx} src={url} alt={`${t('authority.signalementDetail.photos.photo')} ${idx + 1}`} />
+                {photoUrlsUnique.map((url: string, idx: number) => (
+                  <img
+                    key={`${url}-${idx}`}
+                    src={url}
+                    alt={idx === 0 ? t('authority.signalementDetail.photos.altMain') : `${t('authority.signalementDetail.photos.photo')} ${idx + 1}`}
+                  />
                 ))}
               </div>
             </div>
@@ -320,8 +513,13 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
               >
                 <div>
                   <strong>{dossier.numero_dossier}</strong>
-                  {dossier.personne && (
-                    <span> - {dossier.personne.prenom} {dossier.personne.nom}</span>
+                  {dossierPerson && (
+                    <span>
+                      {' '}
+                      -{' '}
+                      {dossierPerson.nom_complet ||
+                        `${dossierPerson.prenom || ''} ${dossierPerson.nom || ''}`.trim()}
+                    </span>
                   )}
                 </div>
                 <span>→</span>
@@ -334,19 +532,85 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
             <h2><FileText size={20} /> {t('authority.signalementDetail.sections.metadata')}</h2>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.source')}</label>
+                <span>{signalement.source_signalement || t('authority.signalementDetail.values.na')}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.priority')}</label>
+                <span>{signalement.priorite_traitement || t('authority.signalementDetail.values.na')}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.publicDetail')}</label>
+                <span>{boolLabel(signalement.visible_detail_public) ?? t('authority.signalementDetail.values.na')}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <label>{t('authority.signalementDetail.fields.transmittedToAuthorities')}</label>
+                <span>{boolLabel(signalement.transmis_autorites) ?? t('authority.signalementDetail.values.na')}</span>
+              </div>
+              {signalement.date_transmission && (
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.transmissionDate')}</label>
+                  <span>{new Date(signalement.date_transmission).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                </div>
+              )}
+              {signalement.autorite_destinataire && (
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.recipientAuthority')}</label>
+                  <span>{signalement.autorite_destinataire}</span>
+                </div>
+              )}
+              {signalement.actions_entreprises && (
+                <div className={styles.infoItem} style={{ gridColumn: '1 / -1' }}>
+                  <label>{t('authority.signalementDetail.fields.actionsTaken')}</label>
+                  <span>{signalement.actions_entreprises}</span>
+                </div>
+              )}
+              <div className={styles.infoItem}>
                 <label>{t('authority.signalementDetail.fields.createdAt')}</label>
                 <span>{new Date(signalement.created_at).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
               </div>
-              {signalement.score_pertinence && (
+              {signalement.updated_at && (
                 <div className={styles.infoItem}>
-                  <label>{t('authority.signalementDetail.fields.relevanceScore')}</label>
-                  <span>{Math.round(signalement.score_pertinence * 100)}%</span>
+                  <label>{t('authority.signalementDetail.fields.updatedAt')}</label>
+                  <span>{new Date(signalement.updated_at).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
                 </div>
               )}
-              {signalement.score_correspondance && (
+              {signalement.score_pertinence != null && signalement.score_pertinence !== '' && (
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.relevanceScore')}</label>
+                  <span>
+                    {Number(signalement.score_pertinence) <= 1
+                      ? `${Math.round(Number(signalement.score_pertinence) * 100)}%`
+                      : String(signalement.score_pertinence)}
+                  </span>
+                </div>
+              )}
+              {signalement.score_correspondance != null && signalement.score_correspondance !== '' && (
                 <div className={styles.infoItem}>
                   <label>{t('authority.signalementDetail.fields.matchScore')}</label>
-                  <span>{Math.round(signalement.score_correspondance * 100)}%</span>
+                  <span>
+                    {Number(signalement.score_correspondance) <= 1
+                      ? `${Math.round(Number(signalement.score_correspondance) * 100)}%`
+                      : String(signalement.score_correspondance)}
+                  </span>
+                </div>
+              )}
+              {signalement.commentaire_verification && (
+                <div className={styles.infoItem} style={{ gridColumn: '1 / -1' }}>
+                  <label>{t('authority.signalementDetail.fields.verificationComment')}</label>
+                  <span>{signalement.commentaire_verification}</span>
+                </div>
+              )}
+              {signalement.date_verification && (
+                <div className={styles.infoItem}>
+                  <label>{t('authority.signalementDetail.fields.verificationDate')}</label>
+                  <span>{new Date(signalement.date_verification).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                </div>
+              )}
+              {formatJson(signalement.raisons_score) && (
+                <div className={styles.infoItem} style={{ gridColumn: '1 / -1' }}>
+                  <label>{t('authority.signalementDetail.fields.scoreReasons')}</label>
+                  <pre className={styles.jsonBlock}>{formatJson(signalement.raisons_score)}</pre>
                 </div>
               )}
             </div>

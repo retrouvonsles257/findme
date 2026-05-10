@@ -741,6 +741,11 @@
     "operational": "Operational",
     "followUp": "Follow-up"
   },
+  "search": {
+    "hint": "Enter a term and press Enter or the button to search.",
+    "submit": "Search",
+    "emptyPersonnes": "No people match this search."
+  },
   "header": {
       "searchPlaceholder": "Search a file, a person...",
       "new": "New",
@@ -764,7 +769,7 @@
       }
     },
   "sidebar": {
-    "appName": "Retrouvons-Les",
+    "appName": "Retrouvons\u2011Les",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "editProfile": "Edit profile",
@@ -820,7 +825,14 @@
   "addNote": "Add Note",
   "assignTeam": "Assign Team",
   "signalements": {
+    "pageHeading": "Reports",
     "title": "Report Validation",
+    "tabs": {
+      "list": "List view",
+      "treatment": "Processing queue",
+      "aria": "Report display modes"
+    },
+    "treatmentSubtitle": "Advanced filters, dossier preview and detailed validation",
     "subtitle": "{{count}} report pending validation",
     "subtitlePlural": "{{count}} reports pending validation",
     "refresh": "Refresh",
@@ -1228,27 +1240,65 @@
     },
     "sections": {
       "observationInfo": "Observation information",
+      "context": "Observation context",
       "description": "Description",
+      "reporter": "Reporter (account)",
       "witnessInfo": "Witness information",
       "photos": "Photos",
       "linkedDossier": "Linked dossier",
       "metadata": "Metadata"
     },
+    "reporter": {
+      "name": "Name",
+      "email": "Email"
+    },
+    "precision": {
+      "exacte": "Exact location",
+      "approximative": "Approximate location",
+      "inconnue": "Unknown location",
+      "generale": "General area",
+      "not_specified": "Not specified"
+    },
     "fields": {
+      "reportNumber": "Report number",
       "observationLocation": "Observation location",
       "city": "City",
+      "region": "Region",
+      "country": "Country",
       "observationDate": "Observation date",
       "certaintyLevel": "Certainty level",
+      "locationPrecision": "Location precision",
+      "observationDistance": "Observation distance",
       "gpsCoordinates": "GPS coordinates",
+      "observationContext": "Context",
+      "observationDuration": "Observation duration",
+      "observedPersonState": "Observed person state",
+      "accompaniment": "Accompaniment",
+      "travelDirection": "Direction of travel",
+      "travelMeans": "Means of travel",
+      "acceptsFollowUp": "Accepts follow-up contact",
+      "source": "Source",
+      "priority": "Processing priority",
+      "publicDetail": "Public detail visible",
+      "transmittedToAuthorities": "Transmitted to authorities",
+      "transmissionDate": "Transmission date",
+      "recipientAuthority": "Recipient authority",
+      "actionsTaken": "Actions taken",
       "createdAt": "Created at",
+      "updatedAt": "Last updated",
       "relevanceScore": "Relevance score",
-      "matchScore": "Match score"
+      "matchScore": "Match score",
+      "verificationComment": "Verification comment",
+      "verificationDate": "Verification date",
+      "scoreReasons": "Score rationale"
     },
     "values": {
       "notProvided": "Not provided",
       "notProvidedFeminine": "Not provided",
       "na": "N/A",
-      "noDescription": "No description provided"
+      "noDescription": "No description provided",
+      "yes": "Yes",
+      "no": "No"
     },
     "witness": {
       "anonymous": "This report was submitted anonymously",

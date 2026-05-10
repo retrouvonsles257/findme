@@ -62,10 +62,11 @@ export const AUTHORITY_ROUTES = {
   DOSSIER_EDIT: '/authority/dossiers/:id/edit',
   ALERTES: '/authority/alertes',
   SIGNALEMENTS: '/authority/signalements',
-  FILE_SIGNALEMENTS: '/authority/file-signalements',
+  FILE_SIGNALEMENTS: '/authority/signalements?vue=traitement',
   IA_ANALYSIS: '/authority/ia-analysis',
   IA_RESULTATS: '/authority/ia-resultats',
-  TABLEAU_MODERATION: '/authority/tableau-moderation',
+  /** @deprecated Redirige vers la file signalements ; conserver pour liens profonds. */
+  TABLEAU_MODERATION: '/authority/signalements?vue=traitement',
   INVESTIGATION: '/authority/investigation',
   COORDINATION: '/authority/coordination',
   STATISTIQUES: '/authority/statistiques',

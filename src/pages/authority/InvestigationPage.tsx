@@ -6,8 +6,11 @@
  * =====================================================
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../store/hooks';
+import { selectCurrentUser } from '../../features/users/store/userSelectors';
+import { NomRole } from '../../@types/enums.types';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { useSignalementsForDossier } from '../../features/signalements/hooks/useSignalementsForDossier';
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
@@ -50,11 +53,21 @@ interface NewSuspect {
   relation: string;
 }
 
+const OPEN_DOSSIER_STATUTS = new Set(['en_cours', 'actif', 'recherche_active']);
+
 export const InvestigationPage: React.FC = () => {
   const navigate = useNavigate();
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
-  const { dossiers, isLoading } = useDossiers();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const dossierCriteria = useMemo(() => {
+    const orgId = (currentUser as { organisation_id?: string | null })?.organisation_id;
+    if (currentUser?.role === NomRole.AUTORITE && orgId) {
+      return { organisation_id: orgId };
+    }
+    return undefined;
+  }, [currentUser?.role, (currentUser as { organisation_id?: string | null })?.organisation_id]);
+  const { dossiers, isLoading } = useDossiers({ initialCriteria: dossierCriteria });
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
 
@@ -273,9 +286,9 @@ export const InvestigationPage: React.FC = () => {
                 <div className={styles.skeletonWrapLeft}>
                   <AdminDetailSkeleton blockCount={1} linesPerBlock={5} />
                 </div>
-              ) : dossiers.filter((d: any) => d.statut_dossier === 'en_cours').length > 0 ? (
+              ) : dossiers.filter((d: any) => OPEN_DOSSIER_STATUTS.has(d.statut_dossier)).length > 0 ? (
                 dossiers
-                  .filter((d: any) => d.statut_dossier === 'en_cours')
+                  .filter((d: any) => OPEN_DOSSIER_STATUTS.has(d.statut_dossier))
                   .map((d: any) => (
                     <div
                       key={d.id}

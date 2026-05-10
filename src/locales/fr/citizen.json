@@ -304,6 +304,8 @@
     "clearAll": "Tout supprimer",
     "pending": "En attente",
     "profileUpdated": "Profil mis à jour avec succès",
+    "identityVerificationNotifTitle": "Demande de vérification reçue",
+    "identityVerificationNotifMessage": "Votre document a bien été transmis. Vous recevrez une notification lorsque votre identité aura été examinée.",
     "role": "Citoyen",
     "helpFindPerson": "Aidez à retrouver",
     "webApp": "Application web",

@@ -223,8 +223,13 @@ export const LoginPage: React.FC = () => {
       <div className={styles.shell}>
         <header className={styles.brand}>
           <p className={styles.brandName}>
-            <span className={styles.brandAccent}>Retrouvons</span>{' '}
-            <span>-Les</span>
+            <span className={styles.brandNameLine} title="Retrouvons-Les">
+              <span className={styles.brandAccent}>Retrouvons</span>
+              <span className={styles.brandHyphen} aria-hidden="true">
+                {'\u2011'}
+              </span>
+              <span>Les</span>
+            </span>
           </p>
           <p className={styles.brandTagline}>
             Plateforme de signalement et d’entraide pour les personnes disparues.

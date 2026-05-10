@@ -46,6 +46,23 @@ import styles from './AlertesPage.module.css';
 
 type FilterType = 'all' | 'brouillon' | 'en_cours' | 'terminee' | 'annulee';
 
+function alerteTypeLabel(type: string | null | undefined, t: (k: string) => string): string {
+  if (!type || !String(type).trim()) return t('authority.alertes.typeStandard');
+  const raw = String(type).trim().toLowerCase().replace(/-/g, '_');
+  const legacyMap: Record<string, string> = {
+    disparition_standard: 'standard',
+    disparition_enfant: 'child',
+    disparition_adulte_vulnerable: 'vulnerable',
+    amber_alert: 'amber',
+    mise_a_jour: 'update',
+    personne_retrouvee: 'found',
+  };
+  const slug = legacyMap[raw] || raw;
+  const key = `authority.alertes.createAlerte.form.types.${slug}`;
+  const out = t(key);
+  return out === key ? String(type) : out;
+}
+
 export interface AlertesPageProps {
   /** When true, render only content (no AuthorityLayout). Used by admin org pages. */
   noLayout?: boolean;
@@ -307,7 +324,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
                     </span>
                     <span className={styles.metaItem}>
                       <Tag size={14} />
-                      {alerte.type_alerte || t('authority.alertes.typeStandard')}
+                      {alerteTypeLabel(alerte.type_alerte, t)}
                     </span>
                     <span className={styles.metaItem}>
                       <MapPin size={14} />
@@ -404,7 +421,8 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
                           'terminee': 'authority.alertes.empty.noterminee',
                           'annulee': 'authority.alertes.empty.noannulee',
                         };
-                        return t(emptyKeys[filter] || 'authority.alertes.empty.noAlerts');
+                        const emptyKey = emptyKeys[filter as keyof typeof emptyKeys];
+                        return t(emptyKey ?? 'authority.alertes.empty.noAlerts');
                       })()
                     : t('authority.alertes.empty.noAlerts')}
               </p>
@@ -413,7 +431,7 @@ export const AlertesPage: React.FC<AlertesPageProps> = ({ noLayout = false, base
                 onClick={() => navigate(`${basePath}/alertes/new`)}
               >
                 <Plus size={18} />
-                {t('authority.alertes.createAlerte')}
+                {t('authority.alertes.newAlerte')}
               </button>
             </div>
           )}

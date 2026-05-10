@@ -304,6 +304,8 @@
   "clearAll": "Clear all",
   "pending": "Pending",
   "profileUpdated": "Profile updated successfully",
+  "identityVerificationNotifTitle": "Verification request received",
+  "identityVerificationNotifMessage": "Your document has been submitted. You will be notified when your identity has been reviewed.",
   "role": "Citizen",
   "helpFindPerson": "Help find",
   "webApp": "Web application",

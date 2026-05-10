@@ -112,6 +112,47 @@ const getActiveDossiersWithPhotos = async (): Promise<Array<{
 };
 
 /**
+ * Notifie le créateur d'un dossier lors d'un match IA prioritaire (score très élevé),
+ * en complément des notifications envoyées aux autorités.
+ */
+const notifyDossierCreatorIamatchPrioritaire = async (
+  targetDossierId: string,
+  otherDossierLabel: string,
+  score: number,
+  resultatIaId: string,
+): Promise<void> => {
+  try {
+    const { data: d } = await db
+      .from('dossier_disparition')
+      .select('id_utilisateur_createur')
+      .eq('id', targetDossierId)
+      .maybeSingle();
+    const createurId = (d as any)?.id_utilisateur_createur as string | undefined;
+    if (!createurId) return;
+
+    await db.from('notification').insert({
+      id_utilisateur: createurId,
+      type_notification: 'correspondance_ia',
+      titre: 'Analyse IA : correspondance forte',
+      message: `Une correspondance prioritaire (${Math.round(score)} %) a été détectée avec la fiche ${otherDossierLabel}. Les autorités ont été informées.`,
+      priorite: 'haute',
+      canal: 'push',
+      lue: false,
+      id_dossier: targetDossierId,
+      date_creation: new Date().toISOString(),
+      donnees_supplementaires: {
+        resultat_ia_id: resultatIaId,
+        event: 'ia_match_prioritaire_citoyen',
+        autre_dossier_label: otherDossierLabel,
+        score,
+      },
+    });
+  } catch (error) {
+    console.error('[IAAutoTrigger] notifyDossierCreatorIamatchPrioritaire error:', error);
+  }
+};
+
+/**
  * Crée une notification pour les autorités
  */
 const createAuthorityNotification = async (
@@ -304,6 +345,30 @@ export const triggerAutoAnalysis = async (
                 comparison.similarity >= SEUIL_MATCH_ELEVE ? 'match_prioritaire' : 'correspondance_ia'
               );
               notificationsSent++;
+
+              if (comparison.similarity >= SEUIL_MATCH_ELEVE && request.dossierId) {
+                const rid = comparisonResult?.id || analysisResult.id;
+                await notifyDossierCreatorIamatchPrioritaire(
+                  request.dossierId,
+                  dossier.numero_dossier,
+                  comparison.similarity,
+                  rid,
+                );
+                if (dossier.id !== request.dossierId) {
+                  const { data: srcD } = await db
+                    .from('dossier_disparition')
+                    .select('numero_dossier')
+                    .eq('id', request.dossierId)
+                    .maybeSingle();
+                  const srcNum = (srcD as any)?.numero_dossier || request.dossierId;
+                  await notifyDossierCreatorIamatchPrioritaire(
+                    dossier.id,
+                    srcNum,
+                    comparison.similarity,
+                    rid,
+                  );
+                }
+              }
             }
           }
         } catch {

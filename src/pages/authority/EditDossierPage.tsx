@@ -11,6 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { supabase } from '../../config';
+import { patchDossierAndNotify } from '../../features/dossiers/services/dossierAPI';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
 import { AdminDetailSkeleton } from 'components/skeletons';
@@ -135,28 +136,22 @@ export const EditDossierPage: React.FC = () => {
       const status = formData.statut_dossier;
       const shouldSetResolution = status.includes('retrouve') || status === 'classe_sans_suite';
 
-      // 1) Mettre à jour le dossier (champs existants uniquement)
-      const { error } = await (supabase as any)
-        .from('dossier_disparition')
-        .update({
-          niveau_urgence: formData.niveau_urgence,
-          statut_dossier: formData.statut_dossier,
-          lieu_disparition: formData.lieu_disparition,
-          ville_disparition: formData.ville_disparition,
-          circonstances: formData.circonstances,
-          derniere_activite_connue: formData.derniere_activite_connue,
-          visible_public: formData.visible_public,
-          diffusion_autorisee: formData.diffusion_autorisee,
-          contact_famille_principale: formData.contact_nom,
-          telephone_contact: formData.contact_telephone,
-          email_contact: formData.contact_email,
-          updated_at: nowIso,
-          derniere_activite: nowIso,
-          date_resolution: shouldSetResolution ? (dossier?.date_resolution || nowIso) : null,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
+      // 1) Mettre à jour le dossier + notifications push si le statut change
+      await patchDossierAndNotify(id, {
+        niveau_urgence: formData.niveau_urgence,
+        statut_dossier: formData.statut_dossier,
+        lieu_disparition: formData.lieu_disparition,
+        ville_disparition: formData.ville_disparition,
+        circonstances: formData.circonstances,
+        derniere_activite_connue: formData.derniere_activite_connue,
+        visible_public: formData.visible_public,
+        diffusion_autorisee: formData.diffusion_autorisee,
+        contact_famille_principale: formData.contact_nom,
+        telephone_contact: formData.contact_telephone,
+        email_contact: formData.contact_email,
+        updated_at: nowIso,
+        date_resolution: shouldSetResolution ? (dossier?.date_resolution || nowIso) : null,
+      });
 
       // 2) Mettre à jour la personne liée (vêtements / accessoires)
       const personneId = dossier?.id_personne as string | undefined;

@@ -51,6 +51,19 @@
   color: transparent;
 }
 
+.brandNameLine {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.brandHyphen {
+  color: var(--color-text, #1f2937);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .brandTagline {
   margin: 0.35rem 0 0;
   font-size: var(--text-sm, 0.875rem);

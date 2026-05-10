@@ -6,6 +6,7 @@
  */
 
 import { supabase, envConfig } from '../../../config';
+import { notifyDossierStatusChange } from '../../dossiers/services/dossierAPI';
 
 const db = (table: string) => (supabase as any).from(table);
 
@@ -1545,6 +1546,13 @@ export async function updateAdminDossier(
   dossierId: string,
   payload: AdminDossierUpdatePayload
 ): Promise<AdminDossierRow> {
+  const { data: beforeRow } = await db('dossier_disparition')
+    .select('statut_dossier')
+    .eq('id', dossierId)
+    .eq('id_organisation_responsable', organisationId)
+    .maybeSingle();
+  const previousStatut = (beforeRow as any)?.statut_dossier as string | null | undefined;
+
   const clean: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (payload.date_disparition !== undefined) clean.date_disparition = payload.date_disparition;
   if (payload.date_derniere_observation !== undefined) clean.date_derniere_observation = payload.date_derniere_observation;
@@ -1568,6 +1576,15 @@ export async function updateAdminDossier(
     .select()
     .single();
   if (error) throw error;
+
+  if (payload.statut_dossier !== undefined && payload.statut_dossier !== previousStatut) {
+    try {
+      await notifyDossierStatusChange(dossierId, previousStatut ?? null, payload.statut_dossier as string);
+    } catch {
+      /* notification secondaire : ne pas bloquer la mise à jour dossier */
+    }
+  }
+
   return data;
 }
 

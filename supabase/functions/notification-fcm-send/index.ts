@@ -345,7 +345,10 @@ serve(async (req) => {
     logLine('skip', {
       reqId,
       reason: 'no_fcm_tokens',
-      hint: 'lutilisateur doit ouvrir son espace (citoyen/autorite), accepter les notifications et enregistrer un token FCM',
+      userId: String(userId).slice(0, 8) + '…',
+      type_compte: u.type_compte,
+      accepte_notifications: u.accepte_notifications,
+      hint: 'client doit exécuter register_fcm_token (logs navigateur [PushFCM])',
     });
     return json({ ok: true, skipped: true, reason: 'no fcm tokens', reqId });
   }

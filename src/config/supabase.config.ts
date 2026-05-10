@@ -297,9 +297,18 @@ export const signInWithFacebook = async () => {
 };
 
 /**
- * Déconnexion
+ * Déconnexion (révoque aussi les jetons FCM navigateur + lignes BDD pour ce compte).
  */
 export const signOut = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) {
+      const { revokeFcmPushForLogout } = await import('../features/notifications/services/fcmTokenAPI');
+      await revokeFcmPushForLogout(user.id);
+    }
+  } catch (e) {
+    console.warn('[supabase] revokeFcmPushForLogout avant signOut:', e);
+  }
   return await supabase.auth.signOut();
 };
 

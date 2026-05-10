@@ -55,7 +55,7 @@ const mapLegacyAdminPath = (pathname: string): string => {
   if (suffix === '/verification-identite') return '/authority/verifications-identite';
   if (suffix === '/personnes') return '/authority/personnes';
   if (suffix.match(/^\/personnes\/[^/]+$/)) return suffix.replace('/personnes/', '/authority/personnes/');
-  if (suffix === '/signalements-en-attente') return '/authority/file-signalements';
+  if (suffix === '/signalements-en-attente') return '/authority/signalements?vue=traitement';
   if (suffix === '/campagnes' || suffix === '/campagnes/create') return '/authority/donations';
   if (suffix === '/cas' || suffix === '/cas/create') return '/authority/dossiers';
   if (suffix === '/ressources' || suffix === '/partenariats') return '/authority/coordination';

@@ -20,6 +20,57 @@ import type {
 // Helper to bypass Supabase typing issues
 const db = () => (supabase as any);
 
+async function notifyAuthoritiesSignalementModerated(
+  dossierId: string,
+  signalementId: string,
+  verificateurId: string,
+  decision: string,
+): Promise<void> {
+  try {
+    const { data: dossier } = await db()
+      .from('dossier_disparition')
+      .select('id_organisation_responsable, numero_dossier')
+      .eq('id', dossierId)
+      .maybeSingle();
+    const organisationId = (dossier as any)?.id_organisation_responsable as string | undefined;
+    if (!organisationId) return;
+
+    const { data: authorities } = await db()
+      .from('utilisateur')
+      .select('id')
+      .eq('type_compte', 'autorite')
+      .eq('statut_compte', 'actif')
+      .eq('accepte_notifications', true)
+      .eq('id_organisation', organisationId);
+
+    const nowIso = new Date().toISOString();
+    const rows = (authorities || [])
+      .filter((u: any) => u.id && u.id !== verificateurId)
+      .map((u: any) => ({
+        id_utilisateur: u.id,
+        type_notification: 'autre',
+        titre: 'Signalement traité par la modération',
+        message: `Un signalement sur le dossier ${(dossier as any)?.numero_dossier || dossierId} a été traité (décision : ${decision}).`,
+        canal: 'push',
+        priorite: 'moyenne',
+        lue: false,
+        id_dossier: dossierId,
+        date_creation: nowIso,
+        donnees_supplementaires: {
+          signalement_id: signalementId,
+          event: 'signalement_moderation',
+          decision,
+        },
+      }));
+
+    if (rows.length > 0) {
+      await db().from('notification').insert(rows);
+    }
+  } catch (error) {
+    console.error('[signalementAPI] notifyAuthoritiesSignalementModerated error:', error);
+  }
+}
+
 async function notifyAuthoritiesForNewSignalement(signalementId: string, dossierId: string): Promise<void> {
   try {
     const { data: dossier } = await db()
@@ -408,6 +459,10 @@ export async function addSignalementVerification(
         score_confiance: payload.score_confiance,
       },
     });
+
+    if (idDossier) {
+      await notifyAuthoritiesSignalementModerated(idDossier, signalementId, verificateurId, payload.decision);
+    }
   }
 
   // Return a verification object

@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '../../config';
+import { revokeFcmPushForLogout } from '../../features/notifications/services/fcmTokenAPI';
 import { normalizeAppRole, normalizeAppRoles } from '../../utils/normalizeAppRole';
 
 export { normalizeAppRole, normalizeAppRoles };
@@ -696,6 +697,14 @@ class SupabaseAuthService {
     try {
       const { data: { user } } = await (supabase as any).auth.getUser();
 
+      if (user?.id) {
+        try {
+          await revokeFcmPushForLogout(user.id);
+        } catch (e) {
+          console.warn('[auth] revokeFcmPushForLogout:', e);
+        }
+      }
+
       if (user) {
         await logActivity({
           type_action: 'deconnexion',
@@ -1307,6 +1316,13 @@ export async function getCurrentUser(): Promise<{ user: any; error: any }> {
 
 export async function signOut(): Promise<{ error: any }> {
   const { user } = await getCurrentUser();
+  if (user?.id) {
+    try {
+      await revokeFcmPushForLogout(user.id);
+    } catch (e) {
+      console.warn('[auth] revokeFcmPushForLogout (signOut):', e);
+    }
+  }
   if (user) {
     await logActivity({
       type_action: 'deconnexion',

@@ -229,7 +229,7 @@ export const ModerationDashboardPage: React.FC<ModerationDashboardPageProps> = (
       title: t('moderation.validateReports'),
       description: t('moderation.validateDescription'),
       icon: CheckCircle,
-      onClick: () => navigate('/authority/file-signalements'),
+      onClick: () => navigate('/authority/signalements?vue=traitement'),
       primary: true,
     },
     {
@@ -460,7 +460,7 @@ export const ModerationDashboardPage: React.FC<ModerationDashboardPageProps> = (
                       </div>
                       <button
                         className={styles['mod-dashboard__activity-action']}
-                        onClick={() => navigate('/authority/file-signalements')}
+                        onClick={() => navigate('/authority/signalements?vue=traitement')}
                       >
                         {t('common.view')}
                       </button>
@@ -477,7 +477,7 @@ export const ModerationDashboardPage: React.FC<ModerationDashboardPageProps> = (
   if (noLayout) return content;
 
   return (
-    <ModerationLayout title={t('common.dashboard')} activeNav="dashboard">
+    <ModerationLayout title={t('common.dashboard')} activeNav="validation">
       {content}
     </ModerationLayout>
   );

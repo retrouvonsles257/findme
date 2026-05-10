@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileSearch,
   Search,
@@ -23,6 +23,8 @@ import {
   X,
   ThumbsUp,
   ThumbsDown,
+  LayoutList,
+  ListFilter,
 } from 'lucide-react';
 import { useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
@@ -34,6 +36,7 @@ import { useNotification } from '../../contexts';
 import { AuthorityLayout } from '../../components/layout';
 import { useI18n } from '../../hooks';
 import { AdminCardsGridSkeleton } from 'components/skeletons';
+import { SignalementsValidationPage } from './moderation/SignalementsValidationPage';
 import styles from './SignalementsPage.module.css';
 
 type FilterType = 'all' | 'en_attente' | 'en_verification' | 'valide' | 'invalide';
@@ -46,6 +49,20 @@ export interface SignalementsPageProps {
 
 export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = false, basePath = '/authority' }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('vue') === 'traitement' ? 'traitement' : 'liste';
+
+  const setTab = useCallback(
+    (tab: 'liste' | 'traitement') => {
+      if (tab === 'traitement') {
+        setSearchParams({ vue: 'traitement' }, { replace: true });
+      } else {
+        setSearchParams({}, { replace: true });
+      }
+    },
+    [setSearchParams],
+  );
+
   const { user } = useAuth();
   const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
@@ -58,8 +75,9 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
   }, [currentUser?.role, currentUser?.organisation_id]);
 
   useEffect(() => {
+    if (activeTab !== 'liste') return;
     fetchSignalements(orgFilter, 1);
-  }, [orgFilter, fetchSignalements]);
+  }, [orgFilter, fetchSignalements, activeTab]);
   const { t, language } = useI18n();
   const { 
     validateSignalement, 
@@ -190,33 +208,8 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
     }
   };
 
-  const content = (
-    <div className={styles.authoritySignalements}>
-        {/* Page Header */}
-        <header className={styles.pageHeader}>
-          <div className={styles.headerContent}>
-            <div className={styles.titleSection}>
-              <h1 className={styles.pageTitle}>
-                <FileSearch size={24} />
-                {t('authority.signalements.title')}
-              </h1>
-              <p className={styles.pageSubtitle}>
-                {countByStatus.en_attente === 1
-                  ? t('authority.signalements.subtitle').replace('{{count}}', String(countByStatus.en_attente))
-                  : t('authority.signalements.subtitlePlural').replace('{{count}}', String(countByStatus.en_attente))}
-              </p>
-            </div>
-            <button 
-              className={styles.refreshButton}
-              onClick={() => fetchSignalements(orgFilter, 1)}
-              disabled={isLoading}
-            >
-              <RefreshCw size={18} className={isLoading ? styles.spinning : ''} />
-              <span>{t('authority.signalements.refresh')}</span>
-            </button>
-          </div>
-        </header>
-
+  const listView = (
+    <>
         {/* Stats Bar */}
         <div className={styles.statsBar}>
           <button 
@@ -471,6 +464,59 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
             </div>
           </div>
         )}
+    </>
+  );
+
+  const content = (
+    <div className={styles.authoritySignalements}>
+        <header className={styles.pageHeader}>
+          <div className={styles.headerContent}>
+            <div className={styles.titleSection}>
+              <h1 className={styles.pageTitle}>
+                <FileSearch size={24} />
+                {t('authority.signalements.pageHeading')}
+              </h1>
+              <p className={styles.pageSubtitle}>
+                {activeTab === 'traitement'
+                  ? t('authority.signalements.treatmentSubtitle')
+                  : countByStatus.en_attente === 1
+                    ? t('authority.signalements.subtitle').replace('{{count}}', String(countByStatus.en_attente))
+                    : t('authority.signalements.subtitlePlural').replace('{{count}}', String(countByStatus.en_attente))}
+              </p>
+            </div>
+            {activeTab === 'liste' && (
+              <button
+                type="button"
+                className={styles.refreshButton}
+                onClick={() => fetchSignalements(orgFilter, 1)}
+                disabled={isLoading}
+              >
+                <RefreshCw size={18} className={isLoading ? styles.spinning : ''} />
+                <span>{t('authority.signalements.refresh')}</span>
+              </button>
+            )}
+          </div>
+          <nav className={styles.signalementsTabs} aria-label={t('authority.signalements.tabs.aria')}>
+            <button
+              type="button"
+              className={`${styles.signalementsTab} ${activeTab === 'liste' ? styles.signalementsTabActive : ''}`}
+              onClick={() => setTab('liste')}
+            >
+              <LayoutList size={18} aria-hidden />
+              {t('authority.signalements.tabs.list')}
+            </button>
+            <button
+              type="button"
+              className={`${styles.signalementsTab} ${activeTab === 'traitement' ? styles.signalementsTabActive : ''}`}
+              onClick={() => setTab('traitement')}
+            >
+              <ListFilter size={18} aria-hidden />
+              {t('authority.signalements.tabs.treatment')}
+            </button>
+          </nav>
+        </header>
+
+        {activeTab === 'liste' ? listView : <SignalementsValidationPage noLayout />}
     </div>
   );
 

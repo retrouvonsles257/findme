@@ -7,6 +7,7 @@
 
 // Dashboard
 export { DashboardPage } from './DashboardPage';
+export { AuthoritySearchPage } from './AuthoritySearchPage';
 
 // Dossiers
 export { DossiersPage } from './DossiersPage';
@@ -27,7 +28,6 @@ export { SignalementDetailPage } from './SignalementDetailPage';
 export { InvestigationPage } from './InvestigationPage';
 export { IAAnalysisPage } from './IAAnalysisPage';
 export { IAResultsCatalogAuthorityPage } from './IAResultsCatalogAuthorityPage';
-export { ModerationOverviewAuthorityPage } from './ModerationOverviewAuthorityPage';
 export {
   OrganisationEquipeListAuthorityPage,
   OrganisationEquipeNewAuthorityPage,
@@ -44,7 +44,6 @@ export { PhotosModerationPage } from './PhotosModerationPage';
 export { ModerationReportsPage } from './ModerationReportsPage';
 export { ModerationActivityHistoryPage } from './ModerationActivityHistoryPage';
 export { ModerationIdentityVerificationPage } from './ModerationIdentityVerificationPage';
-export { SignalementsFileAvancePage } from './SignalementsFileAvancePage';
 
 // Coordination
 export { CoordinationPage } from './CoordinationPage';

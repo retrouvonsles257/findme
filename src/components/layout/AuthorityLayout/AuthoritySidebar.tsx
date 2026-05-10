@@ -19,7 +19,6 @@ import {
   Image,
   BarChart3,
   Table2,
-  ClipboardList,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -31,7 +30,6 @@ import {
   Map,
   Heart,
   Contact,
-  ListFilter,
   History,
   UserCheck,
   UserCog,
@@ -54,14 +52,12 @@ type AuthorityNavId =
   | 'personnes'
   | 'alertes'
   | 'signalements'
-  | 'file-signalements'
   | 'photos-moderation'
   | 'rapports-signalements'
   | 'map-view'
   | 'investigation'
   | 'ia-analysis'
   | 'ia-resultats'
-  | 'tableau-moderation'
   | 'coordination'
   | 'donations'
   | 'statistiques'
@@ -93,12 +89,6 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
       { id: 'personnes', labelKey: 'authority.menu.personnes', path: '/authority/personnes', icon: Contact },
       { id: 'alertes', labelKey: 'authority.menu.alertes', path: '/authority/alertes', icon: Bell },
       { id: 'signalements', labelKey: 'authority.menu.signalements', path: '/authority/signalements', icon: FileSearch },
-      {
-        id: 'file-signalements',
-        labelKey: 'authority.menu.fileSignalements',
-        path: '/authority/file-signalements',
-        icon: ListFilter,
-      },
       { id: 'photos-moderation', labelKey: 'authority.menu.photosModeration', path: '/authority/photos-moderation', icon: Image },
       {
         id: 'rapports-signalements',
@@ -122,12 +112,6 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
     groupKey: 'followUp',
     labelKey: 'authority.nav.followUp',
     items: [
-      {
-        id: 'tableau-moderation',
-        labelKey: 'authority.menu.moderationOverview',
-        path: '/authority/tableau-moderation',
-        icon: ClipboardList,
-      },
       {
         id: 'historique-activite',
         labelKey: 'authority.menu.activityHistory',

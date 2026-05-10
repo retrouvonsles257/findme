@@ -276,6 +276,15 @@ export const setupAuthListener = (
  */
 export const logoutAuthService = async (): Promise<AuthError | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) {
+      try {
+        const { revokeFcmPushForLogout } = await import('../../notifications/services/fcmTokenAPI');
+        await revokeFcmPushForLogout(user.id);
+      } catch (e) {
+        console.warn('[authService] revokeFcmPushForLogout:', e);
+      }
+    }
     const { error } = await supabase.auth.signOut();
 
     clearSession();

@@ -200,6 +200,58 @@ export const CitizenProfilePage: React.FC = () => {
 
       if (dbError) throw dbError;
 
+      const { data: profil } = await (supabase as any)
+        .from('utilisateur')
+        .select('id_organisation')
+        .eq('id', userId)
+        .maybeSingle();
+
+      const orgId = profil?.id_organisation ?? null;
+      const nowIso = new Date().toISOString();
+
+      const { data: pendingDemande } = await (supabase as any)
+        .from('demande_verification_identite')
+        .select('id')
+        .eq('id_utilisateur', userId)
+        .eq('statut', 'en_attente')
+        .maybeSingle();
+
+      if (pendingDemande?.id) {
+        const { error: upDemande } = await (supabase as any)
+          .from('demande_verification_identite')
+          .update({
+            url_document: verificationDocUrl,
+            type_document: 'autre',
+            id_organisation: orgId,
+            updated_at: nowIso,
+          })
+          .eq('id', pendingDemande.id);
+        if (upDemande) throw upDemande;
+      } else {
+        const { error: insDemande } = await (supabase as any).from('demande_verification_identite').insert({
+          id_utilisateur: userId,
+          id_organisation: orgId,
+          statut: 'en_attente',
+          type_document: 'autre',
+          url_document: verificationDocUrl,
+          created_at: nowIso,
+          updated_at: nowIso,
+        });
+        if (insDemande) throw insDemande;
+      }
+
+      const { error: notifErr } = await (supabase as any).from('notification').insert({
+        type_notification: 'autre',
+        titre: t('citizen.identityVerificationNotifTitle'),
+        message: t('citizen.identityVerificationNotifMessage'),
+        canal: 'push',
+        lue: false,
+        date_creation: nowIso,
+        id_utilisateur: userId,
+        donnees_supplementaires: { kind: 'identity_verification_submitted' },
+      });
+      if (notifErr) console.warn('notification identity verification:', notifErr);
+
       setSuccess('Demande de vérification envoyée. Un modérateur va examiner votre document.');
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {

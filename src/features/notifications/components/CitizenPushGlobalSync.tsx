@@ -3,7 +3,7 @@
  * quel que soit la route (/citizen, /auth, page d’accueil…).
  * Indispensable pour que le SW reste utilisable et que les pushes arrivent hors espace citoyen / onglet fermé (selon OS/navigateur).
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAppSelector } from '../../../store/types';
 import { selectUser } from '../../auth/store/authSelectors';
 import { TypeCompte } from '../../../@types/enums.types';
@@ -14,16 +14,27 @@ export const CitizenPushGlobalSync: React.FC = () => {
     id?: string;
     typeCompte?: string;
     type_compte?: string;
+    role?: string;
+    organisation_id?: string;
     is_anonymous?: boolean;
   } | null;
 
   const userId = user?.id;
   const type = user?.typeCompte || user?.type_compte;
   const isCitizen = type === TypeCompte.GRAND_PUBLIC;
-  /** Invité anonyme = quand même `grand_public` avec `auth.uid()` : FCM + Realtime comme un citoyen connecté. */
+  /** Invité anonyme en `grand_public` : même `effectiveUserId` (pas exclu du sync si ce composant est monté). */
   const effectiveUserId = userId && isCitizen ? userId : undefined;
 
-  useCitizenPushSync(effectiveUserId, { isGuest: !effectiveUserId });
+  const logContext = useMemo(
+    () => ({
+      type_compte: type,
+      role: user?.role,
+      organisation_id: user?.organisation_id,
+    }),
+    [type, user?.role, user?.organisation_id],
+  );
+
+  useCitizenPushSync(effectiveUserId, { isGuest: !effectiveUserId, logContext });
 
   return null;
 };

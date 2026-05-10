@@ -11,6 +11,8 @@ import { AuthorityLayout } from '../../components/layout';
 import { useAuth } from '../../contexts';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
+import { useAppSelector } from '../../store/types';
+import { selectUser } from '../../features/auth/store/authSelectors';
 import { AdminCardsGridSkeleton } from 'components/skeletons';
 import {
   Bell,
@@ -29,7 +31,7 @@ import {
 import styles from './NotificationsPage.module.css';
 
 interface NotificationDB {
-  id: number;
+  id: string | number;
   type_notification: string;
   titre: string;
   message: string;
@@ -54,6 +56,8 @@ interface Notification {
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const authReduxUser = useAppSelector(selectUser) as { id?: string } | null;
+  const notificationUserId = authReduxUser?.id ?? user?.id;
   const { t, language } = useI18n();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,14 +76,14 @@ export const NotificationsPage: React.FC = () => {
   });
 
   const fetchNotifications = useCallback(async () => {
-    if (!user?.id) return;
+    if (!notificationUserId) return;
 
     setIsLoading(true);
     try {
       const { data, error } = await (supabase as any)
         .from('notification')
         .select('*')
-        .eq('id_utilisateur', user.id)
+        .eq('id_utilisateur', notificationUserId)
         .order('date_creation', { ascending: false })
         .limit(50);
 
@@ -98,7 +102,7 @@ export const NotificationsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [notificationUserId]);
 
   const fetchFallbackNotifications = async () => {
     try {
@@ -158,6 +162,34 @@ export const NotificationsPage: React.FC = () => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  useEffect(() => {
+    if (!notificationUserId) return;
+    const uid = notificationUserId;
+    const channel = supabase
+      .channel(`authority-notifications-page:${uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notification',
+          filter: `id_utilisateur=eq.${uid}`,
+        },
+        () => {
+          void fetchNotifications();
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[NotificationsPage] Realtime:', status);
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [notificationUserId, fetchNotifications]);
+
   const handleNotificationClick = async (notif: Notification) => {
     // Marquer comme lu
     if (!notif.lu && notif.isFromDB) {
@@ -165,7 +197,7 @@ export const NotificationsPage: React.FC = () => {
         await (supabase as any)
           .from('notification')
           .update({ lue: true, date_lecture: new Date().toISOString() })
-          .eq('id', parseInt(notif.id));
+          .eq('id', /^\d+$/.test(String(notif.id)) ? parseInt(String(notif.id), 10) : notif.id);
       } catch (err) {
         // Erreur silencieuse
       }
@@ -181,13 +213,13 @@ export const NotificationsPage: React.FC = () => {
   };
 
   const markAllAsRead = async () => {
-    if (!user?.id) return;
+    if (!notificationUserId) return;
 
     try {
       await (supabase as any)
         .from('notification')
         .update({ lue: true, date_lecture: new Date().toISOString() })
-        .eq('id_utilisateur', user.id)
+        .eq('id_utilisateur', notificationUserId)
         .eq('lue', false);
 
       setNotifications(prev => prev.map(n => ({ ...n, lu: true })));
@@ -203,7 +235,7 @@ export const NotificationsPage: React.FC = () => {
         await (supabase as any)
           .from('notification')
           .delete()
-          .eq('id', parseInt(notif.id));
+          .eq('id', /^\d+$/.test(String(notif.id)) ? parseInt(String(notif.id), 10) : notif.id);
       } catch (err) {
         // Erreur silencieuse
       }
