@@ -45,13 +45,14 @@ export const CitizenNewSignalementPage: React.FC = () => {
   const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastSubmitAtRef = useRef(0);
+  const [profileIdentityVerified, setProfileIdentityVerified] = useState(Boolean((currentUser as any)?.identite_verifiee));
 
   const dossierId = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get('dossierId') || undefined;
   }, [location.search]);
 
-  const isVerified = Boolean((currentUser as any)?.identite_verifiee);
+  const isVerified = profileIdentityVerified || Boolean((currentUser as any)?.identite_verifiee);
   const maxPhotos = isVerified ? 5 : 1;
 
   // Hooks
@@ -62,6 +63,26 @@ export const CitizenNewSignalementPage: React.FC = () => {
     isTracking,
     error: geoError,
   } = useGeolocation();
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('identite_verifiee')
+        .eq('id', userId)
+        .maybeSingle();
+      if (!cancelled && data) {
+        setProfileIdentityVerified(Boolean(data.identite_verifiee));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   // État du formulaire
   const [formData, setFormData] = useState({

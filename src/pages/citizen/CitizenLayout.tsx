@@ -12,7 +12,11 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useLogout } from '../../features/auth/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
-import { maybeSyncCitizenGpsToProfileDebounced } from '../../features/users/services/citizenLocationSync';
+import { ensureCurrentUserProfile } from '../../features/notifications/services/fcmTokenAPI';
+import {
+  setCitizenGeolocationConsent,
+  syncCitizenGpsAfterPermissionGrant,
+} from '../../features/users/services/citizenLocationSync';
 import {
   CITIZEN_PERM_GEO_ASKED_KEY,
   CITIZEN_PERM_NOTIF_ASKED_KEY,
@@ -101,9 +105,22 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const userId = (currentUser as any)?.id;
   const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const { unreadCount, fetchNotifications } = useNotifications();
-  const PERM_ONBOARDING_DONE_KEY = CITIZEN_PERM_ONBOARDING_DONE_KEY;
-  const PERM_NOTIF_ASKED_KEY = CITIZEN_PERM_NOTIF_ASKED_KEY;
-  const PERM_GEO_ASKED_KEY = CITIZEN_PERM_GEO_ASKED_KEY;
+  const permissionScope = userId || 'unknown';
+  const PERM_ONBOARDING_DONE_KEY = `${CITIZEN_PERM_ONBOARDING_DONE_KEY}:${permissionScope}`;
+  const PERM_NOTIF_ASKED_KEY = `${CITIZEN_PERM_NOTIF_ASKED_KEY}:${permissionScope}`;
+  const PERM_GEO_ASKED_KEY = `${CITIZEN_PERM_GEO_ASKED_KEY}:${permissionScope}`;
+
+  const syncNotificationConsent = useCallback(async (enabled: boolean) => {
+    if (!userId) return;
+    try {
+      await (supabase as any)
+        .from('utilisateur')
+        .update({ accepte_notifications: enabled, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+    } catch {
+      // Non bloquant : le hook FCM retente aussi la synchro de preference.
+    }
+  }, [userId]);
 
   /** Onboarding permissions (une fois): notifications puis localisation — y compris invité anonyme (auth.uid() valide). */
   useEffect(() => {
@@ -112,72 +129,90 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
 
     let cancelled = false;
     const run = async () => {
+      await ensureCurrentUserProfile();
+      if (cancelled) return;
+
       const done = localStorage.getItem(PERM_ONBOARDING_DONE_KEY) === 'true';
       if (done) return;
+
+      let notificationResolved = true;
+      let geoResolved = true;
 
       // 1) Notifications d'abord (une seule demande si permission "default")
       if ('Notification' in window) {
         const notifAsked = localStorage.getItem(PERM_NOTIF_ASKED_KEY) === 'true';
         if (!notifAsked && Notification.permission === 'default') {
+          let permission: NotificationPermission = 'default';
           try {
-            await Notification.requestPermission();
+            permission = await Notification.requestPermission();
           } catch {
-            // noop
-          } finally {
-            localStorage.setItem(PERM_NOTIF_ASKED_KEY, 'true');
+            permission = Notification.permission;
           }
+          notificationResolved = permission !== 'default';
+          if (notificationResolved) {
+            localStorage.setItem(PERM_NOTIF_ASKED_KEY, 'true');
+            await syncNotificationConsent(permission === 'granted');
+          }
+        } else if (!notifAsked) {
+          localStorage.setItem(PERM_NOTIF_ASKED_KEY, 'true');
+          await syncNotificationConsent(Notification.permission === 'granted');
         }
       } else {
         localStorage.setItem(PERM_NOTIF_ASKED_KEY, 'true');
+        await syncNotificationConsent(false);
       }
 
       if (cancelled) return;
 
-      // 2) Ensuite localisation (une seule demande si état "prompt")
+      // 2) Ensuite localisation : attendre le vrai résultat avant de marquer comme terminé.
       if (typeof navigator !== 'undefined' && navigator.geolocation) {
         const geoAsked = localStorage.getItem(PERM_GEO_ASKED_KEY) === 'true';
-        const requestGeo = () =>
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              if (!cancelled) {
-                void maybeSyncCitizenGpsToProfileDebounced(
-                  userId,
-                  pos.coords.latitude,
-                  pos.coords.longitude,
-                );
-              }
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
-          );
-
         if (!geoAsked) {
-          if (navigator.permissions?.query) {
-            try {
-              const r = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
-              if (r.state === 'granted') {
-                requestGeo();
-                localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
-              } else if (r.state === 'prompt') {
-                requestGeo();
-                localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
-              } else {
-                localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
-              }
-            } catch {
-              requestGeo();
+          const requestGeo = () =>
+            new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 60000,
+              });
+            });
+
+          try {
+            const r = navigator.permissions?.query
+              ? await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+              : null;
+
+            if (r?.state === 'denied') {
+              localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+              await setCitizenGeolocationConsent(userId, false);
+            } else {
+              const pos = await requestGeo();
+              if (cancelled) return;
+              await syncCitizenGpsAfterPermissionGrant(
+                userId,
+                pos.coords.latitude,
+                pos.coords.longitude,
+              );
               localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
             }
-          } else {
-            requestGeo();
-            localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+          } catch (e) {
+            const code = (e as GeolocationPositionError | undefined)?.code;
+            if (code === 1) {
+              localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+              await setCitizenGeolocationConsent(userId, false);
+            } else {
+              geoResolved = false;
+            }
           }
         }
       } else {
         localStorage.setItem(PERM_GEO_ASKED_KEY, 'true');
+        await setCitizenGeolocationConsent(userId, false);
       }
 
-      localStorage.setItem(PERM_ONBOARDING_DONE_KEY, 'true');
+      if (notificationResolved && geoResolved) {
+        localStorage.setItem(PERM_ONBOARDING_DONE_KEY, 'true');
+      }
     };
 
     const timer = window.setTimeout(() => {
@@ -188,7 +223,13 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [userId]);
+  }, [
+    PERM_GEO_ASKED_KEY,
+    PERM_NOTIF_ASKED_KEY,
+    PERM_ONBOARDING_DONE_KEY,
+    syncNotificationConsent,
+    userId,
+  ]);
 
   // États
   const [mobileOpen, setMobileOpen] = useState(false);

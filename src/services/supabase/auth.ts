@@ -616,6 +616,12 @@ class SupabaseAuthService {
         };
       }
 
+      try {
+        await (supabase as any).rpc('ensure_current_user_profile');
+      } catch (e) {
+        console.warn('[auth] ensure_current_user_profile anonymous skipped:', e);
+      }
+
       return await this.composeAuthSessionFromSignedInUser(authData.user, {
         access_token: authData.session.access_token || '',
         refresh_token: authData.session.refresh_token || '',

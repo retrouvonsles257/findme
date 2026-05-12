@@ -59,6 +59,21 @@ messaging.onBackgroundMessage(function (payload) {
   };
   return self.registration.showNotification(title, options);
 });
+self.addEventListener('push', function (event) {
+  // Fallback Web Push natif sans payload chiffré : FCM gère ses propres messages avec data.
+  if (event.data) return;
+  event.waitUntil(
+    self.registration.showNotification('RetrouvonsLes', {
+      body: 'Vous avez une nouvelle notification.',
+      icon: '/android/mipmap-xxxhdpi/ic_launcher.png',
+      badge: '/android/mipmap-xxxhdpi/ic_launcher.png',
+      tag: 'retrouvonsles-webpush-fallback',
+      renotify: true,
+      vibrate: [180, 120, 180],
+      data: { clickUrl: '/citizen/notifications' },
+    }),
+  );
+});
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   var d = event.notification.data || {};

@@ -54,7 +54,7 @@ export type UseCoordinationMessagesReturn = UseCoordinationMessagesState & UseCo
  */
 export const useCoordinationMessages = (dossierId?: string): UseCoordinationMessagesReturn => {
   const { user } = useAuth();
-  const { readCommentIds, markAsRead } = useCoordinationRead();
+  const { readCommentIds, isReadStateLoaded, markAsRead } = useCoordinationRead();
   const [state, setState] = useState<UseCoordinationMessagesState>({
     messages: [],
     readCommentIds: new Set(),
@@ -64,10 +64,12 @@ export const useCoordinationMessages = (dossierId?: string): UseCoordinationMess
   });
   const unreadCount = useMemo(
     () =>
-      state.messages.filter(
-        (m) => m.author_id !== user?.id && !readCommentIds.has(m.id)
-      ).length,
-    [state.messages, readCommentIds, user?.id]
+      isReadStateLoaded
+        ? state.messages.filter(
+            (m) => m.author_id !== user?.id && !readCommentIds.has(m.id)
+          ).length
+        : 0,
+    [state.messages, readCommentIds, isReadStateLoaded, user?.id]
   );
 
   const unsubscribeRef = useRef<(() => void) | null>(null);

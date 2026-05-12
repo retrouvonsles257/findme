@@ -13,17 +13,28 @@ import {
   onForegroundMessage,
   showNotificationFromFcmPayload,
   areNotificationsSupported,
-  clearFcmTokenClientCache,
 } from '../../../config/firebase.config';
 import { TypeCompte } from '../../../@types/enums.types';
 import { fetchNotifications } from '../store/notificationSlice';
-import { upsertFcmToken } from '../services/fcmTokenAPI';
+import {
+  ensureCurrentUserProfile,
+  registerNativeWebPushSubscription,
+  rotateFcmPushForAccountSwitch,
+  unregisterCurrentWebPushDevice,
+  upsertFcmToken,
+} from '../services/fcmTokenAPI';
 import {
   CITIZEN_PERM_NOTIF_ASKED_KEY,
   PUSH_NOTIFICATION_ONBOARDING_DELAY_MS,
 } from '../constants/citizenPushOnboarding';
 
 const LOG = '[PushFCM]';
+const DEBUG_PUSH_LOGS = false;
+
+function pushDebug(level: 'info' | 'warn' | 'error', ...args: unknown[]): void {
+  if (!DEBUG_PUSH_LOGS) return;
+  console[level](...args);
+}
 
 export type PushSyncLogContext = {
   type_compte?: string;
@@ -48,25 +59,25 @@ export function useCitizenPushSync(
         .update({ accepte_notifications: enabled, updated_at: new Date().toISOString() })
         .eq('id', userId);
       if (error) {
-        console.warn(LOG, 'pref_utilisateur_update_skipped', {
+        pushDebug('warn', LOG, 'pref_utilisateur_update_skipped', {
           message: error.message,
           code: (error as any).code,
           enabled,
         });
       }
     } catch (e: unknown) {
-      console.warn(LOG, 'pref_utilisateur_update_exception', e);
+      pushDebug('warn', LOG, 'pref_utilisateur_update_exception', e);
     }
   }, [userId]);
 
   useEffect(() => {
     if (!userId || isGuest) {
       lastFcmPushUserIdRef.current = undefined;
-      console.info(LOG, 'sync_skip', { reason: !userId ? 'no_userId' : 'isGuest', ...logContext });
+      pushDebug('info', LOG, 'sync_skip', { reason: !userId ? 'no_userId' : 'isGuest', ...logContext });
       return;
     }
     if (!envConfig.ENABLE_PUSH_NOTIFICATIONS || !envConfig.ENABLE_NOTIFICATIONS) {
-      console.warn(LOG, 'sync_skip', {
+      pushDebug('warn', LOG, 'sync_skip', {
         reason: 'flags_disabled',
         ENABLE_PUSH_NOTIFICATIONS: envConfig.ENABLE_PUSH_NOTIFICATIONS,
         ENABLE_NOTIFICATIONS: envConfig.ENABLE_NOTIFICATIONS,
@@ -75,7 +86,7 @@ export function useCitizenPushSync(
       return;
     }
     if (!areNotificationsSupported()) {
-      console.warn(LOG, 'sync_skip', { reason: 'notifications_not_supported', ...logContext });
+      pushDebug('warn', LOG, 'sync_skip', { reason: 'notifications_not_supported', ...logContext });
       return;
     }
 
@@ -85,26 +96,30 @@ export function useCitizenPushSync(
     (async () => {
       const prevUid = lastFcmPushUserIdRef.current;
       if (prevUid && prevUid !== userId) {
-        console.info(LOG, 'account_switch_clear_fcm_cache', {
+        pushDebug('info', LOG, 'account_switch_rotate_fcm_token', {
           prev: `${prevUid.slice(0, 8)}…`,
           next: `${userId.slice(0, 8)}…`,
           ...logContext,
         });
-        clearFcmTokenClientCache();
+        await rotateFcmPushForAccountSwitch(prevUid, userId);
+        if (cancelled) return;
       }
       lastFcmPushUserIdRef.current = userId;
 
-      console.info(LOG, 'sync_start', {
+      pushDebug('info', LOG, 'sync_start', {
         reduxUserId: `${userId.slice(0, 8)}…`,
         ...logContext,
       });
+
+      await ensureCurrentUserProfile();
+      if (cancelled) return;
 
       // Même délai que CitizenLayout avant la demande notif / push (autorité n’a pas ce layout).
       const typeCompte = logContext?.type_compte;
       const isGrandPublic =
         typeCompte == null || typeCompte === '' || typeCompte === TypeCompte.GRAND_PUBLIC;
       if (!isGrandPublic) {
-        console.info(LOG, 'align_citizen_layout_delay_before_fcm', {
+        pushDebug('info', LOG, 'align_citizen_layout_delay_before_fcm', {
           ms: PUSH_NOTIFICATION_ONBOARDING_DELAY_MS,
           ...logContext,
         });
@@ -112,18 +127,23 @@ export function useCitizenPushSync(
         if (cancelled) return;
       }
 
-      // Même clé que CitizenLayout : une seule demande « navigateur », tous espaces (citoyen / autorité).
+      // On scope l'onboarding par utilisateur, même si la permission navigateur reste par domaine.
       if ('Notification' in window) {
-        const notifAsked = localStorage.getItem(CITIZEN_PERM_NOTIF_ASKED_KEY) === 'true';
+        const notifAskedKey = `${CITIZEN_PERM_NOTIF_ASKED_KEY}:${userId}`;
+        const legacyNotifAsked = localStorage.getItem(CITIZEN_PERM_NOTIF_ASKED_KEY) === 'true';
+        const notifAsked = localStorage.getItem(notifAskedKey) === 'true';
         if (!notifAsked && Notification.permission === 'default') {
-          localStorage.setItem(CITIZEN_PERM_NOTIF_ASKED_KEY, 'true');
+          let permission: NotificationPermission = 'default';
           try {
-            await Notification.requestPermission();
+            permission = await Notification.requestPermission();
           } catch {
-            // noop
+            permission = Notification.permission;
           }
-        } else if (!notifAsked) {
-          localStorage.setItem(CITIZEN_PERM_NOTIF_ASKED_KEY, 'true');
+          if (permission !== 'default') {
+            localStorage.setItem(notifAskedKey, 'true');
+          }
+        } else if (!notifAsked || legacyNotifAsked) {
+          localStorage.setItem(notifAskedKey, 'true');
         }
       }
 
@@ -131,15 +151,15 @@ export function useCitizenPushSync(
         typeof window !== 'undefined' && 'Notification' in window
           ? Notification.permission
           : 'unsupported';
-      console.info(LOG, 'after_perm_prompt', { permission: perm, ...logContext });
+      pushDebug('info', LOG, 'after_perm_prompt', { permission: perm, ...logContext });
 
       const ok = await initializeFirebase();
       if (!ok) {
-        console.error(LOG, 'firebase_init_fail', { ...logContext });
+        pushDebug('error', LOG, 'firebase_init_fail', { ...logContext });
         return;
       }
       if (cancelled) return;
-      console.info(LOG, 'firebase_init_ok', { ...logContext });
+      pushDebug('info', LOG, 'firebase_init_ok', { ...logContext });
 
       unsubForeground = onForegroundMessage((payload) => {
         showNotificationFromFcmPayload(payload);
@@ -158,24 +178,35 @@ export function useCitizenPushSync(
         const token = await getFCMToken(false, false);
         if (cancelled) return;
         if (!token) {
-          console.error(LOG, 'no_fcm_token', {
+          pushDebug('error', LOG, 'no_fcm_token', {
             permission: typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'n/a',
             ...logContext,
           });
+          const nativeOk = await registerNativeWebPushSubscription(userId);
+          pushDebug('info', LOG, 'native_web_push_fallback_result', { ok: nativeOk, ...logContext });
           return;
         }
 
         const { data: authData } = await supabase.auth.getUser();
         const authUid = authData?.user?.id;
-        console.info(LOG, 'auth_vs_redux', {
+        pushDebug('info', LOG, 'auth_vs_redux', {
           match: authUid === userId,
           reduxUserId: `${userId.slice(0, 8)}…`,
           authUid: authUid ? `${authUid.slice(0, 8)}…` : null,
           ...logContext,
         });
+        if (authUid && authUid !== userId) {
+          pushDebug('warn', LOG, 'upsert_skip_auth_redux_mismatch', {
+            reduxUserId: `${userId.slice(0, 8)}…`,
+            authUid: `${authUid.slice(0, 8)}…`,
+            ...logContext,
+          });
+          return;
+        }
 
         await upsertFcmToken(userId, token);
-        console.info(LOG, 'upsert_done', { ...logContext });
+        await unregisterCurrentWebPushDevice(userId);
+        pushDebug('info', LOG, 'upsert_done', { ...logContext });
         try {
           const { data: rowByToken } = await (supabase as any)
             .from('utilisateur_fcm_token')
@@ -184,7 +215,7 @@ export function useCitizenPushSync(
             .maybeSingle();
           const storedUid = rowByToken?.id_utilisateur as string | undefined;
           const verifiedForRedux = storedUid === userId;
-          console.info(LOG, 'db_verify_token_row', {
+          pushDebug('info', LOG, 'db_verify_token_row', {
             storedUserId: storedUid ? `${String(storedUid).slice(0, 8)}…` : null,
             matchesRedux: verifiedForRedux,
             ...logContext,
@@ -196,7 +227,7 @@ export function useCitizenPushSync(
           // noop
         }
       } catch (e: any) {
-        console.error(LOG, 'upsert_chain_fail', {
+        pushDebug('error', LOG, 'upsert_chain_fail', {
           message: e?.message || String(e),
           code: e?.code,
           details: e?.details,

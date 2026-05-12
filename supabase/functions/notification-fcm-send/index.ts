@@ -3,6 +3,8 @@
  *
  * Secrets à définir (Dashboard → Edge Functions → Secrets) :
  * - FIREBASE_SERVICE_ACCOUNT : JSON complet du compte de service Firebase (chaîne)
+ * - WEB_PUSH_VAPID_PUBLIC_KEY / WEB_PUSH_VAPID_PRIVATE_KEY : secours Web Push natif (Brave / FCM indisponible)
+ * - WEB_PUSH_VAPID_SUBJECT   : contact VAPID (ex. mailto:admin@example.com)
  * - NOTIFICATION_FCM_SECRET  : secret partagé (header x-notification-fcm-secret)
  * - PUBLIC_APP_URL           : URL publique du site (ex. https://app.example.com) pour les liens Web Push
  *
@@ -45,6 +47,12 @@ type ServiceAccount = {
   project_id: string;
   private_key: string;
   client_email: string;
+};
+
+type WebPushRow = {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
 };
 
 async function getGoogleAccessToken(sa: ServiceAccount): Promise<string> {
@@ -112,6 +120,66 @@ async function sendFcmV1(
   return res.json();
 }
 
+function b64urlToBytes(value: string): Uint8Array {
+  const pad = '='.repeat((4 - (value.length % 4)) % 4);
+  const b64 = `${value}${pad}`.replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function b64url(bytes: Uint8Array): string {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+async function getVapidJwt(endpoint: string, publicKey: string, privateKey: string, subject: string): Promise<string> {
+  const publicBytes = b64urlToBytes(publicKey);
+  if (publicBytes.length !== 65 || publicBytes[0] !== 4) {
+    throw new Error('invalid WEB_PUSH_VAPID_PUBLIC_KEY');
+  }
+  const privateBytes = b64urlToBytes(privateKey);
+  const jwk = {
+    kty: 'EC',
+    crv: 'P-256',
+    x: b64url(publicBytes.slice(1, 33)),
+    y: b64url(publicBytes.slice(33, 65)),
+    d: b64url(privateBytes),
+  };
+  const key = await jose.importJWK(jwk, 'ES256');
+  return new jose.SignJWT({
+    aud: new URL(endpoint).origin,
+    exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
+    sub: subject || 'mailto:admin@retrouvonsles.local',
+  })
+    .setProtectedHeader({ alg: 'ES256', typ: 'JWT' })
+    .sign(key);
+}
+
+async function sendWebPushNoPayload(
+  row: WebPushRow,
+  publicKey: string,
+  privateKey: string,
+  subject: string,
+): Promise<void> {
+  const jwt = await getVapidJwt(row.endpoint, publicKey, privateKey, subject);
+  const res = await fetch(row.endpoint, {
+    method: 'POST',
+    headers: {
+      TTL: '2419200',
+      Urgency: 'high',
+      Authorization: `vapid t=${jwt}, k=${publicKey}`,
+      'Crypto-Key': `p256ecdsa=${publicKey}`,
+    },
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`WebPush send failed: ${res.status} ${t}`);
+  }
+}
+
 /** Jeton FCM révoqué / obsolète (changement SW, reset navigateur, autre app). */
 function isUnregisteredFcmError(message: string): boolean {
   const m = message.toLowerCase();
@@ -121,6 +189,10 @@ function isUnregisteredFcmError(message: string): boolean {
     m.includes('not a valid fcm registration token') ||
     m.includes('registration-token-not-registered')
   );
+}
+
+function isExpiredWebPushError(message: string): boolean {
+  return message.includes('WebPush send failed: 404') || message.includes('WebPush send failed: 410');
 }
 
 function strVal(v: unknown): string | null {
@@ -244,11 +316,7 @@ serve(async (req) => {
     return json({ error: 'unauthorized', reqId }, 401);
   }
 
-  const saRaw = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
-  if (!saRaw) {
-    logLine('config_fail', { reqId, missing: 'FIREBASE_SERVICE_ACCOUNT' });
-    return json({ error: 'FIREBASE_SERVICE_ACCOUNT not configured', reqId }, 500);
-  }
+  const saRaw = Deno.env.get('FIREBASE_SERVICE_ACCOUNT') || '';
 
   let raw: unknown;
   try {
@@ -341,34 +409,27 @@ serve(async (req) => {
     return json({ error: tokErr.message, reqId }, 500);
   }
   const rows = (tokens || []) as { token: string }[];
-  if (rows.length === 0) {
+
+  const { data: webPushRowsRaw, error: webPushErr } = await supabase
+    .from('utilisateur_web_push_subscription')
+    .select('endpoint, p256dh, auth')
+    .eq('id_utilisateur', userId);
+
+  if (webPushErr && webPushErr.code !== '42P01') {
+    logLine('webpush_query_error', { reqId, message: webPushErr.message, code: webPushErr.code });
+  }
+  const webPushRows = (webPushRowsRaw || []) as WebPushRow[];
+
+  if (rows.length === 0 && webPushRows.length === 0) {
     logLine('skip', {
       reqId,
-      reason: 'no_fcm_tokens',
+      reason: 'no_push_tokens',
       userId: String(userId).slice(0, 8) + '…',
       type_compte: u.type_compte,
       accepte_notifications: u.accepte_notifications,
-      hint: 'client doit exécuter register_fcm_token (logs navigateur [PushFCM])',
+      hint: 'client doit enregistrer register_fcm_token ou register_web_push_subscription (logs navigateur [PushFCM])',
     });
-    return json({ ok: true, skipped: true, reason: 'no fcm tokens', reqId });
-  }
-
-  let sa: ServiceAccount;
-  try {
-    sa = JSON.parse(saRaw) as ServiceAccount;
-  } catch (e) {
-    logLine('sa_parse_fail', { reqId, err: String(e) });
-    return json({ error: 'invalid FIREBASE_SERVICE_ACCOUNT json', reqId }, 500);
-  }
-
-  logLine('firebase_project', { reqId, project_id: sa.project_id, client_email: sa.client_email });
-
-  let accessToken: string;
-  try {
-    accessToken = await getGoogleAccessToken(sa);
-  } catch (e) {
-    logLine('oauth_fail', { reqId, err: String(e) });
-    return json({ error: String(e), reqId }, 500);
+    return json({ ok: true, skipped: true, reason: 'no push tokens', reqId });
   }
 
   const baseUrl = (Deno.env.get('PUBLIC_APP_URL') || 'https://localhost:3000').replace(/\/$/, '');
@@ -387,6 +448,32 @@ serve(async (req) => {
 
   let sent = 0;
   const errors: string[] = [];
+
+  if (rows.length > 0) {
+    if (!saRaw) {
+      logLine('config_fail', { reqId, missing: 'FIREBASE_SERVICE_ACCOUNT', fcmTokens: rows.length });
+      errors.push('FIREBASE_SERVICE_ACCOUNT not configured');
+    } else {
+      let sa: ServiceAccount | null = null;
+      try {
+        sa = JSON.parse(saRaw) as ServiceAccount;
+      } catch (e) {
+        logLine('sa_parse_fail', { reqId, err: String(e) });
+        errors.push('invalid FIREBASE_SERVICE_ACCOUNT json');
+      }
+
+      let accessToken: string | null = null;
+      if (sa) {
+        logLine('firebase_project', { reqId, project_id: sa.project_id, client_email: sa.client_email });
+        try {
+          accessToken = await getGoogleAccessToken(sa);
+        } catch (e) {
+          logLine('oauth_fail', { reqId, err: String(e) });
+          errors.push(String(e));
+        }
+      }
+
+      if (sa && accessToken) {
   let idx = 0;
   for (const { token } of rows) {
     idx += 1;
@@ -409,14 +496,63 @@ serve(async (req) => {
       }
     }
   }
+      }
+    }
+  }
+
+  const vapidPublicKey =
+    Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY') ||
+    Deno.env.get('REACT_APP_FIREBASE_VAPID_KEY') ||
+    Deno.env.get('REACT_APP_PUSH_VAPID_PUBLIC_KEY') ||
+    '';
+  const vapidPrivateKey = Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY') || '';
+  const vapidSubject = Deno.env.get('WEB_PUSH_VAPID_SUBJECT') || 'mailto:admin@retrouvonsles.local';
+  if (webPushRows.length > 0) {
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      logLine('webpush_config_missing', {
+        reqId,
+        totalSubscriptions: webPushRows.length,
+        hasPublicKey: !!vapidPublicKey,
+        hasPrivateKey: !!vapidPrivateKey,
+      });
+      errors.push('WEB_PUSH_VAPID_PUBLIC_KEY / WEB_PUSH_VAPID_PRIVATE_KEY not configured');
+    } else {
+      let idx = 0;
+      for (const row of webPushRows) {
+        idx += 1;
+        const endpointHint = row.endpoint.length > 32 ? `${row.endpoint.slice(0, 24)}…` : row.endpoint;
+        try {
+          await sendWebPushNoPayload(row, vapidPublicKey, vapidPrivateKey, vapidSubject);
+          sent++;
+          logLine('webpush_ok', { reqId, idx, endpointHint });
+        } catch (e) {
+          const msg = String((e as Error).message || e);
+          errors.push(msg);
+          logLine('webpush_err', { reqId, idx, endpointHint, err: msg.slice(0, 400) });
+          if (isExpiredWebPushError(msg)) {
+            const { error: delErr } = await supabase
+              .from('utilisateur_web_push_subscription')
+              .delete()
+              .eq('endpoint', row.endpoint);
+            if (delErr) {
+              logLine('webpush_delete_fail', { reqId, endpointHint, message: delErr.message, code: delErr.code });
+            } else {
+              logLine('webpush_deleted_expired', { reqId, endpointHint });
+            }
+          }
+        }
+      }
+    }
+  }
 
   logLine('request_out', {
     reqId,
     ms: Date.now() - t0,
     sent,
     totalTokens: rows.length,
+    totalWebPush: webPushRows.length,
     errors: errors.length,
   });
 
-  return json({ ok: true, sent, total: rows.length, errors: errors.length ? errors : undefined, reqId });
+  return json({ ok: true, sent, total: rows.length + webPushRows.length, errors: errors.length ? errors : undefined, reqId });
 });

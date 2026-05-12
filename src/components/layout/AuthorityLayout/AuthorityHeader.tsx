@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -96,6 +96,11 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     unreadCount: unreadMessagesCount,
     markAsRead: markMessagesAsRead,
   } = useCoordinationMessages();
+  const previewMessageLimit = messageView === 'expanded' ? 10 : messageView === 'compact' ? 5 : 8;
+  const previewMessages = useMemo(
+    () => messages.slice(-previewMessageLimit).reverse(),
+    [messages, previewMessageLimit]
+  );
 
   // Marquer comme lus les messages des autres à l’ouverture du panneau, y compris après chargement asynchrone.
   const markedMessageIdsRef = useRef<Set<string>>(new Set());
@@ -103,14 +108,14 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     if (!showMessages) return;
     const userId = authUser?.id ?? (currentUser as { id?: string } | null)?.id;
     if (!userId || messagesLoading) return;
-    const fromOthers = messages
+    const fromOthers = previewMessages
       .filter((m) => m.author_id !== userId && !markedMessageIdsRef.current.has(m.id))
       .map((m) => m.id);
     if (fromOthers.length > 0) {
       fromOthers.forEach((id) => markedMessageIdsRef.current.add(id));
       void markMessagesAsRead(fromOthers);
     }
-  }, [showMessages, messagesLoading, messages, authUser?.id, currentUser, markMessagesAsRead]);
+  }, [showMessages, messagesLoading, previewMessages, authUser?.id, currentUser, markMessagesAsRead]);
 
   // Fermer les dropdowns quand on clique en dehors
   useEffect(() => {
@@ -520,7 +525,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
                 </div>
               ) : messages.length > 0 ? (
                 <div className={`${styles.messagesList} ${styles[`view${messageView.charAt(0).toUpperCase() + messageView.slice(1)}`]}`}>
-                  {messages.slice(0, messageView === 'expanded' ? 10 : messageView === 'compact' ? 5 : 8).map((msg) => (
+                  {previewMessages.map((msg) => (
                     <div
                       key={msg.id}
                       className={styles.messageItem}

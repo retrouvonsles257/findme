@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileSearch,
@@ -26,9 +26,6 @@ import {
   LayoutList,
   ListFilter,
 } from 'lucide-react';
-import { useAppSelector } from '../../store/hooks';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { NomRole } from '../../@types/enums.types';
 import { useSignalements } from '../../features/signalements/hooks/useSignalements';
 import { useSignalementValidation } from '../../features/signalements/hooks/useSignalementValidation';
 import { useAuth } from '../../contexts';
@@ -64,20 +61,13 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
   );
 
   const { user } = useAuth();
-  const currentUser = useAppSelector(selectCurrentUser);
   const { addNotification } = useNotification();
   const { signalements, isLoading, error: loadError, fetchSignalements } = useSignalements();
-  const orgFilter = useMemo(() => {
-    if (currentUser?.role === NomRole.AUTORITE && currentUser?.organisation_id) {
-      return { organisation_id: currentUser.organisation_id };
-    }
-    return undefined;
-  }, [currentUser?.role, currentUser?.organisation_id]);
 
   useEffect(() => {
     if (activeTab !== 'liste') return;
-    fetchSignalements(orgFilter, 1);
-  }, [orgFilter, fetchSignalements, activeTab]);
+    fetchSignalements(undefined, 1);
+  }, [fetchSignalements, activeTab]);
   const { t, language } = useI18n();
   const { 
     validateSignalement, 
@@ -149,7 +139,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
         type: 'success',
       });
 
-      fetchSignalements(orgFilter, 1);
+      fetchSignalements(undefined, 1);
       closeValidationModal();
     } catch (err: any) {
       addNotification({
@@ -158,7 +148,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
         type: 'error',
       });
     }
-  }, [selectedSignalement, pendingDecision, user?.id, validationComment, validateSignalement, addNotification, fetchSignalements, closeValidationModal, orgFilter]);
+  }, [selectedSignalement, pendingDecision, user?.id, validationComment, validateSignalement, addNotification, fetchSignalements, closeValidationModal, t]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleQuickValidate = useCallback(async (signalementId: string, approved: boolean) => {
@@ -188,7 +178,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
         type: 'success',
       });
 
-      fetchSignalements(orgFilter, 1);
+      fetchSignalements(undefined, 1);
     } catch (err: any) {
       addNotification({
         title: t('authority.signalements.messages.error'),
@@ -196,7 +186,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
         type: 'error',
       });
     }
-  }, [user?.id, validateSignalement, addNotification, fetchSignalements, t, orgFilter]);
+  }, [user?.id, validateSignalement, addNotification, fetchSignalements, t]);
 
   const getCertitudeColor = (certitude?: string) => {
     switch (certitude) {
@@ -488,7 +478,7 @@ export const SignalementsPage: React.FC<SignalementsPageProps> = ({ noLayout = f
               <button
                 type="button"
                 className={styles.refreshButton}
-                onClick={() => fetchSignalements(orgFilter, 1)}
+                onClick={() => fetchSignalements(undefined, 1)}
                 disabled={isLoading}
               >
                 <RefreshCw size={18} className={isLoading ? styles.spinning : ''} />

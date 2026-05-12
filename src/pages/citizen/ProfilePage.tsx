@@ -51,6 +51,8 @@ export const CitizenProfilePage: React.FC = () => {
   const [uploadingVerificationDoc, setUploadingVerificationDoc] = useState(false);
   const [verificationDocUrl, setVerificationDocUrl] = useState<string>('');
   const [submittingVerification, setSubmittingVerification] = useState(false);
+  const [profileIdentityVerified, setProfileIdentityVerified] = useState(Boolean((currentUser as any)?.identite_verifiee));
+  const [profileStatus, setProfileStatus] = useState<string>((currentUser as any)?.statut_compte || '');
 
   const [formData, setFormData] = useState<ProfileData>({
     nom: '',
@@ -66,8 +68,10 @@ export const CitizenProfilePage: React.FC = () => {
     accepte_geolocalisation: false,
   });
 
-  const isVerified = Boolean((currentUser as any)?.identite_verifiee);
-  const isVerificationPending = (currentUser as any)?.statut_compte === StatutCompte.EN_ATTENTE_VERIFICATION;
+  const isVerified = profileIdentityVerified || Boolean((currentUser as any)?.identite_verifiee);
+  const isVerificationPending =
+    profileStatus === StatutCompte.EN_ATTENTE_VERIFICATION ||
+    (currentUser as any)?.statut_compte === StatutCompte.EN_ATTENTE_VERIFICATION;
 
   // Charger le profil depuis Supabase
   useEffect(() => {
@@ -101,6 +105,8 @@ export const CitizenProfilePage: React.FC = () => {
             accepte_geolocalisation: data.accepte_geolocalisation ?? false,
           });
           setVerificationDocUrl(data.document_accreditation || '');
+          setProfileIdentityVerified(Boolean(data.identite_verifiee));
+          setProfileStatus(data.statut_compte || '');
         }
       } catch (err: any) {
         console.error('Erreur chargement profil:', err);
@@ -189,69 +195,16 @@ export const CitizenProfilePage: React.FC = () => {
       setError(null);
       setSuccess(null);
 
-      const { error: dbError } = await (supabase as any)
-        .from('utilisateur')
-        .update({
-          document_accreditation: verificationDocUrl,
-          statut_compte: StatutCompte.EN_ATTENTE_VERIFICATION,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
-
-      if (dbError) throw dbError;
-
-      const { data: profil } = await (supabase as any)
-        .from('utilisateur')
-        .select('id_organisation')
-        .eq('id', userId)
-        .maybeSingle();
-
-      const orgId = profil?.id_organisation ?? null;
-      const nowIso = new Date().toISOString();
-
-      const { data: pendingDemande } = await (supabase as any)
-        .from('demande_verification_identite')
-        .select('id')
-        .eq('id_utilisateur', userId)
-        .eq('statut', 'en_attente')
-        .maybeSingle();
-
-      if (pendingDemande?.id) {
-        const { error: upDemande } = await (supabase as any)
-          .from('demande_verification_identite')
-          .update({
-            url_document: verificationDocUrl,
-            type_document: 'autre',
-            id_organisation: orgId,
-            updated_at: nowIso,
-          })
-          .eq('id', pendingDemande.id);
-        if (upDemande) throw upDemande;
-      } else {
-        const { error: insDemande } = await (supabase as any).from('demande_verification_identite').insert({
-          id_utilisateur: userId,
-          id_organisation: orgId,
-          statut: 'en_attente',
-          type_document: 'autre',
-          url_document: verificationDocUrl,
-          created_at: nowIso,
-          updated_at: nowIso,
-        });
-        if (insDemande) throw insDemande;
-      }
-
-      const { error: notifErr } = await (supabase as any).from('notification').insert({
-        type_notification: 'autre',
-        titre: t('citizen.identityVerificationNotifTitle'),
-        message: t('citizen.identityVerificationNotifMessage'),
-        canal: 'push',
-        lue: false,
-        date_creation: nowIso,
-        id_utilisateur: userId,
-        donnees_supplementaires: { kind: 'identity_verification_submitted' },
+      const { error: submitError } = await (supabase as any).rpc('submit_identity_verification', {
+        p_type_document: 'autre',
+        p_url_document: verificationDocUrl,
+        p_url_selfie: null,
       });
-      if (notifErr) console.warn('notification identity verification:', notifErr);
 
+      if (submitError) throw submitError;
+
+      setProfileIdentityVerified(false);
+      setProfileStatus(StatutCompte.EN_ATTENTE_VERIFICATION);
       setSuccess('Demande de vérification envoyée. Un modérateur va examiner votre document.');
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {

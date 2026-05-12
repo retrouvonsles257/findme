@@ -6,11 +6,8 @@
  * =====================================================
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../../store/hooks';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { NomRole } from '../../@types/enums.types';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { useSignalementsForDossier } from '../../features/signalements/hooks/useSignalementsForDossier';
 import { useLocalisationsForDossier } from '../../features/geolocalisation/hooks/useLocalisationsForDossier';
@@ -59,15 +56,7 @@ export const InvestigationPage: React.FC = () => {
   const navigate = useNavigate();
   const { addNotification } = useNotification();
   const { t, language } = useI18n();
-  const currentUser = useAppSelector(selectCurrentUser);
-  const dossierCriteria = useMemo(() => {
-    const orgId = (currentUser as { organisation_id?: string | null })?.organisation_id;
-    if (currentUser?.role === NomRole.AUTORITE && orgId) {
-      return { organisation_id: orgId };
-    }
-    return undefined;
-  }, [currentUser?.role, (currentUser as { organisation_id?: string | null })?.organisation_id]);
-  const { dossiers, isLoading } = useDossiers({ initialCriteria: dossierCriteria });
+  const { dossiers, isLoading } = useDossiers();
   const { signalements, fetchSignalements } = useSignalementsForDossier();
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
 

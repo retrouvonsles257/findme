@@ -36,6 +36,10 @@ const VAPID_KEY =
   (envConfig.REACT_APP_FIREBASE_VAPID_KEY || '').trim() ||
   (envConfig.REACT_APP_PUSH_VAPID_PUBLIC_KEY || '').trim();
 
+export const getWebPushVapidPublicKey = (): string => VAPID_KEY;
+export const getNativeWebPushVapidPublicKey = (): string =>
+  (envConfig.REACT_APP_NATIVE_WEB_PUSH_VAPID_PUBLIC_KEY || '').trim() || VAPID_KEY;
+
 // ============================================
 // VALIDATION DE LA CONFIGURATION
 // ============================================
@@ -54,7 +58,8 @@ const validateFirebaseConfig = (): boolean => {
   );
 
   if (missingFields.length > 0) {
-    console.error(
+    firebasePushDebug(
+      'error',
       '[Firebase] Configuration incomplète. Champs manquants:',
       missingFields
     );
@@ -62,7 +67,7 @@ const validateFirebaseConfig = (): boolean => {
   }
 
   if (!VAPID_KEY || VAPID_KEY.includes('your-vapid')) {
-    console.error('[Firebase] VAPID Key manquante ou placeholder (REACT_APP_FIREBASE_VAPID_KEY / REACT_APP_PUSH_VAPID_PUBLIC_KEY)');
+    firebasePushDebug('error', '[Firebase] VAPID Key manquante ou placeholder (REACT_APP_FIREBASE_VAPID_KEY / REACT_APP_PUSH_VAPID_PUBLIC_KEY)');
     return false;
   }
 
@@ -82,6 +87,12 @@ let tokenExpirationTime: number | null = null;
 
 const TOKEN_STORAGE_KEY = 'retrouvonsles_fcm_token';
 const TOKEN_EXPIRATION_DAYS = 60; // FCM tokens typically expire after ~60 days
+const DEBUG_FIREBASE_PUSH_LOGS = false;
+
+function firebasePushDebug(level: 'warn' | 'error', ...args: unknown[]): void {
+  if (!DEBUG_FIREBASE_PUSH_LOGS) return;
+  console[level](...args);
+}
 
 /**
  * Initialise Firebase App
@@ -95,7 +106,7 @@ export const initializeFirebase = async (): Promise<boolean> => {
   try {
     // Valider la configuration
     if (!validateFirebaseConfig()) {
-      console.error('[Firebase] Impossible d\'initialiser - configuration invalide');
+      firebasePushDebug('error', '[Firebase] Impossible d\'initialiser - configuration invalide');
       return false;
     }
 
@@ -118,7 +129,7 @@ export const initializeFirebase = async (): Promise<boolean> => {
     isFirebaseInitialized = true;
     return true;
   } catch (error) {
-    console.error('[Firebase] Erreur d\'initialisation:', error);
+    firebasePushDebug('error', '[Firebase] Erreur d\'initialisation:', error);
     return false;
   }
 };
@@ -161,7 +172,7 @@ export const registerMessagingServiceWorker = async (): Promise<ServiceWorkerReg
     await navigator.serviceWorker.ready;
     return reg;
   } catch (error) {
-    console.error('[Firebase] Échec enregistrement firebase-messaging-sw.js:', error);
+    firebasePushDebug('error', '[Firebase] Échec enregistrement firebase-messaging-sw.js:', error);
     return null;
   }
 };
@@ -179,12 +190,54 @@ function isPushRegistrationFailedError(e: unknown): boolean {
   );
 }
 
+function isFirebaseIndexedDbStoreError(e: unknown): boolean {
+  const msg = `${e instanceof Error ? e.message : String(e)}`.toLowerCase();
+  return (
+    msg.includes('firebase-installations-store') ||
+    msg.includes('firebase-messaging-store') ||
+    (msg.includes('object store') && msg.includes('not a known object store')) ||
+    (msg.includes('object store') && msg.includes('not found'))
+  );
+}
+
+function deleteIndexedDbDatabase(name: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof indexedDB === 'undefined') {
+      resolve();
+      return;
+    }
+
+    try {
+      const req = indexedDB.deleteDatabase(name);
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+      req.onblocked = () => {
+        firebasePushDebug('warn', '[Firebase] Suppression IndexedDB bloquée:', name);
+        resolve();
+      };
+    } catch {
+      resolve();
+    }
+  });
+}
+
+async function resetFirebaseIndexedDbState(): Promise<void> {
+  clearFcmTokenClientCache();
+  await Promise.all([
+    deleteIndexedDbDatabase('firebase-installations-database'),
+    deleteIndexedDbDatabase('firebase-messaging-database'),
+  ]);
+  await new Promise((r) => setTimeout(r, 500));
+}
+
 /** Révoque l’ancien SW FCM + souscription pour repartir d’un état propre (erreur « push service » Chrome/Edge). */
 async function resetFirebaseMessagingServiceWorker(m: Messaging): Promise<void> {
   try {
     await deleteToken(m);
-  } catch {
-    /* noop */
+  } catch (e) {
+    if (isFirebaseIndexedDbStoreError(e)) {
+      await resetFirebaseIndexedDbState();
+    }
   }
   try {
     const regs = await navigator.serviceWorker.getRegistrations();
@@ -214,7 +267,7 @@ async function waitForFirebaseSwActive(reg: ServiceWorkerRegistration, timeoutMs
     }
     await new Promise((r) => setTimeout(r, 120));
   }
-  console.warn('[Firebase] firebase-messaging-sw.js pas encore actif après', timeoutMs, 'ms (tentative getToken quand même)');
+  firebasePushDebug('warn', '[Firebase] firebase-messaging-sw.js pas encore actif après', timeoutMs, 'ms (tentative getToken quand même)');
 }
 
 /**
@@ -223,7 +276,7 @@ async function waitForFirebaseSwActive(reg: ServiceWorkerRegistration, timeoutMs
 export const requestNotificationPermission = async (): Promise<boolean> => {
   try {
     if (!('Notification' in window)) {
-      console.error('[Firebase] Les notifications ne sont pas supportées');
+      firebasePushDebug('error', '[Firebase] Les notifications ne sont pas supportées');
       return false;
     }
 
@@ -240,7 +293,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
       return false;
     }
   } catch (error) {
-    console.error('[Firebase] Erreur demande permission:', error);
+    firebasePushDebug('error', '[Firebase] Erreur demande permission:', error);
     return false;
   }
 };
@@ -254,19 +307,20 @@ export const getFCMToken = async (
 ): Promise<string | null> => {
   try {
     if (!messaging) {
-      console.error('[Firebase] Messaging non initialisé');
+      firebasePushDebug('error', '[Firebase] Messaging non initialisé');
       return null;
     }
 
     if (!VAPID_KEY) {
-      console.error('[Firebase] VAPID Key manquante');
+      firebasePushDebug('error', '[Firebase] VAPID Key manquante');
       return null;
     }
 
     if (typeof window !== 'undefined' && !window.isSecureContext) {
       const host = window.location.hostname;
       if (host !== 'localhost' && host !== '127.0.0.1') {
-        console.error(
+        firebasePushDebug(
+          'error',
           '[Firebase] Push FCM nécessite un contexte sécurisé (HTTPS ou localhost). Hôte actuel :',
           host,
         );
@@ -279,8 +333,10 @@ export const getFCMToken = async (
         await deleteToken(messaging);
         // Laisser le navigateur révoquer l’ancienne souscription push avant d’en créer une nouvelle
         await new Promise((r) => setTimeout(r, 350));
-      } catch {
-        // noop: on continue pour regénérer un token
+      } catch (e) {
+        if (isFirebaseIndexedDbStoreError(e)) {
+          await resetFirebaseIndexedDbState();
+        }
       }
       cachedFCMToken = null;
       tokenExpirationTime = null;
@@ -335,6 +391,10 @@ export const getFCMToken = async (
           }
         } catch (e) {
           lastError = e;
+          if (isFirebaseIndexedDbStoreError(e)) {
+            firebasePushDebug('warn', '[Firebase] IndexedDB Firebase incohérent — reset ciblé avant nouvelle tentative');
+            await resetFirebaseIndexedDbState();
+          }
           if (attempt < 2) {
             await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
           }
@@ -354,6 +414,10 @@ export const getFCMToken = async (
           }
         } catch (e) {
           lastError = e;
+          if (isFirebaseIndexedDbStoreError(e)) {
+            firebasePushDebug('warn', '[Firebase] IndexedDB Firebase incohérent — reset ciblé avant fallback');
+            await resetFirebaseIndexedDbState();
+          }
           if (attempt < 1) {
             await new Promise((r) => setTimeout(r, 600));
           }
@@ -379,7 +443,7 @@ export const getFCMToken = async (
     }
 
     if (lastError && isPushRegistrationFailedError(lastError)) {
-      console.warn('[Firebase] Échec push service — reset SW FCM + nouvelle tentative');
+      firebasePushDebug('warn', '[Firebase] Échec push service — reset SW FCM + nouvelle tentative');
       await resetFirebaseMessagingServiceWorker(messaging);
       swReg = await registerMessagingServiceWorker();
       if (swReg) {
@@ -397,8 +461,27 @@ export const getFCMToken = async (
       }
     }
 
+    if (lastError && isFirebaseIndexedDbStoreError(lastError)) {
+      firebasePushDebug('warn', '[Firebase] Dernière tentative après reset IndexedDB Firebase');
+      await resetFirebaseIndexedDbState();
+      swReg = await registerMessagingServiceWorker();
+      if (swReg) {
+        try {
+          await swReg.update();
+        } catch {
+          /* noop */
+        }
+        await waitForFirebaseSwActive(swReg, 15000);
+        const repaired = await tryGetTokenWithReg(swReg);
+        if (repaired.token) {
+          return repaired.token;
+        }
+        lastError = repaired.lastError;
+      }
+    }
+
     if (lastError && isPushRegistrationFailedError(lastError)) {
-      console.warn('[Firebase] Dernière tentative getToken sans serviceWorkerRegistration explicite');
+      firebasePushDebug('warn', '[Firebase] Dernière tentative getToken sans serviceWorkerRegistration explicite');
       const third = await tryGetTokenImplicitSw();
       if (third.token) {
         return third.token;
@@ -406,14 +489,14 @@ export const getFCMToken = async (
       lastError = third.lastError;
     }
 
-    console.error('[Firebase] Erreur récupération token:', lastError, {
+    firebasePushDebug('error', '[Firebase] Erreur récupération token:', lastError, {
       isSecureContext: typeof window !== 'undefined' ? window.isSecureContext : undefined,
       protocol: typeof window !== 'undefined' ? window.location.protocol : undefined,
       host: typeof window !== 'undefined' ? window.location.hostname : undefined,
     });
     return null;
   } catch (error) {
-    console.error('[Firebase] Erreur récupération token:', error);
+    firebasePushDebug('error', '[Firebase] Erreur récupération token:', error);
     return null;
   }
 };
@@ -485,7 +568,10 @@ export const deleteFCMToken = async (): Promise<boolean> => {
     clearFcmTokenClientCache();
     return true;
   } catch (error) {
-    console.error('[Firebase] Erreur suppression token:', error);
+    firebasePushDebug('error', '[Firebase] Erreur suppression token:', error);
+    if (isFirebaseIndexedDbStoreError(error)) {
+      await resetFirebaseIndexedDbState();
+    }
     clearFcmTokenClientCache();
     return false;
   }
@@ -501,7 +587,7 @@ export type NotificationCallback = (payload: MessagePayload) => void;
  */
 export const onForegroundMessage = (callback: NotificationCallback): (() => void) => {
   if (!messaging) {
-    console.error('[Firebase] Messaging non initialisé');
+    firebasePushDebug('error', '[Firebase] Messaging non initialisé');
     return () => {};
   }
 
@@ -521,7 +607,7 @@ export const showLocalNotification = (
   options?: NotificationOptions
 ): void => {
   if (!('Notification' in window)) {
-    console.error('[Firebase] Notifications non supportées');
+    firebasePushDebug('error', '[Firebase] Notifications non supportées');
     return;
   }
 
@@ -722,7 +808,7 @@ export const logAnalyticsEvent = (
       }
     });
   } catch (error) {
-    console.error('[Firebase] Erreur log événement:', error);
+    firebasePushDebug('error', '[Firebase] Erreur log événement:', error);
   }
 };
 

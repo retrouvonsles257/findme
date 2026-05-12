@@ -6,10 +6,7 @@
  * =====================================================
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAppSelector } from '../../store/hooks';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { NomRole } from '../../@types/enums.types';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { useStatisticsHistory } from '../../features/statistiques/hooks/useStatisticsHistory';
 import { usePerformanceMetrics } from '../../features/statistiques/hooks/usePerformanceMetrics';
@@ -45,14 +42,7 @@ type StatsPeriod = '7j' | '30j' | '90j' | 'tout';
 
 export const StatistiquesPage: React.FC = () => {
   const { t } = useI18n();
-  const currentUser = useAppSelector(selectCurrentUser);
-  const initialCriteria = useMemo(() => {
-    if (currentUser?.role === NomRole.AUTORITE && currentUser?.organisation_id) {
-      return { organisation_id: currentUser.organisation_id };
-    }
-    return undefined;
-  }, [currentUser?.role, currentUser?.organisation_id]);
-  const { dossiers, isLoading: dossiersLoading } = useDossiers({ initialCriteria });
+  const { dossiers, isLoading: dossiersLoading } = useDossiers();
   const { trendData, fetchTrendData, isLoading: trendLoading } = useStatisticsHistory();
   const { metrics, isLoading: metricsLoading, fetchMetrics } = usePerformanceMetrics();
   const [period, setPeriod] = useState<StatsPeriod>('30j');

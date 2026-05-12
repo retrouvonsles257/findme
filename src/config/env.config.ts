@@ -31,6 +31,8 @@ export interface EnvConfig {
   REACT_APP_FIREBASE_APP_ID: string;
   /** Clé Web Push (Firebase Console → Cloud Messaging). Sinon REACT_APP_PUSH_VAPID_PUBLIC_KEY. */
   REACT_APP_FIREBASE_VAPID_KEY: string;
+  /** Clé publique VAPID dédiée au fallback Push API natif (paire avec WEB_PUSH_VAPID_PRIVATE_KEY côté Edge). */
+  REACT_APP_NATIVE_WEB_PUSH_VAPID_PUBLIC_KEY: string;
 
   // Cloudinary
   REACT_APP_CLOUDINARY_CLOUD_NAME: string;
@@ -138,6 +140,7 @@ export const envConfig: EnvConfig = {
   REACT_APP_FIREBASE_MESSAGING_SENDER_ID: getEnvVariable('REACT_APP_FIREBASE_MESSAGING_SENDER_ID'),
   REACT_APP_FIREBASE_APP_ID: getEnvVariable('REACT_APP_FIREBASE_APP_ID'),
   REACT_APP_FIREBASE_VAPID_KEY: getEnvVariable('REACT_APP_FIREBASE_VAPID_KEY'),
+  REACT_APP_NATIVE_WEB_PUSH_VAPID_PUBLIC_KEY: getEnvVariable('REACT_APP_NATIVE_WEB_PUSH_VAPID_PUBLIC_KEY'),
 
   // Cloudinary
   REACT_APP_CLOUDINARY_CLOUD_NAME: getEnvVariable('REACT_APP_CLOUDINARY_CLOUD_NAME'),

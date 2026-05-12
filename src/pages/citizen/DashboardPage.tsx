@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
@@ -14,6 +14,7 @@ import { selectUser } from '../../features/auth/store/authSelectors';
 import { CitizenLayout } from './CitizenLayout';
 import { useSignalements } from '../../features/signalements/hooks';
 import { useNotifications } from '../../features/notifications/hooks';
+import { supabase } from '../../config';
 import { Plus, Eye, Bell, BarChart3, CheckCircle, Clock, AlertTriangle, MapPin, BadgeCheck } from 'lucide-react';
 import { AdminDetailSkeleton } from 'components/skeletons';
 import styles from './DashboardPage.module.css';
@@ -23,6 +24,7 @@ export const CitizenDashboardPage: React.FC = () => {
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
+  const [profileIdentityVerified, setProfileIdentityVerified] = useState(Boolean((currentUser as any)?.identite_verifiee));
 
   // Hooks pour récupérer les vraies données
   const { 
@@ -38,7 +40,7 @@ export const CitizenDashboardPage: React.FC = () => {
     fetchNotifications 
   } = useNotifications();
 
-  const isVerified = Boolean((currentUser as any)?.identite_verifiee);
+  const isVerified = profileIdentityVerified || Boolean((currentUser as any)?.identite_verifiee);
   const isLoading = signalementLoading || notificationLoading;
 
   // Charger les données au montage
@@ -48,6 +50,26 @@ export const CitizenDashboardPage: React.FC = () => {
       fetchNotifications(userId);
     }
   }, [userId, fetchSignalements, fetchNotifications]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('utilisateur')
+        .select('identite_verifiee')
+        .eq('id', userId)
+        .maybeSingle();
+      if (!cancelled && data) {
+        setProfileIdentityVerified(Boolean(data.identite_verifiee));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   // Calculer les statistiques réelles
   const computedStats = useMemo(() => {

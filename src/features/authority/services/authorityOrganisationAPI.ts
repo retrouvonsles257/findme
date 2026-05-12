@@ -1013,11 +1013,10 @@ export interface DemandesVerificationFilters {
 
 /**
  * Liste des demandes de vérification d'identité.
- * organisationId = null : demandes globales (id_organisation IS NULL).
- * organisationId = string : demandes de cette org ou globales selon RLS.
+ * Toutes les autorités habilitées peuvent voir la file complète ; la RLS/RPC sécurise l'accès.
  */
 export async function getDemandesVerificationIdentite(
-  organisationId: string | null,
+  _organisationId: string | null,
   filters: DemandesVerificationFilters = {}
 ): Promise<{ data: DemandeVerificationIdentiteRow[]; count: number }> {
   const page = filters.page ?? 1;
@@ -1027,12 +1026,6 @@ export async function getDemandesVerificationIdentite(
   let query = db('demande_verification_identite')
     .select('*, utilisateur:id_utilisateur(nom, prenom, email, telephone, date_naissance, ville, region, pays, created_at, score_fiabilite, nombre_signalements_valides)', { count: 'exact' })
     .order('created_at', { ascending: false });
-
-  if (organisationId !== null) {
-    query = query.or(`id_organisation.eq.${organisationId},id_organisation.is.null`);
-  } else {
-    query = query.is('id_organisation', null);
-  }
 
   if (filters.statut && filters.statut !== 'all') {
     query = query.eq('statut', filters.statut);
@@ -1084,80 +1077,23 @@ export async function traiterDemandeVerificationIdentite(
   demandeId: string,
   action: StatutDemandeVerification,
   commentaire: string | null,
-  traiteParUserId: string
+  _traiteParUserId: string
 ): Promise<void> {
-  const traiteLe = new Date().toISOString();
-
-  const { error: updateError } = await db('demande_verification_identite')
-    .update({
-      statut: action,
-      commentaire_moderateur: commentaire,
-      traite_par: traiteParUserId,
-      traite_le: traiteLe,
-      updated_at: traiteLe,
-    })
-    .eq('id', demandeId);
-
-  if (updateError) throw updateError;
-
-  const { data: demande } = await db('demande_verification_identite')
-    .select('id_utilisateur')
-    .eq('id', demandeId)
-    .single();
-  if (!demande?.id_utilisateur) return;
-
-  if (action === 'approuve') {
-    if (demande.id_utilisateur) {
-      await db('utilisateur')
-        .update({ statut_compte: 'actif', identite_verifiee: true, updated_at: traiteLe })
-        .eq('id', demande.id_utilisateur);
-
-      // Notification de validation du compte (docs : étape 8 - "L'utilisateur reçoit une notification de validation")
-      await db('notification').insert({
-        type_notification: 'autre',
-        titre: 'Compte vérifié',
-        message: 'Votre demande de vérification d\'identité a été acceptée. Vous avez maintenant le statut Citoyen vérifié.',
-        canal: 'push',
-        lue: false,
-        date_creation: traiteLe,
-        id_utilisateur: demande.id_utilisateur,
-      });
-    }
-    return;
-  }
-
-  if (action === 'refuse' || action === 'complement_demande') {
-    await db('notification').insert({
-      type_notification: 'autre',
-      titre: action === 'refuse' ? 'Vérification refusée' : 'Complément demandé',
-      message:
-        action === 'refuse'
-          ? 'Votre demande de vérification d’identité a été refusée. Consultez le motif et soumettez une nouvelle demande si nécessaire.'
-          : 'Un complément est nécessaire pour finaliser votre vérification d’identité. Consultez les détails puis renvoyez les pièces demandées.',
-      canal: 'push',
-      lue: false,
-      date_creation: traiteLe,
-      id_utilisateur: demande.id_utilisateur,
-      donnees_supplementaires: {
-        demande_verification_id: demandeId,
-        statut: action,
-      },
-    });
-  }
+  const { error } = await (supabase as any).rpc('process_identity_verification', {
+    p_demande_id: demandeId,
+    p_decision: action,
+    p_commentaire: commentaire,
+  });
+  if (error) throw error;
 }
 
 /**
  * Stats des demandes (nombre par statut) pour une org ou global.
  */
 export async function getDemandesVerificationIdentiteStats(
-  organisationId: string | null
+  _organisationId: string | null
 ): Promise<{ total: number; enAttente: number; approuves: number; refuse: number; complement_demande: number }> {
   let query = db('demande_verification_identite').select('statut');
-  if (organisationId !== null) {
-    query = query.or(`id_organisation.eq.${organisationId},id_organisation.is.null`);
-  } else {
-    query = query.is('id_organisation', null);
-  }
   const { data, error } = await query;
   if (error) throw error;
 

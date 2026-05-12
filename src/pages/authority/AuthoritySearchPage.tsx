@@ -3,13 +3,10 @@
  * qui renvoyait vers le dashboard et donnait l’impression d’un « rafraîchissement ».
  */
 
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FolderOpen, User, Search, ArrowLeft } from 'lucide-react';
 import { AuthorityLayout } from '../../components/layout';
-import { useAppSelector } from '../../store/hooks';
-import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { NomRole } from '../../@types/enums.types';
 import { supabase } from '../../config';
 import { useI18n } from '../../hooks';
 import styles from './AuthoritySearchPage.module.css';
@@ -22,13 +19,6 @@ export const AuthoritySearchPage: React.FC = () => {
   const [params] = useSearchParams();
   const q = (params.get('q') || '').trim();
   const { t } = useI18n();
-  const currentUser = useAppSelector(selectCurrentUser);
-  const orgId = (currentUser as { organisation_id?: string | null })?.organisation_id;
-
-  const restrictOrg = useMemo(
-    () => currentUser?.role === NomRole.AUTORITE && Boolean(orgId),
-    [currentUser?.role, orgId],
-  );
 
   const [dossiers, setDossiers] = useState<DossierHit[]>([]);
   const [personnes, setPersonnes] = useState<PersonneHit[]>([]);
@@ -42,12 +32,11 @@ export const AuthoritySearchPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      let dq = (supabase as any)
+      const dq = (supabase as any)
         .from('dossier_disparition')
         .select('id, numero_dossier, statut_dossier')
         .or(`numero_dossier.ilike.%${q}%,circonstances.ilike.%${q}%,lieu_disparition.ilike.%${q}%,ville_disparition.ilike.%${q}%`)
         .limit(20);
-      if (restrictOrg && orgId) dq = dq.eq('id_organisation_responsable', orgId);
 
       const pq = (supabase as any)
         .from('personne')
@@ -66,7 +55,7 @@ export const AuthoritySearchPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [q, restrictOrg, orgId]);
+  }, [q]);
 
   useEffect(() => {
     void runSearch();

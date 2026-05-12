@@ -7,6 +7,40 @@ import { supabase } from '../../../config';
 const lastSyncMsByUser = new Map<string, number>();
 const DEBOUNCE_MS = 35000;
 
+export async function setCitizenGeolocationConsent(userId: string, enabled: boolean): Promise<void> {
+  try {
+    const { data: row } = await (supabase as any)
+      .from('utilisateur')
+      .select('preferences_notification')
+      .eq('id', userId)
+      .maybeSingle();
+    const prefs = ((row as any)?.preferences_notification || {}) as Record<string, unknown>;
+
+    await (supabase as any)
+      .from('utilisateur')
+      .update({
+        accepte_geolocalisation: enabled,
+        preferences_notification: {
+          ...prefs,
+          partager_position: enabled,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+  } catch {
+    // La synchro GPS tentera quand meme la RPC ; les logs restent non bloquants cote onboarding.
+  }
+}
+
+export async function syncCitizenGpsAfterPermissionGrant(
+  userId: string,
+  latitude: number,
+  longitude: number,
+): Promise<{ synced: boolean; reason?: string }> {
+  await setCitizenGeolocationConsent(userId, true);
+  return maybeSyncCitizenGpsToProfile(userId, latitude, longitude);
+}
+
 /**
  * Même logique que {@link maybeSyncCitizenGpsToProfile} avec anti-spam (une maj / ~35 s / utilisateur).
  */
