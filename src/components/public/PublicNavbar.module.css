@@ -25,7 +25,7 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: #1d4ed8;
+  color: var(--color-primary, #0ea5e9);
   font-family: var(--font-family, 'Inter', sans-serif);
   font-weight: 700;
   font-size: 1.125rem;
@@ -67,7 +67,7 @@
 
 .navLink:hover,
 .navLinkActive {
-  color: #1d4ed8;
+  color: var(--color-primary, #0ea5e9);
 }
 
 .navActions {

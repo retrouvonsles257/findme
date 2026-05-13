@@ -530,6 +530,20 @@ export const authReducer = (
         errors: {},
       };
 
+    case 'auth/logout/pending':
+      return {
+        ...state,
+        isLogout: true,
+        error: null,
+      };
+
+    case 'auth/logout/rejected':
+      return {
+        ...state,
+        isLogout: false,
+        error: action.payload?.message || 'Erreur de déconnexion',
+      };
+
     case 'auth/logout/fulfilled':
       return {
         ...state,

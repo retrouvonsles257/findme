@@ -53,6 +53,16 @@ type WebPushRow = {
   endpoint: string;
   p256dh: string;
   auth: string;
+  device_id?: string | null;
+  user_agent?: string | null;
+  platform?: string | null;
+};
+
+type FcmRow = {
+  token: string;
+  device_id?: string | null;
+  user_agent?: string | null;
+  platform?: string | null;
 };
 
 async function getGoogleAccessToken(sa: ServiceAccount): Promise<string> {
@@ -201,6 +211,24 @@ function strVal(v: unknown): string | null {
   return s.length ? s : null;
 }
 
+async function sha256Hex(value: string): Promise<string> {
+  const data = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function detectBrowser(userAgent?: string | null): string {
+  const ua = (userAgent || '').toLowerCase();
+  if (!ua) return 'inconnu';
+  if (ua.includes('brave')) return 'brave';
+  if (ua.includes('edg/')) return 'edge';
+  if (ua.includes('opr/') || ua.includes('opera')) return 'opera';
+  if (ua.includes('firefox')) return 'firefox';
+  if (ua.includes('safari') && !ua.includes('chrome') && !ua.includes('chromium')) return 'safari';
+  if (ua.includes('chrome') || ua.includes('chromium')) return 'chrome';
+  return 'autre';
+}
+
 function readDonneesSupp(record: Record<string, unknown>): Record<string, unknown> | null {
   const raw = record.donnees_supplementaires;
   if (raw == null) return null;
@@ -217,6 +245,54 @@ function readDonneesSupp(record: Record<string, unknown>): Record<string, unknow
 }
 
 type Supa = ReturnType<typeof createClient>;
+
+async function recordPushDelivery(
+  supabase: Supa,
+  event: {
+    notificationId: string;
+    userId: string;
+    canal: 'fcm' | 'web_push';
+    succes: boolean;
+    token?: string;
+    endpoint?: string;
+    deviceId?: string | null;
+    userAgent?: string | null;
+    platform?: string | null;
+    providerStatus?: string | null;
+    erreur?: string | null;
+    invalide?: boolean;
+    dureeMs?: number;
+  },
+) {
+  try {
+    const tokenHash = event.token ? await sha256Hex(event.token) : null;
+    const endpointHash = event.endpoint ? await sha256Hex(event.endpoint) : null;
+    const notificationId = event.notificationId && /^\d+$/.test(event.notificationId)
+      ? Number(event.notificationId)
+      : null;
+    const { error } = await supabase.from('notification_push_delivery_event').insert({
+      id_notification: notificationId,
+      id_utilisateur: event.userId,
+      canal: event.canal,
+      succes: event.succes,
+      token_hash: tokenHash,
+      endpoint_hash: endpointHash,
+      device_id: event.deviceId || null,
+      user_agent: event.userAgent ? event.userAgent.slice(0, 512) : null,
+      platform: event.platform ? event.platform.slice(0, 100) : null,
+      navigateur: detectBrowser(event.userAgent),
+      provider_status: event.providerStatus || null,
+      erreur: event.erreur ? event.erreur.slice(0, 1000) : null,
+      invalide: Boolean(event.invalide),
+      duree_ms: event.dureeMs ?? null,
+    });
+    if (error && error.code !== '42P01') {
+      logLine('push_delivery_event_error', { message: error.message, code: error.code });
+    }
+  } catch (e) {
+    logLine('push_delivery_event_exception', { err: String(e) });
+  }
+}
 
 /**
  * Chemin SPA citoyen pour le clic sur la notification (aligné avec CitizenRoutes).
@@ -401,18 +477,18 @@ serve(async (req) => {
 
   const { data: tokens, error: tokErr } = await supabase
     .from('utilisateur_fcm_token')
-    .select('token')
+    .select('token, device_id, user_agent, platform')
     .eq('id_utilisateur', userId);
 
   if (tokErr) {
     logLine('tokens_query_error', { reqId, message: tokErr.message, code: tokErr.code });
     return json({ error: tokErr.message, reqId }, 500);
   }
-  const rows = (tokens || []) as { token: string }[];
+  const rows = (tokens || []) as FcmRow[];
 
   const { data: webPushRowsRaw, error: webPushErr } = await supabase
     .from('utilisateur_web_push_subscription')
-    .select('endpoint, p256dh, auth')
+    .select('endpoint, p256dh, auth, device_id, user_agent, platform')
     .eq('id_utilisateur', userId);
 
   if (webPushErr && webPushErr.code !== '42P01') {
@@ -475,18 +551,47 @@ serve(async (req) => {
 
       if (sa && accessToken) {
   let idx = 0;
-  for (const { token } of rows) {
+  for (const row of rows) {
     idx += 1;
+    const { token } = row;
     const tokenHint = token.length > 12 ? `${token.slice(0, 8)}…${token.slice(-4)}` : '(short)';
+    const sendStart = Date.now();
     try {
       await sendFcmV1(accessToken, sa.project_id, token, title, bodyText, data, link);
       sent++;
+      await recordPushDelivery(supabase, {
+        notificationId: nid,
+        userId,
+        canal: 'fcm',
+        succes: true,
+        token,
+        deviceId: row.device_id,
+        userAgent: row.user_agent,
+        platform: row.platform,
+        providerStatus: 'ok',
+        dureeMs: Date.now() - sendStart,
+      });
       logLine('fcm_ok', { reqId, idx, tokenHint });
     } catch (e) {
       const msg = String((e as Error).message || e);
       errors.push(msg);
       logLine('fcm_err', { reqId, idx, tokenHint, err: msg.slice(0, 400) });
-      if (isUnregisteredFcmError(msg)) {
+      const invalid = isUnregisteredFcmError(msg);
+      await recordPushDelivery(supabase, {
+        notificationId: nid,
+        userId,
+        canal: 'fcm',
+        succes: false,
+        token,
+        deviceId: row.device_id,
+        userAgent: row.user_agent,
+        platform: row.platform,
+        providerStatus: invalid ? 'invalid_token' : 'error',
+        erreur: msg,
+        invalide: invalid,
+        dureeMs: Date.now() - sendStart,
+      });
+      if (invalid) {
         const { error: delErr } = await supabase.from('utilisateur_fcm_token').delete().eq('token', token);
         if (delErr) {
           logLine('token_delete_fail', { reqId, tokenHint, message: delErr.message, code: delErr.code });
@@ -521,15 +626,43 @@ serve(async (req) => {
       for (const row of webPushRows) {
         idx += 1;
         const endpointHint = row.endpoint.length > 32 ? `${row.endpoint.slice(0, 24)}…` : row.endpoint;
+        const sendStart = Date.now();
         try {
           await sendWebPushNoPayload(row, vapidPublicKey, vapidPrivateKey, vapidSubject);
           sent++;
+          await recordPushDelivery(supabase, {
+            notificationId: nid,
+            userId,
+            canal: 'web_push',
+            succes: true,
+            endpoint: row.endpoint,
+            deviceId: row.device_id,
+            userAgent: row.user_agent,
+            platform: row.platform,
+            providerStatus: 'ok',
+            dureeMs: Date.now() - sendStart,
+          });
           logLine('webpush_ok', { reqId, idx, endpointHint });
         } catch (e) {
           const msg = String((e as Error).message || e);
           errors.push(msg);
           logLine('webpush_err', { reqId, idx, endpointHint, err: msg.slice(0, 400) });
-          if (isExpiredWebPushError(msg)) {
+          const invalid = isExpiredWebPushError(msg);
+          await recordPushDelivery(supabase, {
+            notificationId: nid,
+            userId,
+            canal: 'web_push',
+            succes: false,
+            endpoint: row.endpoint,
+            deviceId: row.device_id,
+            userAgent: row.user_agent,
+            platform: row.platform,
+            providerStatus: invalid ? 'expired_subscription' : 'error',
+            erreur: msg,
+            invalide: invalid,
+            dureeMs: Date.now() - sendStart,
+          });
+          if (invalid) {
             const { error: delErr } = await supabase
               .from('utilisateur_web_push_subscription')
               .delete()
@@ -553,6 +686,17 @@ serve(async (req) => {
     totalWebPush: webPushRows.length,
     errors: errors.length,
   });
+
+  if (nid) {
+    const nextStatus = sent > 0 ? 'envoyee' : errors.length > 0 ? 'echec' : 'annulee';
+    const { error: updateNotifErr } = await supabase
+      .from('notification')
+      .update({ statut_envoi: nextStatus })
+      .eq('id', nid);
+    if (updateNotifErr) {
+      logLine('notification_status_update_fail', { reqId, message: updateNotifErr.message, code: updateNotifErr.code });
+    }
+  }
 
   return json({ ok: true, sent, total: rows.length + webPushRows.length, errors: errors.length ? errors : undefined, reqId });
 });

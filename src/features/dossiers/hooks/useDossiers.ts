@@ -10,13 +10,24 @@ import type { UseDossiersReturn, DossierDisplayData, DossierFilterCriteria } fro
 import * as dossierAPI from '../services/dossierAPI';
 import * as dossierService from '../services/dossierService';
 
+function isAbortLike(err: unknown): boolean {
+  const e = err as { name?: string; message?: string; code?: string };
+  return (
+    e?.name === 'AbortError' ||
+    e?.code === 'ABORT_ERR' ||
+    (typeof e?.message === 'string' && e.message.includes('AbortError'))
+  );
+}
+
 export interface UseDossiersOptions {
   /** Critères initiaux (ex: organisation_id pour Admin Organisation). Fusionnés à chaque appel. */
   initialCriteria?: DossierFilterCriteria;
+  /** Si true, n'appelle pas fetchDossiers au montage (la page déclenche le chargement). */
+  skipInitialLoad?: boolean;
 }
 
 export const useDossiers = (options?: UseDossiersOptions): UseDossiersReturn => {
-  const { initialCriteria } = options || {};
+  const { initialCriteria, skipInitialLoad } = options || {};
   const [dossiers, setDossiers] = useState<DossierDisplayData[]>([]);
   const [selectedDossier, setSelectedDossier] = useState<DossierDisplayData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,11 +43,11 @@ export const useDossiers = (options?: UseDossiersOptions): UseDossiersReturn => 
     setError(null);
 
     try {
-      const merged = {
+      const merged: DossierFilterCriteria = {
         ...initialCriteria,
         ...filters,
-        limit: pageSize,
-        offset: currentPage,
+        limit: filters?.limit !== undefined ? filters.limit : pageSize,
+        offset: filters?.offset !== undefined ? filters.offset : currentPage,
       };
       const { data, count } = await dossierAPI.getDossiers(merged);
 
@@ -44,6 +55,7 @@ export const useDossiers = (options?: UseDossiersOptions): UseDossiersReturn => 
       setDossiers(enrichedData);
       setTotalCount(count);
     } catch (err: any) {
+      if (isAbortLike(err)) return;
       setError(err.message || 'Erreur lors du chargement');
       console.error('Fetch dossiers error:', err);
     } finally {
@@ -101,10 +113,11 @@ export const useDossiers = (options?: UseDossiersOptions): UseDossiersReturn => 
     [fetchDossiers],
   );
 
-  // Initial load
+  // Chargement initial (désactivable pour éviter une course avec un fetch métier, ex. dashboard autorité)
   useEffect(() => {
+    if (skipInitialLoad) return;
     fetchDossiers();
-  }, [fetchDossiers]);
+  }, [fetchDossiers, skipInitialLoad]);
 
   return {
     dossiers,

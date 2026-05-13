@@ -48,16 +48,18 @@
   justify-content: space-between;
   padding: 1rem 0.75rem;
   border-bottom: 1px solid var(--authority-border, #334155);
-  min-height: 70px;
-  height: 70px;
+  min-height: 88px;
+  height: auto;
   flex-shrink: 0;
 }
 
 .logoSection {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .logoIcon {
@@ -66,14 +68,8 @@
 }
 
 .logoImg {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  display: block;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: transparent;
-  overflow: hidden;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .logoText {

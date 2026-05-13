@@ -7,19 +7,22 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useNotifications } from '../../features/notifications/hooks';
 import { CitizenLayout } from './CitizenLayout';
+import { supabase } from '../../config';
 import { 
-  CheckCircle, MessageCircle, Clock, Check, Trash2, Bell, 
-  AlertTriangle, Info, CheckCheck, Settings
+  CheckCircle, MessageCircle, Check, Trash2, Bell, 
+  AlertTriangle, CheckCheck
 } from 'lucide-react';
 import { AdminListSkeleton } from 'components/skeletons';
 import styles from './NotificationsPage.module.css';
 
 export const CitizenNotificationsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as any)?.id;
@@ -44,6 +47,30 @@ export const CitizenNotificationsPage: React.FC = () => {
     if (userId) {
       fetchNotifications(userId);
     }
+  }, [userId, fetchNotifications]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`citizen-notifications-page:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification',
+          filter: `id_utilisateur=eq.${userId}`,
+        },
+        () => {
+          void fetchNotifications(userId);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [userId, fetchNotifications]);
 
   // Marquer comme lu
@@ -74,6 +101,17 @@ export const CitizenNotificationsPage: React.FC = () => {
       console.error('Erreur suppression:', err);
     }
   }, [removeNotification]);
+
+  const handleNotificationClick = useCallback(async (notification: any) => {
+    if (!notification.read) {
+      await handleMarkAsRead(notification.id);
+    }
+
+    const actionUrl = notification.action?.url;
+    if (actionUrl) {
+      navigate(actionUrl);
+    }
+  }, [handleMarkAsRead, navigate]);
 
   // Tout supprimer
   const handleClearAll = useCallback(async () => {
@@ -190,7 +228,16 @@ export const CitizenNotificationsPage: React.FC = () => {
                   key={notification.id}
                   className={`${styles['notifications__card']} ${
                     !notification.read ? styles['notifications__card--unread'] : ''
-                  }`}
+                  } ${notification.action?.url ? styles['notifications__card--actionable'] : ''}`}
+                  onClick={() => handleNotificationClick(notification)}
+                  role={notification.action?.url ? 'button' : undefined}
+                  tabIndex={notification.action?.url ? 0 : undefined}
+                  onKeyDown={(event) => {
+                    if (notification.action?.url && (event.key === 'Enter' || event.key === ' ')) {
+                      event.preventDefault();
+                      void handleNotificationClick(notification);
+                    }
+                  }}
                 >
                   <div className={styles['notifications__icon-wrapper']}>
                     {getIcon(notification.type, notification.category)}
@@ -201,12 +248,20 @@ export const CitizenNotificationsPage: React.FC = () => {
                     <time className={styles['notifications__time']}>
                       {formatTimeAgo(notification.timestamp || notification.created_at)}
                     </time>
+                    {notification.action?.url && (
+                      <span className={styles['notifications__action-link']}>
+                        {notification.action.label || 'Voir le détail'}
+                      </span>
+                    )}
                   </div>
                   <div className={styles['notifications__actions']}>
                     {!notification.read && (
                       <button
                         className={styles['notifications__action-button']}
-                        onClick={() => handleMarkAsRead(notification.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleMarkAsRead(notification.id);
+                        }}
                         title={t('citizen.markAsRead')}
                       >
                         <Check size={18} />
@@ -214,7 +269,10 @@ export const CitizenNotificationsPage: React.FC = () => {
                     )}
                     <button
                       className={`${styles['notifications__action-button']} ${styles['notifications__action-button--delete']}`}
-                      onClick={() => handleDelete(notification.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleDelete(notification.id);
+                      }}
                       title={t('citizen.delete')}
                     >
                       <Trash2 size={18} />

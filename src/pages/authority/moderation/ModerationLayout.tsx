@@ -13,6 +13,7 @@ import { useAppSelector } from '../../../store/types';
 import { selectUser } from '../../../features/auth/store/authSelectors';
 import { useLogout } from '../../../features/auth/hooks/useLogout';
 import { supabase } from '../../../config';
+import { APP_LOGO_SRC } from '../../../config/branding';
 import {
   CheckCircle,
   Image,
@@ -199,7 +200,7 @@ export const ModerationLayout: React.FC<ModerationLayoutProps> = ({
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
+              <img src={APP_LOGO_SRC} alt="" className={`app-brand-logo ${styles.sidebarLogoImg}`} />
             </div>
           )}
           <button

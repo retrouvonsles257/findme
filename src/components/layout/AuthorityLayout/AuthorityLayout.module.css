@@ -8,9 +8,9 @@
 
 /* CSS Variables for Authority Theme */
 :root {
-  --authority-primary: #0ea5e9;
-  --authority-primary-light: #38bdf8;
-  --authority-primary-hover: #0284c7;
+  --authority-primary: var(--color-primary, #0ea5e9);
+  --authority-primary-light: var(--color-primary-light, #38bdf8);
+  --authority-primary-hover: var(--color-primary-dark, #0284c7);
   --authority-primary-soft: rgba(14, 165, 233, 0.16);
   --authority-bg-dark: #0f172a;
   --authority-bg-sidebar: #1e293b;
@@ -21,7 +21,7 @@
   --authority-border: #334155;
   --authority-sidebar-width: 260px;
   --authority-sidebar-collapsed: 0px;
-  --authority-header-height: 56px;
+  --authority-header-height: 88px;
   --authority-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --authority-font: var(--font-family-base, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
   /* Skeleton (AdminListSkeleton / AdminDetailSkeleton / AdminTableSkeleton / AdminCardsGridSkeleton) */
@@ -50,7 +50,7 @@
   flex-direction: column;
   min-height: 100vh;
   min-width: 0;
-  background: var(--authority-bg-main);
+  background: linear-gradient(180deg, #f8fafc 0%, var(--authority-bg-main) 18rem);
   transition: margin-left var(--authority-transition), width var(--authority-transition);
   position: relative;
 }
@@ -71,7 +71,7 @@
   padding: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--authority-bg-main);
+  background: transparent;
   min-height: calc(100vh - var(--authority-header-height));
   width: 100%;
   box-sizing: border-box;

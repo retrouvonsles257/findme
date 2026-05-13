@@ -17,6 +17,7 @@ import {
 } from 'firebase/messaging';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 import { envConfig } from './env.config';
+import { APP_LOGO_SRC } from './branding';
 
 // ============================================
 // VARIABLES D'ENVIRONNEMENT
@@ -613,8 +614,8 @@ export const showLocalNotification = (
 
   if (Notification.permission === 'granted') {
     const notification = new Notification(title, {
-      icon: '/android/mipmap-xxxhdpi/ic_launcher.png',
-      badge: '/android/mipmap-xxxhdpi/ic_launcher.png',
+      icon: APP_LOGO_SRC,
+      badge: APP_LOGO_SRC,
       vibrate: [180, 120, 180],
       ...options,
     });
@@ -631,7 +632,7 @@ export const showLocalNotification = (
   }
 };
 
-const DEFAULT_NOTIF_ICON = '/android/mipmap-xxxhdpi/ic_launcher.png';
+const DEFAULT_NOTIF_ICON = APP_LOGO_SRC;
 
 /**
  * Bannière système à partir d’un message FCM (app au premier plan).

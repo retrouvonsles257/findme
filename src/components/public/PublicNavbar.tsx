@@ -16,6 +16,7 @@ import { useI18n } from '../../hooks';
 import { CITIZEN_ROUTES, PUBLIC_ROUTES } from '../../routes/routes.config';
 import homeStyles from '../../pages/public/HomePage.module.css';
 import shellStyles from './PublicNavbar.module.css';
+import { APP_LOGO_SRC } from '../../config/branding';
 
 const NAV_ICON = 18;
 const navIconProps = { size: NAV_ICON, strokeWidth: 2.25 } as const;
@@ -79,9 +80,9 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
           <div className={homeStyles.navContainer}>
             <Link to={PUBLIC_ROUTES.HOME} className={homeStyles.logo} onClick={() => setMobileMenuOpen(false)}>
               <img
-                src="/android/mipmap-hdpi/ic_launcher.png"
+                src={APP_LOGO_SRC}
                 alt={t('common.appName')}
-                className={homeStyles.logoImg}
+                className="app-brand-logo app-brand-logo--inverse"
               />
               <span className={`${homeStyles.logoText} app-name-bold`}>{t('common.app_name')}</span>
             </Link>
@@ -156,7 +157,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
     <nav className={shellStyles.navbarDefault}>
       <div className={shellStyles.navContainer}>
         <Link to={PUBLIC_ROUTES.HOME} className={shellStyles.logo} onClick={() => setMobileMenuOpen(false)}>
-          <img src="/android/mipmap-hdpi/ic_launcher.png" alt={t('common.appName')} className={shellStyles.logoImg} />
+          <img src={APP_LOGO_SRC} alt={t('common.appName')} className="app-brand-logo" />
           <span className={`${shellStyles.logoText} app-name-bold`}>{t('common.app_name')}</span>
         </Link>
 

@@ -163,6 +163,7 @@ begin
     lue,
     date_creation,
     id_utilisateur,
+    url_action,
     donnees_supplementaires
   )
   values (
@@ -174,6 +175,7 @@ begin
     false,
     v_now,
     v_uid,
+    '/citizen/profile?verification=' || v_demande_id::text,
     jsonb_build_object('kind', 'identity_verification_submitted', 'demande_verification_id', v_demande_id)
   );
 
@@ -193,6 +195,7 @@ begin
       lue,
       date_creation,
       id_utilisateur,
+      url_action,
       donnees_supplementaires
     )
     select
@@ -204,6 +207,7 @@ begin
       false,
       v_now,
       authority_id,
+      '/authority/verifications-identite?demande=' || v_demande_id::text,
       jsonb_build_object('kind', 'identity_verification_pending', 'demande_verification_id', v_demande_id)
     from unnest(v_authority_ids) as a(authority_id);
   end if;
@@ -244,6 +248,7 @@ declare
   v_decision public.statut_demande_verification;
   v_title text;
   v_message text;
+  v_comment text;
 begin
   v_actor := auth.uid();
   if v_actor is null then
@@ -261,6 +266,7 @@ begin
     raise exception 'Decision de verification invalide';
   end if;
   v_decision := p_decision::public.statut_demande_verification;
+  v_comment := nullif(trim(coalesce(p_commentaire, '')), '');
 
   select *
   into v_demande
@@ -275,7 +281,7 @@ begin
   update public.demande_verification_identite
   set
     statut = v_decision,
-    commentaire_moderateur = nullif(trim(coalesce(p_commentaire, '')), ''),
+    commentaire_moderateur = v_comment,
     traite_par = v_actor,
     traite_le = v_now,
     updated_at = v_now
@@ -313,6 +319,10 @@ begin
     v_message := 'Un complement est necessaire pour finaliser votre verification d''identite. Consultez les details puis renvoyez les pieces demandees.';
   end if;
 
+  if v_comment is not null then
+    v_message := v_message || ' Message de l''autorite : ' || v_comment;
+  end if;
+
   insert into public.notification (
     type_notification,
     titre,
@@ -322,6 +332,7 @@ begin
     lue,
     date_creation,
     id_utilisateur,
+    url_action,
     donnees_supplementaires
   )
   values (
@@ -336,10 +347,12 @@ begin
     false,
     v_now,
     v_demande.id_utilisateur,
+    '/citizen/profile?verification=' || p_demande_id::text,
     jsonb_build_object(
       'kind', 'identity_verification_processed',
       'demande_verification_id', p_demande_id,
-      'statut', v_decision::text
+      'statut', v_decision::text,
+      'commentaire', v_comment
     )
   );
 
@@ -363,3 +376,24 @@ $$;
 grant select, insert, update on public.demande_verification_identite to authenticated;
 grant execute on function public.submit_identity_verification(text, text, text) to authenticated;
 grant execute on function public.process_identity_verification(uuid, text, text) to authenticated;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'demande_verification_identite'
+  ) then
+    alter publication supabase_realtime add table public.demande_verification_identite;
+  end if;
+exception
+  when undefined_object then
+    raise notice 'Publication supabase_realtime introuvable (hors Supabase gere ?)';
+  when duplicate_object then
+    null;
+end
+$$;
+
+alter table public.demande_verification_identite replica identity full;

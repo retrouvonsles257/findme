@@ -26,7 +26,7 @@ const mapDbToNotification = (n: any): INotification => ({
   read: n.lue,
   readAt: n.date_lecture ? new Date(n.date_lecture) : undefined,
   data: n.donnees_supplementaires,
-  action: n.url_action,
+  action: n.url_action ? { label: 'Voir', url: n.url_action } : undefined,
 });
 
 /**
@@ -44,7 +44,7 @@ export const createNotification = async (
     id_utilisateur: notification.user_id,
     lue: false,
     donnees_supplementaires: notification.data,
-    url_action: notification.action,
+    url_action: notification.action?.url,
     date_creation: new Date().toISOString(),
   }).select().single();
 

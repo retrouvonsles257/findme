@@ -478,11 +478,35 @@ export async function addSignalementVerification(
   };
 }
 
+const emptySignalementStats = (): SignalementStats => ({
+  total: 0,
+  parEtat: { nouveau: 0, en_cours: 0, valide: 0, rejete: 0, ferme: 0 },
+  parConfiance: { haute: 0, moyenne: 0, basse: 0 },
+  moyenneScore: 0,
+  derniers7jours: 0,
+});
+
 /**
  * Get signalement statistics
+ * @param organisationId - Si défini, uniquement les signalements rattachés aux dossiers de cette organisation.
  */
-export async function getSignalementStats(): Promise<SignalementStats> {
-  const { data, error } = await db().from('signalement').select('*');
+export async function getSignalementStats(organisationId?: string): Promise<SignalementStats> {
+  let query = db().from('signalement').select('*');
+
+  if (organisationId) {
+    const { data: dossierRows, error: dossierErr } = await db()
+      .from('dossier_disparition')
+      .select('id')
+      .eq('id_organisation_responsable', organisationId);
+    if (dossierErr) throw dossierErr;
+    const ids = (dossierRows || []).map((d: { id: string }) => d.id);
+    if (ids.length === 0) {
+      return emptySignalementStats();
+    }
+    query = query.in('id_dossier', ids);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 

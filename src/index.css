@@ -8,14 +8,19 @@
 
 /* CSS Custom Properties (Design Tokens) */
 :root {
+  /* Couleurs primaires alignées sur le hero de la page d’accueil */
+  --hero-blue-start: #38bdf8;
+  --hero-blue-end: #0ea5e9;
+  --gradient-hero-blue: linear-gradient(135deg, var(--hero-blue-start) 0%, var(--hero-blue-end) 100%);
+
   /* Colors - Primary (Blue) */
-  --color-primary: #1d4ed8;
-  --color-primary-dark: #1e40af;
-  --color-primary-light: #3b82f6;
-  --color-primary-lighter: #60a5fa;
-  --color-primary-alpha: rgba(29, 78, 216, 0.92);
-  --color-secondary: rgba(30, 144, 255, 0.92);
-  --color-accent: #0ea5e9;
+  --color-primary: var(--hero-blue-end);
+  --color-primary-dark: #0284c7;
+  --color-primary-light: var(--hero-blue-start);
+  --color-primary-lighter: #7dd3fc;
+  --color-primary-alpha: rgba(14, 165, 233, 0.92);
+  --color-secondary: rgba(56, 189, 248, 0.92);
+  --color-accent: var(--hero-blue-end);
   
   /* Semantic Colors */
   --color-success: #10b981;
@@ -120,6 +125,51 @@
   white-space: nowrap;
   letter-spacing: normal;
   text-shadow: none;
+}
+
+/**
+ * Logo /logo.png (pictogramme + libellé) : toujours entièrement visible,
+ * cadre carré aux coins arrondis (pas de crop circulaire).
+ */
+img.app-brand-logo {
+  width: auto !important;
+  height: auto !important;
+  max-width: min(100%, 11.5rem);
+  max-height: 3.35rem;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 0.2rem 0.45rem;
+  box-sizing: border-box;
+  flex-shrink: 1;
+  min-width: 0;
+  display: block;
+}
+
+img.app-brand-logo--inverse {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+img.app-brand-logo--prominent {
+  max-width: min(92vw, 17rem);
+  max-height: min(40vh, 14rem);
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.9rem;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.28);
+}
+
+@media (max-width: 480px) {
+  img.app-brand-logo {
+    max-height: 2.9rem;
+    max-width: min(100%, 9.25rem);
+    padding: 0.15rem 0.35rem;
+  }
+
+  img.app-brand-logo--prominent {
+    max-height: min(36vh, 11rem);
+  }
 }
 
 /* Base Reset & Styles */

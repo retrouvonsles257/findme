@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { PUBLIC_ROUTES } from '../../routes/routes.config';
+import { APP_LOGO_SRC } from '../../config/branding';
 import styles from '../../pages/public/HomePage.module.css';
 
 /**
@@ -17,7 +18,7 @@ export const PublicFooter: React.FC = () => {
       <div className={styles.footerContent}>
         <div className={styles.footerSection}>
           <div className={styles.footerLogo}>
-            <img src="/android/mipmap-hdpi/ic_launcher.png" alt={t('common.appName')} className={styles.footerLogoImg} />
+            <img src={APP_LOGO_SRC} alt={t('common.appName')} className="app-brand-logo app-brand-logo--inverse" />
             <span className="app-name-bold">{t('common.app_name')}</span>
           </div>
           <p>{t('public.footer.description')}</p>

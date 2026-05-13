@@ -7,6 +7,7 @@
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { normalizeAppRole, supabaseAuthService } from '../../../services/supabase/auth';
+import { supabase } from '../../../config';
 import type { 
   LoginCredentials, 
   PasswordResetRequest,
@@ -91,8 +92,21 @@ export const loginThunk = createAsyncThunk<
       });
     }
 
+    const user = convertToUser(result.data.user);
+
+    if (user.role === NomRole.ADMIN_SYSTEME || user.role === NomRole.AUTORITE) {
+      try {
+        await (supabase as any).rpc('record_admin_login_event', {
+          p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+          p_path: typeof window !== 'undefined' ? window.location.pathname : null,
+        });
+      } catch {
+        // La connexion ne doit pas échouer si l'audit distant est temporairement indisponible.
+      }
+    }
+
     return {
-      user: convertToUser(result.data.user),
+      user,
       accessToken: result.data.access_token,
       refreshToken: result.data.refresh_token,
       expiresAt: result.data.expires_at,

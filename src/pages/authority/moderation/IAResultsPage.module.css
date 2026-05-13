@@ -19,7 +19,7 @@
 /* ============================================ */
 
 .ia-results__header {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 16px;
   padding: 1.5rem;
   color: white;
@@ -136,7 +136,7 @@
 }
 
 .ia-results__filter-group select option {
-  background: #0369a1;
+  background: var(--color-primary-dark);
   color: white;
 }
 
@@ -161,7 +161,7 @@
 }
 
 .ia-results__stat svg {
-  color: #0284c7;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -474,7 +474,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--gradient-hero-blue);
   color: white;
   border-radius: 20px 20px 0 0;
 }
@@ -606,7 +606,7 @@
 .ia-results__modal-factors pre,
 .ia-results__modal-matches pre {
   background: #1f2937;
-  color: #0284c7;
+  color: var(--color-primary);
   padding: 1rem;
   border-radius: 8px;
   font-size: 0.8rem;
@@ -633,7 +633,7 @@
 }
 
 .ia-results__modal-comment small {
-  color: #0369a1;
+  color: var(--color-primary-dark);
   opacity: 0.8;
 }
 
@@ -665,7 +665,7 @@
 
 .ia-results__comparison-toggle {
   padding: 0.5rem 1rem;
-  background: #0284c7;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -676,7 +676,7 @@
 }
 
 .ia-results__comparison-toggle:hover {
-  background: #0369a1;
+  background: var(--color-primary-dark);
 }
 
 .ia-results__comparison-grid {
@@ -737,7 +737,7 @@
 .ia-results__comparison-score {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0284c7;
+  color: var(--color-primary);
 }
 
 .ia-results__comparison-divider span:last-child {
@@ -884,7 +884,7 @@
   background: #f0fdf4;
   border-radius: 8px;
   border: 1px solid #bbf7d0;
-  color: #0284c7;
+  color: var(--color-primary);
   font-size: 0.85rem;
   margin-bottom: 1rem;
 }

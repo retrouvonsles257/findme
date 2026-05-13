@@ -53,6 +53,12 @@ export const CitizenProfilePage: React.FC = () => {
   const [submittingVerification, setSubmittingVerification] = useState(false);
   const [profileIdentityVerified, setProfileIdentityVerified] = useState(Boolean((currentUser as any)?.identite_verifiee));
   const [profileStatus, setProfileStatus] = useState<string>((currentUser as any)?.statut_compte || '');
+  const [latestVerificationRequest, setLatestVerificationRequest] = useState<{
+    id: string;
+    statut: string;
+    commentaire_moderateur?: string | null;
+    updated_at?: string | null;
+  } | null>(null);
 
   const [formData, setFormData] = useState<ProfileData>({
     nom: '',
@@ -72,6 +78,14 @@ export const CitizenProfilePage: React.FC = () => {
   const isVerificationPending =
     profileStatus === StatutCompte.EN_ATTENTE_VERIFICATION ||
     (currentUser as any)?.statut_compte === StatutCompte.EN_ATTENTE_VERIFICATION;
+  const verificationRequestStatus = latestVerificationRequest?.statut;
+  const verificationStatusLabel = isVerificationPending
+    ? 'En attente de vérification'
+    : verificationRequestStatus === 'complement_demande'
+      ? 'Complément demandé'
+      : verificationRequestStatus === 'refuse'
+        ? 'Demande refusée'
+        : 'Non vérifié';
 
   // Charger le profil depuis Supabase
   useEffect(() => {
@@ -108,6 +122,16 @@ export const CitizenProfilePage: React.FC = () => {
           setProfileIdentityVerified(Boolean(data.identite_verifiee));
           setProfileStatus(data.statut_compte || '');
         }
+
+        const { data: latestRequest } = await (supabase as any)
+          .from('demande_verification_identite')
+          .select('id, statut, commentaire_moderateur, updated_at, created_at')
+          .eq('id_utilisateur', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setLatestVerificationRequest(latestRequest || null);
       } catch (err: any) {
         console.error('Erreur chargement profil:', err);
         setError(err.message);
@@ -118,6 +142,35 @@ export const CitizenProfilePage: React.FC = () => {
 
     loadProfile();
   }, [userId, currentUser]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`citizen-identity-verification:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'demande_verification_identite',
+          filter: `id_utilisateur=eq.${userId}`,
+        },
+        (payload) => {
+          const next = payload.new as typeof latestVerificationRequest;
+          if (next?.id) {
+            setLatestVerificationRequest(next);
+            setProfileIdentityVerified(next.statut === 'approuve');
+            setProfileStatus(next.statut === 'en_attente' ? StatutCompte.EN_ATTENTE_VERIFICATION : StatutCompte.ACTIF);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   // Gérer les changements
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -205,6 +258,12 @@ export const CitizenProfilePage: React.FC = () => {
 
       setProfileIdentityVerified(false);
       setProfileStatus(StatutCompte.EN_ATTENTE_VERIFICATION);
+      setLatestVerificationRequest((prev) => ({
+        id: prev?.id || '',
+        statut: 'en_attente',
+        commentaire_moderateur: null,
+        updated_at: new Date().toISOString(),
+      }));
       setSuccess('Demande de vérification envoyée. Un modérateur va examiner votre document.');
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {
@@ -568,15 +627,21 @@ export const CitizenProfilePage: React.FC = () => {
               <div className={styles['profile__info-item-content']}>
                 <p className={styles['profile__info-item-label']}>Statut</p>
                 <p className={styles['profile__info-item-value']}>
-                  {isVerificationPending ? 'En attente de vérification' : 'Non vérifié'}
+                  {verificationStatusLabel}
                 </p>
+                {latestVerificationRequest?.commentaire_moderateur && (
+                  <div className={styles['profile__verification-feedback']}>
+                    <strong>Message de l’autorité</strong>
+                    <p>{latestVerificationRequest.commentaire_moderateur}</p>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className={styles['profile__form']} style={{ marginTop: 12 }}>
               <div className={styles['profile__form-group']}>
                 <label className={styles['profile__label']}>Document (CNI / Passeport / Acte…)</label>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     className={styles['profile__edit-button']}
@@ -586,7 +651,12 @@ export const CitizenProfilePage: React.FC = () => {
                     {uploadingVerificationDoc ? 'Upload…' : (verificationDocUrl ? 'Changer le document' : 'Uploader un document')}
                   </button>
                   {verificationDocUrl && (
-                    <a href={verificationDocUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={verificationDocUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles['profile__verification-link']}
+                    >
                       Voir le document
                     </a>
                   )}

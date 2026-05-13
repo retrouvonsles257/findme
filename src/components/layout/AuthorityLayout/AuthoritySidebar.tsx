@@ -43,6 +43,7 @@ import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { selectUser, selectUserRole } from '../../../features/auth/store/authSelectors';
 import { NomRole } from '../../../@types/enums.types';
 import { normalizeAppRole } from '../../../utils/normalizeAppRole';
+import { APP_LOGO_SRC } from '../../../config/branding';
 import { authorityEchelonI18nKey } from '../../../utils/authorityRoleUi';
 import styles from './AuthoritySidebar.module.css';
 
@@ -287,7 +288,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
         {/* Header with Logo and Toggle */}
         <div className={styles.sidebarHeader}>
           <div className={styles.logoSection}>
-            <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.logoImg} />
+            <img src={APP_LOGO_SRC} alt="" className={`app-brand-logo ${styles.logoImg}`} />
           </div>
           <button 
             className={styles.toggleBtn}

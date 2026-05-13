@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  height: var(--authority-header-height, 70px);
-  min-height: 70px;
+  height: var(--authority-header-height, 88px);
+  min-height: var(--authority-header-height, 88px);
   padding: 0 1.5rem;
   background: white;
   border-bottom: 1px solid #e2e8f0;

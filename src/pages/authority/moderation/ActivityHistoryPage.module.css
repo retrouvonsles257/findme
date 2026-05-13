@@ -14,7 +14,7 @@
 }
 
 .header {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 16px;
   padding: 1.5rem;
   color: white;
@@ -75,7 +75,7 @@
 
 .toolbarBtnActive {
   background: rgba(255, 255, 255, 0.95);
-  color: #0369a1;
+  color: var(--color-primary-dark);
   border-color: white;
 }
 
@@ -194,7 +194,7 @@
 }
 
 /* Icon Colors */
-.iconSuccess { color: #0284c7; }
+.iconSuccess { color: var(--color-primary); }
 .iconDanger { color: #ef4444; }
 .iconWarning { color: #f59e0b; }
 .iconInfo { color: #38bdf8; }

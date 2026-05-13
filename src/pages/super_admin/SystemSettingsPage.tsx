@@ -12,47 +12,14 @@ import { supabase } from '../../config';
 import { SuperAdminLayout } from './SuperAdminLayout';
 import { AdminDetailSkeleton } from 'components/skeletons';
 import { Settings, Save, Loader2, AlertCircle, CheckCircle, Globe, Database, Mail, Bell, Minus, Plus, RefreshCw } from 'lucide-react';
+import { DEFAULT_SYSTEM_CONFIG, type SystemConfig } from '../../features/system';
 import styles from './SystemSettingsPage.module.css';
-
-interface SystemConfig {
-  system_name: string;
-  system_version: string;
-  default_language: string;
-  maintenance_mode: boolean;
-  maintenance_message: string;
-  email_notifications_enabled: boolean;
-  smtp_host: string;
-  smtp_port: number;
-  support_email: string;
-  max_file_upload_mb: number;
-  allowed_file_types: string;
-  data_retention_days: number;
-  auto_backup_enabled: boolean;
-  backup_frequency_hours: number;
-}
-
-const DEFAULT_CONFIG: SystemConfig = {
-  system_name: 'RETROUVONS-LES',
-  system_version: '1.0.0',
-  default_language: 'fr',
-  maintenance_mode: false,
-  maintenance_message: 'Le système est en maintenance. Veuillez réessayer plus tard.',
-  email_notifications_enabled: true,
-  smtp_host: '',
-  smtp_port: 587,
-  support_email: 'support@retrouvonsles.fr',
-  max_file_upload_mb: 10,
-  allowed_file_types: 'jpg,jpeg,png,pdf',
-  data_retention_days: 365,
-  auto_backup_enabled: true,
-  backup_frequency_hours: 24,
-};
 
 export const SuperAdminSystemSettingsPage: React.FC = () => {
   const { t } = useI18n();
 
-  const [config, setConfig] = useState<SystemConfig>(DEFAULT_CONFIG);
-  const [originalConfig, setOriginalConfig] = useState<SystemConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<SystemConfig>(DEFAULT_SYSTEM_CONFIG);
+  const [originalConfig, setOriginalConfig] = useState<SystemConfig>(DEFAULT_SYSTEM_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +41,14 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
       }
 
       if (data && data.valeur) {
-        const loadedConfig = { ...DEFAULT_CONFIG, ...data.valeur };
+        const loadedConfig = {
+          ...DEFAULT_SYSTEM_CONFIG,
+          ...data.valeur,
+          feature_flags: {
+            ...DEFAULT_SYSTEM_CONFIG.feature_flags,
+            ...(data.valeur.feature_flags || {}),
+          },
+        };
         setConfig(loadedConfig);
         setOriginalConfig(loadedConfig);
       }
@@ -120,7 +94,7 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
 
   const hasChanges = JSON.stringify(config) !== JSON.stringify(originalConfig);
 
-  const handleReset = () => setConfig(DEFAULT_CONFIG);
+  const handleReset = () => setConfig(DEFAULT_SYSTEM_CONFIG);
   const roundStep = (v: number, s: number) => {
     if (s >= 1) return Math.round(v);
     const d = s <= 0.01 ? 100 : 10;
@@ -304,6 +278,17 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                   <Stepper value={config.data_retention_days} onChange={(v) => setConfig({ ...config, data_retention_days: v })} min={30} max={3650} />
                 </div>
                 <div className={styles['sa-system-settings__field-toggle']}>
+                  <label>Anonymisation automatique des données anciennes</label>
+                  <label className={styles['sa-system-settings__toggle']}>
+                    <input
+                      type="checkbox"
+                      checked={config.anonymization_enabled}
+                      onChange={(e) => setConfig({ ...config, anonymization_enabled: e.target.checked })}
+                    />
+                    <span className={styles['sa-system-settings__slider']}></span>
+                  </label>
+                </div>
+                <div className={styles['sa-system-settings__field-toggle']}>
                   <label>Sauvegarde automatique</label>
                   <label className={styles['sa-system-settings__toggle']}>
                     <input 
@@ -318,6 +303,35 @@ export const SuperAdminSystemSettingsPage: React.FC = () => {
                   <label>Fréquence sauvegarde (heures)</label>
                   <Stepper value={config.backup_frequency_hours} onChange={(v) => setConfig({ ...config, backup_frequency_hours: v })} min={1} max={168} disabled={!config.auto_backup_enabled} />
                 </div>
+              </div>
+            </div>
+
+            {/* Feature Flags */}
+            <div className={styles['sa-system-settings__card']}>
+              <div className={styles['sa-system-settings__header']}>
+                <Settings size={24} />
+                <h3>Feature flags</h3>
+              </div>
+              <div className={styles['sa-system-settings__form']}>
+                {Object.entries(config.feature_flags).map(([flag, enabled]) => (
+                  <div key={flag} className={styles['sa-system-settings__field-toggle']}>
+                    <label>{flag.replace(/_/g, ' ')}</label>
+                    <label className={styles['sa-system-settings__toggle']}>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => setConfig({
+                          ...config,
+                          feature_flags: {
+                            ...config.feature_flags,
+                            [flag]: e.target.checked,
+                          },
+                        })}
+                      />
+                      <span className={styles['sa-system-settings__slider']}></span>
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
 

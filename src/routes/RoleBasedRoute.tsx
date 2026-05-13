@@ -42,18 +42,9 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const loading = useAppSelector(selectAuthLoading);
 
-  // Attendre le chargement
+  // Attendre le chargement (shell global dans App)
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
-        <div>Chargement...</div>
-      </div>
-    );
+    return null;
   }
 
   // Pas authentifié = rediriger vers login

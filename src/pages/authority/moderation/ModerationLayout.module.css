@@ -6,8 +6,9 @@
  */
 
 :root {
-  --mod-primary: #1e90ff;
-  --mod-primary-hover: #0284c7;
+  --mod-primary: var(--color-primary, #0ea5e9);
+  --mod-primary-light: var(--color-primary-light, #38bdf8);
+  --mod-primary-hover: var(--color-primary-dark, #0284c7);
   --mod-bg-main: #f1f5f9;
   --mod-sidebar-border: rgba(15, 23, 42, 0.55);
   --mod-sidebar-hover: rgba(15, 23, 42, 0.72);
@@ -74,14 +75,16 @@
   justify-content: space-between;
   padding: 1rem;
   border-bottom: 1px solid var(--mod-sidebar-border);
-  min-height: 64px;
+  min-height: 88px;
 }
 
 .logoContainer {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .logoIcon {
@@ -108,13 +111,8 @@
 }
 
 .sidebarLogoImg {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  display: block;
-  border-radius: 50%;
-  background: transparent;
-  overflow: hidden;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .toggleBtn {
@@ -414,6 +412,7 @@
   overflow: hidden;
   transition: margin-left 0.3s ease, width 0.3s ease;
   box-sizing: border-box;
+  background: linear-gradient(180deg, #f8fafc 0%, var(--mod-bg-main) 18rem);
 }
 
 .mainExpanded {
@@ -426,8 +425,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 1rem;
-  height: 64px;
-  min-height: 64px;
+  height: 88px;
+  min-height: 88px;
   padding: 0 1.5rem;
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
@@ -543,7 +542,7 @@
   -webkit-overflow-scrolling: touch;
   padding: 1.25rem;
   box-sizing: border-box;
-  background: var(--mod-bg-main);
+  background: transparent;
   display: flex;
   flex-direction: column;
   gap: 0;

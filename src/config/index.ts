@@ -9,6 +9,8 @@
 export { envConfig, validateEnvironment, getPublicEnv } from './env.config';
 export type { EnvConfig } from './env.config';
 
+export { APP_LOGO_SRC } from './branding';
+
 // Application Configuration
 export {
   appConfig,

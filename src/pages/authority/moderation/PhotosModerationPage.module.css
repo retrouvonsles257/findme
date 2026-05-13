@@ -20,7 +20,7 @@
 /* ============================================ */
 
 .photos-moderation__header {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 16px;
   padding: 1.5rem;
   color: white;
@@ -126,7 +126,7 @@
 }
 
 .photos-moderation__filter-group select option {
-  background: #6d28d9;
+  background: var(--color-primary-dark);
   color: white;
 }
 
@@ -146,7 +146,7 @@
   padding: 1rem 1.25rem;
   border-radius: 10px;
   font-weight: 500;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--gradient-hero-blue);
   color: white;
 }
 
@@ -370,13 +370,13 @@
 }
 
 .photos-moderation__action-btn--approve {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--gradient-hero-blue);
   color: white;
 }
 
 .photos-moderation__action-btn--approve:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
 }
 
 .photos-moderation__action-btn--reject {
@@ -640,8 +640,8 @@
 .photos-moderation__form-group select:focus,
 .photos-moderation__form-group textarea:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 .photos-moderation__form-group textarea {
@@ -660,7 +660,7 @@
 .photos-moderation__checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #7c3aed;
+  accent-color: var(--color-primary);
 }
 
 .photos-moderation__modal-actions {
@@ -687,7 +687,7 @@
 
 .photos-moderation__already-moderated p {
   margin: 0;
-  color: #075985;
+  color: var(--color-primary-dark);
   font-size: 0.9rem;
 }
 
@@ -942,11 +942,11 @@
 }
 
 .photos-moderation__blur-btn--save {
-  background: #0284c7;
+  background: var(--color-primary);
 }
 
 .photos-moderation__blur-btn--save:hover {
-  background: #0369a1;
+  background: var(--color-primary-dark);
 }
 
 .photos-moderation__blur-btn--save:disabled {

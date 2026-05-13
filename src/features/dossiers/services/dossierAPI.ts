@@ -375,9 +375,14 @@ export const deleteDossier = async (id: string): Promise<void> => {
 
 /**
  * Get dossier statistics
+ * @param organisationId - Si défini, restreint aux dossiers dont cette organisation est responsable.
  */
-export const getDossierStatistics = async (): Promise<DossierStatistics> => {
-  const { data, error } = await db.from('dossier_disparition').select('*', { count: 'exact' });
+export const getDossierStatistics = async (organisationId?: string): Promise<DossierStatistics> => {
+  let q = db.from('dossier_disparition').select('*', { count: 'exact' });
+  if (organisationId) {
+    q = q.eq('id_organisation_responsable', organisationId);
+  }
+  const { data, error } = await q;
 
   if (error) throw error;
 

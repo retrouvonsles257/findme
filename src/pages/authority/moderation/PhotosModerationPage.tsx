@@ -298,8 +298,8 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
   // Couleur de qualité
   const getQualityColor = (quality: string) => {
     const colors: Record<string, string> = {
-      excellente: '#0284c7',
-      bonne: '#0284c7',
+      excellente: '#0ea5e9',
+      bonne: '#0ea5e9',
       moyenne: '#f59e0b',
       faible: '#ef4444',
     };
@@ -432,7 +432,7 @@ export const PhotosModerationPage: React.FC<PhotosModerationPageProps> = ({ noLa
   // Badge de statut
   const getStatusBadge = (photo: Photo) => {
     if (photo.approuvee) {
-      return { label: t('moderation.photosStatusApproved'), color: '#0284c7' };
+      return { label: t('moderation.photosStatusApproved'), color: '#0ea5e9' };
     }
     if (photo.moderee_par) {
       return { label: t('moderation.photosStatusRejected'), color: '#ef4444' };

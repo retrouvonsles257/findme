@@ -8,6 +8,7 @@
 
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AppLoadingShell } from '../components/shell/AppLoadingShell';
 
 // Import des composants de routes par module
 import PublicRoutes from './PublicRoutes';
@@ -22,16 +23,7 @@ import { LEGACY_SILO_BASES, LEGACY_SILO_REDIRECT_TARGET, ROUTES } from './routes
  * Loading Component
  * Affichage pendant le chargement des routes
  */
-const LoadingComponent: React.FC = () => (
-  <div style={{
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh'
-  }}>
-    <div>Chargement de l'application...</div>
-  </div>
-);
+const LoadingComponent: React.FC = () => <AppLoadingShell variant="lazy" fixed />;
 
 const mapLegacyAdminPath = (pathname: string): string => {
   const suffix = pathname.replace(/^\/admin/, '') || '/';

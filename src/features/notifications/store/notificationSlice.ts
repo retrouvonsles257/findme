@@ -165,8 +165,9 @@ export const notificationSlice = createSlice({
       .addCase(toggleNotificationRead.fulfilled, (state, action) => {
         const index = state.notifications.findIndex((n) => n.id === action.payload.id);
         if (index !== -1) {
+          const wasUnread = !state.notifications[index].read;
           state.notifications[index] = action.payload;
-          if (action.payload.read && !state.notifications[index].read) {
+          if (action.payload.read && wasUnread) {
             state.unreadCount = Math.max(0, state.unreadCount - 1);
           }
         }

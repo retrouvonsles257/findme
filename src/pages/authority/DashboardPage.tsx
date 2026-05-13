@@ -6,7 +6,7 @@
  * =====================================================
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FolderOpen,
@@ -35,6 +35,10 @@ import styles from './DashboardPage.module.css';
 import { NomRole } from '../../@types/enums.types';
 import { normalizeAppRole } from '../../utils/normalizeAppRole';
 import { authorityEchelonI18nKey } from '../../utils/authorityRoleUi';
+import type { DossierStatistics } from '../../features/dossiers/types';
+import type { SignalementStats } from '../../features/signalements/types/signalement.types';
+import { getDossierStatistics } from '../../features/dossiers/services/dossierAPI';
+import { getSignalementStats } from '../../features/signalements/services/signalementAPI';
 
 interface DashboardStats {
   dossiers_total: number;
@@ -51,10 +55,30 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = useAppSelector(selectCurrentUser);
-  const { dossiers, isLoading: dossiersLoading, fetchDossiers } = useDossiers();
+  const organisationId = currentUser?.organisation_id;
+  const userId = currentUser?.id;
+
+  /** Référence stable : sinon fetchDossiers change à chaque rendu → boucle infinie + AbortError Supabase */
+  const dossiersInitialCriteria = useMemo(
+    () => (organisationId ? { organisation_id: organisationId } : undefined),
+    [organisationId],
+  );
+  const dossiersHookOptions = useMemo(
+    () =>
+      dossiersInitialCriteria
+        ? { initialCriteria: dossiersInitialCriteria, skipInitialLoad: true as const }
+        : { skipInitialLoad: true as const },
+    [dossiersInitialCriteria],
+  );
+
+  const { dossiers, isLoading: dossiersLoading, fetchDossiers } = useDossiers(dossiersHookOptions);
   const { signalements, isLoading: signalementsLoading, fetchSignalements } = useSignalements();
   const { alertes, loading: alertesLoading, fetchAlertes } = useAlertes();
   const { t } = useI18n();
+
+  const [dossierAgg, setDossierAgg] = useState<DossierStatistics | null>(null);
+  const [signalementAgg, setSignalementAgg] = useState<SignalementStats | null>(null);
+  const [aggLoading, setAggLoading] = useState(true);
 
   const [stats, setStats] = useState<DashboardStats>({
     dossiers_total: 0,
@@ -74,55 +98,105 @@ export const DashboardPage: React.FC = () => {
     }
   }, [currentUser, navigate]);
 
-  // Recharger dossiers, signalements et alertes à chaque entrée sur le dashboard (badge et listes à jour)
   const isDashboard = location.pathname === '/authority/dashboard' || location.pathname.endsWith('/dashboard');
-  useEffect(() => {
-    if (!isDashboard) return;
-    fetchDossiers();
-    fetchSignalements(undefined, 1);
-    fetchAlertes();
-  }, [isDashboard, fetchDossiers, fetchSignalements, fetchAlertes]);
 
-  // Calculate statistics from real data
-  useEffect(() => {
-    if (!dossiersLoading && !signalementsLoading && !alertesLoading) {
-      const retrouves = dossiers.filter((d: any) => 
-        d.statut_dossier === 'retrouve_vivant' || d.statut_dossier === 'retrouve_decede'
-      ).length;
-
-      const alertesActives = alertes.filter((a: any) => a.statut_alerte === 'en_cours').length;
-
-      const signalementsNouveaux = signalements.filter((s: any) => 
-        s.statut_validation === 'en_attente' || s.etat === 'nouveau'
-      ).length;
-      const signalementsEnAttente = signalements.filter((s: any) => 
-        s.statut_validation === 'en_verification' || s.etat === 'en_cours'
-      ).length;
-
-      setStats({
-        dossiers_total: dossiers.length,
-        dossiers_en_cours: dossiers.filter((d: any) => d.statut_dossier === 'en_cours').length,
-        dossiers_urgent: dossiers.filter((d: any) => 
-          d.niveau_urgence === 'critique' || d.niveau_urgence === 'urgent'
-        ).length,
-        signalements_nouveau: signalementsNouveaux,
-        signalements_en_attente: signalementsEnAttente,
-        alertes_active: alertesActives,
-        retrouves_total: retrouves,
-        taux_resolution: dossiers.length > 0 
-          ? Math.round((retrouves / dossiers.length) * 100) 
-          : 0,
-      });
+  const loadAggregates = useCallback(async () => {
+    if (!userId) {
+      setDossierAgg(null);
+      setSignalementAgg(null);
+      setAggLoading(false);
+      return;
     }
-  }, [dossiers, signalements, alertes, dossiersLoading, signalementsLoading, alertesLoading]);
+    setAggLoading(true);
+    try {
+      const oid = organisationId || undefined;
+      const [d, s] = await Promise.all([getDossierStatistics(oid), getSignalementStats(oid)]);
+      setDossierAgg(d);
+      setSignalementAgg(s);
+    } catch {
+      setDossierAgg(null);
+      setSignalementAgg(null);
+      setStats({
+        dossiers_total: 0,
+        dossiers_en_cours: 0,
+        dossiers_urgent: 0,
+        signalements_nouveau: 0,
+        signalements_en_attente: 0,
+        alertes_active: 0,
+        retrouves_total: 0,
+        taux_resolution: 0,
+      });
+    } finally {
+      setAggLoading(false);
+    }
+  }, [userId, organisationId]);
+
+  const alertesActivesCount = useMemo(
+    () => alertes.filter((a: any) => a.statut_alerte === 'en_cours').length,
+    [alertes],
+  );
+
+  // Recharger listes + agrégats (totaux réels, pas seulement la page courante)
+  useEffect(() => {
+    if (!isDashboard || !userId) return;
+    const oid = organisationId;
+    const dossierFilters = {
+      ...(oid ? { organisation_id: oid } : {}),
+      limit: 5,
+      offset: 0,
+      sortBy: 'date' as const,
+      sortOrder: 'desc' as const,
+    };
+    fetchDossiers(dossierFilters);
+    fetchSignalements(oid ? { organisation_id: oid } : undefined, 1);
+    fetchAlertes(oid ? { id_organisation_responsable: oid } : undefined);
+    loadAggregates();
+  }, [isDashboard, userId, organisationId, fetchDossiers, fetchSignalements, fetchAlertes, loadAggregates]);
+
+  useEffect(() => {
+    if (!dossierAgg || !signalementAgg || alertesLoading) return;
+    const ud = (dossierAgg.urgence_distribution as Record<string, number>) || {};
+    const dossiersUrgent = (ud.critique ?? 0) + (ud.urgent ?? 0);
+    const next: DashboardStats = {
+      dossiers_total: dossierAgg.total_dossiers,
+      dossiers_en_cours: dossierAgg.dossiers_en_cours,
+      dossiers_urgent: dossiersUrgent,
+      signalements_nouveau: signalementAgg.parEtat.nouveau,
+      signalements_en_attente: signalementAgg.parEtat.en_cours,
+      alertes_active: alertesActivesCount,
+      retrouves_total: dossierAgg.dossiers_resolus,
+      taux_resolution: Math.round(Number(dossierAgg.taux_resolution) || 0),
+    };
+    setStats((prev) =>
+      prev.dossiers_total === next.dossiers_total &&
+      prev.dossiers_en_cours === next.dossiers_en_cours &&
+      prev.dossiers_urgent === next.dossiers_urgent &&
+      prev.signalements_nouveau === next.signalements_nouveau &&
+      prev.signalements_en_attente === next.signalements_en_attente &&
+      prev.alertes_active === next.alertes_active &&
+      prev.retrouves_total === next.retrouves_total &&
+      prev.taux_resolution === next.taux_resolution
+        ? prev
+        : next,
+    );
+  }, [dossierAgg, signalementAgg, alertesLoading, alertesActivesCount]);
 
   const handleRefresh = () => {
-    fetchDossiers();
-    fetchSignalements();
-    fetchAlertes();
+    if (!currentUser) return;
+    const oid = currentUser.organisation_id;
+    loadAggregates();
+    fetchDossiers({
+      ...(oid ? { organisation_id: oid } : {}),
+      limit: 5,
+      offset: 0,
+      sortBy: 'date',
+      sortOrder: 'desc',
+    });
+    fetchSignalements(oid ? { organisation_id: oid } : undefined, 1);
+    fetchAlertes(oid ? { id_organisation_responsable: oid } : undefined);
   };
 
-  const isLoading = dossiersLoading || signalementsLoading || alertesLoading;
+  const isLoading = dossiersLoading || signalementsLoading || alertesLoading || aggLoading;
 
   const getRoleSubtitle = (role?: string) => {
     const r = normalizeAppRole(role);
@@ -419,6 +493,8 @@ export const DashboardPage: React.FC = () => {
               ) : signalements.length > 0 ? (
                 signalements.slice(0, 5).map((signalement: any) => {
                   const status = signalement.statut_validation || signalement.etat || 'en_attente';
+                  const rawDesc = (signalement.description || '').trim();
+                  const preview = rawDesc.length > 50 ? `${rawDesc.slice(0, 50)}…` : rawDesc;
                   return (
                     <div
                       key={signalement.id}
@@ -430,7 +506,7 @@ export const DashboardPage: React.FC = () => {
                           {signalement.lieu_observation || 'Signalement'}
                         </h4>
                         <p className={styles.itemDesc}>
-                          {(signalement.description || '').substring(0, 50)}...
+                          {preview || '—'}
                         </p>
                       </div>
                       <div className={styles.itemMeta}>
@@ -491,7 +567,10 @@ export const DashboardPage: React.FC = () => {
                       <span className={styles.alertBadge}>{t('authority.activeAlerts')}</span>
                     </div>
                     <p className={styles.alertMessage}>
-                      {(alerte.message_court || alerte.message || '').substring(0, 100)}...
+                      {(() => {
+                        const m = (alerte.message_court || alerte.message || '').trim();
+                        return m.length > 100 ? `${m.slice(0, 100)}…` : m || '—';
+                      })()}
                     </p>
                     <div className={styles.alertFooter}>
                       <span>

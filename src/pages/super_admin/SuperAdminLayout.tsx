@@ -12,6 +12,7 @@ import { useAppSelector, useAppDispatch } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { logoutThunk } from '../../features/auth/store/authThunks';
 import { supabase } from '../../config';
+import { APP_LOGO_SRC } from '../../config/branding';
 import {
   LayoutDashboard,
   Globe,
@@ -19,45 +20,34 @@ import {
   Users,
   Settings,
   FileText,
+  Activity,
+  BellRing,
+  DatabaseBackup,
   LogOut,
   Menu,
   X,
-  Megaphone,
-  DollarSign,
   UserCog,
-  AlertTriangle,
-  Brain,
-  CheckSquare,
   User,
   Search,
   ChevronRight,
   ChevronLeft,
   Bell,
-  FolderOpen,
+  ShieldCheck,
 } from 'lucide-react';
 import styles from './SuperAdminLayout.module.css';
 
 type ActiveNavType =
   | 'dashboard'
-  | 'global-stats'
   | 'organisations'
   | 'system-users'
+  | 'security-access'
   | 'system-logs'
   | 'system-settings'
-  | 'campagnes'
-  | 'dons'
+  | 'observability'
+  | 'backup-retention'
+  | 'system-notifications'
   | 'roles'
-  | 'dossiers-critiques'
-  | 'resultats-ia'
-  | 'signalement-validation'
-  | 'profile'
-  | 'dossiers'
-  | 'alertes'
-  | 'notifications-system'
-  | 'photos'
-  | 'commentaires'
-  | 'documents'
-  | 'liens-filiation';
+  | 'profile';
 
 interface SuperAdminNavItem {
   id: ActiveNavType;
@@ -67,7 +57,7 @@ interface SuperAdminNavItem {
 }
 
 interface SuperAdminNavGroup {
-  groupKey: 'overview' | 'organisations' | 'system' | 'content' | 'profile';
+  groupKey: 'overview' | 'organisations' | 'system' | 'profile';
   labelKey: string;
   items: SuperAdminNavItem[];
 }
@@ -78,7 +68,6 @@ const SUPER_ADMIN_NAV_GROUPS: SuperAdminNavGroup[] = [
     labelKey: 'super_admin.nav.overview',
     items: [
       { id: 'dashboard', labelKey: 'common.dashboard', path: '/super-admin/dashboard', icon: LayoutDashboard },
-      { id: 'global-stats', labelKey: 'super_admin.globalStatsMenu', path: '/super-admin/global-stats', icon: Globe },
     ],
   },
   {
@@ -94,21 +83,12 @@ const SUPER_ADMIN_NAV_GROUPS: SuperAdminNavGroup[] = [
     items: [
       { id: 'system-users', labelKey: 'super_admin.systemUsersMenu', path: '/super-admin/system-users', icon: Users },
       { id: 'roles', labelKey: 'super_admin.rolesMenu', path: '/super-admin/roles', icon: UserCog },
+      { id: 'security-access', labelKey: 'super_admin.securityAccessMenu', path: '/super-admin/security-access', icon: ShieldCheck },
       { id: 'system-logs', labelKey: 'super_admin.systemLogsMenu', path: '/super-admin/system-logs', icon: FileText },
       { id: 'system-settings', labelKey: 'super_admin.systemSettingsMenu', path: '/super-admin/system-settings', icon: Settings },
-    ],
-  },
-  {
-    groupKey: 'content',
-    labelKey: 'super_admin.nav.content',
-    items: [
-      { id: 'campagnes', labelKey: 'super_admin.campagnesMenu', path: '/super-admin/campagnes', icon: Megaphone },
-      { id: 'dons', labelKey: 'super_admin.donsMenu', path: '/super-admin/dons', icon: DollarSign },
-      { id: 'dossiers', labelKey: 'super_admin.dossiersMenu', path: '/super-admin/dossiers', icon: FolderOpen },
-      { id: 'dossiers-critiques', labelKey: 'super_admin.dossiersCritiquesMenu', path: '/super-admin/dossiers-critiques', icon: AlertTriangle },
-      { id: 'alertes', labelKey: 'super_admin.alertesMenu', path: '/super-admin/alertes', icon: Bell },
-      { id: 'resultats-ia', labelKey: 'super_admin.resultatsIaMenu', path: '/super-admin/resultats-ia', icon: Brain },
-      { id: 'signalement-validation', labelKey: 'super_admin.signalementValidationMenu', path: '/super-admin/signalement-validation', icon: CheckSquare },
+      { id: 'observability', labelKey: 'super_admin.observabilityMenu', path: '/super-admin/observability', icon: Activity },
+      { id: 'backup-retention', labelKey: 'super_admin.backupRetentionMenu', path: '/super-admin/backup-retention', icon: DatabaseBackup },
+      { id: 'system-notifications', labelKey: 'super_admin.systemNotificationsMenu', path: '/super-admin/system-notifications', icon: BellRing },
     ],
   },
   {
@@ -266,7 +246,7 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
+              <img src={APP_LOGO_SRC} alt="" className={`app-brand-logo ${styles.sidebarLogoImg}`} />
             </div>
           )}
 

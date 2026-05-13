@@ -49,8 +49,8 @@ messaging.onBackgroundMessage(function (payload) {
   var clickPath = data.clickUrl || '/citizen/notifications';
   var options = {
     body: n.body || '',
-    icon: n.icon || '/android/mipmap-xxxhdpi/ic_launcher.png',
-    badge: '/android/mipmap-xxxhdpi/ic_launcher.png',
+    icon: n.icon || '/logo.png',
+    badge: '/logo.png',
     tag: data.tag || 'retrouvonsles-msg',
     vibrate: [180, 120, 180],
     renotify: true,
@@ -65,8 +65,8 @@ self.addEventListener('push', function (event) {
   event.waitUntil(
     self.registration.showNotification('RetrouvonsLes', {
       body: 'Vous avez une nouvelle notification.',
-      icon: '/android/mipmap-xxxhdpi/ic_launcher.png',
-      badge: '/android/mipmap-xxxhdpi/ic_launcher.png',
+      icon: '/logo.png',
+      badge: '/logo.png',
       tag: 'retrouvonsles-webpush-fallback',
       renotify: true,
       vibrate: [180, 120, 180],

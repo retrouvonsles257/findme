@@ -13,7 +13,7 @@ import { restoreSessionThunk } from '../store/authThunks';
 /**
  * Composant invisible qui dispatch restoreSessionThunk au montage.
  * Les routes protégées utilisent selectAuthLoading (isAuthenticating || isLoading)
- * et affichent "Chargement..." jusqu'à ce que la restauration soit terminée.
+ * Les routes protégées attendent selectAuthLoading ; l’overlay global (App) affiche le shell de marque.
  */
 export const AuthSessionRestorer: React.FC = () => {
   const dispatch = useAppDispatch();

@@ -24,18 +24,9 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const loading = useAppSelector(selectAuthLoading);
 
-  // Attendre le chargement de l'auth state
+  // Attendre le chargement de l'auth state (shell global dans App)
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
-        <div>Chargement...</div>
-      </div>
-    );
+    return null;
   }
 
   // Vérifier l'authentification

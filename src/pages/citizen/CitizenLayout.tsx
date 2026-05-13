@@ -24,6 +24,7 @@ import {
   PUSH_NOTIFICATION_ONBOARDING_DELAY_MS,
 } from '../../features/notifications/constants/citizenPushOnboarding';
 import { supabase } from '../../config';
+import { APP_LOGO_SRC } from '../../config/branding';
 import { 
   Menu, 
   X, 
@@ -373,7 +374,7 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
         <div className={styles.sidebarHeader}>
           {!isCollapsed && (
             <div className={styles.logoContainer}>
-              <img src="/android/mipmap-hdpi/ic_launcher.png" alt="" className={styles.sidebarLogoImg} />
+              <img src={APP_LOGO_SRC} alt="" className={`app-brand-logo ${styles.sidebarLogoImg}`} />
             </div>
           )}
 

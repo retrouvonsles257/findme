@@ -191,6 +191,40 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const splitSensitiveRoles = (roleIds: string[]) => {
+    const sensitive = roleIds.filter((roleId) => {
+      const role = roles.find((r) => r.id === roleId);
+      return role?.nom === 'admin_systeme' || role?.nom === 'autorite';
+    });
+    return {
+      sensitive,
+      direct: roleIds.filter((roleId) => !sensitive.includes(roleId)),
+    };
+  };
+
+  const requestSensitiveRoles = async (userId: string, roleIds: string[]) => {
+    if (roleIds.length === 0) return 0;
+
+    const motif = window.prompt(
+      'Motif obligatoire pour les rôles sensibles (autorité/admin système) :',
+      'Demande validée depuis la gestion des utilisateurs système.'
+    );
+    if (!motif?.trim()) {
+      throw new Error('Motif obligatoire pour demander un rôle sensible.');
+    }
+
+    for (const roleId of roleIds) {
+      const { error: requestError } = await (supabase as any).rpc('request_sensitive_access', {
+        p_id_utilisateur_cible: userId,
+        p_id_role_demande: roleId,
+        p_motif: motif.trim(),
+      });
+      if (requestError) throw requestError;
+    }
+
+    return roleIds.length;
+  };
+
   // Ouvrir modal création
   const openCreateModal = () => {
     setFormData({
@@ -326,12 +360,16 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
         if (upsertError) throw upsertError;
 
         if (formData.selectedRoles.length > 0) {
-          const roleInserts = formData.selectedRoles.map(roleId => ({
-            id_utilisateur: newAuthUser.id,
-            id_role: roleId,
-            attribue_par: currentUser?.id || null,
-          }));
-          await (supabase as any).from('utilisateur_role').insert(roleInserts);
+          const { direct, sensitive } = splitSensitiveRoles(formData.selectedRoles);
+          if (direct.length > 0) {
+            const roleInserts = direct.map(roleId => ({
+              id_utilisateur: newAuthUser.id,
+              id_role: roleId,
+              attribue_par: currentUser?.id || null,
+            }));
+            await (supabase as any).from('utilisateur_role').insert(roleInserts);
+          }
+          await requestSensitiveRoles(newAuthUser.id, sensitive);
         }
 
         // Envoyer un email « Définir le mot de passe » pour que l'utilisateur puisse se connecter
@@ -372,16 +410,32 @@ export const SuperAdminSystemUsersPage: React.FC = () => {
 
         if (updateError) throw updateError;
 
-        // Mettre à jour les rôles avec attribution par l'utilisateur courant
-        await (supabase as any).from('utilisateur_role').delete().eq('id_utilisateur', selectedUser.id);
-        if (formData.selectedRoles.length > 0) {
-          const roleInserts = formData.selectedRoles.map(roleId => ({
+        // Les rôles sensibles passent par le workflow d'approbation pour éviter les élévations directes.
+        const { direct, sensitive } = splitSensitiveRoles(formData.selectedRoles);
+        const nonSensitiveRoleIds = roles
+          .filter((role) => role.nom !== 'admin_systeme' && role.nom !== 'autorite')
+          .map((role) => role.id);
+        const existingSensitiveRoleIds = (selectedUser.roles || [])
+          .filter((role) => role.nom === 'admin_systeme' || role.nom === 'autorite')
+          .map((role) => role.id);
+        const sensitiveToRequest = sensitive.filter((roleId) => !existingSensitiveRoleIds.includes(roleId));
+
+        if (nonSensitiveRoleIds.length > 0) {
+          await (supabase as any)
+            .from('utilisateur_role')
+            .delete()
+            .eq('id_utilisateur', selectedUser.id)
+            .in('id_role', nonSensitiveRoleIds);
+        }
+        if (direct.length > 0) {
+          const roleInserts = direct.map(roleId => ({
             id_utilisateur: selectedUser.id,
             id_role: roleId,
             attribue_par: currentUser?.id || null,
           }));
           await (supabase as any).from('utilisateur_role').insert(roleInserts);
         }
+        await requestSensitiveRoles(selectedUser.id, sensitiveToRequest);
       }
 
       setSuccess(modalMode === 'create' ? t('super_admin.systemUsersCreateSuccess') : t('super_admin.systemUsersUpdateSuccess'));

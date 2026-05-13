@@ -19,7 +19,7 @@
 /* ============================================ */
 
 .identity-verification__header {
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  background: var(--gradient-hero-blue);
   border-radius: 16px;
   padding: 1.5rem;
   color: white;
@@ -129,7 +129,7 @@
 }
 
 .identity-verification__filter-group select option {
-  background: #0e7490;
+  background: var(--color-primary-dark);
   color: white;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .identity-verification__success {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--gradient-hero-blue);
   color: white;
 }
 
@@ -191,7 +191,7 @@
 }
 
 .identity-verification__stat svg {
-  color: #0891b2;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -261,7 +261,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  background: var(--gradient-hero-blue);
   color: white;
   display: flex;
   align-items: center;
@@ -333,9 +333,9 @@
   gap: 0.4rem;
   padding: 0.5rem 1rem;
   background: transparent;
-  border: 1px solid #0891b2;
+  border: 1px solid var(--color-primary);
   border-radius: 6px;
-  color: #0891b2;
+  color: var(--color-primary);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -343,7 +343,7 @@
 }
 
 .identity-verification__view-btn:hover {
-  background: #0891b2;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -468,7 +468,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  background: var(--gradient-hero-blue);
   color: white;
   border-radius: 20px 20px 0 0;
 }
@@ -556,7 +556,7 @@
   background: #f0f9ff;
   border: 1px solid #bae6fd;
   border-radius: 8px;
-  color: #0369a1;
+  color: var(--color-primary-dark);
   font-size: 0.9rem;
   font-weight: 500;
   margin-bottom: 1rem;
@@ -638,8 +638,8 @@
 }
 
 .identity-verification__decision-btn--active-approve {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  border-color: #0284c7;
+  background: var(--gradient-hero-blue);
+  border-color: var(--color-primary-dark);
   color: white;
 }
 
@@ -680,7 +680,7 @@
 .identity-verification__form-group select:focus,
 .identity-verification__form-group textarea:focus {
   outline: none;
-  border-color: #0891b2;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
 }
 
@@ -696,7 +696,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  background: var(--gradient-hero-blue);
   border: none;
   border-radius: 10px;
   color: white;

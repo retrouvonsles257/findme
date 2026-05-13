@@ -35,11 +35,15 @@ export const SidebarSuperAdmin: React.FC<SidebarSuperAdminProps> = ({
 
   const defaultItems: NavigationItem[] = [
     { label: t('common.dashboard'), href: '/super-admin/dashboard', icon: '📊' },
-    { label: t('super_admin.globalStats'), href: '/super-admin/global-stats', icon: '🌍' },
     { label: t('super_admin.organisations'), href: '/super-admin/organisations', icon: '🏢' },
     { label: t('super_admin.systemUsers'), href: '/super-admin/system-users', icon: '👥' },
+    { label: t('super_admin.rolesMenu'), href: '/super-admin/roles', icon: '🛡️' },
+    { label: t('super_admin.securityAccessMenu'), href: '/super-admin/security-access', icon: '🔐' },
     { label: t('super_admin.systemLogs'), href: '/super-admin/system-logs', icon: '📋' },
     { label: t('super_admin.systemSettings'), href: '/super-admin/system-settings', icon: '⚙️' },
+    { label: t('super_admin.observabilityMenu'), href: '/super-admin/observability', icon: '📈' },
+    { label: t('super_admin.backupRetentionMenu'), href: '/super-admin/backup-retention', icon: '💾' },
+    { label: t('super_admin.systemNotificationsMenu'), href: '/super-admin/system-notifications', icon: '🔔' },
   ];
 
   const items = navigationItems.length > 0 ? navigationItems : defaultItems;
@@ -114,7 +118,7 @@ export const SidebarSuperAdmin: React.FC<SidebarSuperAdminProps> = ({
       {/* Pied de page */}
       {!isCollapsed && (
         <div className={styles.footer}>
-          <p className={styles.versionText}>v1.0.0 - SUPER ADMIN</p>
+          <p className={styles.versionText}>v1.0.0 - ADMIN PLATEFORME</p>
         </div>
       )}
     </aside>

@@ -50,7 +50,8 @@
 }
 
 .sa-system-logs__filter-group select,
-.sa-system-logs__filter-group input[type="date"] {
+.sa-system-logs__filter-group input[type="date"],
+.sa-system-logs__filter-group input[type="text"] {
   
   font-size: 0.85rem;
   padding: 0.5rem 0.75rem;
@@ -84,6 +85,32 @@
   border-color: var(--sa-primary);
   color: var(--sa-primary);
   background: #eff6ff;
+}
+
+.sa-system-logs__export-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--sa-primary);
+  background: var(--sa-primary);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sa-system-logs__export-btn:hover:not(:disabled) {
+  background: #0284c7;
+  border-color: #0284c7;
+}
+
+.sa-system-logs__export-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Erreur */

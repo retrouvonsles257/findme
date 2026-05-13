@@ -7,9 +7,11 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../../store/types';
 import { selectUser } from '../../../features/auth/store/authSelectors';
 import { useI18n } from '../../../hooks';
+import { supabase } from '../../../config';
 import { ModerationLayout } from './ModerationLayout';
 import {
   getDemandesVerificationIdentite,
@@ -88,8 +90,10 @@ export interface IdentityVerificationPageProps {
 }
 
 export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> = ({ noLayout = false, organisationId = null }) => {
+  const location = useLocation();
   const { t } = useI18n();
   const currentUser = useAppSelector(selectUser);
+  const focusedRequestId = new URLSearchParams(location.search).get('demande');
 
   // State
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
@@ -135,8 +139,10 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
     return s as StatutDemandeVerification;
   };
 
-  const loadRequests = useCallback(async () => {
-    setIsLoading(true);
+  const loadRequests = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     try {
       const apiStatut = mapUiStatutToApi(filters.status);
       const { data, count } = await getDemandesVerificationIdentite(organisationId ?? null, {
@@ -192,28 +198,51 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
       setErrorMessage(t('moderation.errorLoadingRequests'));
       setTimeout(() => setErrorMessage(''), 5000);
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
     }
-  }, [filters, currentPage, organisationId]);
-
-  const loadStats = useCallback(async () => {
-    try {
-      const statsData = await getDemandesVerificationIdentiteStats(organisationId ?? null);
-      setStats({
-        total: statsData.total,
-        enAttente: statsData.enAttente,
-        approuves: statsData.approuves,
-        rejetes: statsData.refuse,
-        complement_demande: statsData.complement_demande,
-      });
-    } catch (err) {
-      console.error('Error loading stats:', err);
-    }
-  }, [organisationId]);
+  }, [filters, currentPage, organisationId, t]);
 
   useEffect(() => {
     loadRequests();
   }, [loadRequests]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('authority-identity-verification-live')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'demande_verification_identite',
+        },
+        () => {
+          void loadRequests({ silent: true });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadRequests]);
+
+  useEffect(() => {
+    if (!focusedRequestId || isLoading) return;
+
+    const focusedRequest = requests.find((request) => request.id === focusedRequestId);
+    if (focusedRequest) {
+      setSelectedRequest(focusedRequest);
+      return;
+    }
+
+    if (filters.status !== 'all') {
+      setFilters((prev) => ({ ...prev, status: 'all' }));
+      setCurrentPage(1);
+    }
+  }, [focusedRequestId, requests, isLoading, filters.status]);
 
   const handleVerification = async () => {
     if (!selectedRequest || !currentUser?.id) return;
@@ -313,7 +342,7 @@ export const IdentityVerificationPage: React.FC<IdentityVerificationPageProps> =
             </button>
             <button
               className={styles['identity-verification__toolbar-btn']}
-              onClick={loadRequests}
+              onClick={() => loadRequests()}
             >
               <RefreshCw size={20} />
             </button>

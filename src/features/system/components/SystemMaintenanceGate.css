@@ -1,0 +1,63 @@
+.system-maintenance {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.18), transparent 34rem),
+    linear-gradient(135deg, #0f172a, #111827);
+}
+
+.system-maintenance__card {
+  width: min(100%, 520px);
+  padding: 2rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+  text-align: center;
+  color: #111827;
+}
+
+.system-maintenance__icon {
+  width: 4rem;
+  height: 4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  margin-bottom: 1rem;
+}
+
+.system-maintenance__card h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+}
+
+.system-maintenance__card p {
+  margin: 0 0 1rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.system-maintenance__card small {
+  color: #6b7280;
+}
+
+.system-maintenance-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: #fef3c7;
+  color: #78350f;
+  border-bottom: 1px solid #fde68a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}

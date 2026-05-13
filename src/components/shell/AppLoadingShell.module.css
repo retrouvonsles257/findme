@@ -1,0 +1,57 @@
+.rootFixed {
+  position: fixed;
+  inset: 0;
+  z-index: 20050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  background: linear-gradient(145deg, #0c4a6e 0%, #0ea5e9 42%, #38bdf8 100%);
+}
+
+.rootFlow {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  background: linear-gradient(145deg, #0c4a6e 0%, #0ea5e9 42%, #38bdf8 100%);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 22rem;
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0;
+  font-family: var(--font-family, 'Inter', system-ui, sans-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: appShellSpin 0.75s linear infinite;
+}
+
+@keyframes appShellSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

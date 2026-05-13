@@ -12,7 +12,6 @@ import { useAuth } from '../../contexts';
 import { useNotification } from '../../contexts';
 import { useAppSelector } from '../../store/types';
 import { selectCurrentUser } from '../../features/users/store/userSelectors';
-import { NomRole } from '../../@types/enums.types';
 import { supabase } from '../../config';
 import { cloudinaryConfig, cloudinaryUploadConfig } from '../../config/cloudinary.config';
 import { mapConfig } from '../../config/map.config';
@@ -696,12 +695,9 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
         type: 'success',
       });
 
-      // Rediriger vers le dossier (admin org reste dans l'espace admin)
-      const isAdminSysteme = currentUser?.role === NomRole.ADMIN_SYSTEME;
+      // La création de dossier appartient exclusivement au silo Autorité.
       setTimeout(() => {
-        navigate(
-          isAdminSysteme ? `/super-admin/dossiers/${dossierCreated.id}` : `/authority/dossiers/${dossierCreated.id}`
-        );
+        navigate(`/authority/dossiers/${dossierCreated.id}`);
       }, 1500);
 
     } catch (err: any) {

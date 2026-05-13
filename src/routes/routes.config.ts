@@ -81,13 +81,15 @@ export const AUTHORITY_ROUTES = {
 export const SUPER_ADMIN_ROUTES = {
   BASE: '/super-admin',
   DASHBOARD: '/super-admin/dashboard',
-  GLOBAL_STATS: '/super-admin/global-stats',
   ORGANISATIONS: '/super-admin/organisations',
   SYSTEM_LOGS: '/super-admin/system-logs',
   SYSTEM_SETTINGS: '/super-admin/system-settings',
   SYSTEM_USERS: '/super-admin/system-users',
-  DOSSIERS: '/super-admin/dossiers',
-  ALERTES: '/super-admin/alertes',
+  ROLES: '/super-admin/roles',
+  SECURITY_ACCESS: '/super-admin/security-access',
+  OBSERVABILITY: '/super-admin/observability',
+  BACKUP_RETENTION: '/super-admin/backup-retention',
+  SYSTEM_NOTIFICATIONS: '/super-admin/system-notifications',
 } as const;
 
 // ============================================

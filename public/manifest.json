@@ -2,14 +2,15 @@
   "short_name": "Retrouvons-Les",
   "name": "Retrouvons-Les",
   "icons": [
-    {"src": "android/mipmap-mdpi/ic_launcher.png", "sizes": "48x48", "type": "image/png"},
-    {"src": "android/mipmap-hdpi/ic_launcher.png", "sizes": "72x72", "type": "image/png"},
-    {"src": "android/mipmap-xhdpi/ic_launcher.png", "sizes": "96x96", "type": "image/png"},
-    {"src": "android/mipmap-xxhdpi/ic_launcher.png", "sizes": "144x144", "type": "image/png"},
-    {"src": "android/mipmap-xxxhdpi/ic_launcher.png", "sizes": "192x192", "type": "image/png"}
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#0ea5e9",
   "background_color": "#ffffff"
 }

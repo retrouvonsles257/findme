@@ -31,7 +31,9 @@ import { envConfig } from './config';
 // Routes
 import AppRoutes from './routes/AppRoutes';
 import { AuthSessionRestorer } from './features/auth/components/AuthSessionRestorer';
+import { GlobalAuthLoadingOverlay } from './features/auth/components/GlobalAuthLoadingOverlay';
 import { UserPushGlobalSync } from './features/notifications/components';
+import { SystemMaintenanceGate } from './features/system';
 
 // Styles
 import './styles/index.ts';
@@ -93,6 +95,7 @@ const App: React.FC = () => {
   return (
     <ReduxProvider store={store}>
       <AuthSessionRestorer />
+      <GlobalAuthLoadingOverlay />
       <Router>
         <ThemeProvider>
           <LanguageProvider>
@@ -102,9 +105,11 @@ const App: React.FC = () => {
                 <GeolocationProvider>
                   <NotificationProvider>
                     <WebSocketProvider>
-                      <main className="app-container" role="main">
-                        <AppRoutes />
-                      </main>
+                      <SystemMaintenanceGate>
+                        <main className="app-container" role="main">
+                          <AppRoutes />
+                        </main>
+                      </SystemMaintenanceGate>
                     </WebSocketProvider>
                   </NotificationProvider>
                 </GeolocationProvider>
