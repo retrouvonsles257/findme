@@ -23,6 +23,8 @@ export const PUBLIC_ROUTES = {
   APP: '/app',
   /** Parcours public : connexion anonyme ou classique vers une action citoyenne (ex. signalement). */
   CONTRIBUTE: '/contribuer',
+  /** Lien de vérification e-mail contact d'urgence SOS (ouvre sans compte). */
+  SOS_CONTACT_VERIFY: '/verify-sos-contact',
 } as const;
 
 // ============================================
@@ -46,6 +48,10 @@ export const CITIZEN_ROUTES = {
   DASHBOARD: '/citizen/dashboard',
   MY_SIGNALEMENTS: '/citizen/my-signalements',
   NEW_SIGNALEMENT: '/citizen/new-signalement',
+  PRE_DECLARATIONS: '/citizen/pre-declarations',
+  PRE_DECLARATION_NEW: '/citizen/pre-declarations/new',
+  SOS: '/citizen/sos',
+  SOS_CONTACTS: '/citizen/sos/contacts',
   NOTIFICATIONS: '/citizen/notifications',
   PROFILE: '/citizen/profile'
 } as const;
@@ -60,6 +66,8 @@ export const AUTHORITY_ROUTES = {
   DOSSIER_NEW: '/authority/dossiers/new',
   DOSSIER_DETAIL: '/authority/dossiers/:id',
   DOSSIER_EDIT: '/authority/dossiers/:id/edit',
+  PRE_DECLARATIONS: '/authority/pre-declarations',
+  SOS: '/authority/sos',
   ALERTES: '/authority/alertes',
   SIGNALEMENTS: '/authority/signalements',
   FILE_SIGNALEMENTS: '/authority/signalements?vue=traitement',

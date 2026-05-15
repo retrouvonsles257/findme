@@ -302,7 +302,8 @@
       "documents": "Documents",
       "filiation": "Filiation",
       "history": "History",
-      "ia": "AI Analysis"
+      "ia": "AI Analysis",
+      "messagerie": "Messaging"
     },
     "ia": {
       "newAnalysis": "New analysis",
@@ -735,7 +736,9 @@
     "orgSettings": "Organization settings",
     "photosModeration": "Photo moderation",
     "donations": "Donations & Campaigns",
-    "statistiques": "Statistics"
+    "statistiques": "Statistics",
+    "preDeclarations": "Pre-declarations",
+    "sos": "SOS alerts"
   },
   "nav": {
     "operational": "Operational",
@@ -1246,6 +1249,7 @@
       "witnessInfo": "Witness information",
       "photos": "Photos",
       "linkedDossier": "Linked dossier",
+      "messagerie": "Messaging",
       "metadata": "Metadata"
     },
     "reporter": {
@@ -1648,5 +1652,143 @@
     "noData": "No data to display",
     "viewList": "List view",
     "viewMap": "Map view"
+  },
+  "preDeclaration": {
+    "listTitle": "Citizen pre-declarations",
+    "listSubtitle": "Requests received for your organization.",
+    "empty": "No pre-declarations yet.",
+    "notFound": "Pre-declaration not found or out of scope.",
+    "backList": "Back to list",
+    "actionExamen": "Mark as under review",
+    "actionConvert": "Convert to official file",
+    "actionReject": "Reject request",
+    "openDossier": "Open file",
+    "messagesTitle": "Conversation",
+    "noMessages": "No messages yet.",
+    "you": "You (authority)",
+    "citizenLabel": "Citizen",
+    "messagePlaceholder": "Reply to the citizen…",
+    "send": "Send",
+    "markExamenOk": "Status updated: under review.",
+    "rejectConfirm": "Permanently reject this pre-declaration? The citizen will no longer be able to post in the thread.",
+    "rejectOk": "The pre-declaration was rejected.",
+    "prefillOrgMismatch": "This pre-declaration does not belong to your organization.",
+    "prefillClosed": "This pre-declaration is already closed; pre-fill is not available.",
+    "linkAfterCreateWarnTitle": "File created",
+    "linkAfterCreateWarnBody": "The file was created but linking to the pre-declaration failed. Update manually if needed.",
+    "statut": {
+      "soumise": "Submitted",
+      "en_examen": "Under review",
+      "convertie": "Converted",
+      "rejetee": "Rejected"
+    },
+    "threadClosed": {
+      "convertie": "Thread closed — official file created.",
+      "rejetee": "Thread closed — request rejected."
+    },
+    "assigneeLabel": "Assigned agent for this thread",
+    "assigneeNone": "— Unassigned —",
+    "assigneeSaved": "Assignee updated.",
+    "rejectModalTitle": "Reject pre-declaration",
+    "rejectModalBody": "Enter a clear reason for the citizen (required, min. 3 characters).",
+    "rejectMotifPlaceholder": "e.g. insufficient information, outside jurisdiction…",
+    "rejectConfirmAction": "Confirm rejection",
+    "rejectMotifLabel": "Rejection reason",
+    "messageTypeLabel": "Message type",
+    "messageType": {
+      "texte": "Free text",
+      "demande_complement": "Request for more information",
+      "demande_piece": "Request for attachment",
+      "note_systeme": "System note"
+    },
+    "attachmentsHint": "Attachments (max 3, PDF or images)",
+    "uploadFailed": "File upload failed.",
+    "messageDeleted": "[Message deleted]",
+    "deleteMessage": "Delete",
+    "confirmDeleteMessage": "Delete this message? (It will appear as deleted for both parties.)",
+    "convStatut": "Thread",
+    "convStatutLabel": "Messaging thread status",
+    "convStatutSaved": "Thread status updated.",
+    "convStatutVal": {
+      "ouverte": "Open",
+      "en_attente": "Pending",
+      "traitee": "Handled",
+      "fermee": "Closed"
+    },
+    "optionalRef": "Reference (optional)",
+    "refIdPlaceholder": "Entity UUID",
+    "attachFiles": "Attach",
+    "metaDemandeTraitement": "Priority handling requested",
+    "demandeTraitement": "Request priority handling",
+    "refType": {
+      "document": "Document",
+      "dossier": "File",
+      "signalement": "Report",
+      "message": "Message",
+      "pre_declaration": "Pre-declaration",
+      "personne": "Person",
+      "alerte": "Alert",
+      "localisation": "Location"
+    },
+    "escaladeLabel": "Escalate to another organization",
+    "escaladeNone": "— No escalation —",
+    "escaladeApply": "Save escalation",
+    "escaladeOk": "Escalation saved.",
+    "escaladeActive": "Escalated to: {{nom}}",
+    "tachesTitle": "Follow-up tasks",
+    "tacheDone": "Mark as done",
+    "tacheCancel": "Cancel task",
+    "tacheNewTitle": "Task title",
+    "tacheNewDesc": "Description (optional)",
+    "tacheAdd": "Add task",
+    "tacheStatut": {
+      "ouverte": "Open",
+      "en_cours": "In progress",
+      "faite": "Done",
+      "annulee": "Cancelled"
+    }
+  },
+  "messagerieContext": {
+    "sectionTitle": "Messaging with involved parties",
+    "messagesTitle": "Discussion thread",
+    "noThread": "No thread yet. Create it to exchange with the citizen or internally.",
+    "openThread": "Create messaging thread",
+    "threadReady": "Messaging thread is ready.",
+    "placeholder": "Write a message…",
+    "markTraite": "Mark as handled",
+    "traiteOk": "Message marked as handled.",
+    "badgeTraite": "Handled",
+    "interlocutor": "Other party"
+  },
+  "sos": {
+    "menuTitle": "SOS alerts",
+    "listTitle": "Citizen SOS alerts",
+    "listSubtitle": "Recent events. Mark as handled once you have followed up.",
+    "empty": "No SOS events.",
+    "filterActive": "Active (pending)",
+    "filterAll": "All",
+    "filterAssignAll": "All assignments",
+    "filterUnassigned": "Unassigned",
+    "filterMyOrg": "My organization",
+    "filterMyOrgDisabledHint": "No organization linked to your account.",
+    "statut": {
+      "annule": "Cancelled",
+      "envoye": "To handle",
+      "traite": "Handled"
+    },
+    "markHandled": "Mark as handled",
+    "markHandledConfirm": "Confirm this alert has been handled?",
+    "handledOk": "Status updated.",
+    "openMap": "Map",
+    "citizen": "Citizen",
+    "when": "When",
+    "message": "Message",
+    "position": "Location",
+    "sansPositionGps": "No GPS position",
+    "assignLabel": "Assigned organization",
+    "assignNone": "— Unassigned —",
+    "assignApply": "Save assignment",
+    "assignOk": "Assignment updated.",
+    "navBadgeTitle": "{{count}} pending SOS alert(s)"
   }
 }

@@ -37,11 +37,13 @@ import {
   Loader2,
   CheckCircle,
   Eye,
-  Upload
+  Upload,
+  MessageSquare,
 } from 'lucide-react';
 import { analyzeFacialImage, getResultatsIA, ResultatIA } from '../../features/ia-analysis/services/iaAPI';
 import { isHuggingFaceConfigured } from '../../services/huggingFaceService';
 import { AdminDetailSkeleton } from 'components/skeletons';
+import { AuthorityContextMessagerieTab } from '../../features/messagerie/AuthorityContextMessagerieTab';
 import styles from './DossierDetailPage.module.css';
 
 export interface DossierDetailPageProps {
@@ -111,7 +113,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
   const { localisations, fetchLocalisations } = useLocalisationsForDossier();
   const { historique, fetchHistorique } = useHistoriqueDossier();
   const [activeTab, setActiveTab] = useState<
-    'info' | 'signalements' | 'localisations' | 'documents' | 'filiation' | 'historique' | 'photos' | 'ia'
+    'info' | 'signalements' | 'localisations' | 'documents' | 'filiation' | 'historique' | 'photos' | 'ia' | 'messagerie'
   >('info');
   const [photos, setPhotos] = useState<any[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -591,7 +593,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
 
             {/* Tabs */}
             <div className={styles.tabs}>
-              {(['info', 'photos', 'signalements', 'localisations', 'documents', 'filiation', 'historique', 'ia'] as const).map(
+              {(['info', 'photos', 'signalements', 'localisations', 'documents', 'filiation', 'historique', 'ia', 'messagerie'] as const).map(
                 (tab) => (
                 <button
                   key={tab}
@@ -606,6 +608,7 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                   {tab === 'filiation' && <><Users size={16} /> {t('authority.dossierDetail.tabs.filiation')}</>}
                   {tab === 'historique' && <><History size={16} /> {t('authority.dossierDetail.tabs.history')}</>}
                   {tab === 'ia' && <><Brain size={16} /> {t('authority.dossierDetail.tabs.ia')}</>}
+                  {tab === 'messagerie' && <><MessageSquare size={16} /> {t('authority.dossierDetail.tabs.messagerie')}</>}
                 </button>
               ))}
             </div>
@@ -1344,6 +1347,24 @@ export const DossierDetailPage: React.FC<DossierDetailPageProps> = ({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'messagerie' && id && (
+                <div className={styles.tabContent}>
+                  <AuthorityContextMessagerieTab
+                    kind="dossier"
+                    entityId={id}
+                    dossierMeta={
+                      dossier
+                        ? {
+                            dossierId: dossier.id,
+                            creatorUserId: dossier.id_utilisateur_createur ?? null,
+                            responsibleOrgId: dossier.id_organisation_responsable ?? null,
+                          }
+                        : null
+                    }
+                  />
                 </div>
               )}
             </div>

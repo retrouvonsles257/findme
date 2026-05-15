@@ -33,6 +33,8 @@ import {
   History,
   UserCheck,
   UserCog,
+  ClipboardList,
+  AlertTriangle,
 } from 'lucide-react';
 import { useI18n } from '../../../hooks';
 import { supabase } from '../../../config';
@@ -50,6 +52,8 @@ import styles from './AuthoritySidebar.module.css';
 type AuthorityNavId =
   | 'dashboard'
   | 'dossiers'
+  | 'pre-declarations'
+  | 'sos'
   | 'personnes'
   | 'alertes'
   | 'signalements'
@@ -87,6 +91,18 @@ const AUTHORITY_NAV_GROUPS: AuthorityNavGroup[] = [
     items: [
       { id: 'dashboard', labelKey: 'authority.menu.dashboard', path: '/authority/dashboard', icon: LayoutDashboard },
       { id: 'dossiers', labelKey: 'authority.menu.dossiers', path: '/authority/dossiers', icon: FolderOpen },
+      {
+        id: 'pre-declarations',
+        labelKey: 'authority.menu.preDeclarations',
+        path: '/authority/pre-declarations',
+        icon: ClipboardList,
+      },
+      {
+        id: 'sos',
+        labelKey: 'authority.menu.sos',
+        path: '/authority/sos',
+        icon: AlertTriangle,
+      },
       { id: 'personnes', labelKey: 'authority.menu.personnes', path: '/authority/personnes', icon: Contact },
       { id: 'alertes', labelKey: 'authority.menu.alertes', path: '/authority/alertes', icon: Bell },
       { id: 'signalements', labelKey: 'authority.menu.signalements', path: '/authority/signalements', icon: FileSearch },
@@ -157,6 +173,7 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
   const SIDEBAR_SCROLL_KEY = 'authoritySidebarScrollTop';
   const savedNavScrollRef = useRef(0);
   const [photoProfil, setPhotoProfil] = useState<string | null>(null);
+  const [activeSosCount, setActiveSosCount] = useState(0);
 
   const loadPhotoProfil = useCallback(async (uid: string) => {
     try {
@@ -175,6 +192,30 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
     if (currentUser?.id) loadPhotoProfil(currentUser.id);
     else setPhotoProfil(null);
   }, [currentUser?.id, loadPhotoProfil, location.pathname]);
+
+  useEffect(() => {
+    const fetchSosCount = async () => {
+      try {
+        const { count, error } = await (supabase as any)
+          .from('sos_event')
+          .select('id', { count: 'exact', head: true })
+          .eq('statut', 'envoye');
+        if (!error && typeof count === 'number') setActiveSosCount(count);
+      } catch {
+        setActiveSosCount(0);
+      }
+    };
+    void fetchSosCount();
+    const ch = supabase
+      .channel('authority-sidebar-sos-count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_event' }, () => {
+        void fetchSosCount();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, []);
 
   // Une seule source : Redux (profil table utilisateur), pas user_metadata Supabase
   const userFullName = (currentUser as any)?.nom_complet || (currentUser as any)?.email || 'Utilisateur';
@@ -331,7 +372,12 @@ export const AuthoritySidebar: React.FC<AuthoritySidebarProps> = ({ isOpen, onTo
                         <span className={styles.navItemIcon} aria-hidden>
                           <Icon size={20} />
                         </span>
-                        <span>{label}</span>
+                        <span className={styles.navItemLabel}>{label}</span>
+                        {item.id === 'sos' && activeSosCount > 0 ? (
+                          <span className={styles.navItemBadge} title={t('authority.sos.navBadgeTitle', { count: activeSosCount })}>
+                            {activeSosCount > 99 ? '99+' : activeSosCount}
+                          </span>
+                        ) : null}
                       </button>
                     </li>
                   );

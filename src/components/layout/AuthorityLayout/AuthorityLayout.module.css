@@ -65,6 +65,13 @@
   width: 100vw;
 }
 
+.mainContentFlush {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* Main Content Area - Pleine largeur, pas d'espace entre sidebar et contenu */
 .mainContent {
   flex: 1;

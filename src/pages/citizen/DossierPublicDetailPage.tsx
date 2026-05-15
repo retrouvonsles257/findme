@@ -9,6 +9,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDossierDetail } from '../../features/dossiers/hooks/useDossierDetail';
+import { useAuth } from '../../contexts';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { CitizenLayout } from './CitizenLayout';
@@ -29,15 +30,17 @@ import {
   Info,
 } from 'lucide-react';
 import { AdminDetailSkeleton } from 'components/skeletons';
+import { CitizenDossierMessagerieSection } from '../../features/messagerie/CitizenDossierMessagerieSection';
 import styles from './DossierPublicDetailPage.module.css';
 
 export const CitizenDossierPublicDetailPage: React.FC = () => {
   const { t } = useI18n();
+  const { user } = useAuth();
   const { dossierId } = useParams<{ dossierId: string }>();
   const navigate = useNavigate();
 
   const { dossier, isLoading, error, fetchDossier } = useDossierDetail();
-  const [activeTab, setActiveTab] = useState<'info' | 'photos' | 'timeline'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'photos' | 'timeline' | 'messagerie'>('info');
   const [shareSuccess, setShareSuccess] = useState(false);
   const [publicPhotos, setPublicPhotos] = useState<Array<{ id: string; url_cloudinary: string; url_thumbnail?: string | null }>>([]);
   const [photosLoading, setPhotosLoading] = useState(false);
@@ -48,6 +51,13 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
       fetchDossier(dossierId);
     }
   }, [dossierId, fetchDossier]);
+
+  useEffect(() => {
+    if (!dossier || isLoading) return;
+    const creatorId = (dossier as any).id_utilisateur_createur as string | undefined;
+    const isCreator = Boolean(user?.id && creatorId && user.id === creatorId);
+    if (!isCreator && activeTab === 'messagerie') setActiveTab('info');
+  }, [dossier, isLoading, user?.id, activeTab]);
 
   // Charger les photos publiques approuvées (conformes au modèle: visible_public = TRUE, approuvee = TRUE)
   useEffect(() => {
@@ -257,6 +267,10 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
       : null,
   ].filter(Boolean) as Array<{ date: string; description: string }>;
 
+  const showMessagerieTab = Boolean(
+    user?.id && d.id_utilisateur_createur && user.id === d.id_utilisateur_createur,
+  );
+
   return (
     <CitizenLayout activeNav="dossiers">
       <div className={styles.dossierDetail}>
@@ -382,6 +396,15 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
             <Clock size={18} />
             {t('citizen.timeline')}
           </button>
+          {showMessagerieTab && (
+            <button
+              className={`${styles['dossierDetail__tab']} ${activeTab === 'messagerie' ? styles['dossierDetail__tab--active'] : ''}`}
+              onClick={() => setActiveTab('messagerie')}
+            >
+              <MessageSquare size={18} />
+              {t('citizen.dossierPublic.tabMessagerie')}
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -567,6 +590,16 @@ export const CitizenDossierPublicDetailPage: React.FC = () => {
                   <p>{t('citizen.noTimeline')}</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'messagerie' && showMessagerieTab && dossierId && (
+            <div className={styles['dossierDetail__section']}>
+              <CitizenDossierMessagerieSection
+                dossierId={dossierId}
+                creatorUserId={d.id_utilisateur_createur ?? null}
+                responsibleOrgId={d.id_organisation_responsable ?? null}
+              />
             </div>
           )}
         </div>

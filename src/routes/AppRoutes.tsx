@@ -17,7 +17,8 @@ import CitizenRoutes from './CitizenRoutes';
 import AuthorityRoutes from './AuthorityRoutes';
 import SuperAdminRoutes from './SuperAdminRoutes';
 import ErrorRoutes from './ErrorRoutes';
-import { LEGACY_SILO_BASES, LEGACY_SILO_REDIRECT_TARGET, ROUTES } from './routes.config';
+import { SosContactVerifyPage } from '../pages/public';
+import { LEGACY_SILO_BASES, LEGACY_SILO_REDIRECT_TARGET, PUBLIC_ROUTES, ROUTES } from './routes.config';
 
 /**
  * Loading Component
@@ -93,6 +94,8 @@ const AppRoutes: React.FC = () => {
             AUTH MODULE - Authentication pages
             ======================================== */}
         <Route path={`${ROUTES.auth.BASE}/*`} element={<AuthRoutes />} />
+
+        <Route path={PUBLIC_ROUTES.SOS_CONTACT_VERIFY} element={<SosContactVerifyPage />} />
 
         {/* ========================================
             PROTECTED MODULES - Require authentication

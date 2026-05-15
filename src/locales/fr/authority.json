@@ -113,7 +113,8 @@
       "documents": "Documents",
       "filiation": "Filiation",
       "history": "Historique",
-      "ia": "Analyse IA"
+      "ia": "Analyse IA",
+      "messagerie": "Messagerie"
     },
     "ia": {
       "newAnalysis": "Nouvelle analyse",
@@ -546,7 +547,9 @@
     "orgSettings": "Paramètres organisation",
     "photosModeration": "Modération photos",
     "donations": "Dons & Campagnes",
-    "statistiques": "Statistiques"
+    "statistiques": "Statistiques",
+    "preDeclarations": "Pré-déclarations",
+    "sos": "Alertes SOS"
   },
   "nav": {
     "operational": "Opérationnel",
@@ -1247,6 +1250,7 @@
       "witnessInfo": "Informations du témoin",
       "photos": "Photos",
       "linkedDossier": "Dossier lié",
+      "messagerie": "Messagerie",
       "metadata": "Métadonnées"
     },
     "reporter": {
@@ -1649,5 +1653,143 @@
     "noData": "Aucune donnée à afficher",
     "viewList": "Vue liste",
     "viewMap": "Vue carte"
+  },
+  "preDeclaration": {
+    "listTitle": "Pré-déclarations citoyennes",
+    "listSubtitle": "Demandes reçues pour votre organisation.",
+    "empty": "Aucune pré-déclaration pour le moment.",
+    "notFound": "Pré-déclaration introuvable ou hors périmètre.",
+    "backList": "Retour à la liste",
+    "actionExamen": "Marquer en examen",
+    "actionConvert": "Convertir en dossier officiel",
+    "actionReject": "Rejeter la demande",
+    "openDossier": "Ouvrir le dossier",
+    "messagesTitle": "Conversation",
+    "noMessages": "Aucun message pour l’instant.",
+    "you": "Vous (autorité)",
+    "citizenLabel": "Citoyen",
+    "messagePlaceholder": "Répondre au citoyen…",
+    "send": "Envoyer",
+    "markExamenOk": "Statut mis à jour : en examen.",
+    "rejectConfirm": "Rejeter définitivement cette pré-déclaration ? Le citoyen ne pourra plus écrire dans le fil.",
+    "rejectOk": "La pré-déclaration a été rejetée.",
+    "prefillOrgMismatch": "Cette pré-déclaration ne correspond pas à votre organisation.",
+    "prefillClosed": "Cette pré-déclaration est déjà close ; préremplissage impossible.",
+    "linkAfterCreateWarnTitle": "Dossier créé",
+    "linkAfterCreateWarnBody": "Le dossier a été créé mais la liaison avec la pré-déclaration a échoué. Mettez à jour manuellement si nécessaire.",
+    "statut": {
+      "soumise": "Soumise",
+      "en_examen": "En examen",
+      "convertie": "Convertie",
+      "rejetee": "Rejetée"
+    },
+    "threadClosed": {
+      "convertie": "Fil clos — dossier officiel créé.",
+      "rejetee": "Fil clos — demande rejetée."
+    },
+    "assigneeLabel": "Agent référent sur ce fil",
+    "assigneeNone": "— Non assigné —",
+    "assigneeSaved": "Référent mis à jour.",
+    "rejectModalTitle": "Rejeter la pré-déclaration",
+    "rejectModalBody": "Indiquez un motif clair pour le citoyen (obligatoire, min. 3 caractères).",
+    "rejectMotifPlaceholder": "Ex. informations insuffisantes, hors périmètre géographique…",
+    "rejectConfirmAction": "Confirmer le rejet",
+    "rejectMotifLabel": "Motif du rejet",
+    "messageTypeLabel": "Type de message",
+    "messageType": {
+      "texte": "Message libre",
+      "demande_complement": "Demande de complément",
+      "demande_piece": "Demande de pièce jointe",
+      "note_systeme": "Note système"
+    },
+    "attachmentsHint": "Pièces jointes (max 3, PDF ou images)",
+    "uploadFailed": "Échec de l’envoi du fichier.",
+    "messageDeleted": "[Message supprimé]",
+    "deleteMessage": "Supprimer",
+    "confirmDeleteMessage": "Supprimer ce message ? (visible comme supprimé pour les deux parties.)",
+    "convStatut": "Fil",
+    "convStatutLabel": "Statut du fil de messagerie",
+    "convStatutSaved": "Statut du fil mis à jour.",
+    "convStatutVal": {
+      "ouverte": "Ouvert",
+      "en_attente": "En attente",
+      "traitee": "Traité",
+      "fermee": "Fermé"
+    },
+    "optionalRef": "Référence (optionnel)",
+    "refIdPlaceholder": "UUID de l’entité",
+    "attachFiles": "Joindre",
+    "metaDemandeTraitement": "Demande de traitement",
+    "demandeTraitement": "Demander un traitement prioritaire",
+    "refType": {
+      "document": "Document",
+      "dossier": "Dossier",
+      "signalement": "Signalement",
+      "message": "Message",
+      "pre_declaration": "Pré-déclaration",
+      "personne": "Personne",
+      "alerte": "Alerte",
+      "localisation": "Localisation"
+    },
+    "escaladeLabel": "Escalade vers une autre organisation",
+    "escaladeNone": "— Aucune escalade —",
+    "escaladeApply": "Enregistrer l’escalade",
+    "escaladeOk": "Escalade enregistrée.",
+    "escaladeActive": "Escalade : {{nom}}",
+    "tachesTitle": "Tâches de suivi",
+    "tacheDone": "Marquer comme faite",
+    "tacheCancel": "Annuler la tâche",
+    "tacheNewTitle": "Titre de la tâche",
+    "tacheNewDesc": "Description (optionnel)",
+    "tacheAdd": "Ajouter la tâche",
+    "tacheStatut": {
+      "ouverte": "Ouverte",
+      "en_cours": "En cours",
+      "faite": "Faite",
+      "annulee": "Annulée"
+    }
+  },
+  "messagerieContext": {
+    "sectionTitle": "Messagerie avec les parties concernées",
+    "messagesTitle": "Fil de discussion",
+    "noThread": "Aucun fil n’est encore associé. Créez-le pour échanger avec le citoyen ou en interne.",
+    "openThread": "Créer le fil de messagerie",
+    "threadReady": "Fil de messagerie prêt.",
+    "placeholder": "Écrire un message…",
+    "markTraite": "Marquer traité",
+    "traiteOk": "Message marqué comme traité.",
+    "badgeTraite": "Traité",
+    "interlocutor": "Interlocuteur"
+  },
+  "sos": {
+    "menuTitle": "Alertes SOS",
+    "listTitle": "Alertes SOS citoyennes",
+    "listSubtitle": "Événements récents. Marquez comme pris en charge une fois la situation suivie.",
+    "empty": "Aucun événement SOS.",
+    "filterActive": "Actifs (non traités)",
+    "filterAll": "Tous",
+    "filterAssignAll": "Toutes assignations",
+    "filterUnassigned": "Non assignées",
+    "filterMyOrg": "Ma structure",
+    "filterMyOrgDisabledHint": "Aucune organisation liée à votre compte.",
+    "statut": {
+      "annule": "Annulé",
+      "envoye": "À traiter",
+      "traite": "Traité"
+    },
+    "markHandled": "Marquer comme pris en charge",
+    "markHandledConfirm": "Confirmer que cette alerte a été prise en charge ?",
+    "handledOk": "Statut mis à jour.",
+    "openMap": "Carte",
+    "citizen": "Citoyen",
+    "when": "Date",
+    "message": "Message",
+    "position": "Position",
+    "sansPositionGps": "Sans position GPS",
+    "assignLabel": "Organisation assignée",
+    "assignNone": "— Non assignée —",
+    "assignApply": "Enregistrer l’assignation",
+    "assignOk": "Assignation mise à jour.",
+    "navBadgeTitle": "{{count}} alerte(s) SOS à traiter"
   }
 }

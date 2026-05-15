@@ -13,6 +13,9 @@ export { AuthoritySearchPage } from './AuthoritySearchPage';
 export { DossiersPage } from './DossiersPage';
 export { DossierDetailPage } from './DossierDetailPage';
 export { CreateDossierAuthorityPage } from './CreateDossierAuthorityPage';
+export { AuthorityPreDeclarationsPage } from './AuthorityPreDeclarationsPage';
+export { AuthorityPreDeclarationDetailPage } from './AuthorityPreDeclarationDetailPage';
+export { AuthoritySosPage } from './AuthoritySosPage';
 export { EditDossierPage } from './EditDossierPage';
 
 // Alertes

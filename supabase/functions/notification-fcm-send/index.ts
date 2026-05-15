@@ -103,25 +103,29 @@ async function sendFcmV1(
   bodyText: string,
   data: Record<string, string>,
   link: string,
+  opts?: { priorityHigh?: boolean },
 ): Promise<{ name?: string }> {
   const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+  const message: Record<string, unknown> = {
+    token,
+    notification: { title, body: bodyText },
+    data,
+    webpush: {
+      headers: { Urgency: 'high' },
+      fcmOptions: { link },
+    },
+  };
+  if (opts?.priorityHigh) {
+    message.android = { priority: 'HIGH' };
+    message.apns = { headers: { 'apns-priority': '10' } };
+  }
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      message: {
-        token,
-        notification: { title, body: bodyText },
-        data,
-        webpush: {
-          headers: { Urgency: 'high' },
-          fcmOptions: { link },
-        },
-      },
-    }),
+    body: JSON.stringify({ message }),
   });
   if (!res.ok) {
     const t = await res.text();
@@ -328,6 +332,14 @@ async function resolveClickPath(
 
   const extra = readDonneesSupp(record);
   if (extra) {
+    const evName = strVal(extra.event);
+    if (evName === 'sos_dispatch' && isAuthority) {
+      const sosId = strVal(extra.sos_id);
+      if (sosId) return `/authority/sos?focus=${encodeURIComponent(sosId)}`;
+    }
+    if (evName === 'sos_handled' && !isAuthority) {
+      return '/citizen/sos';
+    }
     const sid = strVal(extra.signalement_id);
     if (sid) return isAuthority ? `/authority/signalements/${sid}` : `/citizen/signalement/${sid}`;
     const dIa = strVal(extra.dossier_id);
@@ -522,6 +534,10 @@ serve(async (req) => {
     tag: nid ? `rll-${nid}` : 'retrouvonsles-msg',
   };
 
+  const extraForPriority = readDonneesSupp(record);
+  const isSosPush = strVal(extraForPriority?.event) === 'sos_dispatch';
+  const priorityHigh = strVal(record.priorite as string | undefined) === 'haute' || isSosPush;
+
   let sent = 0;
   const errors: string[] = [];
 
@@ -557,7 +573,9 @@ serve(async (req) => {
     const tokenHint = token.length > 12 ? `${token.slice(0, 8)}…${token.slice(-4)}` : '(short)';
     const sendStart = Date.now();
     try {
-      await sendFcmV1(accessToken, sa.project_id, token, title, bodyText, data, link);
+      await sendFcmV1(accessToken, sa.project_id, token, title, bodyText, data, link, {
+        priorityHigh,
+      });
       sent++;
       await recordPushDelivery(supabase, {
         notificationId: nid,

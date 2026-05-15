@@ -27,9 +27,11 @@ export const useAuthorityLayout = () => useContext(AuthorityLayoutContext);
 
 export interface AuthorityLayoutProps {
   children: React.ReactNode;
+  /** Zone principale sans padding (messagerie, SOS). */
+  contentVariant?: 'default' | 'flush';
 }
 
-export const AuthorityLayout: React.FC<AuthorityLayoutProps> = ({ children }) => {
+export const AuthorityLayout: React.FC<AuthorityLayoutProps> = ({ children, contentVariant = 'default' }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -42,7 +44,7 @@ export const AuthorityLayout: React.FC<AuthorityLayoutProps> = ({ children }) =>
         <div className={`${styles.mainWrapper} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
           <AuthorityHeader onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
 
-          <main className={styles.mainContent}>
+          <main className={`${styles.mainContent} ${contentVariant === 'flush' ? styles.mainContentFlush : ''}`}>
             {children}
           </main>
         </div>

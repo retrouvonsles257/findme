@@ -558,6 +558,135 @@ export interface CampagneSensibilisation {
   created_at: Timestamp;
 }
 
+/** Pré-déclaration citoyenne (messagerie MVP). */
+export interface PreDeclarationCitoyenne {
+  id: UUID;
+  id_utilisateur: UUID;
+  id_organisation: UUID;
+  statut: string;
+  id_dossier: UUID | null;
+  motif_rejet: string | null;
+  rejetee_par: UUID | null;
+  rejetee_at: Timestamp | null;
+  nom_personne: string;
+  prenom_personne: string;
+  sexe: string;
+  date_naissance: string | null;
+  nationalite: string;
+  date_disparition: string;
+  lieu_disparition: string | null;
+  ville_disparition: string | null;
+  region_disparition: string | null;
+  pays_disparition: string;
+  latitude_disparition: number | null;
+  longitude_disparition: number | null;
+  type_disparition: string;
+  niveau_urgence: string;
+  circonstances: string;
+  infos_complementaires: string | null;
+  contact_nom: string | null;
+  contact_telephone: string | null;
+  contact_email: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface MessagerieConversation {
+  id: UUID;
+  id_pre_declaration: UUID | null;
+  id_dossier: UUID | null;
+  id_signalement: UUID | null;
+  statut: string;
+  id_utilisateur_assigne: UUID | null;
+  id_organisation_escalade: UUID | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface MessagerieTacheSuivi {
+  id: UUID;
+  id_conversation: UUID;
+  titre: string;
+  description: string | null;
+  statut: string;
+  id_createur: UUID;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface MessagerieMessage {
+  id: UUID;
+  id_conversation: UUID;
+  id_auteur: UUID;
+  corps: string;
+  deleted_at: Timestamp | null;
+  type_message: string;
+  metadonnees: Json;
+  created_at: Timestamp;
+}
+
+export interface MessagerieMessageLecture {
+  id_message: UUID;
+  id_utilisateur: UUID;
+  lu_at: Timestamp;
+}
+
+export interface MessagerieMessagePieceJointe {
+  id: UUID;
+  id_message: UUID;
+  nom_fichier: string;
+  mime_type: string;
+  taille_octets: number;
+  url_storage: string;
+  created_at: Timestamp;
+}
+
+export interface MessagerieMessageReference {
+  id: UUID;
+  id_message: UUID;
+  type_entite: string;
+  id_entite: UUID;
+  created_at: Timestamp;
+}
+
+export interface MessagerieConversationParticipant {
+  id: UUID;
+  id_conversation: UUID;
+  id_utilisateur: UUID;
+  role: string;
+  created_at: Timestamp;
+}
+
+/** Contact d'urgence e-mail (MVP SOS). */
+export interface ContactUrgence {
+  id: UUID;
+  id_utilisateur: UUID;
+  nom: string;
+  email: string;
+  relation: string | null;
+  email_verifie: boolean;
+  date_ajout: Timestamp;
+  date_verification: Timestamp | null;
+  token_verification: string | null;
+  token_expires_at: Timestamp | null;
+}
+
+/** Événement SOS (création côté Edge Function / service role). */
+export interface SosEvent {
+  id: UUID;
+  id_utilisateur: UUID;
+  latitude: number | null;
+  longitude: number | null;
+  precision_metres: number | null;
+  message: string | null;
+  sans_position: boolean;
+  statut: string;
+  handled_at: Timestamp | null;
+  handled_by: UUID | null;
+  id_organisation_assignee: UUID | null;
+  created_at: Timestamp;
+}
+
 // ============================================
 // DATABASE SCHEMA TYPE
 // ============================================
@@ -670,6 +799,71 @@ export interface Database {
         Insert: Omit<CampagneSensibilisation, 'id' | 'created_at'>;
         Update: Partial<Omit<CampagneSensibilisation, 'id' | 'created_at'>>;
       };
+      pre_declaration_citoyenne: {
+        Row: PreDeclarationCitoyenne;
+        Insert: Omit<PreDeclarationCitoyenne, 'id' | 'created_at' | 'updated_at' | 'statut' | 'id_dossier'> &
+          Partial<Pick<PreDeclarationCitoyenne, 'statut' | 'id_dossier'>>;
+        Update: Partial<Omit<PreDeclarationCitoyenne, 'id' | 'created_at'>>;
+      };
+      conversation: {
+        Row: MessagerieConversation;
+        Insert: Omit<MessagerieConversation, 'id' | 'created_at' | 'updated_at' | 'statut'> &
+          Partial<
+            Pick<
+              MessagerieConversation,
+              | 'statut'
+              | 'id_utilisateur_assigne'
+              | 'id_organisation_escalade'
+              | 'id_pre_declaration'
+              | 'id_dossier'
+              | 'id_signalement'
+            >
+          >;
+        Update: Partial<Omit<MessagerieConversation, 'id' | 'created_at'>>;
+      };
+      messagerie_tache_suivi: {
+        Row: MessagerieTacheSuivi;
+        Insert: Omit<MessagerieTacheSuivi, 'id' | 'created_at' | 'updated_at'> &
+          Partial<Pick<MessagerieTacheSuivi, 'statut'>>;
+        Update: Partial<Omit<MessagerieTacheSuivi, 'id' | 'created_at'>>;
+      };
+      message: {
+        Row: MessagerieMessage;
+        Insert: Omit<MessagerieMessage, 'id' | 'created_at' | 'deleted_at' | 'type_message' | 'metadonnees'> &
+          Partial<Pick<MessagerieMessage, 'deleted_at' | 'type_message' | 'metadonnees'>>;
+        Update: Partial<Omit<MessagerieMessage, 'id' | 'created_at'>>;
+      };
+      message_lecture: {
+        Row: MessagerieMessageLecture;
+        Insert: MessagerieMessageLecture;
+        Update: Partial<Pick<MessagerieMessageLecture, 'lu_at'>>;
+      };
+      message_piece_jointe: {
+        Row: MessagerieMessagePieceJointe;
+        Insert: Omit<MessagerieMessagePieceJointe, 'id' | 'created_at'>;
+        Update: Partial<Omit<MessagerieMessagePieceJointe, 'id' | 'created_at'>>;
+      };
+      message_reference: {
+        Row: MessagerieMessageReference;
+        Insert: Omit<MessagerieMessageReference, 'id' | 'created_at'>;
+        Update: Partial<Omit<MessagerieMessageReference, 'id' | 'created_at'>>;
+      };
+      conversation_participant: {
+        Row: MessagerieConversationParticipant;
+        Insert: Omit<MessagerieConversationParticipant, 'id' | 'created_at'>;
+        Update: Partial<Omit<MessagerieConversationParticipant, 'id' | 'created_at'>>;
+      };
+      contact_urgence: {
+        Row: ContactUrgence;
+        Insert: Omit<ContactUrgence, 'id' | 'date_ajout' | 'email_verifie' | 'date_verification'> &
+          Partial<Pick<ContactUrgence, 'email_verifie' | 'date_verification'>>;
+        Update: Partial<Omit<ContactUrgence, 'id' | 'id_utilisateur' | 'date_ajout'>>;
+      };
+      sos_event: {
+        Row: SosEvent;
+        Insert: Omit<SosEvent, 'id' | 'created_at'>;
+        Update: Partial<Omit<SosEvent, 'id' | 'created_at' | 'id_utilisateur'>>;
+      };
     };
     Views: {
       v_dossiers_actifs: {
@@ -728,6 +922,26 @@ export interface Database {
       get_user_with_role: {
         Args: { p_user_id: UUID };
         Returns: Record<string, unknown>;
+      };
+      soft_delete_own_message: {
+        Args: { p_message_id: UUID };
+        Returns: null;
+      };
+      conversation_user_can_access: {
+        Args: { p_conversation_id: UUID };
+        Returns: boolean;
+      };
+      contact_urgence_set_verification_token: {
+        Args: { p_contact_id: UUID };
+        Returns: string;
+      };
+      contact_urgence_confirm_token: {
+        Args: { p_token: string };
+        Returns: null;
+      };
+      message_messagerie_marquer_traite: {
+        Args: { p_message_id: UUID };
+        Returns: null;
       };
     };
   };

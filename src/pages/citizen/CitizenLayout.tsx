@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../hooks';
+import { useSystemConfig } from '../../features/system/hooks/useSystemConfig';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { useLogout } from '../../features/auth/hooks';
@@ -41,11 +42,13 @@ import {
   ChevronRight,
   User,
   Users,
-  Heart
+  Heart,
+  ClipboardList,
+  AlertTriangle
 } from 'lucide-react';
 import styles from './CitizenLayout.module.css';
 
-type CitizenNavId = 'dashboard' | 'dossiers' | 'map' | 'alerts' | 'signalements' | 'new-signalement' | 'donations' | 'settings';
+type CitizenNavId = 'dashboard' | 'dossiers' | 'map' | 'alerts' | 'sos' | 'signalements' | 'pre-declarations' | 'new-signalement' | 'donations' | 'settings';
 
 interface CitizenNavItem {
   id: CitizenNavId;
@@ -69,6 +72,7 @@ const CITIZEN_NAV_GROUPS: CitizenNavGroup[] = [
       { id: 'dossiers', labelKey: 'citizen.dossiers', path: '/citizen/dossiers', icon: Users },
       { id: 'map', labelKey: 'citizen.map', path: '/citizen/map', icon: Map },
       { id: 'alerts', labelKey: 'citizen.alerts', path: '/citizen/alerts', icon: Bell },
+      { id: 'sos', labelKey: 'citizen.sos.navLabel', path: '/citizen/sos', icon: AlertTriangle },
     ],
   },
   {
@@ -76,6 +80,12 @@ const CITIZEN_NAV_GROUPS: CitizenNavGroup[] = [
     labelKey: 'citizen.nav.signalements',
     items: [
       { id: 'signalements', labelKey: 'common.reports', path: '/citizen/my-signalements', icon: FileText },
+      {
+        id: 'pre-declarations',
+        labelKey: 'citizen.preDeclaration.navLabel',
+        path: '/citizen/pre-declarations',
+        icon: ClipboardList,
+      },
       { id: 'new-signalement', labelKey: 'citizen.newReport', path: '/citizen/dossiers?mode=report', icon: Plus },
       { id: 'donations', labelKey: 'citizen.donations', path: '/citizen/donations', icon: Heart },
     ],
@@ -92,11 +102,14 @@ const CITIZEN_NAV_GROUPS: CitizenNavGroup[] = [
 interface CitizenLayoutProps {
   children: React.ReactNode;
   activeNav?: string;
+  /** Pleine largeur : pas de padding sur la zone scroll (messagerie, SOS). */
+  contentVariant?: 'default' | 'flush';
 }
 
 export const CitizenLayout: React.FC<CitizenLayoutProps> = ({ 
   children, 
-  activeNav 
+  activeNav,
+  contentVariant = 'default',
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -106,6 +119,8 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
   const userId = (currentUser as any)?.id;
   const isGuestSession = Boolean((currentUser as any)?.is_anonymous);
   const { unreadCount, fetchNotifications } = useNotifications();
+  const { flags } = useSystemConfig();
+  const showSosNav = flags.sos_button !== false;
   const permissionScope = userId || 'unknown';
   const PERM_ONBOARDING_DONE_KEY = `${CITIZEN_PERM_ONBOARDING_DONE_KEY}:${permissionScope}`;
   const PERM_NOTIF_ASKED_KEY = `${CITIZEN_PERM_NOTIF_ASKED_KEY}:${permissionScope}`;
@@ -411,7 +426,9 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
                 className={styles.navGroupList}
                 aria-labelledby={isCollapsed ? undefined : `nav-group-${group.groupKey}`}
               >
-                {group.items.map((item) => {
+                {group.items
+                  .filter((item) => item.id !== 'sos' || showSosNav)
+                  .map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.id, item.path);
                   const label = t(item.labelKey);
@@ -605,7 +622,7 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
         </header>
 
         {/* Content */}
-        <main className={styles.content}>
+        <main className={`${styles.content} ${contentVariant === 'flush' ? styles.contentFlush : ''}`}>
           {isGuestSession && (
             <div className={styles.guestBanner} role="status">
               <p className={styles.guestBannerText}>

@@ -16,6 +16,9 @@ import {
   DossiersPage,
   DossierDetailPage,
   CreateDossierAuthorityPage,
+  AuthorityPreDeclarationsPage,
+  AuthorityPreDeclarationDetailPage,
+  AuthoritySosPage,
   EditDossierPage,
   SignalementsPage,
   SignalementDetailPage,
@@ -114,6 +117,33 @@ const AuthorityRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={authorityRoles}>
               <EditDossierPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Pré-déclarations citoyennes */}
+        <Route
+          path="/pre-declarations"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <AuthorityPreDeclarationsPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/pre-declarations/:id"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <AuthorityPreDeclarationDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/sos"
+          element={
+            <RoleBasedRoute requiredRoles={authorityRoles}>
+              <AuthoritySosPage />
             </RoleBasedRoute>
           }
         />

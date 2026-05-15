@@ -18,3 +18,8 @@ export { CitizenMapPage } from './MapPage';
 export { CitizenDossierPublicDetailPage } from './DossierPublicDetailPage';
 export { CitizenSettingsPage } from './SettingsPage';
 export { CitizenDonationsPage } from './DonationsPage';
+export { CitizenPreDeclarationsPage } from './CitizenPreDeclarationsPage';
+export { CitizenPreDeclarationNewPage } from './CitizenPreDeclarationNewPage';
+export { CitizenPreDeclarationDetailPage } from './CitizenPreDeclarationDetailPage';
+export { CitizenSosPage } from './CitizenSosPage';
+export { CitizenSosContactsPage } from './CitizenSosContactsPage';

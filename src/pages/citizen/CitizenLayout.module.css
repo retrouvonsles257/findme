@@ -738,6 +738,13 @@
   box-sizing: border-box;
 }
 
+.contentFlush {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* ========== RESPONSIVE - TABLET & MOBILE ========== */
 @media (max-width: 1024px) {
   /* Sidebar caché par défaut, glisse depuis la gauche */
@@ -821,6 +828,10 @@
     padding: 1rem;
   }
 
+  .contentFlush {
+    padding: 0 !important;
+  }
+
   /* Menu dropdown position sur mobile */
   .userMenuCollapsed {
     left: 0.75rem;
@@ -851,6 +862,10 @@
   .content {
     height: calc(100vh - 56px);
     padding: 0.75rem;
+  }
+
+  .contentFlush {
+    padding: 0 !important;
   }
 }
 

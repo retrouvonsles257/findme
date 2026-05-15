@@ -30,6 +30,10 @@ import {
 import styles from './CreateDossierPage.module.css';
 import { triggerDossierAnalysis } from '../../features/ia-analysis';
 import * as personneAPI from '../../features/personnes/services/personneAPI';
+import {
+  getPreDeclarationById,
+  linkPreDeclarationToCreatedDossier,
+} from '../../features/preDeclarations/preDeclarationApi';
 
 interface PersonneFormData {
   nom: string;
@@ -176,6 +180,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
   const localizationQuality: 'precise' | 'unknown' = hasPreciseLocation ? 'precise' : 'unknown';
 
   const personneIdFromUrl = searchParams.get('personneId');
+  const preDeclarationIdFromUrl = searchParams.get('preDeclarationId');
 
   useEffect(() => {
     if (!personneIdFromUrl?.trim()) {
@@ -212,6 +217,75 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
       cancelled = true;
     };
   }, [personneIdFromUrl]);
+
+  useEffect(() => {
+    if (!preDeclarationIdFromUrl?.trim() || personneIdFromUrl?.trim()) return;
+    const orgId = currentUser?.organisation_id;
+    if (!orgId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const pr = await getPreDeclarationById(preDeclarationIdFromUrl.trim());
+        if (!pr || cancelled) return;
+        if (String(pr.id_organisation) !== String(orgId)) {
+          addNotification({
+            title: t('authority.createDossier.messages.error'),
+            message: t('authority.preDeclaration.prefillOrgMismatch'),
+            type: 'warning',
+          });
+          return;
+        }
+        if (pr.statut === 'convertie' || pr.statut === 'rejetee') {
+          addNotification({
+            title: t('authority.createDossier.messages.error'),
+            message: t('authority.preDeclaration.prefillClosed'),
+            type: 'warning',
+          });
+          return;
+        }
+        setPersonneData({
+          nom: String(pr.nom_personne || ''),
+          prenom: String(pr.prenom_personne || ''),
+          date_naissance: pr.date_naissance ? String(pr.date_naissance).split('T')[0] : '',
+          sexe: ((pr.sexe as PersonneFormData['sexe']) || 'non_precise') as PersonneFormData['sexe'],
+          nationalite: String(pr.nationalite || 'Camerounaise'),
+          taille_cm: '',
+          poids_kg: '',
+          couleur_yeux: '',
+          couleur_cheveux: '',
+          signes_particuliers: '',
+        });
+        const hasGps = pr.latitude_disparition != null && pr.longitude_disparition != null;
+        setDossierData((prev) => ({
+          ...prev,
+          type_disparition: (pr.type_disparition as DossierFormData['type_disparition']) || 'inconnue',
+          precision_lieu: hasGps ? 'exacte' : 'approximative',
+          niveau_urgence: (pr.niveau_urgence as DossierFormData['niveau_urgence']) || 'normal',
+          date_disparition: pr.date_disparition ? String(pr.date_disparition).split('T')[0] : prev.date_disparition,
+          lieu_disparition: pr.lieu_disparition || '',
+          ville_disparition: pr.ville_disparition || '',
+          region_disparition: pr.region_disparition || '',
+          pays_disparition: pr.pays_disparition || 'Cameroun',
+          latitude_disparition: pr.latitude_disparition ?? null,
+          longitude_disparition: pr.longitude_disparition ?? null,
+          circonstances: pr.circonstances || prev.circonstances,
+          vetements_portes: prev.vetements_portes,
+          objets_personnels: prev.objets_personnels,
+          derniere_activite_connue: prev.derniere_activite_connue,
+          visible_public: false,
+          diffusion_autorisee: false,
+          contact_nom: pr.contact_nom || prev.contact_nom,
+          contact_telephone: pr.contact_telephone || prev.contact_telephone,
+          contact_email: pr.contact_email || prev.contact_email,
+        }));
+      } catch {
+        // silencieux
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [preDeclarationIdFromUrl, personneIdFromUrl, currentUser?.organisation_id, addNotification, t]);
 
   const geocodeMapTiler = async (query: string): Promise<MapSearchLocation[]> => {
     if (!mapConfig.maptiler.apiKey) return [];
@@ -535,13 +609,16 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
         personneIdForDossier = personneCreated.id;
       }
 
+      const preDeclIdForPhotos = searchParams.get('preDeclarationId')?.trim();
+      const visPublicPhoto = preDeclIdForPhotos ? dossierData.visible_public : true;
+
       // 2. Insérer les photos dans la table photo
       if (uploadedPhotos.length > 0) {
         const photosToInsert = uploadedPhotos.map((url, index) => ({
           url_cloudinary: url,
           type_photo: 'portrait',
           est_principale: index === 0,
-          visible_public: true,
+          visible_public: visPublicPhoto,
           id_personne: personneIdForDossier,
           uploadee_par: user.id,
           created_at: new Date().toISOString(),
@@ -695,6 +772,20 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
         type: 'success',
       });
 
+      const preDeclId = searchParams.get('preDeclarationId')?.trim();
+      if (preDeclId) {
+        try {
+          await linkPreDeclarationToCreatedDossier(preDeclId, dossierCreated.id, { authorId: user.id });
+        } catch (linkErr) {
+          console.error('[CreateDossierAuthority] link pre_declaration:', linkErr);
+          addNotification({
+            title: t('authority.preDeclaration.linkAfterCreateWarnTitle'),
+            message: t('authority.preDeclaration.linkAfterCreateWarnBody'),
+            type: 'warning',
+          });
+        }
+      }
+
       // La création de dossier appartient exclusivement au silo Autorité.
       setTimeout(() => {
         navigate(`/authority/dossiers/${dossierCreated.id}`);
@@ -724,6 +815,7 @@ export const CreateDossierAuthorityPage: React.FC<CreateDossierAuthorityPageProp
     navigate,
     t,
     language,
+    searchParams,
   ]);
 
   const formContent = (

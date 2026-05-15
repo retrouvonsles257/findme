@@ -19,7 +19,12 @@ import {
   CitizenMapPage,
   CitizenDossierPublicDetailPage,
   CitizenSettingsPage,
-  CitizenDonationsPage
+  CitizenDonationsPage,
+  CitizenPreDeclarationsPage,
+  CitizenPreDeclarationNewPage,
+  CitizenPreDeclarationDetailPage,
+  CitizenSosPage,
+  CitizenSosContactsPage,
 } from '../pages/citizen';
 
 import PrivateRoute from './PrivateRoutes';
@@ -113,6 +118,49 @@ const CitizenRoutes: React.FC = () => {
           element={
             <RoleBasedRoute requiredRoles={citizenRoles}>
               <CitizenSignalementDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        {/* Pré-déclarations / messagerie autorité */}
+        <Route
+          path="/pre-declarations"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenPreDeclarationsPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/pre-declarations/new"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenPreDeclarationNewPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/pre-declarations/:id"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenPreDeclarationDetailPage />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="/sos/contacts"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenSosContactsPage />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/sos"
+          element={
+            <RoleBasedRoute requiredRoles={citizenRoles}>
+              <CitizenSosPage />
             </RoleBasedRoute>
           }
         />

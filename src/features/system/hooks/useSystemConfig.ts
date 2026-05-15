@@ -40,7 +40,7 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   last_backup_at: null,
   feature_flags: {
     citizen_authority_messaging: false,
-    sos_button: false,
+    sos_button: true,
     identity_verification_v2: true,
     push_native_fallback: true,
   },

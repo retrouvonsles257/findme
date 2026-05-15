@@ -24,8 +24,10 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { AdminDetailSkeleton } from 'components/skeletons';
+import { AuthorityContextMessagerieTab } from '../../features/messagerie/AuthorityContextMessagerieTab';
 import styles from './SignalementDetailPage.module.css';
 
 function normalizeCertitudeKey(raw: string | null | undefined): string {
@@ -109,7 +111,7 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
           const { data: dosData, error: dosErr } = await (supabase as any)
             .from('dossier_disparition')
             .select(
-              'id, numero_dossier, statut_dossier, id_personne, personne:personne(id, prenom, nom, nom_complet)',
+              'id, numero_dossier, statut_dossier, id_personne, id_utilisateur_createur, id_organisation_responsable, personne:personne(id, prenom, nom, nom_complet)',
             )
             .eq('id', sigData.id_dossier)
             .single();
@@ -524,6 +526,23 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
                 </div>
                 <span>→</span>
               </div>
+            </div>
+          )}
+
+          {dossier && id && (
+            <div className={styles.card}>
+              <h2>
+                <MessageSquare size={20} /> {t('authority.signalementDetail.sections.messagerie')}
+              </h2>
+              <AuthorityContextMessagerieTab
+                kind="signalement"
+                entityId={id}
+                signalementMeta={{
+                  signalementId: id,
+                  reporterUserId: signalement.id_utilisateur ?? null,
+                  responsibleOrgId: dossier.id_organisation_responsable ?? null,
+                }}
+              />
             </div>
           )}
 
