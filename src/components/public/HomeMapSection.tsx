@@ -7,8 +7,10 @@ import homeStyles from '../../pages/public/HomePage.module.css';
 import styles from './HomeMapSection.module.css';
 
 const USER_ZOOM = 12;
+/** Centre par défaut : Yaoundé (lat, lng) */
+const DEFAULT_CENTER: [number, number] = [3.848, 11.5021];
 
-type GeoState = 'idle' | 'loading' | 'ready' | 'denied' | 'unavailable';
+type GeoState = 'idle' | 'loading' | 'ready' | 'ready_fallback';
 
 interface DossierGeo {
   id: string;
@@ -29,6 +31,7 @@ export const HomeMapSection: React.FC = () => {
   const [state, setState] = useState<GeoState>('idle');
   const [center, setCenter] = useState<[number, number] | null>(null);
   const [dossiers, setDossiers] = useState<DossierGeo[]>([]);
+  const [geoHint, setGeoHint] = useState<string | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -51,9 +54,10 @@ export const HomeMapSection: React.FC = () => {
           latitude_disparition,
           longitude_disparition,
           personne:id_personne ( nom_complet, photo_principale )
-        `
+        `,
       )
       .eq('visible_public', true)
+      .eq('statut_dossier', 'en_cours')
       .not('latitude_disparition', 'is', null)
       .not('longitude_disparition', 'is', null)
       .order('date_disparition', { ascending: false })
@@ -63,52 +67,53 @@ export const HomeMapSection: React.FC = () => {
     return (data || []) as DossierGeo[];
   }, []);
 
+  const showMap = state === 'ready' || state === 'ready_fallback';
+  const mapCenter = center ?? DEFAULT_CENTER;
+
   const handleOpenMap = useCallback(async () => {
     if (state === 'loading') return;
     setState('loading');
+    setGeoHint(null);
 
     try {
-      const dossiersPromise = loadDossiers();
+      const loaded = await loadDossiers();
+      if (!mountedRef.current) return;
+      setDossiers(loaded);
 
       if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
-        const loaded = await dossiersPromise;
-        if (!mountedRef.current) return;
-        setDossiers(loaded);
-        setState('unavailable');
+        setCenter(DEFAULT_CENTER);
+        setState('ready_fallback');
+        setGeoHint(t('public.home.map_geo_unavailable_text'));
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          try {
-            const loaded = await dossiersPromise;
-            if (!mountedRef.current) return;
-            setDossiers(loaded);
-            setCenter([pos.coords.latitude, pos.coords.longitude]);
-            setState('ready');
-          } catch (err) {
-            console.error('map load error', err);
-            if (mountedRef.current) setState('unavailable');
-          }
+        (pos) => {
+          if (!mountedRef.current) return;
+          setCenter([pos.coords.latitude, pos.coords.longitude]);
+          setState('ready');
         },
-        async (err) => {
-          try {
-            const loaded = await dossiersPromise;
-            if (!mountedRef.current) return;
-            setDossiers(loaded);
-            setState(err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable');
-          } catch (e) {
-            console.error('map load error', e);
-            if (mountedRef.current) setState('unavailable');
-          }
+        (err) => {
+          if (!mountedRef.current) return;
+          setCenter(DEFAULT_CENTER);
+          setState('ready_fallback');
+          setGeoHint(
+            err.code === err.PERMISSION_DENIED
+              ? t('public.home.map_geo_denied_text')
+              : t('public.home.map_geo_unavailable_text'),
+          );
         },
-        { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 }
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
       );
     } catch (err) {
       console.error('map init error', err);
-      if (mountedRef.current) setState('unavailable');
+      if (mountedRef.current) {
+        setCenter(DEFAULT_CENTER);
+        setState('ready_fallback');
+        setGeoHint(t('public.home.map_geo_unavailable_text'));
+      }
     }
-  }, [state, loadDossiers]);
+  }, [state, loadDossiers, t]);
 
   const markers: MapTilerMarker[] = useMemo(
     () =>
@@ -126,11 +131,10 @@ export const HomeMapSection: React.FC = () => {
           image: d.personne?.photo_principale || undefined,
           data: d as unknown as Record<string, unknown>,
         })),
-    [dossiers, t]
+    [dossiers, t],
   );
 
   const isLoading = state === 'loading';
-  const isReady = state === 'ready' && !!center;
 
   return (
     <div className={homeStyles.mapContainer}>
@@ -167,31 +171,26 @@ export const HomeMapSection: React.FC = () => {
           </div>
         )}
 
-        {isReady && (
-          <MapTilerView
-            markers={markers}
-            center={center as [number, number]}
-            zoom={USER_ZOOM}
-            height="400px"
-            showControls
-            interactive
-          />
-        )}
-
-        {(state === 'denied' || state === 'unavailable') && (
-          <div className={styles.errorState} role="status">
-            <AlertTriangle size={28} aria-hidden />
-            <p className={styles.errorTitle}>
-              {state === 'denied'
-                ? t('public.home.map_geo_denied_title', 'Géolocalisation refusée')
-                : t('public.home.map_geo_unavailable_title', 'Position indisponible')}
-            </p>
-            <p className={styles.errorText}>
-              {state === 'denied'
-                ? t('public.home.map_geo_denied_text', 'Autorisez la localisation puis réessayez.')
-                : t('public.home.map_geo_unavailable_text', 'Position non obtenue. Réessayez plus tard.')}
-            </p>
-          </div>
+        {showMap && (
+          <>
+            {geoHint && (
+              <p className={styles.geoFallbackHint} role="status">
+                <AlertTriangle size={16} aria-hidden />
+                {geoHint}
+              </p>
+            )}
+            <MapTilerView
+              markers={markers}
+              center={mapCenter}
+              zoom={USER_ZOOM}
+              height="400px"
+              showControls
+              interactive
+            />
+            {markers.length === 0 && (
+              <p className={styles.emptyMarkers}>{t('public.home.map_empty_markers')}</p>
+            )}
+          </>
         )}
       </div>
     </div>

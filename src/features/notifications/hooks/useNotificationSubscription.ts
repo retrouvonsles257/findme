@@ -17,7 +17,7 @@ export const useNotificationSubscription = (): UseNotificationSubscriptionResult
     // TODO: Implement WebSocket connection for real-time notifications
     const connectWebSocket = () => {
       try {
-        // const ws = new WebSocket(process.env.REACT_APP_WS_URL || 'ws://localhost:8080');
+        // const ws = new WebSocket(process.env.REACT_APP_WS_URL || 'wss://retrouvonsles.te-sea.com');
         // wsRef.current = ws;
 
         // ws.onopen = () => {

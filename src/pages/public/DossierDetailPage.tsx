@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Share2,
+  Eye,
+  User,
+  FileText,
+} from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { supabase } from '../../config';
 import { StatutDossier } from '../../@types/enums.types';
+import { PUBLIC_ROUTES } from '../../routes/routes.config';
 import styles from './DossierDetailPage.module.css';
 
 interface Dossier {
@@ -14,7 +24,7 @@ interface Dossier {
   pays_disparition?: string | null;
   circonstances: string;
   statut_dossier: string;
-  niveau_urgence?: any;
+  niveau_urgence?: unknown;
   numero_dossier?: string | null;
   personne?: {
     nom?: string | null;
@@ -36,6 +46,18 @@ interface Signalement {
   visible_detail_public?: boolean | null;
 }
 
+function getStatusClass(status: string): string {
+  switch (status) {
+    case StatutDossier.EN_COURS:
+      return styles.statusActive;
+    case StatutDossier.RETROUVE_VIVANT:
+    case StatutDossier.RETROUVE_DECEDE:
+      return styles.statusResolved;
+    default:
+      return styles.statusClosed;
+  }
+}
+
 export const DossierDetailPage: React.FC = () => {
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -45,7 +67,8 @@ export const DossierDetailPage: React.FC = () => {
   const [signalements, setSignalements] = useState<Signalement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'signals'>('details');
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -58,7 +81,6 @@ export const DossierDetailPage: React.FC = () => {
           return;
         }
 
-        // Load dossier (modèle officiel)
         const { data: dossierData, error: dossierErr } = await (supabase as any)
           .from('dossier_disparition')
           .select(`
@@ -93,7 +115,6 @@ export const DossierDetailPage: React.FC = () => {
 
         setDossier(dossierData as Dossier);
 
-        // Load signalements
         const { data: signalData, error: signalErr } = await (supabase as any)
           .from('signalement')
           .select(
@@ -107,7 +128,6 @@ export const DossierDetailPage: React.FC = () => {
         if (!signalErr && signalData) {
           setSignalements(signalData as Signalement[]);
         }
-
       } catch (err) {
         console.error('Error loading dossier details:', err);
         setError(t('public.detail.error_loading'));
@@ -118,22 +138,6 @@ export const DossierDetailPage: React.FC = () => {
 
     loadData();
   }, [id, t]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case StatutDossier.EN_COURS:
-        return '#e74c3c';
-      case StatutDossier.RETROUVE_VIVANT:
-      case StatutDossier.RETROUVE_DECEDE:
-        return '#27ae60';
-      case StatutDossier.CLASSE_SANS_SUITE:
-      case StatutDossier.SUSPENDU:
-      case StatutDossier.TRANSFERE:
-        return '#95a5a6';
-      default:
-        return '#7f8c8d';
-    }
-  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -151,12 +155,48 @@ export const DossierDetailPage: React.FC = () => {
     }
   };
 
+  const personName =
+    dossier?.personne?.nom_complet ||
+    `${dossier?.personne?.prenom || ''} ${dossier?.personne?.nom || ''}`.trim() ||
+    '—';
+
+  const locationLine = dossier
+    ? [dossier.lieu_disparition, dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
+        .filter(Boolean)
+        .join(', ')
+    : '';
+
+  const ageYears = dossier?.personne?.date_naissance
+    ? Math.max(
+        0,
+        Math.floor(
+          (Date.now() - new Date(dossier.personne.date_naissance).getTime()) / 31557600000,
+        ),
+      )
+    : null;
+
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+    const title = personName;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setShareFeedback(t('public.detail.share_copied'));
+      window.setTimeout(() => setShareFeedback(null), 2500);
+    } catch {
+      /* annulé par l'utilisateur */
+    }
+  }, [personName, t]);
+
   if (loading) {
     return (
       <div className={styles.detailPage}>
         <div className={styles.container}>
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
+          <div className={styles.stateCard}>
+            <div className={styles.spinner} aria-hidden />
             <p>{t('public.detail.loading')}</p>
           </div>
         </div>
@@ -168,12 +208,14 @@ export const DossierDetailPage: React.FC = () => {
     return (
       <div className={styles.detailPage}>
         <div className={styles.container}>
-          <div className={styles.errorContainer}>
+          <div className={styles.stateCard}>
             <p className={styles.errorMessage}>{error}</p>
-            <button 
+            <button
+              type="button"
               className={styles.backBtn}
-              onClick={() => navigate('/disparitions')}
+              onClick={() => navigate(PUBLIC_ROUTES.DISPARITIONS)}
             >
+              <ArrowLeft size={18} aria-hidden />
               {t('public.detail.back')}
             </button>
           </div>
@@ -185,144 +227,153 @@ export const DossierDetailPage: React.FC = () => {
   return (
     <div className={styles.detailPage}>
       <div className={styles.container}>
-        <button 
+        <button
+          type="button"
           className={styles.backBtn}
-          onClick={() => navigate('/disparitions')}
+          onClick={() => navigate(PUBLIC_ROUTES.DISPARITIONS)}
         >
-          ← {t('public.detail.back')}
+          <ArrowLeft size={18} aria-hidden />
+          {t('public.detail.back')}
         </button>
 
-        <div className={styles.detailContent}>
-          <div className={styles.photoSection}>
-            {dossier.personne?.photo_principale && (
-              <img 
-                src={dossier.personne.photo_principale} 
-                alt={dossier.personne?.nom_complet || ''}
+        <article className={styles.heroCard}>
+          <div className={styles.photoWrap}>
+            {dossier.personne?.photo_principale ? (
+              <img
+                src={dossier.personne.photo_principale}
+                alt={personName}
                 className={styles.photoImage}
               />
+            ) : (
+              <div className={styles.photoPlaceholder} aria-hidden>
+                <User size={48} strokeWidth={1.25} />
+              </div>
             )}
-            <div className={styles.photoOverlay}></div>
           </div>
 
-          <div className={styles.infoSection}>
-            <div className={styles.header}>
-              <h1>
-                {dossier.personne?.nom_complet ||
-                  `${dossier.personne?.prenom || ''} ${dossier.personne?.nom || ''}`.trim()}
-              </h1>
-              <span 
-                className={styles.statusBadge}
-                style={{ backgroundColor: getStatusColor(dossier.statut_dossier) }}
-              >
+          <div className={styles.heroBody}>
+            <div className={styles.heroTop}>
+              <h1 className={styles.personName}>{personName}</h1>
+              <span className={`${styles.statusBadge} ${getStatusClass(dossier.statut_dossier)}`}>
                 {getStatusLabel(dossier.statut_dossier)}
               </span>
             </div>
 
-            <div className={styles.basicInfo}>
-              <div className={styles.infoRow}>
-                <strong>{t('public.detail.age')}:</strong>
+            {dossier.numero_dossier && (
+              <p className={styles.caseRef}>
+                <FileText size={14} aria-hidden />
+                {dossier.numero_dossier}
+              </p>
+            )}
+
+            <ul className={styles.metaList}>
+              <li>
+                <User size={16} aria-hidden />
                 <span>
-                  {dossier.personne?.date_naissance
-                    ? `${Math.max(0, Math.floor((Date.now() - new Date(dossier.personne.date_naissance).getTime()) / 31557600000))} ans`
-                    : '—'}
+                  <strong>{t('public.detail.age')}</strong>
+                  {ageYears != null ? ` ${t('public.detail.age_years', { count: ageYears })}` : ' —'}
                 </span>
-              </div>
-              <div className={styles.infoRow}>
-                <strong>{t('public.detail.location')}:</strong>
+              </li>
+              <li>
+                <MapPin size={16} aria-hidden />
                 <span>
-                  {[dossier.lieu_disparition, dossier.ville_disparition, dossier.region_disparition, dossier.pays_disparition]
-                    .filter(Boolean)
-                    .join(', ')}
+                  <strong>{t('public.detail.location')}</strong> {locationLine || '—'}
                 </span>
-              </div>
-              <div className={styles.infoRow}>
-                <strong>{t('public.detail.missing_date')}:</strong>
-                <span>{new Date(dossier.date_disparition).toLocaleDateString()}</span>
-              </div>
-            </div>
+              </li>
+              <li>
+                <Calendar size={16} aria-hidden />
+                <span>
+                  <strong>{t('public.detail.missing_date')}</strong>{' '}
+                  {new Date(dossier.date_disparition).toLocaleDateString()}
+                </span>
+              </li>
+            </ul>
 
             {dossier.circonstances && (
-              <div className={styles.description}>
-                <h3>{t('public.detail.description')}</h3>
+              <div className={styles.circumstances}>
+                <h2>{t('public.detail.description')}</h2>
                 <p>{dossier.circonstances}</p>
               </div>
             )}
 
-            <div className={styles.actionButtons}>
-              <button className={styles.reportBtn} onClick={() => navigate('/auth/login')}>
+            <div className={styles.actionRow}>
+              <Link to={PUBLIC_ROUTES.CONTRIBUTE} className={styles.primaryAction}>
+                <Eye size={18} aria-hidden />
                 {t('public.detail.report_sighting')}
-              </button>
-              <button className={styles.shareBtn}>
-                {t('public.detail.share')}
+              </Link>
+              <button type="button" className={styles.secondaryAction} onClick={handleShare}>
+                <Share2 size={18} aria-hidden />
+                {shareFeedback ?? t('public.detail.share')}
               </button>
             </div>
           </div>
-        </div>
+        </article>
 
-        <div className={styles.tabsSection}>
-          <div className={styles.tabs}>
-            <button 
-              className={`${styles.tab} ${activeTab === 'details' ? styles.active : ''}`}
+        <section className={styles.tabsPanel} aria-label={t('public.detail.full_details')}>
+          <div className={styles.tabs} role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'details'}
+              className={`${styles.tab} ${activeTab === 'details' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('details')}
             >
               {t('public.detail.tabs.details')}
             </button>
-            <button 
-              className={`${styles.tab} ${activeTab === 'signals' ? styles.active : ''}`}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'signals'}
+              className={`${styles.tab} ${activeTab === 'signals' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('signals')}
             >
               {t('public.detail.tabs.signals')} ({signalements.length})
             </button>
           </div>
 
-          <div className={styles.tabContent}>
+          <div className={styles.tabPanel} role="tabpanel">
             {activeTab === 'details' && (
-              <div className={styles.detailsTab}>
-                <h3>{t('public.detail.full_details')}</h3>
-                <div className={styles.detailsList}>
-                  <div className={styles.detailItem}>
-                    <strong>{t('public.detail.id')}:</strong>
-                    <span>{dossier.id}</span>
-                  </div>
-                  <div className={styles.detailItem}>
-                    <strong>{t('public.detail.status')}:</strong>
-                    <span>{getStatusLabel(dossier.statut_dossier)}</span>
-                  </div>
+              <dl className={styles.detailsGrid}>
+                <div className={styles.detailBlock}>
+                  <dt>{t('public.detail.status')}</dt>
+                  <dd>{getStatusLabel(dossier.statut_dossier)}</dd>
                 </div>
-              </div>
+                <div className={styles.detailBlock}>
+                  <dt>{t('public.detail.id')}</dt>
+                  <dd className={styles.monoId}>{dossier.id}</dd>
+                </div>
+              </dl>
             )}
 
             {activeTab === 'signals' && (
-              <div className={styles.signalsTab}>
-                <h3>{t('public.detail.reports')} ({signalements.length})</h3>
+              <>
+                <h3 className={styles.panelTitle}>
+                  {t('public.detail.reports')} ({signalements.length})
+                </h3>
                 {signalements.length === 0 ? (
                   <p className={styles.emptyMessage}>{t('public.detail.no_signals')}</p>
                 ) : (
-                  <div className={styles.signalsList}>
-                    {signalements.map(signal => (
-                      <div key={signal.id} className={styles.signalItem}>
-                        <div className={styles.signalHeader}>
-                          <p className={styles.signalDate}>
-                            {new Date(signal.date_observation).toLocaleDateString()}
-                          </p>
-                        </div>
+                  <ul className={styles.signalsList}>
+                    {signalements.map((signal) => (
+                      <li key={signal.id} className={styles.signalCard}>
+                        <time className={styles.signalDate} dateTime={signal.date_observation}>
+                          {new Date(signal.date_observation).toLocaleDateString()}
+                        </time>
                         <p className={styles.signalLocation}>
-                          <strong>{t('public.detail.location')}:</strong>{' '}
+                          <MapPin size={14} aria-hidden />
                           {[signal.lieu_observation, signal.ville_observation, signal.region_observation]
                             .filter(Boolean)
                             .join(', ') || '—'}
                         </p>
-                        <p className={styles.signalDescription}>
-                          {signal.description}
-                        </p>
-                      </div>
+                        <p className={styles.signalDescription}>{signal.description}</p>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
-              </div>
+              </>
             )}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -32,7 +32,7 @@ const getOAuthRedirectUrl = (): string => {
   if (typeof window !== 'undefined') {
     return `${window.location.origin}/auth/callback`;
   }
-  return 'http://localhost:3000/auth/callback'; // Fallback pour SSR
+  return 'https://retrouvonsles.te-sea.com/auth/callback'; // Fallback pour SSR
 };
 
 export const OAUTH_CONFIG = {

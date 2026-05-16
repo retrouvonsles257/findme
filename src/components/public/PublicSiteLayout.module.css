@@ -27,6 +27,13 @@
   --radius-lg: 0.75rem;
   --transition: all 0.2s ease-in-out;
 
+  font-family: var(--font-family);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;

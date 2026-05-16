@@ -437,7 +437,43 @@ export async function listOrganisationsForPreDeclaration(): Promise<
   return (data || []) as { id: string; nom: string; region: string | null }[];
 }
 
-export async function createPreDeclarationWithConversation(
+function isRpcNotFoundError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  const msg = (error.message || '').toLowerCase();
+  return (
+    error.code === 'PGRST202'
+    || msg.includes('could not find the function')
+    || msg.includes('function public.create_pre_declaration_with_conversation')
+  );
+}
+
+function buildPreDeclarationRpcInput(input: PreDeclarationCreateInput): Record<string, unknown> {
+  return {
+    id_organisation: input.id_organisation,
+    nom_personne: input.nom_personne.trim(),
+    prenom_personne: (input.prenom_personne || '').trim(),
+    sexe: input.sexe,
+    date_naissance: input.date_naissance || null,
+    nationalite: input.nationalite,
+    date_disparition: input.date_disparition,
+    lieu_disparition: input.lieu_disparition || null,
+    ville_disparition: input.ville_disparition || null,
+    region_disparition: input.region_disparition || null,
+    pays_disparition: input.pays_disparition,
+    latitude_disparition: input.latitude_disparition ?? null,
+    longitude_disparition: input.longitude_disparition ?? null,
+    type_disparition: input.type_disparition,
+    niveau_urgence: input.niveau_urgence,
+    circonstances: input.circonstances.trim(),
+    infos_complementaires: input.infos_complementaires?.trim() || null,
+    contact_nom: input.contact_nom?.trim() || null,
+    contact_telephone: input.contact_telephone?.trim() || null,
+    contact_email: input.contact_email?.trim() || null,
+    message_initial: input.message_initial?.trim() || null,
+  };
+}
+
+async function createPreDeclarationWithConversationLegacy(
   userId: string,
   input: PreDeclarationCreateInput,
 ): Promise<{ preDeclaration: PreDeclarationRow; conversation: ConversationRow }> {
@@ -480,6 +516,8 @@ export async function createPreDeclarationWithConversation(
     .from('conversation')
     .insert({
       id_pre_declaration: preDeclaration.id,
+      id_dossier: null,
+      id_signalement: null,
       statut: 'ouverte',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -509,6 +547,51 @@ export async function createPreDeclarationWithConversation(
       created_at: new Date().toISOString(),
     });
     if (msgErr) throw msgErr;
+  }
+
+  return { preDeclaration, conversation };
+}
+
+export async function createPreDeclarationWithConversation(
+  userId: string,
+  input: PreDeclarationCreateInput,
+): Promise<{ preDeclaration: PreDeclarationRow; conversation: ConversationRow }> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const authUserId = sessionData?.session?.user?.id;
+  if (!authUserId) {
+    throw new Error('Non authentifié');
+  }
+  const effectiveUserId = authUserId;
+  if (userId !== authUserId) {
+    console.warn(
+      '[preDeclarationApi] userId Redux différent de auth.uid(), utilisation de la session Supabase',
+    );
+  }
+
+  const { data: rpcData, error: rpcErr } = await db().rpc('create_pre_declaration_with_conversation', {
+    p_input: buildPreDeclarationRpcInput(input),
+  });
+
+  let preDeclaration: PreDeclarationRow;
+  let conversation: ConversationRow;
+
+  if (!rpcErr && rpcData) {
+    const parsed = rpcData as {
+      pre_declaration?: PreDeclarationRow;
+      conversation?: ConversationRow;
+    };
+    if (!parsed.pre_declaration || !parsed.conversation) {
+      throw new Error('Réponse RPC pré-déclaration invalide');
+    }
+    preDeclaration = parsed.pre_declaration;
+    conversation = parsed.conversation;
+  } else if (isRpcNotFoundError(rpcErr)) {
+    ({ preDeclaration, conversation } = await createPreDeclarationWithConversationLegacy(
+      effectiveUserId,
+      input,
+    ));
+  } else {
+    throw rpcErr;
   }
 
   await notifyAuthoritiesNewPreDeclaration(preDeclaration.id, input.id_organisation, null);

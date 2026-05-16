@@ -13,6 +13,7 @@ import {
   Twitter,
   Instagram,
 } from 'lucide-react';
+import { CAMEROON_EMERGENCY_NUMBERS, PUBLIC_CONTACT } from '../../config/publicContact';
 import styles from './ContactPage.module.css';
 
 interface FormData {
@@ -238,7 +239,7 @@ export const ContactPage: React.FC = () => {
                   <Mail size={24} />
                 </div>
                 <h3>Email</h3>
-                <a href="mailto:contact@retrouvonsles.org">contact@retrouvonsles.org</a>
+                <a href={`mailto:${PUBLIC_CONTACT.email}`}>{PUBLIC_CONTACT.email}</a>
               </div>
 
               <div className={styles.infoCard}>
@@ -246,7 +247,7 @@ export const ContactPage: React.FC = () => {
                   <Phone size={24} />
                 </div>
                 <h3>{language === 'fr' ? 'Téléphone' : 'Phone'}</h3>
-                <a href="tel:+237600000000">+237 600 000 000</a>
+                <a href={`tel:${PUBLIC_CONTACT.phoneTel}`}>{PUBLIC_CONTACT.phoneDisplay}</a>
               </div>
 
               <div className={styles.infoCard}>
@@ -254,7 +255,7 @@ export const ContactPage: React.FC = () => {
                   <MapPin size={24} />
                 </div>
                 <h3>{language === 'fr' ? 'Adresse' : 'Address'}</h3>
-                <p>Yaoundé, Cameroun</p>
+                <p>{PUBLIC_CONTACT.address}</p>
               </div>
 
               <div className={styles.infoCard}>
@@ -291,8 +292,19 @@ export const ContactPage: React.FC = () => {
                     : 'In case of emergency, call immediately:'}
                 </p>
                 <div className={styles.emergencyNumbers}>
-                  <span>117</span>
-                  <span>1511</span>
+                  {CAMEROON_EMERGENCY_NUMBERS.map((entry) => (
+                    <a
+                      key={entry.id}
+                      href={`tel:${entry.tel}`}
+                      className={styles.emergencyChip}
+                      title={language === 'fr' ? entry.labelFr : entry.labelEn}
+                    >
+                      <span className={styles.emergencyLabel}>
+                        {language === 'fr' ? entry.labelFr : entry.labelEn}
+                      </span>
+                      <span className={styles.emergencyNum}>{entry.number}</span>
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>

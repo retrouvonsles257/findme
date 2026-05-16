@@ -520,7 +520,7 @@ serve(async (req) => {
     return json({ ok: true, skipped: true, reason: 'no push tokens', reqId });
   }
 
-  const baseUrl = (Deno.env.get('PUBLIC_APP_URL') || 'https://localhost:3000').replace(/\/$/, '');
+  const baseUrl = (Deno.env.get('PUBLIC_APP_URL') || 'https://retrouvonsles.te-sea.com').replace(/\/$/, '');
   const clickPath = await resolveClickPath(supabase, record, u.type_compte);
   logLine('click_path', { reqId, clickPath: clickPath.slice(0, 120) });
   const link = `${baseUrl}${clickPath}`;

@@ -35,6 +35,14 @@ const MapToHomeRedirect: React.FC = () => (
   <Navigate to={{ pathname: PUBLIC_ROUTES.HOME, hash: '#home-map' }} replace />
 );
 
+/** Ancienne URL /contribuer → /signaler (conserve ?next=…) */
+const LegacyContributeRedirect: React.FC = () => {
+  const [params] = useSearchParams();
+  const s = params.toString();
+  const target = s ? `${PUBLIC_ROUTES.CONTRIBUTE}?${s}` : PUBLIC_ROUTES.CONTRIBUTE;
+  return <Navigate to={target} replace />;
+};
+
 /**
  * PublicRoutes Component
  * Contient toutes les routes publiques accessibles sans authentification
@@ -54,6 +62,7 @@ const PublicRoutes: React.FC = () => {
         <Route path={PUBLIC_ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
         <Route path={PUBLIC_ROUTES.PREVENTING} element={<PreventingPage />} />
         <Route path={PUBLIC_ROUTES.APP} element={<AppDownloadPage />} />
+        <Route path="/contribuer" element={<LegacyContributeRedirect />} />
         <Route path={PUBLIC_ROUTES.CONTRIBUTE} element={<ContributePage />} />
       </Route>
     </Routes>

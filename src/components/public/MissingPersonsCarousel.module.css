@@ -11,11 +11,11 @@
   align-items: stretch; /* scène + bande prennent toute la largeur de la colonne */
 }
 
-/* --- Scène : un CARRÉ qui contient la photo et ses infos -------------- */
+/* --- Scène : carte portrait (photo + infos) ----------------------------- */
 .stage {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   border-radius: 1.25rem;
   overflow: hidden;
   color: #fff;
@@ -348,9 +348,36 @@
   }
 }
 
+/* --- Desktop : taille « medium » (type hero Meet), pas pleine colonne --- */
+@media (min-width: 1025px) {
+  .carousel {
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .stage {
+    aspect-ratio: 4 / 5;
+    max-height: 25rem;
+    border-radius: 1rem;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+  }
+
+  .stageInfo {
+    padding: 2rem 0.85rem 0.75rem;
+  }
+
+  .stageName {
+    font-size: 0.95rem;
+  }
+
+  .stageMetaList {
+    font-size: 0.75rem;
+  }
+}
+
 /* --- Responsive -------------------------------------------------------- */
-/* Sur tablette/mobile (une seule colonne) on plafonne le carré pour éviter
-   qu’il ne devienne disproportionné sur ces viewports. */
+/* Sur tablette/mobile (une seule colonne) on plafonne la carte. */
 @media (max-width: 1024px) {
   .carousel {
     align-items: center; /* colonne pleine largeur : carré centré */

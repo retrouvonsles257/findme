@@ -4,6 +4,7 @@ import { Mail, Phone, MapPin } from 'lucide-react';
 import { useI18n } from '../../hooks';
 import { PUBLIC_ROUTES } from '../../routes/routes.config';
 import { APP_LOGO_SRC } from '../../config/branding';
+import { PUBLIC_CONTACT } from '../../config/publicContact';
 import styles from '../../pages/public/HomePage.module.css';
 
 /**
@@ -61,11 +62,11 @@ export const PublicFooter: React.FC = () => {
           <h4>{t('public.footer.contact')}</h4>
           <p className={styles.contactItem}>
             <Mail size={16} />
-            <span>{t('public.footer.email')}</span>
+            <a href={`mailto:${PUBLIC_CONTACT.email}`}>{t('public.footer.email')}</a>
           </p>
           <p className={styles.contactItem}>
             <Phone size={16} />
-            <span>{t('public.footer.phone')}</span>
+            <a href={`tel:${PUBLIC_CONTACT.phoneTel}`}>{t('public.footer.phone')}</a>
           </p>
           <p className={styles.contactItem}>
             <MapPin size={16} />

@@ -168,9 +168,15 @@ export const PreventingPage: React.FC = () => {
           <div className={styles.resourcesGrid}>
             <div className={styles.resourceCard}>
               <h3>📞 {t('preventing.emergency_numbers')}</h3>
-              <p><strong>Police:</strong> 117</p>
-              <p><strong>Gendarmerie:</strong> 1511</p>
-              <p><strong>Retrouvons-Les :</strong> +237 600 000 000</p>
+              <p><strong>Police :</strong> <a href="tel:117">117</a></p>
+              <p><strong>Sapeurs-pompiers :</strong> <a href="tel:118">118</a></p>
+              <p><strong>Urgences médicales (SAMU) :</strong> <a href="tel:1515">1515</a></p>
+              <p><strong>Gendarmerie :</strong> <a href="tel:1511">1511</a></p>
+              <p><strong>Retrouvons-Les :</strong>{' '}
+                <a href="tel:+237691503817">6 91 50 3817</a>
+                {' · '}
+                <a href="mailto:info@retrouvonsles.te-sea.com">info@retrouvonsles.te-sea.com</a>
+              </p>
             </div>
             <div className={styles.resourceCard}>
               <h3>🏥 {t('preventing.hospitals')}</h3>

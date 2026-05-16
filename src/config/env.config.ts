@@ -124,7 +124,7 @@ export const envConfig: EnvConfig = {
   // API
   REACT_APP_API_BASE_URL: getEnvVariable(
     'REACT_APP_API_BASE_URL',
-    'http://localhost:3001/api'
+    'https://retrouvonsles.te-sea.com'
   ),
   REACT_APP_API_TIMEOUT: getNumberEnv('REACT_APP_API_TIMEOUT', 30000),
 

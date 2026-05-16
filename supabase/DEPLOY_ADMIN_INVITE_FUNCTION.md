@@ -37,12 +37,12 @@ Remplace `yvzxebrudijuwygzpvnf` par ton **Project ref** si différent.
 La fonction utilise :
 
 - **SUPABASE_URL** et **SUPABASE_SERVICE_ROLE_KEY** : fournis automatiquement par Supabase, pas besoin de les définir.
-- **SITE_URL** (optionnel) : URL de ton app (ex. `https://retrouvonsles.vercel.app`) pour le lien de redirection après acceptation de l’invitation. Si absent, un fallback est utilisé.
+- **SITE_URL** (optionnel) : URL de ton app (prod : `https://retrouvonsles.te-sea.com`) pour le lien de redirection après acceptation de l’invitation. Si absent, un fallback est utilisé.
 
 Pour définir l’URL du site (recommandé en production) :
 
 ```bash
-supabase secrets set SITE_URL=https://ton-site.com --project-ref yvzxebrudijuwygzpvnf
+supabase secrets set SITE_URL=https://retrouvonsles.te-sea.com --project-ref yvzxebrudijuwygzpvnf
 ```
 
 ## Vérification
@@ -58,7 +58,7 @@ Test rapide (remplace `ANON_KEY` par ta clé anon du projet) :
 ```bash
 curl -X OPTIONS \
   "https://yvzxebrudijuwygzpvnf.supabase.co/functions/v1/admin-invite-user" \
-  -H "Origin: http://localhost:3000"
+  -H "Origin: https://retrouvonsles.te-sea.com"
 ```
 
 Tu dois obtenir une réponse **204** (et non 404). Ensuite, l’invitation depuis l’écran admin doit fonctionner (avec un utilisateur connecté en admin d’organisation).

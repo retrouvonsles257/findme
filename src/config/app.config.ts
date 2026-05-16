@@ -24,11 +24,11 @@ export const appConfig = {
   isTest: envConfig.NODE_ENV === 'test',
 
   // Support
-  supportEmail: 'support@retrouvonsles.com',
-  supportPhone: '+237-XXX-XXX-XXXX',
-  websiteUrl: 'https://retrouvonsles.com',
-  termsUrl: 'https://retrouvonsles.com/terms',
-  privacyUrl: 'https://retrouvonsles.com/privacy',
+  supportEmail: 'info@retrouvonsles.te-sea.com',
+  supportPhone: '+237691503817',
+  websiteUrl: 'https://retrouvonsles.te-sea.com',
+  termsUrl: 'https://retrouvonsles.te-sea.com/terms',
+  privacyUrl: 'https://retrouvonsles.te-sea.com/privacy',
 };
 
 // ============================================
@@ -267,9 +267,9 @@ export const securityConfig = {
 
   // CORS
   allowedOrigins: [
+    'https://retrouvonsles.te-sea.com',
     'http://localhost:3000',
     'http://localhost:3001',
-    'https://retrouvonsles.com',
   ],
 
   // Rate limiting

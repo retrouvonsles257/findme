@@ -21,8 +21,8 @@ export const PUBLIC_ROUTES = {
   PREVENTING: '/preventing',
   /** Page téléchargement application mobile (placeholder) */
   APP: '/app',
-  /** Parcours public : connexion anonyme ou classique vers une action citoyenne (ex. signalement). */
-  CONTRIBUTE: '/contribuer',
+  /** Parcours public : signalement en mode invité (connexion anonyme puis formulaire). */
+  CONTRIBUTE: '/signaler',
   /** Lien de vérification e-mail contact d'urgence SOS (ouvre sans compte). */
   SOS_CONTACT_VERIFY: '/verify-sos-contact',
 } as const;

@@ -84,7 +84,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
                 alt={t('common.appName')}
                 className="app-brand-logo app-brand-logo--inverse"
               />
-              <span className={`${homeStyles.logoText} app-name-bold`}>{t('common.app_name')}</span>
+              <span className={homeStyles.logoText}>{t('common.app_name')}</span>
             </Link>
 
             <div
@@ -101,7 +101,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
               </Link>
               <Link
                 to={`${PUBLIC_ROUTES.CONTRIBUTE}?next=${encodeURIComponent(CITIZEN_ROUTES.NEW_SIGNALEMENT)}`}
-                className={homeStyles.navLink}
+                className={`${homeStyles.navLink} ${homeStyles.navLinkHighlight}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <UserPlus {...navIconProps} />
@@ -158,7 +158,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
       <div className={shellStyles.navContainer}>
         <Link to={PUBLIC_ROUTES.HOME} className={shellStyles.logo} onClick={() => setMobileMenuOpen(false)}>
           <img src={APP_LOGO_SRC} alt={t('common.appName')} className="app-brand-logo" />
-          <span className={`${shellStyles.logoText} app-name-bold`}>{t('common.app_name')}</span>
+          <span className={shellStyles.logoText}>{t('common.app_name')}</span>
         </Link>
 
         <div
@@ -175,7 +175,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({ variant }) => {
           </NavLink>
           <Link
             to={`${PUBLIC_ROUTES.CONTRIBUTE}?next=${encodeURIComponent(CITIZEN_ROUTES.NEW_SIGNALEMENT)}`}
-            className={shellStyles.navLink}
+            className={`${shellStyles.navLink} ${shellStyles.navLinkHighlight}`}
             onClick={() => setMobileMenuOpen(false)}
           >
             <UserPlus {...navIconProps} />
