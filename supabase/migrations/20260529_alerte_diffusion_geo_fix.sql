@@ -6,6 +6,7 @@ returns table (
   id uuid,
   latitude_actuelle double precision,
   longitude_actuelle double precision,
+  rayon_notification_km numeric,
   nom text,
   prenom text,
   email text
@@ -19,6 +20,7 @@ as $$
     u.id,
     u.latitude_actuelle,
     u.longitude_actuelle,
+    u.rayon_notification_km,
     u.nom,
     u.prenom,
     u.email

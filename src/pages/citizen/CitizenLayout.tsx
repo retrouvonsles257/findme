@@ -292,11 +292,22 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
     localStorage.setItem('citizenSidebarCollapsed', String(isCollapsed));
   }, [isCollapsed]);
 
-  // Notifications cloche : chargement initial + navigation + realtime (comme AuthorityHeader)
+  const notifFetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleFetchNotifications = useCallback(() => {
+    if (!userId) return;
+    if (notifFetchTimerRef.current) clearTimeout(notifFetchTimerRef.current);
+    notifFetchTimerRef.current = setTimeout(() => {
+      void fetchNotifications(userId);
+    }, 1500);
+  }, [userId, fetchNotifications]);
+
   useEffect(() => {
     if (!userId) return;
-    void fetchNotifications(userId);
-  }, [userId, location.pathname, fetchNotifications]);
+    scheduleFetchNotifications();
+    return () => {
+      if (notifFetchTimerRef.current) clearTimeout(notifFetchTimerRef.current);
+    };
+  }, [userId, scheduleFetchNotifications]);
 
   useEffect(() => {
     if (!userId) return;
@@ -313,7 +324,7 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
           filter: `id_utilisateur=eq.${userId}`,
         },
         () => {
-          void fetchNotifications(userId);
+          scheduleFetchNotifications();
         },
       )
       .subscribe((status) => {
@@ -325,22 +336,7 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [userId, fetchNotifications]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const refresh = () => {
-      if (document.visibilityState === 'visible') {
-        void fetchNotifications(userId);
-      }
-    };
-    window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', refresh);
-    return () => {
-      window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', refresh);
-    };
-  }, [userId, fetchNotifications]);
+  }, [userId, scheduleFetchNotifications]);
 
   // Fermer le menu utilisateur au clic extérieur
   useEffect(() => {

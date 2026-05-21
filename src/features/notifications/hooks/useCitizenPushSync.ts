@@ -51,7 +51,8 @@ export function useCitizenPushSync(
   /** false dès qu’il y a un id de session (y compris Supabase anonyme) ; pas lié à `is_anonymous`. */
   const { isGuest, logContext } = opts;
   const lastFcmPushUserIdRef = useRef<string | undefined>(undefined);
-  const CITIZEN_FCM_ROTATED_KEY = `citizen_fcm_rotated_v1:${userId || 'unknown'}`;
+  const lastVisibilitySyncMsRef = useRef(0);
+  const VISIBILITY_SYNC_MIN_MS = 10 * 60 * 1000;
   const syncNotificationPreference = useCallback(async (enabled: boolean) => {
     if (!userId) return;
     try {
@@ -195,8 +196,6 @@ export function useCitizenPushSync(
             authUserId: reg.authUserId ? `${reg.authUserId.slice(0, 8)}…` : null,
             ...logContext,
           });
-        } else if (typeof window !== 'undefined') {
-          localStorage.setItem(CITIZEN_FCM_ROTATED_KEY, 'true');
         }
       } catch (e: unknown) {
         const err = e as { message?: string; code?: string; details?: string; hint?: string };
@@ -214,9 +213,9 @@ export function useCitizenPushSync(
       cancelled = true;
       unsubForeground?.();
     };
-  }, [userId, isGuest, dispatch, syncNotificationPreference, CITIZEN_FCM_ROTATED_KEY, logContext]);
+  }, [userId, isGuest, dispatch, syncNotificationPreference, logContext]);
 
-  // Ré-enregistrer le jeton quand l’onglet redevient visible (compte citoyen sans ligne FCM en base).
+  // Ré-enregistrer le jeton quand l’onglet redevient visible (throttle — évite spam sync_fcm_token_registered).
   useEffect(() => {
     if (!userId || isGuest) return;
     if (!envConfig.ENABLE_PUSH_NOTIFICATIONS) return;
@@ -225,42 +224,16 @@ export function useCitizenPushSync(
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return;
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      const now = Date.now();
+      if (now - lastVisibilitySyncMsRef.current < VISIBILITY_SYNC_MIN_MS) return;
+      lastVisibilitySyncMsRef.current = now;
       void syncPushRegistrationForCurrentUser({ forceRefresh: false, requestPermission: false });
     };
 
     document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('focus', onVisible);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', onVisible);
     };
   }, [userId, isGuest]);
-
-  // INSERT sur mes lignes `notification` → rafraîchissement immédiat (son / bannière via Redux + inAppAlertCue).
-  useEffect(() => {
-    if (!userId || isGuest) return;
-    if (!envConfig.ENABLE_NOTIFICATIONS) return;
-
-    const filter = `id_utilisateur=eq.${userId}`;
-    const channel = supabase
-      .channel(`citizen-notification-insert:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notification',
-          filter,
-        },
-        () => {
-          void dispatch(fetchNotifications(userId));
-        },
-      )
-      .subscribe(() => {});
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [userId, isGuest, dispatch]);
 
 }

@@ -1,7 +1,7 @@
 /**
  * Page citoyen — alertes de proximité + panneau détail (?alerte=uuid).
  */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCitizenAlertes } from '../../features/alertes/hooks/useCitizenAlertes';
 import { getCitizenAlerteById } from '../../features/alertes/services/citizenAlerteAPI';
@@ -89,6 +89,7 @@ export const CitizenAlertesPage: React.FC = () => {
     void fetchAlertes();
   }, [fetchAlertes]);
 
+  const alertesRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -101,15 +102,23 @@ export const CitizenAlertesPage: React.FC = () => {
           table: 'notification',
           filter: `id_utilisateur=eq.${userId}`,
         },
-        () => {
-          void fetchAlertes();
+        (payload) => {
+          const row = payload.new as { type_notification?: string } | undefined;
+          if (row?.type_notification === 'nouvelle_alerte') {
+            if (alertesRefreshTimerRef.current) clearTimeout(alertesRefreshTimerRef.current);
+            alertesRefreshTimerRef.current = setTimeout(() => {
+              void fetchAlertes();
+            }, 2000);
+          }
+          void fetchNotifications(userId);
         },
       )
       .subscribe();
     return () => {
+      if (alertesRefreshTimerRef.current) clearTimeout(alertesRefreshTimerRef.current);
       void supabase.removeChannel(channel);
     };
-  }, [userId, fetchAlertes]);
+  }, [userId, fetchAlertes, fetchNotifications]);
 
   const loadDossierPhotos = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
@@ -158,12 +167,6 @@ export const CitizenAlertesPage: React.FC = () => {
       }
     }
   }, [currentLocation, checkProximity, userId]);
-
-  useEffect(() => {
-    if (userId) {
-      void fetchNotifications(userId);
-    }
-  }, [userId, fetchNotifications]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

@@ -47,6 +47,29 @@ Appliquer en prod, dans l’ordre :
 
 - `20260526_notifications_citizen_alerte_routing.sql`
 - `20260527_citizen_alertes_rls_fcm_webhook.sql` — lecture alertes grand_public + RPC `list_citizen_alertes` / `get_citizen_alerte_by_id`
+- `20260528_get_my_unread_notifications_count.sql`
+- `20260529_alerte_diffusion_geo_fix.sql` — `maj_position_citoyen` + candidats diffusion
+- `20260530_diffuse_alerte_notifications_rpc.sql` — **obligatoire** : Haversine + INSERT `notification` côté serveur
+- `20260531_alerte_diffusion_exclude_anon_guest.sql` — exclut les comptes `anon-…@guest.retrouvonsles.local` (Invité) de la diffusion alerte
+
+Sans **20260530**, le front retombe sur un calcul client (écarts possibles). Vérifier après une diffusion :
+
+```sql
+select left(id_utilisateur::text, 8) as uid,
+       type_notification, titre, date_creation
+from notification
+where type_notification = 'nouvelle_alerte'
+order by date_creation desc
+limit 20;
+```
+
+Aperçu destinataires **avant** diffusion (remplacer l’UUID) :
+
+```sql
+select public.preview_alerte_diffusion('<alerte_id>'::uuid, true, false);
+```
+
+Comparer `centre` de l’alerte avec `latitude_actuelle` / `longitude_actuelle` du citoyen test (`9ed8e524…`).
 
 ## 5. Côté client (token) — cause la plus fréquente en prod
 

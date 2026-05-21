@@ -23,6 +23,8 @@ function pushWarn(...args: unknown[]): void {
 }
 const FCM_DEVICE_ID_KEY = 'retrouvonsles_fcm_device_id_v1';
 const LAST_PUSH_DIAGNOSTIC_KEY = 'retrouvonsles_last_push_diagnostic_v1';
+const LAST_FCM_SYNC_KEY = 'retrouvonsles_last_fcm_sync_v1';
+const FCM_SYNC_THROTTLE_MS = 10 * 60 * 1000;
 
 function tokenHint(t: string): string {
   return t.length > 12 ? `${t.slice(0, 8)}…${t.slice(-4)}` : '(court)';
@@ -308,13 +310,44 @@ export async function syncPushRegistrationForCurrentUser(options?: {
   const token = await getFCMToken(mayRequestPermission, forceRefresh);
   if (token) {
     try {
-      await upsertFcmToken(authUserId, token);
+      let skipUpsert = false;
+      if (!forceRefresh && typeof window !== 'undefined') {
+        try {
+          const raw = window.localStorage.getItem(LAST_FCM_SYNC_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw) as { userId?: string; token?: string; at?: number };
+            if (
+              parsed.userId === authUserId &&
+              parsed.token === token &&
+              typeof parsed.at === 'number' &&
+              Date.now() - parsed.at < FCM_SYNC_THROTTLE_MS
+            ) {
+              skipUpsert = true;
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      if (!skipUpsert) {
+        await upsertFcmToken(authUserId, token);
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem(
+              LAST_FCM_SYNC_KEY,
+              JSON.stringify({ userId: authUserId, token, at: Date.now() }),
+            );
+          } catch {
+            /* ignore */
+          }
+        }
+        pushWarn(LOG_FCM, 'sync_fcm_token_registered', {
+          userId: `${authUserId.slice(0, 8)}…`,
+          tokenHint: tokenHint(token),
+        });
+      }
       await unregisterCurrentWebPushDevice(authUserId);
       fcmRegistered = true;
-      pushWarn(LOG_FCM, 'sync_fcm_token_registered', {
-        userId: `${authUserId.slice(0, 8)}…`,
-        tokenHint: tokenHint(token),
-      });
     } catch (e: unknown) {
       pushWarn(LOG_FCM, 'sync_fcm_upsert_failed', e);
     }

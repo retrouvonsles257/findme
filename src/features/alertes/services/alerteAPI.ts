@@ -525,7 +525,7 @@ function logDiffuse(phase: string, data: Record<string, unknown>): void {
  * Utilisé par {@link diffuserAlerte} / {@link previewDiffusionAlerte} pour le filtre géographique.
  */
 async function fetchAllCitoyensNotifiables(): Promise<
-  { id: string; latitude_actuelle: number | null; longitude_actuelle: number | null }[]
+  { id: string; latitude_actuelle: number | null; longitude_actuelle: number | null; rayon_notification_km?: number | null; email?: string | null }[]
 > {
   const { data: rpcRows, error: rpcErr } = await (supabase as any).rpc(
     'list_citoyens_alerte_diffusion_candidates',
@@ -536,6 +536,8 @@ async function fetchAllCitoyensNotifiables(): Promise<
       id: String(r.id),
       latitude_actuelle: r.latitude_actuelle as number | null,
       longitude_actuelle: r.longitude_actuelle as number | null,
+      rayon_notification_km: r.rayon_notification_km as number | null,
+      email: r.email as string | null,
     }));
     logDiffuse('fetch_citoyens_rpc', { total: mapped.length });
     return mapped;
@@ -604,6 +606,8 @@ export type CitoyenNotifiable = {
   id: string;
   latitude_actuelle: number | null;
   longitude_actuelle: number | null;
+  email?: string | null;
+  rayon_notification_km?: number | null;
 };
 
 export type DiffusionDestinatairesResult = {
@@ -686,7 +690,11 @@ export function computeDestinatairesAlerteDiffusion(
   let excludedHorsRayon = 0;
   const excludedSansPositionIds: string[] = [];
   const excludedHorsRayonIds: string[] = [];
-  let destinataires = rawUsers.filter((u: CitoyenNotifiable) => {
+  const isAnonGuestEmail = (u: CitoyenNotifiable & { email?: string | null }) =>
+    typeof u.email === 'string' && u.email.includes('@guest.retrouvonsles.local');
+
+  let destinataires = rawUsers.filter((u: CitoyenNotifiable & { email?: string | null }) => {
+    if (isAnonGuestEmail(u)) return false;
     const lat = u.latitude_actuelle;
     const lng = u.longitude_actuelle;
     if (lat == null || lng == null) {
@@ -697,7 +705,8 @@ export function computeDestinatairesAlerteDiffusion(
       return false;
     }
     const d = distanceKm(latN, lngN, lat, lng);
-    if (d > alertRayonKm) {
+    const effectiveRayonKm = Math.max(alertRayonKm, (u as CitoyenNotifiable & { rayon_notification_km?: number }).rayon_notification_km ?? alertRayonKm);
+    if (d > effectiveRayonKm) {
       excludedHorsRayon += 1;
       if (excludedHorsRayonIds.length < 8) {
         excludedHorsRayonIds.push(`${String(u.id).slice(0, 8)}…(d=${d.toFixed(1)}km)`);
@@ -805,6 +814,42 @@ export const diffuserAlerte = async (
   canaux?: string[],
 ): Promise<{ success: boolean; nombre_destinataires: number }> => {
   const diffusionTraceId = `diff-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const canal = (canaux && canaux[0]) || 'push';
+
+  const { data: rpcResult, error: rpcErr } = await (supabase as any).rpc('diffuse_alerte_notifications', {
+    p_alerte_id: id,
+    p_strict_geo_only: envConfig.ALERTE_DIFFUSION_STRICT_GEO_ONLY,
+    p_allow_without_geo: envConfig.ALERTE_ALLOW_BROADCAST_WITHOUT_GEO,
+    p_canal: canal,
+  });
+
+  if (!rpcErr && rpcResult) {
+    const inserted = Number(rpcResult.inserted ?? 0);
+    logDiffuse('rpc_diffusion_ok', {
+      traceId: rpcResult.trace_id ?? diffusionTraceId,
+      alerteId: id,
+      inserted,
+      centre: rpcResult.centre,
+      total_eligible: rpcResult.total_eligible,
+      with_position: rpcResult.with_position,
+      in_rayon: rpcResult.in_rayon,
+      geo_fallback: rpcResult.geo_fallback,
+      recipient_ids: (rpcResult.recipient_ids || []).map((uid: string) => `${String(uid).slice(0, 8)}…`),
+      hint: rpcResult.hint,
+    });
+    return { success: true, nombre_destinataires: inserted };
+  }
+
+  if (rpcErr && !String(rpcErr.message || '').includes('Could not find the function')) {
+    logDiffuse('rpc_diffusion_error', {
+      traceId: diffusionTraceId,
+      message: rpcErr.message,
+      code: (rpcErr as any).code,
+    });
+  }
+
+  logDiffuse('rpc_diffusion_fallback_client', { traceId: diffusionTraceId, reason: rpcErr?.message });
+
   const alerte = await getAlerteById(id);
   const alertLat = alerte.latitude_centre ?? null;
   const alertLng = alerte.longitude_centre ?? null;
@@ -887,7 +932,6 @@ export const diffuserAlerte = async (
     authUidPrefix: authUid ? `${authUid.slice(0, 8)}…` : null,
   });
 
-  const canal = (canaux && canaux[0]) || 'push';
   const dateCreation = new Date().toISOString();
 
   const notifications = destinataires.map((user: any) => ({
