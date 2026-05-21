@@ -1,35 +1,60 @@
-# Push FCM — chaîne complète
+# Push FCM — chaîne complète (prod)
 
-Les lignes `notification` sont bien créées (`insert_notification_ok` dans les logs), mais **le push navigateur** part uniquement si l’Edge Function `notification-fcm-send` est appelée après chaque INSERT.
+Les lignes `notification` sont créées côté app (`insert_notification_ok`), mais **le push** ne part que si l’Edge Function `notification-fcm-send` est invoquée après chaque INSERT.
 
-## Option A — Webhook Supabase (recommandé)
+## 1. Déployer l’Edge Function
 
-1. Déployer la fonction : `supabase functions deploy notification-fcm-send --no-verify-jwt`
-2. Secrets Edge : `FIREBASE_SERVICE_ACCOUNT`, `NOTIFICATION_FCM_SECRET`, `PUBLIC_APP_URL`
-3. Dashboard → **Database** → **Webhooks** → Create hook :
-   - Table : `public.notification`
-   - Events : **Insert**
-   - URL : `https://yvzxebrudijuwygzpvnf.supabase.co/functions/v1/notification-fcm-send`
-   - Header : `x-notification-fcm-secret: <NOTIFICATION_FCM_SECRET>`
+```bash
+supabase functions deploy notification-fcm-send --no-verify-jwt
+```
 
-## Option B — Trigger SQL (migration `20260525`)
+Secrets (Dashboard → Edge Functions → `notification-fcm-send`) :
 
-Après `supabase db push`, insérer dans `configuration_systeme` une ligne `categorie = 'notifications'` :
+| Secret | Rôle |
+|--------|------|
+| `FIREBASE_SERVICE_ACCOUNT` | JSON compte de service Firebase |
+| `NOTIFICATION_FCM_SECRET` | Optionnel si webhook utilise la service role (voir ci‑dessous) |
+| `PUBLIC_APP_URL` | `https://retrouvonsles.te-sea.com` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Injecté automatiquement par Supabase |
+
+L’auth accepte **soit** `x-notification-fcm-secret`, **soit** les en-têtes par défaut du Database Webhook (`Authorization` + `apikey` = service role).
+
+## 2. Webhook Supabase (recommandé prod)
+
+Dashboard → **Database** → **Webhooks** → Create hook :
+
+- **Table** : `public.notification`
+- **Events** : Insert
+- **URL** : `https://yvzxebrudijuwygzpvnf.supabase.co/functions/v1/notification-fcm-send`
+- **HTTP Headers** : laisser les en-têtes par défaut Supabase (Bearer + apikey service role) **ou** ajouter `x-notification-fcm-secret: <NOTIFICATION_FCM_SECRET>`
+
+Sans webhook ni config SQL (option B), les INSERT ne déclenchent **aucun** push.
+
+## 3. Option B — Trigger SQL (`20260525`)
+
+Après migration, une ligne `configuration_systeme` (`categorie = 'notifications'`) :
 
 ```json
 {
   "notification_fcm_dispatch_url": "https://yvzxebrudijuwygzpvnf.supabase.co/functions/v1/notification-fcm-send",
-  "notification_fcm_dispatch_secret": "<même secret que NOTIFICATION_FCM_SECRET>"
+  "notification_fcm_dispatch_secret": "<NOTIFICATION_FCM_SECRET>"
 }
 ```
 
-## Côté citoyen (token)
+## 4. Migrations citoyen (alertes + notifs)
 
-- Autoriser les notifications dans le navigateur
-- Vérifier `utilisateur.accepte_notifications = true`
-- Vérifier une ligne dans `utilisateur_fcm_token` pour l’`id_utilisateur` citoyen
-- Logs Edge : `no_push_tokens` = token non enregistré
+Appliquer en prod, dans l’ordre :
 
-## SOS « marquer traité » (400)
+- `20260526_notifications_citizen_alerte_routing.sql`
+- `20260527_citizen_alertes_rls_fcm_webhook.sql` — lecture alertes grand_public + RPC `list_citizen_alertes` / `get_citizen_alerte_by_id`
 
-La migration `20260525` corrige le trigger qui utilisait `priorite = 'normale'` (valeur **invalide** pour l’enum `priorite_traitement`). L’UPDATE SOS échouait donc en 400 avec seulement un bip d’erreur côté UI.
+## 5. Côté client (token)
+
+- Notifications navigateur autorisées
+- `utilisateur.accepte_notifications = true`
+- Ligne dans `utilisateur_fcm_token` pour le citoyen
+- Logs Edge utiles : `auth_fail` (webhook mal configuré), `no_push_tokens`, `accepte_notifications_false`
+
+## 6. Clic alerte / notif
+
+URL : `/citizen/alerts?alerte=<uuid>` — panneau détail + fetch RPC même si l’alerte n’est pas dans la grille.

@@ -12,7 +12,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useDossiers } from '../../features/dossiers/hooks/useDossiers';
 import { useSignalements } from '../../features/signalements/hooks';
-import { useAlertes } from '../../features/alertes/hooks/useAlertes';
+import { useCitizenAlertes } from '../../features/alertes/hooks/useCitizenAlertes';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
 import { maptilerConfig } from '../../services/maptiler';
 import { useI18n } from '../../hooks';
@@ -54,7 +54,7 @@ export const CitizenMapPage: React.FC = () => {
   // Hooks
   const { dossiers, isLoading: loadingDossiers, fetchDossiers } = useDossiers();
   const { signalements, isLoading: loadingSignalements, fetchSignalements } = useSignalements();
-  const { alertes, loading: loadingAlertes, fetchAlertes } = useAlertes();
+  const { alertes, loading: loadingAlertes, fetchAlertes } = useCitizenAlertes();
   const { currentLocation, getCurrentLocation } = useGeolocation();
 
   // State

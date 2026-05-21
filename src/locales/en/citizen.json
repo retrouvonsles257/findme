@@ -225,6 +225,13 @@
   "distanceAway": "{{distance}} km away",
   "radiusKm": "{{radius}} km",
   "viewLinkedDossier": "View linked case",
+  "alertDetail": {
+    "title": "Alert details",
+    "close": "Close",
+    "loading": "Loading alert…",
+    "notFound": "This alert was not found or is no longer available.",
+    "loadError": "Could not load this alert."
+  },
   "views": "{{count}} views",
   "shares": "{{count}} shares",
   "alertStatus": {
@@ -232,7 +239,8 @@
     "diffusee": "Broadcast",
     "cloturee": "Closed",
     "expiree": "Expired",
-    "pending": "Pending"
+    "pending": "Pending",
+    "cancelled": "Cancelled"
   },
   "signalementDetail": {
     "missingId": "Missing report ID",

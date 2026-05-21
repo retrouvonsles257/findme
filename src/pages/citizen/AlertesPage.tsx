@@ -1,14 +1,10 @@
 /**
- * =====================================================
- * RETROUVONSLES - Citizen Alertes Page
- * Page pour visualiser et gérer les alertes de proximité
- * Intégré avec useAlertes et useProximityAlerts
- * =====================================================
+ * Page citoyen — alertes de proximité + panneau détail (?alerte=uuid).
  */
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAlertes } from '../../features/alertes/hooks/useAlertes';
+import { useCitizenAlertes } from '../../features/alertes/hooks/useCitizenAlertes';
+import { getCitizenAlerteById } from '../../features/alertes/services/citizenAlerteAPI';
 import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
 import { useI18n } from '../../hooks';
@@ -16,13 +12,12 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { CitizenLayout } from './CitizenLayout';
 import { supabase } from '../../config';
+import type { Alerte } from '../../@types/alertes.types';
 import {
   Bell,
   MapPin,
   AlertTriangle,
   Clock,
-  Eye,
-  Share2,
   Navigation,
   Filter,
   RefreshCw,
@@ -30,41 +25,65 @@ import {
   Radio,
   Users,
   X,
+  Loader2,
 } from 'lucide-react';
 import { AdminListSkeleton } from 'components/skeletons';
 import styles from './AlertesPage.module.css';
 
 type FilterType = 'all' | 'active' | 'proximity' | 'closed';
 
+function alerteStatutRaw(alerte: Alerte): string | undefined {
+  return alerte.statut_alerte;
+}
+
+function getStatusKey(statut?: string) {
+  switch (statut) {
+    case 'active':
+    case 'diffusee':
+    case 'en_cours':
+      return 'active';
+    case 'cloturee':
+    case 'terminee':
+      return 'cloturee';
+    case 'expiree':
+      return 'expiree';
+    case 'annulee':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
 export const CitizenAlertesPage: React.FC = () => {
   const { t, language } = useI18n();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const focusAlerteId = searchParams.get('alerte');
   const currentUser = useAppSelector(selectUser);
   const userId = (currentUser as { id?: string } | null)?.id;
 
-  // Hooks
-  const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useAlertes();
-  const { 
-    proximityAlerts, 
-    activeAlerts, 
+  const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useCitizenAlertes();
+  const {
+    proximityAlerts,
+    activeAlerts,
     isLoading: loadingProximity,
     error: errorProximity,
     checkProximity,
-    dismissAlert 
+    dismissAlert,
   } = useProximityAlerts();
   const { currentLocation, error: geoError, getCurrentLocation } = useGeolocation();
 
-  // Local state
   const [filter, setFilter] = useState<FilterType>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [dossierPhotos, setDossierPhotos] = useState<Record<string, string>>({});
 
-  // Charger les alertes au montage
+  const [detailAlerte, setDetailAlerte] = useState<Alerte | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+
   useEffect(() => {
-    fetchAlertes();
+    void fetchAlertes();
   }, [fetchAlertes]);
 
   useEffect(() => {
@@ -89,7 +108,6 @@ export const CitizenAlertesPage: React.FC = () => {
     };
   }, [userId, fetchAlertes]);
 
-  // Charger les photos des dossiers liés aux alertes
   const loadDossierPhotos = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
     try {
@@ -104,16 +122,22 @@ export const CitizenAlertesPage: React.FC = () => {
       });
       setDossierPhotos((prev) => ({ ...prev, ...map }));
     } catch {
-      // ignore
+      /* ignore */
     }
   }, []);
 
   useEffect(() => {
-    const ids = [...new Set((alertes as any[]).map((a: any) => a.id_dossier).filter(Boolean))];
-    loadDossierPhotos(ids);
-  }, [alertes, loadDossierPhotos]);
+    const ids = [
+      ...new Set(
+        [...alertes, detailAlerte ? [detailAlerte] : []]
+          .flat()
+          .map((a) => (a as Alerte).id_dossier)
+          .filter(Boolean) as string[],
+      ),
+    ];
+    void loadDossierPhotos(ids);
+  }, [alertes, detailAlerte, loadDossierPhotos]);
 
-  // Vérifier les alertes de proximité quand la position change
   useEffect(() => {
     if (currentLocation) {
       checkProximity({
@@ -125,15 +149,22 @@ export const CitizenAlertesPage: React.FC = () => {
     }
   }, [currentLocation, checkProximity]);
 
-  // Rafraîchir les données
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchAlertes();
     getCurrentLocation();
+    if (focusAlerteId) {
+      try {
+        const refreshed = await getCitizenAlerteById(focusAlerteId);
+        setDetailAlerte(refreshed);
+        setDetailError(refreshed ? null : t('citizen.alertDetail.notFound'));
+      } catch {
+        /* garde le panneau actuel */
+      }
+    }
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  // Mapper le type pour l'icône
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'disparition_enfant':
@@ -147,7 +178,6 @@ export const CitizenAlertesPage: React.FC = () => {
     }
   };
 
-  // Formater la date relative
   const formatTimeAgo = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -163,52 +193,92 @@ export const CitizenAlertesPage: React.FC = () => {
     return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US');
   };
 
-  // Normaliser le statut d'alerte vers une clé traduisible
-  const getStatusKey = (statut?: string) => {
-    switch (statut) {
-      case 'active':
-      case 'diffusee':
-      case 'en_cours':
-        return 'active';
-      case 'cloturee':
-      case 'terminee':
-        return 'cloturee';
-      case 'expiree':
-        return 'expiree';
-      case 'annulee':
-        return 'cancelled';
-      default:
-        return 'pending';
-    }
-  };
-
-  // Filtrer les alertes avec un statut normalisé
   const filteredAlertes = useMemo(
     () =>
-      alertes.filter((alerte: any) => {
-        const key = getStatusKey(alerte.statut);
+      alertes.filter((alerte) => {
+        const key = getStatusKey(alerteStatutRaw(alerte));
         if (filter === 'all') return true;
         if (filter === 'active') return key === 'active';
         if (filter === 'closed') return key === 'cloturee' || key === 'expiree' || key === 'cancelled';
-        if (filter === 'proximity') {
-          // Alertes dans le rayon de l'utilisateur
-          return activeAlerts.includes(alerte.id);
-        }
+        if (filter === 'proximity') return activeAlerts.includes(alerte.id);
         return true;
       }),
-    [alertes, filter, activeAlerts]
+    [alertes, filter, activeAlerts],
   );
 
-  // Cacher une alerte de proximité
+  const openAlerteDetail = useCallback(
+    (alerteId: string) => {
+      setSearchParams({ alerte: alerteId }, { replace: false });
+    },
+    [setSearchParams],
+  );
+
+  const closeAlerteDetail = useCallback(() => {
+    setDetailAlerte(null);
+    setDetailError(null);
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
+
+  useEffect(() => {
+    if (!focusAlerteId) {
+      setDetailAlerte(null);
+      setDetailError(null);
+      setDetailLoading(false);
+      return;
+    }
+
+    setFilter('all');
+
+    const inList = alertes.find((a) => a.id === focusAlerteId);
+    if (inList) {
+      setDetailAlerte(inList);
+      setDetailError(null);
+      setDetailLoading(false);
+    }
+
+    let cancelled = false;
+    setDetailLoading(!inList);
+    setDetailError(null);
+
+    void (async () => {
+      try {
+        const row = await getCitizenAlerteById(focusAlerteId);
+        if (cancelled) return;
+        if (row) {
+          setDetailAlerte(row);
+          setDetailError(null);
+        } else if (!inList) {
+          setDetailAlerte(null);
+          setDetailError(t('citizen.alertDetail.notFound'));
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setDetailError(err instanceof Error ? err.message : t('citizen.alertDetail.loadError'));
+        if (!inList) setDetailAlerte(null);
+      } finally {
+        if (!cancelled) setDetailLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [focusAlerteId, alertes, t]);
+
+  useEffect(() => {
+    if (!focusAlerteId || loadingAlertes) return;
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById(`citizen-alerte-${focusAlerteId}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.classList.add(styles['alertes__card--focus']);
+      window.setTimeout(() => el?.classList.remove(styles['alertes__card--focus']), 6000);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [focusAlerteId, loadingAlertes, filteredAlertes.length]);
+
   const handleDismiss = (alertId: string) => {
     setDismissedAlerts((prev) => new Set([...prev, alertId]));
     dismissAlert(alertId);
-  };
-
-  // Ouvrir l’alerte (statut alerte), pas le dossier lié
-  const handleViewDetails = (alerteId: string) => {
-    const params = new URLSearchParams({ alerte: alerteId });
-    navigate(`/citizen/alerts?${params.toString()}`);
   };
 
   const handleOpenDossier = (dossierId: string, event: React.MouseEvent) => {
@@ -218,41 +288,119 @@ export const CitizenAlertesPage: React.FC = () => {
 
   const isLoading = loadingAlertes || loadingProximity;
   const hasError = errorAlertes || errorProximity;
+  const showDetailPanel = Boolean(focusAlerteId);
 
-  useEffect(() => {
-    if (focusAlerteId) {
-      setFilter('all');
-    }
-  }, [focusAlerteId]);
+  const renderDetailPanel = () => {
+    if (!showDetailPanel) return null;
 
-  useEffect(() => {
-    if (!focusAlerteId || isLoading) return;
-    let removeHighlightTimer: number | undefined;
-    const timer = window.setTimeout(() => {
-      const el = document.getElementById(`citizen-alerte-${focusAlerteId}`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el?.classList.add(styles['alertes__card--focus']);
-      removeHighlightTimer = window.setTimeout(() => {
-        el?.classList.remove(styles['alertes__card--focus']);
-      }, 6000);
-    }, 400);
-    return () => {
-      clearTimeout(timer);
-      if (removeHighlightTimer !== undefined) window.clearTimeout(removeHighlightTimer);
-    };
-  }, [focusAlerteId, isLoading, filteredAlertes.length]);
+    const statut = detailAlerte ? alerteStatutRaw(detailAlerte) : undefined;
+    const statusKey = getStatusKey(statut);
+    const photo = detailAlerte?.id_dossier ? dossierPhotos[detailAlerte.id_dossier] : null;
+
+    return (
+      <div
+        className={styles['alertes__detail']}
+        role="dialog"
+        aria-labelledby="citizen-alerte-detail-title"
+        aria-modal="true"
+      >
+        <div className={styles['alertes__detail-header']}>
+          <h2 id="citizen-alerte-detail-title" className={styles['alertes__detail-title']}>
+            {t('citizen.alertDetail.title')}
+          </h2>
+          <button
+            type="button"
+            className={styles['alertes__detail-close']}
+            onClick={closeAlerteDetail}
+            aria-label={t('citizen.alertDetail.close')}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {detailLoading && (
+          <div className={styles['alertes__detail-loading']}>
+            <Loader2 size={28} className={styles['alertes__refresh-spin']} />
+            <span>{t('citizen.alertDetail.loading')}</span>
+          </div>
+        )}
+
+        {!detailLoading && detailError && (
+          <div className={styles['alertes__detail-error']}>
+            <AlertCircle size={22} />
+            <p>{detailError}</p>
+            <button type="button" onClick={handleRefresh}>
+              {t('common.retry')}
+            </button>
+          </div>
+        )}
+
+        {!detailLoading && !detailError && detailAlerte && (
+          <div className={styles['alertes__detail-body']}>
+            <div className={styles['alertes__detail-media']}>
+              {photo ? (
+                <img src={photo} alt="" />
+              ) : (
+                <div className={styles['alertes__card-media-placeholder']}>
+                  {getTypeIcon(detailAlerte.type_alerte || '')}
+                </div>
+              )}
+              <span
+                className={`${styles['alertes__card-status']} ${
+                  statusKey === 'active'
+                    ? styles['alertes__status--active']
+                    : statusKey === 'cloturee' || statusKey === 'expiree' || statusKey === 'cancelled'
+                      ? styles['alertes__status--closed']
+                      : styles['alertes__status--pending']
+                }`}
+              >
+                {t(`citizen.alertStatus.${statusKey}`)}
+              </span>
+            </div>
+            <h3 className={styles['alertes__detail-name']}>{detailAlerte.titre}</h3>
+            <p className={styles['alertes__detail-message']}>{detailAlerte.message}</p>
+            <div className={styles['alertes__detail-meta']}>
+              <span>
+                <Clock size={14} />
+                {formatTimeAgo(
+                  detailAlerte.date_diffusion ||
+                    detailAlerte.created_at ||
+                    new Date().toISOString(),
+                )}
+              </span>
+              {detailAlerte.rayon_km != null && (
+                <span>
+                  <MapPin size={14} />
+                  {t('citizen.radiusKm').replace('{{radius}}', String(detailAlerte.rayon_km))}
+                </span>
+              )}
+            </div>
+            {detailAlerte.id_dossier && (
+              <button
+                type="button"
+                className={styles['alertes__detail-dossier-btn']}
+                onClick={(e) => handleOpenDossier(detailAlerte.id_dossier!, e)}
+              >
+                {t('citizen.viewLinkedDossier')}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <CitizenLayout>
       <div className={styles.alertes}>
-        {/* Header avec localisation */}
         <div className={styles['alertes__header']}>
           <div className={styles['alertes__location']}>
             {currentLocation ? (
               <>
                 <Navigation size={18} className={styles['alertes__location-icon']} />
                 <span>
-                  {t('citizen.locationActive')} ({currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)})
+                  {t('citizen.locationActive')} ({currentLocation.latitude.toFixed(4)},{' '}
+                  {currentLocation.longitude.toFixed(4)})
                 </span>
               </>
             ) : (
@@ -262,19 +410,21 @@ export const CitizenAlertesPage: React.FC = () => {
               </>
             )}
           </div>
-          <button 
+          <button
             className={styles['alertes__refresh-btn']}
-            onClick={handleRefresh}
+            onClick={() => void handleRefresh()}
             disabled={isRefreshing}
+            type="button"
           >
-            <RefreshCw 
-              size={18} 
-              className={isRefreshing ? styles['alertes__refresh-spin'] : ''} 
+            <RefreshCw
+              size={18}
+              className={isRefreshing ? styles['alertes__refresh-spin'] : ''}
             />
           </button>
         </div>
 
-        {/* Alertes de proximité actives */}
+        {renderDetailPanel()}
+
         {proximityAlerts.length > 0 && (
           <div className={styles['alertes__proximity']}>
             <h3 className={styles['alertes__proximity-title']}>
@@ -292,11 +442,15 @@ export const CitizenAlertesPage: React.FC = () => {
                       {alert.distance_km && (
                         <span className={styles['alertes__proximity-distance']}>
                           <MapPin size={14} />
-                          {t('citizen.distanceAway').replace('{{distance}}', alert.distance_km.toFixed(1))}
+                          {t('citizen.distanceAway').replace(
+                            '{{distance}}',
+                            alert.distance_km.toFixed(1),
+                          )}
                         </span>
                       )}
                     </div>
                     <button
+                      type="button"
                       className={styles['alertes__proximity-dismiss']}
                       onClick={() => handleDismiss(alert.id)}
                     >
@@ -308,28 +462,31 @@ export const CitizenAlertesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Filtres */}
         <div className={styles['alertes__filters']}>
           <Filter size={18} />
           <button
+            type="button"
             className={`${styles['alertes__filter-btn']} ${filter === 'all' ? styles['alertes__filter-btn--active'] : ''}`}
             onClick={() => setFilter('all')}
           >
             {t('citizen.allAlerts')}
           </button>
           <button
+            type="button"
             className={`${styles['alertes__filter-btn']} ${filter === 'active' ? styles['alertes__filter-btn--active'] : ''}`}
             onClick={() => setFilter('active')}
           >
             {t('citizen.activeAlerts')}
           </button>
           <button
+            type="button"
             className={`${styles['alertes__filter-btn']} ${filter === 'proximity' ? styles['alertes__filter-btn--active'] : ''}`}
             onClick={() => setFilter('proximity')}
           >
             {t('citizen.nearbyAlerts')}
           </button>
           <button
+            type="button"
             className={`${styles['alertes__filter-btn']} ${filter === 'closed' ? styles['alertes__filter-btn--active'] : ''}`}
             onClick={() => setFilter('closed')}
           >
@@ -337,23 +494,22 @@ export const CitizenAlertesPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Loading State */}
         {isLoading && (
           <div className={styles['alertes__skeletonWrap']}>
             <AdminListSkeleton cardCount={6} showFilters={false} />
           </div>
         )}
 
-        {/* Error State */}
         {hasError && !isLoading && (
           <div className={styles['alertes__error']}>
             <AlertCircle size={24} />
             <p>{errorAlertes || errorProximity}</p>
-            <button onClick={handleRefresh}>{t('common.retry')}</button>
+            <button type="button" onClick={() => void handleRefresh()}>
+              {t('common.retry')}
+            </button>
           </div>
         )}
 
-        {/* Liste des alertes */}
         {!isLoading && !hasError && (
           <div className={styles['alertes__list']}>
             {filteredAlertes.length === 0 ? (
@@ -364,25 +520,44 @@ export const CitizenAlertesPage: React.FC = () => {
               </div>
             ) : (
               <div className={styles['alertes__grid']}>
-                {filteredAlertes.map((alerte: any) => {
+                {filteredAlertes.map((alerte) => {
                   const photo = alerte.id_dossier ? dossierPhotos[alerte.id_dossier] : null;
-                  const statusKey = getStatusKey(alerte.statut);
+                  const statusKey = getStatusKey(alerteStatutRaw(alerte));
+                  const isSelected = focusAlerteId === alerte.id;
                   return (
                     <div
                       key={alerte.id}
                       id={`citizen-alerte-${alerte.id}`}
-                      className={styles['alertes__card']}
-                      onClick={() => handleViewDetails(alerte.id)}
+                      className={`${styles['alertes__card']} ${isSelected ? styles['alertes__card--selected'] : ''}`}
+                      onClick={() => openAlerteDetail(alerte.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openAlerteDetail(alerte.id);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
                     >
                       <div className={styles['alertes__card-media']}>
                         {photo ? (
                           <img src={photo} alt="" />
                         ) : (
                           <div className={styles['alertes__card-media-placeholder']}>
-                            {getTypeIcon(alerte.type_alerte)}
+                            {getTypeIcon(alerte.type_alerte || '')}
                           </div>
                         )}
-                        <span className={`${styles['alertes__card-status']} ${statusKey === 'active' ? styles['alertes__status--active'] : statusKey === 'cloturee' || statusKey === 'expiree' || statusKey === 'cancelled' ? styles['alertes__status--closed'] : styles['alertes__status--pending']}`}>
+                        <span
+                          className={`${styles['alertes__card-status']} ${
+                            statusKey === 'active'
+                              ? styles['alertes__status--active']
+                              : statusKey === 'cloturee' ||
+                                  statusKey === 'expiree' ||
+                                  statusKey === 'cancelled'
+                                ? styles['alertes__status--closed']
+                                : styles['alertes__status--pending']
+                          }`}
+                        >
                           {t(`citizen.alertStatus.${statusKey}`)}
                         </span>
                       </div>
@@ -395,9 +570,13 @@ export const CitizenAlertesPage: React.FC = () => {
                         <div className={styles['alertes__card-meta']}>
                           <span className={styles['alertes__card-date']}>
                             <Clock size={14} />
-                            {formatTimeAgo(alerte.created_at || new Date().toISOString())}
+                            {formatTimeAgo(
+                              alerte.date_diffusion ||
+                                alerte.created_at ||
+                                new Date().toISOString(),
+                            )}
                           </span>
-                          {alerte.rayon_km && (
+                          {alerte.rayon_km != null && (
                             <span className={styles['alertes__card-radius']}>
                               <MapPin size={14} />
                               {t('citizen.radiusKm').replace('{{radius}}', String(alerte.rayon_km))}
@@ -407,7 +586,7 @@ export const CitizenAlertesPage: React.FC = () => {
                             <button
                               type="button"
                               className={styles['alertes__card-dossier-link']}
-                              onClick={(e) => handleOpenDossier(alerte.id_dossier, e)}
+                              onClick={(e) => handleOpenDossier(alerte.id_dossier!, e)}
                             >
                               {t('citizen.viewLinkedDossier')}
                             </button>
@@ -422,7 +601,6 @@ export const CitizenAlertesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Stats */}
         {!isLoading && filteredAlertes.length > 0 && (
           <div className={styles['alertes__stats']}>
             <div className={styles['alertes__stat']}>
@@ -431,7 +609,7 @@ export const CitizenAlertesPage: React.FC = () => {
             </div>
             <div className={styles['alertes__stat']}>
               <span className={styles['alertes__stat-value']}>
-                {(alertes as any[]).filter((a) => a.statut === 'active' || a.statut === 'diffusee').length}
+                {alertes.filter((a) => getStatusKey(alerteStatutRaw(a)) === 'active').length}
               </span>
               <span className={styles['alertes__stat-label']}>{t('citizen.active')}</span>
             </div>

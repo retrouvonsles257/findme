@@ -225,6 +225,13 @@
     "distanceAway": "À {{distance}} km",
     "radiusKm": "{{radius}} km",
     "viewLinkedDossier": "Voir le dossier lié",
+    "alertDetail": {
+        "title": "Détail de l'alerte",
+        "close": "Fermer",
+        "loading": "Chargement de l'alerte…",
+        "notFound": "Cette alerte est introuvable ou n'est plus disponible.",
+        "loadError": "Impossible de charger cette alerte."
+    },
     "views": "{{count}} vues",
     "shares": "{{count}} partages",
     "alertStatus": {
@@ -232,7 +239,8 @@
         "diffusee": "Diffusée",
         "cloturee": "Clôturée",
         "expiree": "Expirée",
-        "pending": "En attente"
+        "pending": "En attente",
+        "cancelled": "Annulée"
     },
     "signalementDetail": {
         "missingId": "ID du signalement manquant",

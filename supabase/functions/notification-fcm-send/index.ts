@@ -8,9 +8,9 @@
  * - NOTIFICATION_FCM_SECRET  : secret partagé (header x-notification-fcm-secret)
  * - PUBLIC_APP_URL           : URL publique du site (ex. https://app.example.com) pour les liens Web Push
  *
- * Webhook Database (INSERT public.notification) :
- * - URL : https://<project-ref>.supabase.co/functions/v1/notification-fcm-send
- * - HTTP Headers : x-notification-fcm-secret: <NOTIFICATION_FCM_SECRET>
+ * Webhook Database (INSERT public.notification) — deux modes d’auth acceptés :
+ * A) Header `x-notification-fcm-secret: <NOTIFICATION_FCM_SECRET>`
+ * B) Headers Supabase par défaut : `Authorization: Bearer <SERVICE_ROLE>` + `apikey: <SERVICE_ROLE>`
  *
  * Déploiement : supabase functions deploy notification-fcm-send --no-verify-jwt
  * (--no-verify-jwt car le webhook n’envoie pas le JWT utilisateur ; le secret HTTP suffit.)
@@ -305,7 +305,7 @@ function resolveClickPath(
   record: Record<string, unknown>,
   userType: string | null | undefined,
 ): string {
-  const isAuthority = userType === 'autorite';
+  const isAuthority = userType === 'autorite' || userType === 'authority';
   const base = isAuthority ? '/authority' : '/citizen';
   const fallback = `${base}/notifications`;
 
@@ -514,25 +514,41 @@ serve(async (req) => {
   });
 
   const secret = Deno.env.get('NOTIFICATION_FCM_SECRET') || '';
+  const serviceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
   const hdrPrimary = req.headers.get('x-notification-fcm-secret') || '';
   const hdrLegacy = req.headers.get('x-notification-fcm-send') || '';
   const authHeader = req.headers.get('authorization') || '';
   const authBearer = authHeader.toLowerCase().startsWith('bearer ')
     ? authHeader.slice(7).trim()
     : '';
-  const hdr = hdrPrimary || hdrLegacy || authBearer;
-  if (!secret || hdr !== secret) {
+  const apiKey = req.headers.get('apikey') || '';
+
+  const secretOk =
+    !!secret &&
+    (hdrPrimary === secret || hdrLegacy === secret || authBearer === secret);
+  const serviceRoleOk =
+    !!serviceRole &&
+    (authBearer === serviceRole ||
+      apiKey === serviceRole ||
+      hdrPrimary === serviceRole ||
+      hdrLegacy === serviceRole);
+
+  if (!secretOk && !serviceRoleOk) {
     logLine('auth_fail', {
       reqId,
       hasEnvSecret: !!secret,
+      hasServiceRole: !!serviceRole,
       headerPrimaryPresent: !!hdrPrimary,
       headerLegacyPresent: !!hdrLegacy,
       authBearerPresent: !!authBearer,
-      selectedHeaderLen: hdr.length,
-      envSecretLen: secret.length,
+      apiKeyPresent: !!apiKey,
+      secretOk,
+      serviceRoleOk,
     });
     return json({ error: 'unauthorized', reqId }, 401);
   }
+
+  logLine('auth_ok', { reqId, via: secretOk ? 'notification_fcm_secret' : 'service_role' });
 
   const saRaw = Deno.env.get('FIREBASE_SERVICE_ACCOUNT') || '';
 
