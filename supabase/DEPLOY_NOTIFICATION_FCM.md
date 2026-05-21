@@ -48,12 +48,21 @@ Appliquer en prod, dans l’ordre :
 - `20260526_notifications_citizen_alerte_routing.sql`
 - `20260527_citizen_alertes_rls_fcm_webhook.sql` — lecture alertes grand_public + RPC `list_citizen_alertes` / `get_citizen_alerte_by_id`
 
-## 5. Côté client (token)
+## 5. Côté client (token) — cause la plus fréquente en prod
 
-- Notifications navigateur autorisées
-- `utilisateur.accepte_notifications = true`
-- Ligne dans `utilisateur_fcm_token` pour le citoyen
-- Logs Edge utiles : `auth_fail` (webhook mal configuré), `no_push_tokens`, `accepte_notifications_false`
+Log Edge **`no_push_tokens`** avec `accepte_notifications: true` = la chaîne webhook/FCM fonctionne, mais **aucune ligne** dans `utilisateur_fcm_token` (ni Web Push) pour cet `id_utilisateur`.
+
+Actions :
+
+1. Se connecter avec le **compte citoyen** qui doit recevoir les alertes (pas seulement l’autorité).
+2. Autoriser les notifications du site (`https://retrouvonsles.te-sea.com`).
+3. **Paramètres citoyen** → « Réenregistrer » les notifications push (ou sauvegarder avec push activé).
+4. Vérifier en SQL : `select * from utilisateur_fcm_token where id_utilisateur = '<uuid citoyen>';`
+5. Console navigateur : messages `[PushFCM] sync_fcm_token_registered` ou `sync_no_push_endpoints_in_db`.
+
+Un autre compte sur le même navigateur peut avoir un jeton (`fcm_ok` pour `9ed8e524…`) alors que le citoyen `dbf01bb3…` n’en a pas : chaque utilisateur doit enregistrer son propre jeton.
+
+Autres logs Edge : `auth_fail` (webhook), `accepte_notifications_false`.
 
 ## 6. Clic alerte / notif
 

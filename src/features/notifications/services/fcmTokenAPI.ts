@@ -5,14 +5,22 @@ import { supabase } from '../../../config';
 import {
   clearFcmTokenClientCache,
   deleteFCMToken,
+  getFCMToken,
   getNativeWebPushVapidPublicKey,
   getStoredToken,
   initializeFirebase,
   registerMessagingServiceWorker,
+  requestNotificationPermission,
 } from '../../../config/firebase.config';
 
 const LOG_FCM = '[PushFCM]';
+
+/** true = logs détaillés ; les erreurs bloquantes passent toujours par console.warn */
 const DEBUG_PUSH_LOGS = false;
+
+function pushWarn(...args: unknown[]): void {
+  console.warn(...args);
+}
 const FCM_DEVICE_ID_KEY = 'retrouvonsles_fcm_device_id_v1';
 const LAST_PUSH_DIAGNOSTIC_KEY = 'retrouvonsles_last_push_diagnostic_v1';
 
@@ -209,6 +217,135 @@ export async function ensureCurrentUserProfile(): Promise<void> {
       code: (error as any).code,
     });
   }
+}
+
+export type PushRegistrationResult = {
+  ok: boolean;
+  authUserId: string | null;
+  fcmRegistered: boolean;
+  webPushRegistered: boolean;
+  reason?: string;
+};
+
+async function countPushEndpointsForUser(userId: string): Promise<{ fcm: number; webPush: number }> {
+  const fcmRes = await (supabase as any)
+    .from('utilisateur_fcm_token')
+    .select('token', { count: 'exact', head: true })
+    .eq('id_utilisateur', userId);
+
+  let webPush = 0;
+  const webRes = await (supabase as any)
+    .from('utilisateur_web_push_subscription')
+    .select('endpoint', { count: 'exact', head: true })
+    .eq('id_utilisateur', userId);
+  if (webRes.error?.code === '42P01') {
+    webPush = 0;
+  } else {
+    webPush = webRes.count ?? 0;
+  }
+
+  return {
+    fcm: fcmRes.count ?? 0,
+    webPush,
+  };
+}
+
+/**
+ * Enregistre FCM (et repli Web Push) pour auth.uid() — à appeler après connexion,
+ * activation des notifs dans les paramètres, ou si les logs Edge indiquent no_push_tokens.
+ */
+export async function syncPushRegistrationForCurrentUser(options?: {
+  forceRefresh?: boolean;
+  requestPermission?: boolean;
+}): Promise<PushRegistrationResult> {
+  const forceRefresh = options?.forceRefresh ?? false;
+  const mayRequestPermission = options?.requestPermission ?? true;
+
+  const { data: authData } = await supabase.auth.getUser();
+  const authUserId = authData?.user?.id ?? null;
+  if (!authUserId) {
+    return { ok: false, authUserId: null, fcmRegistered: false, webPushRegistered: false, reason: 'not_authenticated' };
+  }
+
+  await ensureCurrentUserProfile();
+
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (Notification.permission === 'default' && mayRequestPermission) {
+      await requestNotificationPermission();
+    }
+    if (Notification.permission === 'granted') {
+      await (supabase as any)
+        .from('utilisateur')
+        .update({ accepte_notifications: true, updated_at: new Date().toISOString() })
+        .eq('id', authUserId);
+    } else if (Notification.permission === 'denied') {
+      pushWarn(LOG_FCM, 'sync_skip_browser_permission_denied');
+      return {
+        ok: false,
+        authUserId,
+        fcmRegistered: false,
+        webPushRegistered: false,
+        reason: 'permission_denied',
+      };
+    }
+  }
+
+  const firebaseOk = await initializeFirebase();
+  if (!firebaseOk) {
+    pushWarn(LOG_FCM, 'sync_skip_firebase_init_failed');
+    return {
+      ok: false,
+      authUserId,
+      fcmRegistered: false,
+      webPushRegistered: false,
+      reason: 'firebase_init_failed',
+    };
+  }
+
+  let fcmRegistered = false;
+  let webPushRegistered = false;
+
+  const token = await getFCMToken(mayRequestPermission, forceRefresh);
+  if (token) {
+    try {
+      await upsertFcmToken(authUserId, token);
+      await unregisterCurrentWebPushDevice(authUserId);
+      fcmRegistered = true;
+      pushWarn(LOG_FCM, 'sync_fcm_token_registered', {
+        userId: `${authUserId.slice(0, 8)}…`,
+        tokenHint: tokenHint(token),
+      });
+    } catch (e: unknown) {
+      pushWarn(LOG_FCM, 'sync_fcm_upsert_failed', e);
+    }
+  } else {
+    pushWarn(LOG_FCM, 'sync_no_fcm_token_trying_web_push', {
+      permission: typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'n/a',
+    });
+    webPushRegistered = await registerNativeWebPushSubscription(authUserId);
+    if (webPushRegistered) {
+      pushWarn(LOG_FCM, 'sync_web_push_registered', { userId: `${authUserId.slice(0, 8)}…` });
+    }
+  }
+
+  const counts = await countPushEndpointsForUser(authUserId);
+  const ok = counts.fcm > 0 || counts.webPush > 0 || fcmRegistered || webPushRegistered;
+
+  if (!ok) {
+    pushWarn(LOG_FCM, 'sync_no_push_endpoints_in_db', {
+      userId: `${authUserId.slice(0, 8)}…`,
+      hint: 'Autoriser les notifications du site puis réessayer (Paramètres → notifications push).',
+    });
+    return {
+      ok: false,
+      authUserId,
+      fcmRegistered,
+      webPushRegistered,
+      reason: 'no_push_tokens',
+    };
+  }
+
+  return { ok: true, authUserId, fcmRegistered: counts.fcm > 0 || fcmRegistered, webPushRegistered: counts.webPush > 0 || webPushRegistered };
 }
 
 export async function registerNativeWebPushSubscription(userId: string): Promise<boolean> {

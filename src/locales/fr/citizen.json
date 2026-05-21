@@ -232,6 +232,11 @@
         "notFound": "Cette alerte est introuvable ou n'est plus disponible.",
         "loadError": "Impossible de charger cette alerte."
     },
+    "pushRegisterOk": "Notifications push enregistrées pour ce compte.",
+    "pushRegisterFailed": "Impossible d'enregistrer le push : autorisez les notifications du site dans le navigateur, puis réessayez.",
+    "reregisterPushTitle": "Réactiver les notifications push",
+    "reregisterPushDesc": "Si vous ne recevez pas les alertes sur cet appareil, enregistrez à nouveau le jeton pour votre compte citoyen connecté.",
+    "reregisterPushAction": "Réenregistrer",
     "views": "{{count}} vues",
     "shares": "{{count}} partages",
     "alertStatus": {

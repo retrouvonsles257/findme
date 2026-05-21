@@ -9,7 +9,6 @@ import { envConfig } from '../../../config';
 import { supabase } from '../../../config/supabase.config';
 import {
   initializeFirebase,
-  getFCMToken,
   onForegroundMessage,
   showNotificationFromFcmPayload,
   areNotificationsSupported,
@@ -18,10 +17,8 @@ import { TypeCompte } from '../../../@types/enums.types';
 import { fetchNotifications } from '../store/notificationSlice';
 import {
   ensureCurrentUserProfile,
-  registerNativeWebPushSubscription,
   rotateFcmPushForAccountSwitch,
-  unregisterCurrentWebPushDevice,
-  upsertFcmToken,
+  syncPushRegistrationForCurrentUser,
 } from '../services/fcmTokenAPI';
 import {
   CITIZEN_PERM_NOTIF_ASKED_KEY,
@@ -34,6 +31,10 @@ const DEBUG_PUSH_LOGS = false;
 function pushDebug(level: 'info' | 'warn' | 'error', ...args: unknown[]): void {
   if (!DEBUG_PUSH_LOGS) return;
   console[level](...args);
+}
+
+function pushWarn(...args: unknown[]): void {
+  console.warn(...args);
 }
 
 export type PushSyncLogContext = {
@@ -172,66 +173,38 @@ export function useCitizenPushSync(
           await syncNotificationPreference(Notification.permission === 'granted');
         }
 
-        // Ne pas enchaîner forceRefresh ici : deleteToken + getToken aggrave souvent
-        // « AbortError: Registration failed - push service error » (Chrome/Edge).
-        // La récupération SW est gérée dans getFCMToken (firebase.config).
-        const token = await getFCMToken(false, false);
-        if (cancelled) return;
-        if (!token) {
-          pushDebug('error', LOG, 'no_fcm_token', {
-            permission: typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'n/a',
-            ...logContext,
-          });
-          const nativeOk = await registerNativeWebPushSubscription(userId);
-          pushDebug('info', LOG, 'native_web_push_fallback_result', { ok: nativeOk, ...logContext });
-          return;
-        }
-
         const { data: authData } = await supabase.auth.getUser();
         const authUid = authData?.user?.id;
-        pushDebug('info', LOG, 'auth_vs_redux', {
-          match: authUid === userId,
-          reduxUserId: `${userId.slice(0, 8)}…`,
-          authUid: authUid ? `${authUid.slice(0, 8)}…` : null,
-          ...logContext,
-        });
         if (authUid && authUid !== userId) {
-          pushDebug('warn', LOG, 'upsert_skip_auth_redux_mismatch', {
+          pushWarn(LOG, 'auth_redux_mismatch_registering_for_auth_uid', {
             reduxUserId: `${userId.slice(0, 8)}…`,
             authUid: `${authUid.slice(0, 8)}…`,
             ...logContext,
           });
-          return;
         }
 
-        await upsertFcmToken(userId, token);
-        await unregisterCurrentWebPushDevice(userId);
-        pushDebug('info', LOG, 'upsert_done', { ...logContext });
-        try {
-          const { data: rowByToken } = await (supabase as any)
-            .from('utilisateur_fcm_token')
-            .select('id_utilisateur')
-            .eq('token', token)
-            .maybeSingle();
-          const storedUid = rowByToken?.id_utilisateur as string | undefined;
-          const verifiedForRedux = storedUid === userId;
-          pushDebug('info', LOG, 'db_verify_token_row', {
-            storedUserId: storedUid ? `${String(storedUid).slice(0, 8)}…` : null,
-            matchesRedux: verifiedForRedux,
+        const reg = await syncPushRegistrationForCurrentUser({
+          forceRefresh: false,
+          requestPermission: true,
+        });
+        if (cancelled) return;
+
+        if (!reg.ok) {
+          pushWarn(LOG, 'push_registration_incomplete', {
+            reason: reg.reason,
+            authUserId: reg.authUserId ? `${reg.authUserId.slice(0, 8)}…` : null,
             ...logContext,
           });
-          if (storedUid && typeof window !== 'undefined') {
-            localStorage.setItem(CITIZEN_FCM_ROTATED_KEY, 'true');
-          }
-        } catch {
-          // noop
+        } else if (typeof window !== 'undefined') {
+          localStorage.setItem(CITIZEN_FCM_ROTATED_KEY, 'true');
         }
-      } catch (e: any) {
-        pushDebug('error', LOG, 'upsert_chain_fail', {
-          message: e?.message || String(e),
-          code: e?.code,
-          details: e?.details,
-          hint: e?.hint,
+      } catch (e: unknown) {
+        const err = e as { message?: string; code?: string; details?: string; hint?: string };
+        pushWarn(LOG, 'push_sync_fail', {
+          message: err?.message || String(e),
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
           ...logContext,
         });
       }
@@ -242,6 +215,26 @@ export function useCitizenPushSync(
       unsubForeground?.();
     };
   }, [userId, isGuest, dispatch, syncNotificationPreference, CITIZEN_FCM_ROTATED_KEY, logContext]);
+
+  // Ré-enregistrer le jeton quand l’onglet redevient visible (compte citoyen sans ligne FCM en base).
+  useEffect(() => {
+    if (!userId || isGuest) return;
+    if (!envConfig.ENABLE_PUSH_NOTIFICATIONS) return;
+    if (typeof document === 'undefined') return;
+
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      void syncPushRegistrationForCurrentUser({ forceRefresh: false, requestPermission: false });
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [userId, isGuest]);
 
   // INSERT sur mes lignes `notification` → rafraîchissement immédiat (son / bannière via Redux + inAppAlertCue).
   useEffect(() => {

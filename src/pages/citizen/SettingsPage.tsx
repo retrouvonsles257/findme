@@ -11,7 +11,10 @@ import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
 import { supabase } from '../../config';
 import { deleteFCMToken } from '../../config/firebase.config';
-import { unregisterCurrentFcmDevice } from '../../features/notifications/services/fcmTokenAPI';
+import {
+  syncPushRegistrationForCurrentUser,
+  unregisterCurrentFcmDevice,
+} from '../../features/notifications/services/fcmTokenAPI';
 import { useI18n } from '../../hooks';
 import { CitizenLayout } from './CitizenLayout';
 import {
@@ -90,6 +93,8 @@ export const CitizenSettingsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [pushSyncing, setPushSyncing] = useState(false);
+  const [pushSyncMessage, setPushSyncMessage] = useState<string | null>(null);
 
   // Charger les paramètres
   useEffect(() => {
@@ -223,8 +228,18 @@ export const CitizenSettingsPage: React.FC = () => {
         try {
           await unregisterCurrentFcmDevice(userId);
           await deleteFCMToken();
-        } catch (e) {
-
+        } catch {
+          /* non bloquant */
+        }
+      } else {
+        const reg = await syncPushRegistrationForCurrentUser({
+          forceRefresh: true,
+          requestPermission: true,
+        });
+        if (!reg.ok) {
+          setPushSyncMessage(t('citizen.pushRegisterFailed'));
+        } else {
+          setPushSyncMessage(t('citizen.pushRegisterOk'));
         }
       }
 
@@ -242,6 +257,30 @@ export const CitizenSettingsPage: React.FC = () => {
   };
 
   // Réinitialiser
+  const handleReregisterPush = async () => {
+    setPushSyncing(true);
+    setPushSyncMessage(null);
+    setError(null);
+    try {
+      const reg = await syncPushRegistrationForCurrentUser({
+        forceRefresh: true,
+        requestPermission: true,
+      });
+      if (reg.ok) {
+        setPushSyncMessage(t('citizen.pushRegisterOk'));
+        setSettings((prev) => ({ ...prev, notifications_push: true }));
+      } else {
+        setPushSyncMessage(t('citizen.pushRegisterFailed'));
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setPushSyncMessage(t('citizen.pushRegisterFailed'));
+      setError(msg);
+    } finally {
+      setPushSyncing(false);
+    }
+  };
+
   const handleReset = () => {
     setSettings({
       notifications_push: true,
@@ -313,6 +352,28 @@ export const CitizenSettingsPage: React.FC = () => {
                 />
                 <span className={styles['settings__toggle-slider']} />
               </label>
+            </div>
+
+            <div className={styles['settings__option']}>
+              <div className={styles['settings__option-info']}>
+                <RefreshCw size={18} />
+                <div>
+                  <h4>{t('citizen.reregisterPushTitle')}</h4>
+                  <p>{t('citizen.reregisterPushDesc')}</p>
+                  {pushSyncMessage && (
+                    <p className={styles['settings__push-sync-hint']}>{pushSyncMessage}</p>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                className={styles['settings__push-reregister-btn']}
+                onClick={() => void handleReregisterPush()}
+                disabled={pushSyncing}
+              >
+                {pushSyncing ? <Loader2 size={16} className={styles['settings__spin']} /> : null}
+                {t('citizen.reregisterPushAction')}
+              </button>
             </div>
 
             <div className={styles['settings__option']}>

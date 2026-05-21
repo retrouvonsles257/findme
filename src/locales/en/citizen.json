@@ -232,6 +232,11 @@
     "notFound": "This alert was not found or is no longer available.",
     "loadError": "Could not load this alert."
   },
+  "pushRegisterOk": "Push notifications registered for this account.",
+  "pushRegisterFailed": "Could not register push: allow site notifications in your browser, then try again.",
+  "reregisterPushTitle": "Re-enable push notifications",
+  "reregisterPushDesc": "If you do not receive alerts on this device, register the token again for your logged-in citizen account.",
+  "reregisterPushAction": "Re-register",
   "views": "{{count}} views",
   "shares": "{{count}} shares",
   "alertStatus": {
