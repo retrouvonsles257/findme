@@ -215,7 +215,16 @@ export const getAlertes = async (filters?: AlerteFilters): Promise<Alerte[]> => 
   return data || [];
 };
 
-async function notifyCitizensAlerteContentUpdate(alerte: Alerte): Promise<number> {
+async function notifyCitizensInAlerteRayon(
+  alerte: Alerte,
+  payload: {
+    titre: string;
+    message: string;
+    event: string;
+    source: string;
+    type_notification?: string;
+  },
+): Promise<number> {
   const alertLat = alerte.latitude_centre ?? null;
   const alertLng = alerte.longitude_centre ?? null;
   const alertRayonKm = alerte.rayon_km ?? 50;
@@ -230,31 +239,59 @@ async function notifyCitizensAlerteContentUpdate(alerte: Alerte): Promise<number
 
   const dateCreation = new Date().toISOString();
   const notifications = destinataires.map((user: CitoyenNotifiable) => ({
-    type_notification: 'nouvelle_alerte',
-    titre: `Alerte mise à jour : ${alerte.titre}`,
-    message:
-      alerte.message_court ||
-      (alerte.message ? String(alerte.message).substring(0, 500) : alerte.titre),
+    type_notification: payload.type_notification || 'nouvelle_alerte',
+    titre: payload.titre,
+    message: payload.message,
     canal: 'push',
     lue: false,
     statut_envoi: 'en_attente',
     date_creation: dateCreation,
     id_utilisateur: user.id,
     id_alerte: alerte.id,
+    id_dossier: alerte.id_dossier ?? null,
     url_action: NotificationTargets.citizen.alerts(alerte.id),
     donnees_supplementaires: {
-      event: 'alerte_updated',
-      source: 'updateAlerte',
+      event: payload.event,
+      source: payload.source,
+      statut: alerte.statut_alerte,
       createdAt: dateCreation,
     },
   }));
 
   const { error: notifError } = await supabase.from('notification').insert(notifications as any);
   if (notifError) {
-    console.error('[alerteAPI] notifyCitizensAlerteContentUpdate failed:', notifError);
+    console.error('[alerteAPI] notifyCitizensInAlerteRayon failed:', notifError);
     return 0;
   }
   return notifications.length;
+}
+
+async function notifyCitizensAlerteContentUpdate(alerte: Alerte): Promise<number> {
+  return notifyCitizensInAlerteRayon(alerte, {
+    titre: `Alerte mise à jour : ${alerte.titre}`,
+    message:
+      alerte.message_court ||
+      (alerte.message ? String(alerte.message).substring(0, 500) : alerte.titre),
+    event: 'alerte_updated',
+    source: 'updateAlerte',
+  });
+}
+
+async function notifyCitizensAlerteStatutChange(alerte: Alerte, statut: string): Promise<number> {
+  const statutLabel =
+    statut === 'terminee'
+      ? 'clôturée'
+      : statut === 'annulee'
+        ? 'annulée'
+        : statut === 'en_cours'
+          ? 'active'
+          : statut;
+  return notifyCitizensInAlerteRayon(alerte, {
+    titre: `Alerte ${statutLabel} : ${alerte.titre}`,
+    message: `L'alerte « ${alerte.titre} » est passée au statut « ${statutLabel} ».`,
+    event: 'alerte_statut_changed',
+    source: 'updateAlerteStatut',
+  });
 }
 
 /**
@@ -339,6 +376,13 @@ export const updateAlerteStatut = async (
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Non authentifié');
 
+  const { data: beforeStatutRow } = await (supabase as any)
+    .from('alerte')
+    .select('statut_alerte')
+    .eq('id', id)
+    .maybeSingle();
+  const previousStatut = (beforeStatutRow as { statut_alerte?: string } | null)?.statut_alerte;
+
   const updateData: Record<string, any> = {
     statut_alerte: statut,
     updated_at: new Date().toISOString(),
@@ -357,6 +401,17 @@ export const updateAlerteStatut = async (
   }
 
   const result = await updateAlerte(id, updateData);
+
+  if (
+    previousStatut !== statut &&
+    (statut === StatutAlerteEnum.TERMINEE || statut === StatutAlerteEnum.ANNULEE)
+  ) {
+    try {
+      await notifyCitizensAlerteStatutChange(result, statut);
+    } catch (e) {
+      console.error('[alerteAPI] citizen statut notification failed:', e);
+    }
+  }
 
   // Notification FCM autorités: informer l'équipe des changements de cycle de vie d'alerte.
   try {

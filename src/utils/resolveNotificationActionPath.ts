@@ -103,6 +103,15 @@ export function resolveNotificationActionPath(
       const alerteId = strVal(record.id_alerte);
       if (alerteId) return NotificationTargets.authority.alerte(alerteId);
     }
+    if (
+      (evName === 'alerte_updated' ||
+        evName === 'alerte_statut_changed' ||
+        evName === 'nouvelle_alerte') &&
+      !isAuthority
+    ) {
+      const alerteId = strVal(record.id_alerte) || strVal(extra.alerte_id);
+      if (alerteId) return NotificationTargets.citizen.alerts(alerteId);
+    }
     if (evName === 'signalement_validated' && !isAuthority) {
       const sid = strVal(extra.signalement_id);
       if (sid) return NotificationTargets.citizen.signalement(sid);
@@ -205,7 +214,7 @@ export function resolveNotificationActionPath(
     if (d) return NotificationTargets.authority.dossier(d);
   }
   if (typeN === 'nouvelle_alerte') {
-    const alerteId = strVal(record.id_alerte);
+    const alerteId = strVal(record.id_alerte) || (extra && strVal(extra.alerte_id));
     return isAuthority
       ? (alerteId ? NotificationTargets.authority.alerte(alerteId) : NotificationTargets.authority.alertes())
       : NotificationTargets.citizen.alerts(alerteId || undefined);
@@ -228,11 +237,20 @@ export function resolveNotificationActionPath(
     }
   }
 
-  const idAlerte = strVal(record.id_alerte);
+  const idAlerte = strVal(record.id_alerte) || (extra && strVal(extra.alerte_id));
   if (idAlerte) {
-    return isAuthority
-      ? NotificationTargets.authority.alerte(idAlerte)
-      : NotificationTargets.citizen.alerts(idAlerte);
+    const ev = extra && strVal(extra.event);
+    const preferAlertePage =
+      typeN === 'nouvelle_alerte' ||
+      ev === 'alerte_updated' ||
+      ev === 'alerte_statut_changed' ||
+      ev === 'nouvelle_alerte' ||
+      !strVal(record.id_dossier);
+    if (preferAlertePage) {
+      return isAuthority
+        ? NotificationTargets.authority.alerte(idAlerte)
+        : NotificationTargets.citizen.alerts(idAlerte);
+    }
   }
 
   const idDossier = strVal(record.id_dossier);

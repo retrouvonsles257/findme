@@ -302,6 +302,21 @@
   box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.24);
 }
 
+.alertes__card-dossier-link {
+  margin-left: auto;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  color: #0369a1;
+  background: transparent;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.alertes__card-dossier-link:hover {
+  background: #f0f9ff;
+}
+
 .alertes__card-media {
   position: relative;
   width: 100%;

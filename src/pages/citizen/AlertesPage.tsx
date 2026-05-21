@@ -205,11 +205,15 @@ export const CitizenAlertesPage: React.FC = () => {
     dismissAlert(alertId);
   };
 
-  // Naviguer vers les détails
-  const handleViewDetails = (alerteId: string, dossierId?: string) => {
-    if (dossierId) {
-      navigate(`/citizen/dossier/${dossierId}`);
-    }
+  // Ouvrir l’alerte (statut alerte), pas le dossier lié
+  const handleViewDetails = (alerteId: string) => {
+    const params = new URLSearchParams({ alerte: alerteId });
+    navigate(`/citizen/alerts?${params.toString()}`);
+  };
+
+  const handleOpenDossier = (dossierId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    navigate(`/citizen/dossier/${dossierId}`);
   };
 
   const isLoading = loadingAlertes || loadingProximity;
@@ -368,7 +372,7 @@ export const CitizenAlertesPage: React.FC = () => {
                       key={alerte.id}
                       id={`citizen-alerte-${alerte.id}`}
                       className={styles['alertes__card']}
-                      onClick={() => handleViewDetails(alerte.id, alerte.id_dossier)}
+                      onClick={() => handleViewDetails(alerte.id)}
                     >
                       <div className={styles['alertes__card-media']}>
                         {photo ? (
@@ -398,6 +402,15 @@ export const CitizenAlertesPage: React.FC = () => {
                               <MapPin size={14} />
                               {t('citizen.radiusKm').replace('{{radius}}', String(alerte.rayon_km))}
                             </span>
+                          )}
+                          {alerte.id_dossier && (
+                            <button
+                              type="button"
+                              className={styles['alertes__card-dossier-link']}
+                              onClick={(e) => handleOpenDossier(alerte.id_dossier, e)}
+                            >
+                              {t('citizen.viewLinkedDossier')}
+                            </button>
                           )}
                         </div>
                       </div>

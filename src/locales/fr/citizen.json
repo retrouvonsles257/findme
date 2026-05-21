@@ -224,6 +224,7 @@
     },
     "distanceAway": "À {{distance}} km",
     "radiusKm": "{{radius}} km",
+    "viewLinkedDossier": "Voir le dossier lié",
     "views": "{{count}} vues",
     "shares": "{{count}} partages",
     "alertStatus": {

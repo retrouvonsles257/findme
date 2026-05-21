@@ -350,6 +350,15 @@ function resolveClickPath(
       const alerteId = strVal(record.id_alerte);
       if (alerteId) return `/authority/alertes/${alerteId}`;
     }
+    if (
+      (evName === 'alerte_updated' ||
+        evName === 'alerte_statut_changed' ||
+        evName === 'nouvelle_alerte') &&
+      !isAuthority
+    ) {
+      const alerteId = strVal(record.id_alerte) || strVal(extra.alerte_id);
+      if (alerteId) return `/citizen/alerts?alerte=${encodeURIComponent(alerteId)}`;
+    }
     if (evName === 'signalement_validated' && !isAuthority) {
       const sid = strVal(extra.signalement_id);
       if (sid) return `/citizen/signalement/${sid}`;

@@ -12,26 +12,73 @@ import { resolveNotificationActionPath } from '../../../utils/resolveNotificatio
 
 const db = { from: (table: string) => (supabase.from(table) as any) };
 
+async function resolveNotificationUserId(explicitUserId?: string): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  const authId = user?.id ?? null;
+  if (authId && explicitUserId && authId !== explicitUserId) {
+    console.warn('[notificationAPI] auth.uid ≠ userId Redux, utilisation de auth.uid()', {
+      authId: `${authId.slice(0, 8)}…`,
+      reduxId: `${explicitUserId.slice(0, 8)}…`,
+    });
+  }
+  return authId || explicitUserId || null;
+}
+
 /**
  * Map database notification to INotification
  */
-const mapDbToNotification = (n: any): INotification => ({
-  id: n.id,
-  title: n.titre,
-  message: n.message,
-  type: n.type_notification,
-  category: n.canal || 'in_app',
-  priority: n.priorite || 'moyenne',
-  user_id: n.id_utilisateur,
-  timestamp: new Date(n.date_creation),
-  read: n.lue,
-  readAt: n.date_lecture ? new Date(n.date_lecture) : undefined,
-  data: n.donnees_supplementaires,
-  action: (() => {
+const mapDbToNotification = (n: any): INotification => {
+  let action: { label: string; url: string } | undefined;
+  try {
     const url = resolveNotificationActionPath(n, 'citizen');
-    return url ? { label: 'Voir', url } : undefined;
-  })(),
-});
+    if (url) action = { label: 'Voir', url };
+  } catch (e) {
+    console.warn('[notificationAPI] resolveNotificationActionPath failed', e, n?.id);
+  }
+
+  const priorite = String(n.priorite || 'moyenne');
+  const priority =
+    priorite === 'haute' ? 'high' : priorite === 'basse' ? 'low' : ('medium' as const);
+
+  const typeRaw = String(n.type_notification || 'autre');
+  const uiType =
+    typeRaw === 'nouvelle_alerte' || typeRaw === 'message_autorite'
+      ? 'warning'
+      : typeRaw === 'signalement_valide' || typeRaw === 'personne_retrouvee'
+        ? 'success'
+        : typeRaw === 'mise_a_jour_dossier'
+          ? 'info'
+          : 'info';
+
+  const category =
+    typeRaw === 'nouvelle_alerte'
+      ? 'alert'
+      : typeRaw === 'message_autorite'
+        ? 'message'
+        : typeRaw.includes('signalement')
+          ? 'sighting'
+          : typeRaw.includes('dossier')
+            ? 'missing-person'
+            : 'system';
+
+  return {
+    id: String(n.id),
+    title: n.titre || '',
+    message: n.message || n.message_court || '',
+    type: uiType,
+    category,
+    priority,
+    user_id: n.id_utilisateur,
+    timestamp: new Date(n.date_creation || Date.now()),
+    read: Boolean(n.lue),
+    readAt: n.date_lecture ? new Date(n.date_lecture) : undefined,
+    data:
+      typeof n.donnees_supplementaires === 'object' && n.donnees_supplementaires != null
+        ? n.donnees_supplementaires
+        : undefined,
+    action,
+  };
+};
 
 /**
  * Create a new notification
@@ -60,11 +107,27 @@ export const createNotification = async (
  * Get all notifications for a user
  */
 export const getNotifications = async (userId: string): Promise<INotification[]> => {
+  const effectiveUserId = await resolveNotificationUserId(userId);
+  if (!effectiveUserId) return [];
+
+  const { data: rpcRows, error: rpcErr } = await (supabase as any).rpc('get_my_notifications', {
+    p_limit: 200,
+  });
+
+  if (!rpcErr && Array.isArray(rpcRows)) {
+    return rpcRows.map(mapDbToNotification);
+  }
+
+  if (rpcErr && !rpcErr.message?.includes('Could not find the function')) {
+    console.warn('[notificationAPI] get_my_notifications RPC:', rpcErr.message);
+  }
+
   const { data, error } = await db
     .from('notification')
     .select('*')
-    .eq('id_utilisateur', userId)
-    .order('date_creation', { ascending: false });
+    .eq('id_utilisateur', effectiveUserId)
+    .order('date_creation', { ascending: false })
+    .limit(200);
 
   if (error) throw error;
   return (data || []).map(mapDbToNotification);
@@ -74,10 +137,13 @@ export const getNotifications = async (userId: string): Promise<INotification[]>
  * Get unread notifications count
  */
 export const getUnreadCount = async (userId: string): Promise<number> => {
+  const effectiveUserId = await resolveNotificationUserId(userId);
+  if (!effectiveUserId) return 0;
+
   const { count, error } = await db
     .from('notification')
-    .select('*', { count: 'exact' })
-    .eq('id_utilisateur', userId)
+    .select('*', { count: 'exact', head: true })
+    .eq('id_utilisateur', effectiveUserId)
     .eq('lue', false);
 
   if (error) throw error;
