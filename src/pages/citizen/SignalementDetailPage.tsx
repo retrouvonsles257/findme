@@ -313,7 +313,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
           </div>
         )}
 
-        {signalementId && signalement.id_dossier && (
+        {signalementId && (
           <div className={styles.descriptionSection}>
             <h3>{t('citizen.dossierPublic.tabMessagerie')}</h3>
             <CitizenSignalementMessagerieSection

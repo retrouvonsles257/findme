@@ -77,13 +77,22 @@ export const CitizenSignalementMessagerieSection: React.FC<CitizenSignalementMes
       if (!signalementId || !userId) return;
       setLoading(true);
       try {
-        await refresh();
+        let c = await getConversationBySignalementId(signalementId);
+        if (!c) {
+          try {
+            c = await ensureConversationForSignalement(signalementId);
+          } catch {
+            /* fil peut être créé plus tard par l’autorité */
+          }
+        }
+        if (!cancelled) await refresh();
       } catch (e: unknown) {
         if (!cancelled) {
           addNotification({
             title: t('errors.generic'),
             message: (e as { message?: string })?.message || '',
             type: 'error',
+            duration: 10000,
           });
         }
       } finally {

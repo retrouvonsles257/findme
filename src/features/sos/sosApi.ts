@@ -218,6 +218,11 @@ export async function listAuthoritySosEvents(limit = 200): Promise<SosEventRow[]
   return (data || []) as SosEventRow[];
 }
 
+function formatSupabaseError(err: { message?: string; details?: string; hint?: string; code?: string }): string {
+  const parts = [err.message, err.details, err.hint].filter(Boolean);
+  return parts.join(' — ') || err.code || 'Erreur inconnue';
+}
+
 export async function markSosEventHandled(eventId: string, authorityUserId: string): Promise<void> {
   const { error: rpcErr } = await db().rpc('mark_sos_event_handled', { p_event_id: eventId });
   if (!rpcErr) return;
@@ -228,7 +233,9 @@ export async function markSosEventHandled(eventId: string, authorityUserId: stri
     rpcMsg.includes('could not find the function') ||
     rpcMsg.includes('mark_sos_event_handled');
 
-  if (!rpcMissing) throw rpcErr;
+  if (!rpcMissing) {
+    throw new Error(formatSupabaseError(rpcErr));
+  }
 
   const now = new Date().toISOString();
   const { data, error } = await db()

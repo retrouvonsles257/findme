@@ -1786,6 +1786,7 @@
     },
     "markHandled": "Marquer comme pris en charge",
     "markHandledConfirm": "Confirmer que cette alerte a été prise en charge ?",
+    "markHandledFailed": "Impossible de marquer le SOS comme traité",
     "handledOk": "Statut mis à jour.",
     "openMap": "Carte",
     "citizen": "Citoyen",

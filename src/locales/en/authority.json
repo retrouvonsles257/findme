@@ -1785,6 +1785,7 @@
     },
     "markHandled": "Mark as handled",
     "markHandledConfirm": "Confirm this alert has been handled?",
+    "markHandledFailed": "Could not mark SOS as handled",
     "handledOk": "Status updated.",
     "openMap": "Map",
     "citizen": "Citizen",

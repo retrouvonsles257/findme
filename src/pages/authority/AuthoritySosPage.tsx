@@ -130,8 +130,14 @@ export const AuthoritySosPage: React.FC = () => {
       await markSosEventHandled(id, user.id);
       addNotification({ title: t('authority.sos.handledOk'), message: '', type: 'success' });
       await load();
-    } catch (e: any) {
-      addNotification({ title: t('errors.generic'), message: e?.message || '', type: 'error' });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      addNotification({
+        title: t('authority.sos.markHandledFailed'),
+        message: msg,
+        type: 'error',
+        duration: 12000,
+      });
     }
   };
 
