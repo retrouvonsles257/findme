@@ -349,6 +349,8 @@ class SupabaseAuthService {
           statut_compte: 'actif',
           type_compte: 'grand_public',
           pays: 'Cameroun',
+          accepte_notifications: true,
+          accepte_geolocalisation: false,
           score_fiabilite: 100.00
         });
 

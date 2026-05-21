@@ -292,11 +292,54 @@ export const CitizenLayout: React.FC<CitizenLayoutProps> = ({
     localStorage.setItem('citizenSidebarCollapsed', String(isCollapsed));
   }, [isCollapsed]);
 
-  // Charger les notifications pour le header
+  // Notifications cloche : chargement initial + navigation + realtime (comme AuthorityHeader)
   useEffect(() => {
-    if (userId) {
-      fetchNotifications(userId);
-    }
+    if (!userId) return;
+    void fetchNotifications(userId);
+  }, [userId, location.pathname, fetchNotifications]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channelName = `citizen-header-notif:${userId}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notification',
+          filter: `id_utilisateur=eq.${userId}`,
+        },
+        () => {
+          void fetchNotifications(userId);
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[CitizenLayout] Realtime notifications:', status, channelName);
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, fetchNotifications]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const refresh = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchNotifications(userId);
+      }
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [userId, fetchNotifications]);
 
   // Fermer le menu utilisateur au clic extérieur

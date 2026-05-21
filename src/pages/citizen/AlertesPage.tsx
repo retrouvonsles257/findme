@@ -5,8 +5,10 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCitizenAlertes } from '../../features/alertes/hooks/useCitizenAlertes';
 import { getCitizenAlerteById } from '../../features/alertes/services/citizenAlerteAPI';
+import { useNotifications } from '../../features/notifications/hooks';
 import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
+import { maybeSyncCitizenGpsToProfileDebounced } from '../../features/users/services/citizenLocationSync';
 import { useI18n } from '../../hooks';
 import { useAppSelector } from '../../store/types';
 import { selectUser } from '../../features/auth/store/authSelectors';
@@ -63,6 +65,7 @@ export const CitizenAlertesPage: React.FC = () => {
   const userId = (currentUser as { id?: string } | null)?.id;
 
   const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useCitizenAlertes();
+  const { fetchNotifications } = useNotifications();
   const {
     proximityAlerts,
     activeAlerts,
@@ -146,8 +149,21 @@ export const CitizenAlertesPage: React.FC = () => {
         accuracy: currentLocation.accuracy || 0,
         timestamp: Date.now(),
       });
+      if (userId) {
+        void maybeSyncCitizenGpsToProfileDebounced(
+          userId,
+          currentLocation.latitude,
+          currentLocation.longitude,
+        );
+      }
     }
-  }, [currentLocation, checkProximity]);
+  }, [currentLocation, checkProximity, userId]);
+
+  useEffect(() => {
+    if (userId) {
+      void fetchNotifications(userId);
+    }
+  }, [userId, fetchNotifications]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

@@ -79,13 +79,15 @@ export async function maybeSyncCitizenGpsToProfile(
     }
     if (!row) return { synced: false, reason: 'no_row' };
 
-    if (!row.accepte_geolocalisation) {
-      return { synced: false, reason: 'geolocalisation_desactivee' };
-    }
-
     const prefs = (row.preferences_notification || {}) as Record<string, unknown>;
     if (prefs.partager_position === false) {
       return { synced: false, reason: 'partager_position_desactive' };
+    }
+
+    // Comptes inscrits : accepte_geolocalisation=FALSE par défaut en base — le client envoie
+    // des coords uniquement si le navigateur a accordé la géoloc (RPC active aussi le flag).
+    if (!row.accepte_geolocalisation) {
+      await setCitizenGeolocationConsent(userId, true);
     }
 
     const { error: upErr } = await (supabase as any).rpc('maj_position_citoyen', {

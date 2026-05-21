@@ -140,6 +140,13 @@ export const getUnreadCount = async (userId: string): Promise<number> => {
   const effectiveUserId = await resolveNotificationUserId(userId);
   if (!effectiveUserId) return 0;
 
+  const { data: rpcCount, error: rpcErr } = await (supabase as any).rpc(
+    'get_my_unread_notifications_count',
+  );
+  if (!rpcErr && rpcCount != null) {
+    return Number(rpcCount) || 0;
+  }
+
   const { count, error } = await db
     .from('notification')
     .select('*', { count: 'exact', head: true })

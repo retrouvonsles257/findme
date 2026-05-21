@@ -527,6 +527,24 @@ function logDiffuse(phase: string, data: Record<string, unknown>): void {
 async function fetchAllCitoyensNotifiables(): Promise<
   { id: string; latitude_actuelle: number | null; longitude_actuelle: number | null }[]
 > {
+  const { data: rpcRows, error: rpcErr } = await (supabase as any).rpc(
+    'list_citoyens_alerte_diffusion_candidates',
+  );
+
+  if (!rpcErr && Array.isArray(rpcRows)) {
+    const mapped = rpcRows.map((r: Record<string, unknown>) => ({
+      id: String(r.id),
+      latitude_actuelle: r.latitude_actuelle as number | null,
+      longitude_actuelle: r.longitude_actuelle as number | null,
+    }));
+    logDiffuse('fetch_citoyens_rpc', { total: mapped.length });
+    return mapped;
+  }
+
+  if (rpcErr && !String(rpcErr.message || '').includes('Could not find the function')) {
+    logDiffuse('fetch_citoyens_rpc_error', { message: rpcErr.message, code: (rpcErr as any).code });
+  }
+
   const pageSize = 800;
   const rows: { id: string; latitude_actuelle: number | null; longitude_actuelle: number | null }[] = [];
   let from = 0;
@@ -594,6 +612,8 @@ export type DiffusionDestinatairesResult = {
   sansCentreSurAlerte: boolean;
   excludedSansPosition: number;
   excludedHorsRayon: number;
+  excludedSansPositionIds: string[];
+  excludedHorsRayonIds: string[];
   geoFallbackApplied: boolean;
   totalNotifiables: number;
 };
@@ -643,6 +663,8 @@ export function computeDestinatairesAlerteDiffusion(
         sansCentreSurAlerte: true,
         excludedSansPosition: 0,
         excludedHorsRayon: 0,
+        excludedSansPositionIds: [],
+        excludedHorsRayonIds: [],
         geoFallbackApplied: false,
         totalNotifiables,
       };
@@ -653,6 +675,8 @@ export function computeDestinatairesAlerteDiffusion(
       sansCentreSurAlerte: true,
       excludedSansPosition: 0,
       excludedHorsRayon: 0,
+      excludedSansPositionIds: [],
+      excludedHorsRayonIds: [],
       geoFallbackApplied: false,
       totalNotifiables,
     };
@@ -660,16 +684,24 @@ export function computeDestinatairesAlerteDiffusion(
 
   let excludedSansPosition = 0;
   let excludedHorsRayon = 0;
+  const excludedSansPositionIds: string[] = [];
+  const excludedHorsRayonIds: string[] = [];
   let destinataires = rawUsers.filter((u: CitoyenNotifiable) => {
     const lat = u.latitude_actuelle;
     const lng = u.longitude_actuelle;
     if (lat == null || lng == null) {
       excludedSansPosition += 1;
+      if (excludedSansPositionIds.length < 8) {
+        excludedSansPositionIds.push(`${String(u.id).slice(0, 8)}…`);
+      }
       return false;
     }
     const d = distanceKm(latN, lngN, lat, lng);
     if (d > alertRayonKm) {
       excludedHorsRayon += 1;
+      if (excludedHorsRayonIds.length < 8) {
+        excludedHorsRayonIds.push(`${String(u.id).slice(0, 8)}…(d=${d.toFixed(1)}km)`);
+      }
       return false;
     }
     return true;
@@ -688,6 +720,8 @@ export function computeDestinatairesAlerteDiffusion(
     sansCentreSurAlerte: false,
     excludedSansPosition,
     excludedHorsRayon,
+    excludedSansPositionIds,
+    excludedHorsRayonIds,
     geoFallbackApplied,
     totalNotifiables,
   };
@@ -784,6 +818,8 @@ export const diffuserAlerte = async (
     sansCentreSurAlerte,
     excludedSansPosition,
     excludedHorsRayon,
+    excludedSansPositionIds,
+    excludedHorsRayonIds,
     geoFallbackApplied,
     totalNotifiables,
   } = computed;
@@ -826,6 +862,11 @@ export const diffuserAlerte = async (
   }
 
   const idSample = destinataires.slice(0, 8).map((u: any) => String(u.id).slice(0, 8) + '…');
+  const { data: authSnap } = await supabase.auth.getUser();
+  const authUid = authSnap?.user?.id;
+  const authInDestinataires = authUid
+    ? destinataires.some((u: CitoyenNotifiable) => u.id === authUid)
+    : false;
 
   logDiffuse('candidats', {
     traceId: diffusionTraceId,
@@ -833,9 +874,17 @@ export const diffuserAlerte = async (
     destinataires_finaux: destinataires.length,
     excludedSansPosition: useGeo ? excludedSansPosition : 0,
     excludedHorsRayon: useGeo ? excludedHorsRayon : 0,
+    excludedSansPositionIds,
+    excludedHorsRayonIds,
     geo_fallback_all_notifiables: geoFallbackApplied,
     sans_centre: sansCentreSurAlerte,
     idSample,
+    hint:
+      useGeo && excludedSansPosition > 0
+        ? 'Citoyens sans latitude_actuelle/longitude_actuelle en base (souvent comptes inscrits vs Invité anonyme) — ouvrir /citizen/alerts avec géoloc navigateur accordée.'
+        : undefined,
+    authUidInDestinataires: authInDestinataires,
+    authUidPrefix: authUid ? `${authUid.slice(0, 8)}…` : null,
   });
 
   const canal = (canaux && canaux[0]) || 'push';
