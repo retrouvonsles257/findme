@@ -219,8 +219,19 @@ export async function listAuthoritySosEvents(limit = 200): Promise<SosEventRow[]
 }
 
 export async function markSosEventHandled(eventId: string, authorityUserId: string): Promise<void> {
+  const { error: rpcErr } = await db().rpc('mark_sos_event_handled', { p_event_id: eventId });
+  if (!rpcErr) return;
+
+  const rpcMsg = (rpcErr.message || '').toLowerCase();
+  const rpcMissing =
+    rpcErr.code === 'PGRST202' ||
+    rpcMsg.includes('could not find the function') ||
+    rpcMsg.includes('mark_sos_event_handled');
+
+  if (!rpcMissing) throw rpcErr;
+
   const now = new Date().toISOString();
-  const { error } = await db()
+  const { data, error } = await db()
     .from('sos_event')
     .update({
       statut: 'traite',
@@ -228,8 +239,13 @@ export async function markSosEventHandled(eventId: string, authorityUserId: stri
       handled_by: authorityUserId,
     })
     .eq('id', eventId)
-    .eq('statut', 'envoye');
+    .eq('statut', 'envoye')
+    .select('id')
+    .maybeSingle();
   if (error) throw error;
+  if (!data?.id) {
+    throw new Error('SOS introuvable ou déjà traité');
+  }
 }
 
 export async function assignSosEventToOrganisation(eventId: string, organisationId: string | null): Promise<void> {

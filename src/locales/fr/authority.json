@@ -697,6 +697,12 @@
       "preview": {
         "title": "Aperçu"
       },
+      "publishPreview": {
+        "title": "Confirmer la diffusion",
+        "intro": "Vérifiez le nombre de citoyens qui recevront une notification push et in-app.",
+        "recipients": "citoyen(s) seront notifié(s)",
+        "confirm": "Créer et publier"
+      },
       "actions": {
         "cancel": "Annuler",
         "saveDraft": "Enregistrer brouillon",
@@ -1754,6 +1760,7 @@
     "messagesTitle": "Fil de discussion",
     "noThread": "Aucun fil n’est encore associé. Créez-le pour échanger avec le citoyen ou en interne.",
     "openThread": "Créer le fil de messagerie",
+    "orgRequiredHint": "Votre compte autorité doit être rattaché à une organisation pour ouvrir un fil sur ce signalement.",
     "threadReady": "Fil de messagerie prêt.",
     "placeholder": "Écrire un message…",
     "markTraite": "Marquer traité",

@@ -185,21 +185,28 @@
   color: #fff;
 }
 
-.signalements__card-media .signalements__status--approved {
-  background: #0284c7;
+.signalements__card-status.signalements__status--approved {
+  background: #0369a1;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-.signalements__card-media .signalements__status--pending {
-  background: #d97706;
+.signalements__card-status.signalements__status--pending {
+  background: #b45309;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-.signalements__card-media .signalements__status--other {
-  background: rgba(100, 116, 139, 0.95);
+.signalements__card-status.signalements__status--other {
+  background: #475569;
   color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-.signalements__card-media .signalements__status--rejected {
+.signalements__card-status.signalements__status--rejected {
   background: #991b1b;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .signalements__card-body {

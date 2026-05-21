@@ -215,10 +215,58 @@ export const getAlertes = async (filters?: AlerteFilters): Promise<Alerte[]> => 
   return data || [];
 };
 
+async function notifyCitizensAlerteContentUpdate(alerte: Alerte): Promise<number> {
+  const alertLat = alerte.latitude_centre ?? null;
+  const alertLng = alerte.longitude_centre ?? null;
+  const alertRayonKm = alerte.rayon_km ?? 50;
+  const rawUsers = await fetchAllCitoyensNotifiables();
+  const { destinataires } = computeDestinatairesAlerteDiffusion(
+    rawUsers,
+    alertLat,
+    alertLng,
+    alertRayonKm,
+  );
+  if (destinataires.length === 0) return 0;
+
+  const dateCreation = new Date().toISOString();
+  const notifications = destinataires.map((user: CitoyenNotifiable) => ({
+    type_notification: 'nouvelle_alerte',
+    titre: `Alerte mise à jour : ${alerte.titre}`,
+    message:
+      alerte.message_court ||
+      (alerte.message ? String(alerte.message).substring(0, 500) : alerte.titre),
+    canal: 'push',
+    lue: false,
+    statut_envoi: 'en_attente',
+    date_creation: dateCreation,
+    id_utilisateur: user.id,
+    id_alerte: alerte.id,
+    url_action: NotificationTargets.citizen.alerts(alerte.id),
+    donnees_supplementaires: {
+      event: 'alerte_updated',
+      source: 'updateAlerte',
+      createdAt: dateCreation,
+    },
+  }));
+
+  const { error: notifError } = await supabase.from('notification').insert(notifications as any);
+  if (notifError) {
+    console.error('[alerteAPI] notifyCitizensAlerteContentUpdate failed:', notifError);
+    return 0;
+  }
+  return notifications.length;
+}
+
 /**
  * Mettre à jour une alerte
  */
 export const updateAlerte = async (id: string, input: AlerteUpdateInput): Promise<Alerte> => {
+  const { data: beforeRow } = await (supabase as any)
+    .from('alerte')
+    .select('titre, message, message_court, rayon_km, statut_alerte, latitude_centre, longitude_centre')
+    .eq('id', id)
+    .maybeSingle();
+
   const { data, error } = (await (supabase as any)
     .from('alerte')
     .update({
@@ -230,7 +278,24 @@ export const updateAlerte = async (id: string, input: AlerteUpdateInput): Promis
     .single()) as any;
 
   if (error) throw error;
-  return data;
+
+  const before = beforeRow as Alerte | null;
+  const after = data as Alerte;
+  const contentChanged =
+    (input.titre != null && input.titre !== before?.titre) ||
+    (input.message != null && input.message !== before?.message) ||
+    (input.message_court != null && input.message_court !== before?.message_court) ||
+    (input.rayon_km != null && input.rayon_km !== before?.rayon_km);
+
+  if (contentChanged && after.statut_alerte === StatutAlerteEnum.EN_COURS) {
+    try {
+      await notifyCitizensAlerteContentUpdate(after);
+    } catch (e) {
+      console.error('[alerteAPI] citizen update notification failed:', e);
+    }
+  }
+
+  return after;
 };
 
 /**

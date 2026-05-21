@@ -106,6 +106,12 @@
       "preview": {
         "title": "Preview"
       },
+      "publishPreview": {
+        "title": "Confirm broadcast",
+        "intro": "Check how many citizens will receive a push and in-app notification.",
+        "recipients": "citizen(s) will be notified",
+        "confirm": "Create and publish"
+      },
       "actions": {
         "cancel": "Cancel",
         "saveDraft": "Save Draft",
@@ -1753,6 +1759,7 @@
     "messagesTitle": "Discussion thread",
     "noThread": "No thread yet. Create it to exchange with the citizen or internally.",
     "openThread": "Create messaging thread",
+    "orgRequiredHint": "Your authority account must be linked to an organisation to open a thread on this report.",
     "threadReady": "Messaging thread is ready.",
     "placeholder": "Write a message…",
     "markTraite": "Mark as handled",

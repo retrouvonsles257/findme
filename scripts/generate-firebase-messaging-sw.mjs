@@ -117,12 +117,22 @@ self.addEventListener('notificationclick', function (event) {
         var client = windowClients[i];
         if (client.url.indexOf(targetOrigin) === 0 && 'focus' in client) {
           return client.focus().then(function (focused) {
+            if (focused && 'postMessage' in focused) {
+              focused.postMessage({ type: 'NOTIFICATION_CLICK', url: targetUrl });
+            }
             if (focused && 'navigate' in focused && typeof focused.navigate === 'function') {
-              return focused.navigate(targetUrl);
+              return focused.navigate(targetUrl).catch(function () {
+                if (focused && 'postMessage' in focused) {
+                  focused.postMessage({ type: 'NOTIFICATION_CLICK', url: targetUrl });
+                }
+              });
             }
           });
         }
       }
+      try {
+        sessionStorage.setItem('rll_pending_push_url', targetUrl);
+      } catch (e) { /* ignore */ }
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }

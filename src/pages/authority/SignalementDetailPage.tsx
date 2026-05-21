@@ -529,18 +529,21 @@ export const SignalementDetailPage: React.FC<SignalementDetailPageProps> = ({ no
             </div>
           )}
 
-          {dossier && id && (
+          {id && signalement?.id_dossier && (
             <div className={styles.card}>
               <h2>
                 <MessageSquare size={20} /> {t('authority.signalementDetail.sections.messagerie')}
               </h2>
+              {!dossier?.id_organisation_responsable && (
+                <p className={styles.mutedHint}>{t('authority.messagerieContext.orgRequiredHint')}</p>
+              )}
               <AuthorityContextMessagerieTab
                 kind="signalement"
                 entityId={id}
                 signalementMeta={{
                   signalementId: id,
                   reporterUserId: signalement.id_utilisateur ?? null,
-                  responsibleOrgId: dossier.id_organisation_responsable ?? null,
+                  responsibleOrgId: dossier?.id_organisation_responsable ?? null,
                 }}
               />
             </div>

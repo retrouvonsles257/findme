@@ -12,6 +12,8 @@ import { useAlertes } from '../../features/alertes/hooks/useAlertes';
 import { useProximityAlerts } from '../../features/geolocalisation/hooks/useProximityAlerts';
 import { useGeolocation } from '../../features/geolocalisation/hooks/useGeolocation';
 import { useI18n } from '../../hooks';
+import { useAppSelector } from '../../store/types';
+import { selectUser } from '../../features/auth/store/authSelectors';
 import { CitizenLayout } from './CitizenLayout';
 import { supabase } from '../../config';
 import {
@@ -39,6 +41,8 @@ export const CitizenAlertesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const focusAlerteId = searchParams.get('alerte');
+  const currentUser = useAppSelector(selectUser);
+  const userId = (currentUser as { id?: string } | null)?.id;
 
   // Hooks
   const { alertes, loading: loadingAlertes, error: errorAlertes, fetchAlertes } = useAlertes();
@@ -62,6 +66,28 @@ export const CitizenAlertesPage: React.FC = () => {
   useEffect(() => {
     fetchAlertes();
   }, [fetchAlertes]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`citizen-alertes-notif:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notification',
+          filter: `id_utilisateur=eq.${userId}`,
+        },
+        () => {
+          void fetchAlertes();
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, fetchAlertes]);
 
   // Charger les photos des dossiers liés aux alertes
   const loadDossierPhotos = useCallback(async (ids: string[]) => {

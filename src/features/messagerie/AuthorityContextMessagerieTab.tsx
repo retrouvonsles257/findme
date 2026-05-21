@@ -137,6 +137,14 @@ export const AuthorityContextMessagerieTab: React.FC<AuthorityContextMessagerieT
 
   const onEnsureThread = async () => {
     if (!entityId || !userId) return;
+    if (kind === 'signalement' && !orgId) {
+      addNotification({
+        title: t('errors.generic'),
+        message: t('authority.messagerieContext.orgRequiredHint'),
+        type: 'error',
+      });
+      return;
+    }
     setEnsuring(true);
     try {
       if (kind === 'dossier') {

@@ -12,6 +12,7 @@ import {
   listOrganisationsForPreDeclaration,
 } from '../../features/preDeclarations/preDeclarationApi';
 import { useNotification } from '../../contexts';
+import { DisappearanceLocationFields } from '../../components/forms/DisappearanceLocationFields';
 import styles from './PreDeclarationCommon.module.css';
 
 const TYPES = [
@@ -53,6 +54,8 @@ export const CitizenPreDeclarationNewPage: React.FC = () => {
   const [ville, setVille] = useState('');
   const [region, setRegion] = useState('');
   const [pays, setPays] = useState('Cameroun');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [typeDisparition, setTypeDisparition] = useState<string>('inconnue');
   const [niveauUrgence, setNiveauUrgence] = useState<string>('normal');
   const [circonstances, setCirconstances] = useState('');
@@ -116,6 +119,8 @@ export const CitizenPreDeclarationNewPage: React.FC = () => {
           ville_disparition: ville || null,
           region_disparition: region || null,
           pays_disparition: pays,
+          latitude_disparition: latitude,
+          longitude_disparition: longitude,
           type_disparition: typeDisparition,
           niveau_urgence: niveauUrgence,
           circonstances: circonstances.trim(),
@@ -150,6 +155,8 @@ export const CitizenPreDeclarationNewPage: React.FC = () => {
       ville,
       region,
       pays,
+      latitude,
+      longitude,
       typeDisparition,
       niveauUrgence,
       circonstances,
@@ -255,26 +262,24 @@ export const CitizenPreDeclarationNewPage: React.FC = () => {
             </select>
           </div>
 
-          <div className={styles.field}>
-            <label>{t('citizen.preDeclaration.fieldLieu')}</label>
-            <input value={lieu} onChange={(e) => setLieu(e.target.value)} />
-          </div>
-
-          <div className={styles.grid2}>
-            <div className={styles.field}>
-              <label>{t('citizen.preDeclaration.fieldVille')}</label>
-              <input value={ville} onChange={(e) => setVille(e.target.value)} />
-            </div>
-            <div className={styles.field}>
-              <label>{t('citizen.preDeclaration.fieldRegion')}</label>
-              <input value={region} onChange={(e) => setRegion(e.target.value)} />
-            </div>
-          </div>
-
-          <div className={styles.field}>
-            <label>{t('citizen.preDeclaration.fieldPays')}</label>
-            <input value={pays} onChange={(e) => setPays(e.target.value)} />
-          </div>
+          <DisappearanceLocationFields
+            value={{
+              lieu_disparition: lieu,
+              ville_disparition: ville,
+              region_disparition: region,
+              pays_disparition: pays,
+              latitude_disparition: latitude,
+              longitude_disparition: longitude,
+            }}
+            onChange={(patch) => {
+              if (patch.lieu_disparition !== undefined) setLieu(patch.lieu_disparition);
+              if (patch.ville_disparition !== undefined) setVille(patch.ville_disparition);
+              if (patch.region_disparition !== undefined) setRegion(patch.region_disparition);
+              if (patch.pays_disparition !== undefined) setPays(patch.pays_disparition);
+              if (patch.latitude_disparition !== undefined) setLatitude(patch.latitude_disparition);
+              if (patch.longitude_disparition !== undefined) setLongitude(patch.longitude_disparition);
+            }}
+          />
 
           <div className={styles.field}>
             <label>{t('citizen.preDeclaration.fieldCirconstances')}</label>

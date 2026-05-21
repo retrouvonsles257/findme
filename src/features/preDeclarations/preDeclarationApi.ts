@@ -657,10 +657,33 @@ export async function getConversationBySignalementId(signalementId: string): Pro
   return (data as ConversationRow) || null;
 }
 
-/** Crée le fil dossier s’il n’existe pas (citoyen créateur ou autorité responsable, RLS). */
+async function ensureConversationViaRpc(
+  kind: 'dossier' | 'signalement',
+  entityId: string,
+): Promise<ConversationRow> {
+  const { data: convId, error: rpcErr } = await db().rpc('ensure_messagerie_conversation', {
+    p_kind: kind,
+    p_entity_id: entityId,
+  });
+  if (rpcErr) throw rpcErr;
+  const id = convId as string;
+  const { data, error } = await db().from('conversation').select('*').eq('id', id).single();
+  if (error) throw error;
+  return data as ConversationRow;
+}
+
+/** Crée le fil dossier s’il n’existe pas (citoyen créateur ou autorité responsable). */
 export async function ensureConversationForDossier(dossierId: string): Promise<ConversationRow> {
   const existing = await getConversationByDossierId(dossierId);
   if (existing) return existing;
+  try {
+    return await ensureConversationViaRpc('dossier', dossierId);
+  } catch (rpcErr: unknown) {
+    const msg = (rpcErr as { message?: string })?.message || '';
+    if (!msg.includes('Could not find the function') && !msg.includes('PGRST202')) {
+      throw rpcErr;
+    }
+  }
   const now = new Date().toISOString();
   const { data, error } = await db()
     .from('conversation')
@@ -678,10 +701,18 @@ export async function ensureConversationForDossier(dossierId: string): Promise<C
   return data as ConversationRow;
 }
 
-/** Crée le fil signalement s’il n’existe pas (auteur signalement ou autorité du dossier lié, RLS). */
+/** Crée le fil signalement s’il n’existe pas (auteur signalement ou autorité du dossier lié). */
 export async function ensureConversationForSignalement(signalementId: string): Promise<ConversationRow> {
   const existing = await getConversationBySignalementId(signalementId);
   if (existing) return existing;
+  try {
+    return await ensureConversationViaRpc('signalement', signalementId);
+  } catch (rpcErr: unknown) {
+    const msg = (rpcErr as { message?: string })?.message || '';
+    if (!msg.includes('Could not find the function') && !msg.includes('PGRST202')) {
+      throw rpcErr;
+    }
+  }
   const now = new Date().toISOString();
   const { data, error } = await db()
     .from('conversation')

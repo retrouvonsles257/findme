@@ -85,6 +85,12 @@
   gap: 20px;
 }
 
+.mutedHint {
+  margin: 0 0 1rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .card {
   background: white;
   padding: 24px;

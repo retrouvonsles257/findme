@@ -32,7 +32,7 @@ import { envConfig } from './config';
 import AppRoutes from './routes/AppRoutes';
 import { AuthSessionRestorer } from './features/auth/components/AuthSessionRestorer';
 import { GlobalAuthLoadingOverlay } from './features/auth/components/GlobalAuthLoadingOverlay';
-import { UserPushGlobalSync } from './features/notifications/components';
+import { PushNavigationBridge, UserPushGlobalSync } from './features/notifications/components';
 import { SystemMaintenanceGate } from './features/system';
 
 // Styles
@@ -102,6 +102,7 @@ const App: React.FC = () => {
             <I18nProvider>
               <AuthProvider>
                 <UserPushGlobalSync />
+                <PushNavigationBridge />
                 <GeolocationProvider>
                   <NotificationProvider>
                     <WebSocketProvider>

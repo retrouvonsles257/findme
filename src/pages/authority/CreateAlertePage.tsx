@@ -78,6 +78,13 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
     excludedHorsRayon: number;
   } | null>(null);
   const [confirmZeroRecipientsOpen, setConfirmZeroRecipientsOpen] = useState(false);
+  const [publishPreviewOpen, setPublishPreviewOpen] = useState(false);
+  const [publishPreview, setPublishPreview] = useState<{
+    destinataires: number;
+    excludedSansPosition: number;
+    excludedHorsRayon: number;
+    summary: string;
+  } | null>(null);
   const [zeroRecipientsSummary, setZeroRecipientsSummary] = useState('');
   const [formData, setFormData] = useState({
     titre: '',
@@ -128,6 +135,54 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
     }
     return true;
   };
+
+  const openPublishPreview = useCallback(async () => {
+    if (!validateForm()) return;
+
+    const dossierLie = dossiers.find((d: any) => d.id === formData.id_dossier);
+    const latD =
+      dossierLie?.latitude_disparition != null ? Number(dossierLie.latitude_disparition) : undefined;
+    const lngD =
+      dossierLie?.longitude_disparition != null ? Number(dossierLie.longitude_disparition) : undefined;
+    const hasGeoCenter =
+      latD != null && lngD != null && !Number.isNaN(latD) && !Number.isNaN(lngD);
+
+    if (!hasGeoCenter) {
+      addNotification({
+        title: t('authority.alertes.createAlerte.messages.error'),
+        message:
+          'Publication bloquée: le dossier lié n’a pas de localisation (latitude/longitude). Ajoutez une position sur le dossier ou gardez cette alerte en brouillon.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setIsEstimating(true);
+    try {
+      const estimate = await estimateDiffusionForInput({
+        id_dossier: formData.id_dossier,
+        latitude_centre: latD,
+        longitude_centre: lngD,
+        rayon_km: formData.rayon_km,
+      });
+      const summary = `${estimate.destinataires.length} destinataire(s) potentiels, ${estimate.excludedSansPosition} sans position partagée, ${estimate.excludedHorsRayon} hors rayon (rayon ${formData.rayon_km} km).`;
+      setPublishPreview({
+        destinataires: estimate.destinataires.length,
+        excludedSansPosition: estimate.excludedSansPosition,
+        excludedHorsRayon: estimate.excludedHorsRayon,
+        summary,
+      });
+      setPublishPreviewOpen(true);
+    } catch (err: any) {
+      addNotification({
+        title: t('authority.alertes.createAlerte.messages.error'),
+        message: err?.message || t('authority.alertes.createAlerte.messages.creationError'),
+        type: 'error',
+      });
+    } finally {
+      setIsEstimating(false);
+    }
+  }, [validateForm, dossiers, formData.id_dossier, formData.rayon_km, addNotification, t]);
 
   // Soumission
   const handleSubmit = useCallback(async (publishNow: boolean, forcePublishWhenZero = false) => {
@@ -417,7 +472,7 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
               <Save size={16} /> {t('authority.alertes.createAlerte.actions.saveDraft')}
             </button>
             <button 
-              onClick={() => handleSubmit(true)}
+              onClick={() => void openPublishPreview()}
               className={styles.publishBtn}
               disabled={isSubmitting || isEstimating}
             >
@@ -432,6 +487,46 @@ export const CreateAlertePage: React.FC<CreateAlertePageProps> = ({ noLayout = f
           </div>
         </div>
       </div>
+      {publishPreviewOpen && publishPreview && (
+        <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3>{t('authority.alertes.createAlerte.publishPreview.title')}</h3>
+            <p>{t('authority.alertes.createAlerte.publishPreview.intro')}</p>
+            <p>
+              <strong>{publishPreview.destinataires}</strong>{' '}
+              {t('authority.alertes.createAlerte.publishPreview.recipients')}
+            </p>
+            <p className={styles.modalMeta}>{publishPreview.summary}</p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={() => {
+                  setPublishPreviewOpen(false);
+                  setPublishPreview(null);
+                }}
+              >
+                {t('authority.alertes.createAlerte.actions.cancel')}
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={() => {
+                  setPublishPreviewOpen(false);
+                  if (publishPreview.destinataires === 0) {
+                    setZeroRecipientsSummary(publishPreview.summary);
+                    setConfirmZeroRecipientsOpen(true);
+                  } else {
+                    void handleSubmit(true, false);
+                  }
+                }}
+              >
+                {t('authority.alertes.createAlerte.publishPreview.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {confirmZeroRecipientsOpen && (
         <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
           <div className={styles.modalCard}>

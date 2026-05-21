@@ -299,59 +299,180 @@ async function recordPushDelivery(
 }
 
 /**
- * Chemin SPA citoyen pour le clic sur la notification (aligné avec CitizenRoutes).
+ * Chemin SPA pour le clic notification — garder aligné avec src/utils/resolveNotificationActionPath.ts
  */
-async function resolveClickPath(
-  supabase: Supa,
+function resolveClickPath(
   record: Record<string, unknown>,
   userType: string | null | undefined,
-): Promise<string> {
+): string {
   const isAuthority = userType === 'autorite';
   const base = isAuthority ? '/authority' : '/citizen';
+  const fallback = `${base}/notifications`;
+
   const urlAction = strVal(record.url_action);
-  if (urlAction?.startsWith('/')) {
-    return urlAction;
+  if (urlAction?.startsWith('/')) return urlAction;
+  if (urlAction && /^https?:\/\//i.test(urlAction)) {
+    try {
+      const u = new URL(urlAction);
+      const path = `${u.pathname}${u.search}${u.hash}`;
+      return path.length > 1 ? path : fallback;
+    } catch {
+      /* inférence */
+    }
   }
 
+  const extra = readDonneesSupp(record);
+  if (extra) {
+    const kind = strVal(extra.kind);
+    const demandeId = strVal(extra.demande_verification_id) || strVal(extra.demande_id);
+    if (demandeId) {
+      if (kind === 'identity_verification_pending') {
+        return `/authority/verifications-identite?demande=${encodeURIComponent(demandeId)}`;
+      }
+      if (
+        kind === 'identity_verification_submitted' ||
+        kind === 'identity_verification_processed'
+      ) {
+        return `/citizen/profile?verification=${encodeURIComponent(demandeId)}`;
+      }
+      return isAuthority
+        ? `/authority/verifications-identite?demande=${encodeURIComponent(demandeId)}`
+        : `/citizen/profile?verification=${encodeURIComponent(demandeId)}`;
+    }
+
+    const evName = strVal(extra.event);
+    if (evName === 'sos_dispatch' && isAuthority) {
+      const sosId = strVal(extra.sos_id);
+      return sosId ? `/authority/sos?focus=${encodeURIComponent(sosId)}` : '/authority/sos';
+    }
+    if (evName === 'sos_handled' && !isAuthority) return '/citizen/sos';
+    if (evName === 'alerte_lifecycle' && isAuthority) {
+      const alerteId = strVal(record.id_alerte);
+      if (alerteId) return `/authority/alertes/${alerteId}`;
+    }
+    if (evName === 'signalement_validated' && !isAuthority) {
+      const sid = strVal(extra.signalement_id);
+      if (sid) return `/citizen/signalement/${sid}`;
+    }
+    if (
+      (evName === 'signalement_created' ||
+        evName === 'signalement_moderation' ||
+        evName === 'signalement_messagerie_reply') &&
+      isAuthority
+    ) {
+      const sid = strVal(extra.signalement_id);
+      if (sid) return `/authority/signalements/${sid}`;
+    }
+    if (evName === 'signalement_messagerie_message' && !isAuthority) {
+      const sid = strVal(extra.signalement_id);
+      if (sid) return `/citizen/signalement/${sid}`;
+    }
+    if (
+      evName === 'pre_declaration_created' ||
+      evName === 'pre_declaration_citizen_reply' ||
+      evName === 'pre_declaration_rejected' ||
+      evName === 'pre_declaration_message'
+    ) {
+      const preId = strVal(extra.pre_declaration_id);
+      if (preId) {
+        return isAuthority
+          ? `/authority/pre-declarations/${preId}`
+          : `/citizen/pre-declarations/${preId}`;
+      }
+    }
+    if (evName === 'dossier_messagerie_message' && !isAuthority) {
+      const d = strVal(extra.dossier_id) || strVal(record.id_dossier);
+      if (d) return `/citizen/dossier/${d}`;
+    }
+    if (evName === 'dossier_messagerie_citizen_reply' && isAuthority) {
+      const d = strVal(extra.dossier_id) || strVal(record.id_dossier);
+      if (d) return `/authority/dossiers/${d}`;
+    }
+    if (evName === 'dossier_status_changed' || evName === 'ia_match_prioritaire_citoyen') {
+      const d = strVal(extra.dossier_id) || strVal(record.id_dossier);
+      if (d) {
+        return isAuthority ? `/authority/dossiers/${d}` : `/citizen/dossier/${d}`;
+      }
+    }
+
+    const preId = strVal(extra.pre_declaration_id);
+    if (preId) {
+      return isAuthority
+        ? `/authority/pre-declarations/${preId}`
+        : `/citizen/pre-declarations/${preId}`;
+    }
+    const sid = strVal(extra.signalement_id);
+    if (sid) {
+      return isAuthority ? `/authority/signalements/${sid}` : `/citizen/signalement/${sid}`;
+    }
+    const resultatIaId = strVal(extra.resultat_ia_id);
+    if (resultatIaId && isAuthority) {
+      return `/authority/ia-analysis?resultId=${encodeURIComponent(resultatIaId)}`;
+    }
+    if (resultatIaId && !isAuthority) {
+      const d = strVal(extra.dossier_id) || strVal(record.id_dossier);
+      if (d) return `/citizen/dossier/${d}`;
+    }
+    const dFromExtra = strVal(extra.dossier_id);
+    if (dFromExtra) {
+      return isAuthority ? `/authority/dossiers/${dFromExtra}` : `/citizen/dossier/${dFromExtra}`;
+    }
+  }
+
+  const typeN = strVal(record.type_notification);
+  if (typeN === 'signalement_valide' && !isAuthority) {
+    const sid = extra && strVal(extra.signalement_id);
+    if (sid) return `/citizen/signalement/${sid}`;
+    return '/citizen/my-signalements';
+  }
+  if (typeN === 'message_autorite' && !isAuthority) {
+    const sid = extra && strVal(extra.signalement_id);
+    if (sid) return `/citizen/signalement/${sid}`;
+    const preId = extra && strVal(extra.pre_declaration_id);
+    if (preId) return `/citizen/pre-declarations/${preId}`;
+    const d = strVal(record.id_dossier);
+    if (d) return `/citizen/dossier/${d}`;
+  }
+  if (typeN === 'message_autorite' && isAuthority) {
+    const sid = extra && strVal(extra.signalement_id);
+    if (sid) return `/authority/signalements/${sid}`;
+    const d = strVal(record.id_dossier);
+    if (d) return `/authority/dossiers/${d}`;
+  }
+  if (typeN === 'nouvelle_alerte') {
+    const alerteId = strVal(record.id_alerte);
+    if (isAuthority) return alerteId ? `/authority/alertes/${alerteId}` : '/authority/alertes';
+    return alerteId
+      ? `/citizen/alerts?alerte=${encodeURIComponent(alerteId)}`
+      : '/citizen/alerts';
+  }
+  if (typeN === 'correspondance_ia') {
+    if (isAuthority) {
+      const rid = extra && strVal(extra.resultat_ia_id);
+      return rid
+        ? `/authority/ia-analysis?resultId=${encodeURIComponent(rid)}`
+        : '/authority/ia-analysis';
+    }
+    const d = strVal(record.id_dossier);
+    if (d) return `/citizen/dossier/${d}`;
+  }
+  if (typeN === 'personne_retrouvee' || typeN === 'mise_a_jour_dossier') {
+    const d = strVal(record.id_dossier);
+    if (d) return isAuthority ? `/authority/dossiers/${d}` : `/citizen/dossier/${d}`;
+  }
+
+  const idAlerte = strVal(record.id_alerte);
+  if (idAlerte) {
+    return isAuthority
+      ? `/authority/alertes/${idAlerte}`
+      : `/citizen/alerts?alerte=${encodeURIComponent(idAlerte)}`;
+  }
   const idDossier = strVal(record.id_dossier);
   if (idDossier) {
     return isAuthority ? `/authority/dossiers/${idDossier}` : `/citizen/dossier/${idDossier}`;
   }
 
-  const idAlerte = strVal(record.id_alerte);
-  if (idAlerte) {
-    const { data: al } = await supabase.from('alerte').select('id_dossier').eq('id', idAlerte).maybeSingle();
-    const dossierFromAlert = al && typeof al === 'object' ? strVal((al as { id_dossier?: unknown }).id_dossier) : null;
-    if (dossierFromAlert) {
-      return isAuthority ? `/authority/dossiers/${dossierFromAlert}` : `/citizen/dossier/${dossierFromAlert}`;
-    }
-    return isAuthority
-      ? `/authority/alertes?alerte=${encodeURIComponent(idAlerte)}`
-      : `/citizen/alerts?alerte=${encodeURIComponent(idAlerte)}`;
-  }
-
-  const extra = readDonneesSupp(record);
-  if (extra) {
-    const evName = strVal(extra.event);
-    if (evName === 'sos_dispatch' && isAuthority) {
-      const sosId = strVal(extra.sos_id);
-      if (sosId) return `/authority/sos?focus=${encodeURIComponent(sosId)}`;
-    }
-    if (evName === 'sos_handled' && !isAuthority) {
-      return '/citizen/sos';
-    }
-    const sid = strVal(extra.signalement_id);
-    if (sid) return isAuthority ? `/authority/signalements/${sid}` : `/citizen/signalement/${sid}`;
-    const dIa = strVal(extra.dossier_id);
-    if (dIa) return isAuthority ? `/authority/dossiers/${dIa}` : `/citizen/dossier/${dIa}`;
-  }
-
-  const typeN = strVal(record.type_notification);
-  if (typeN === 'nouvelle_alerte') {
-    return isAuthority ? '/authority/alertes' : '/citizen/alerts';
-  }
-
-  return `${base}/notifications`;
+  return fallback;
 }
 
 serve(async (req) => {
@@ -521,15 +642,22 @@ serve(async (req) => {
   }
 
   const baseUrl = (Deno.env.get('PUBLIC_APP_URL') || 'https://retrouvonsles.te-sea.com').replace(/\/$/, '');
-  const clickPath = await resolveClickPath(supabase, record, u.type_compte);
-  logLine('click_path', { reqId, clickPath: clickPath.slice(0, 120) });
-  const link = `${baseUrl}${clickPath}`;
+  const clickPath = resolveClickPath(record, u.type_compte);
+  const clickUrlAbsolute = `${baseUrl}${clickPath.startsWith('/') ? clickPath : `/${clickPath}`}`;
+  logLine('click_path', {
+    reqId,
+    baseUrl,
+    clickPath: clickPath.slice(0, 120),
+    clickUrlAbsolute: clickUrlAbsolute.slice(0, 160),
+  });
+  const link = clickUrlAbsolute;
   const title = String(record.titre || 'RetrouvonsLes');
   const bodyText = String(record.message || '').slice(0, 400);
   const nid = record.id != null ? String(record.id) : '';
 
   const data: Record<string, string> = {
-    clickUrl: clickPath,
+    clickUrl: clickUrlAbsolute,
+    clickPath,
     notificationId: nid,
     tag: nid ? `rll-${nid}` : 'retrouvonsles-msg',
   };
@@ -566,59 +694,69 @@ serve(async (req) => {
       }
 
       if (sa && accessToken) {
-  let idx = 0;
-  for (const row of rows) {
-    idx += 1;
-    const { token } = row;
-    const tokenHint = token.length > 12 ? `${token.slice(0, 8)}…${token.slice(-4)}` : '(short)';
-    const sendStart = Date.now();
-    try {
-      await sendFcmV1(accessToken, sa.project_id, token, title, bodyText, data, link, {
-        priorityHigh,
-      });
-      sent++;
-      await recordPushDelivery(supabase, {
-        notificationId: nid,
-        userId,
-        canal: 'fcm',
-        succes: true,
-        token,
-        deviceId: row.device_id,
-        userAgent: row.user_agent,
-        platform: row.platform,
-        providerStatus: 'ok',
-        dureeMs: Date.now() - sendStart,
-      });
-      logLine('fcm_ok', { reqId, idx, tokenHint });
-    } catch (e) {
-      const msg = String((e as Error).message || e);
-      errors.push(msg);
-      logLine('fcm_err', { reqId, idx, tokenHint, err: msg.slice(0, 400) });
-      const invalid = isUnregisteredFcmError(msg);
-      await recordPushDelivery(supabase, {
-        notificationId: nid,
-        userId,
-        canal: 'fcm',
-        succes: false,
-        token,
-        deviceId: row.device_id,
-        userAgent: row.user_agent,
-        platform: row.platform,
-        providerStatus: invalid ? 'invalid_token' : 'error',
-        erreur: msg,
-        invalide: invalid,
-        dureeMs: Date.now() - sendStart,
-      });
-      if (invalid) {
-        const { error: delErr } = await supabase.from('utilisateur_fcm_token').delete().eq('token', token);
-        if (delErr) {
-          logLine('token_delete_fail', { reqId, tokenHint, message: delErr.message, code: delErr.code });
-        } else {
-          logLine('token_deleted_unregistered', { reqId, tokenHint });
+        const fcmResults = await Promise.all(
+          rows.map(async (row, idx) => {
+            const { token } = row;
+            const tokenHint = token.length > 12 ? `${token.slice(0, 8)}…${token.slice(-4)}` : '(short)';
+            const sendStart = Date.now();
+            try {
+              await sendFcmV1(accessToken, sa.project_id, token, title, bodyText, data, link, {
+                priorityHigh,
+              });
+              void recordPushDelivery(supabase, {
+                notificationId: nid,
+                userId,
+                canal: 'fcm',
+                succes: true,
+                token,
+                deviceId: row.device_id,
+                userAgent: row.user_agent,
+                platform: row.platform,
+                providerStatus: 'ok',
+                dureeMs: Date.now() - sendStart,
+              });
+              logLine('fcm_ok', { reqId, idx: idx + 1, tokenHint });
+              return { ok: true as const, token, invalid: false };
+            } catch (e) {
+              const msg = String((e as Error).message || e);
+              logLine('fcm_err', { reqId, idx: idx + 1, tokenHint, err: msg.slice(0, 400) });
+              const invalid = isUnregisteredFcmError(msg);
+              void recordPushDelivery(supabase, {
+                notificationId: nid,
+                userId,
+                canal: 'fcm',
+                succes: false,
+                token,
+                deviceId: row.device_id,
+                userAgent: row.user_agent,
+                platform: row.platform,
+                providerStatus: invalid ? 'invalid_token' : 'error',
+                erreur: msg,
+                invalide: invalid,
+                dureeMs: Date.now() - sendStart,
+              });
+              return { ok: false as const, token, invalid, msg };
+            }
+          }),
+        );
+        for (const r of fcmResults) {
+          if (r.ok) {
+            sent++;
+          } else {
+            errors.push(r.msg);
+            if (r.invalid) {
+              const tokenHint = r.token.length > 12
+                ? `${r.token.slice(0, 8)}…${r.token.slice(-4)}`
+                : '(short)';
+              const { error: delErr } = await supabase.from('utilisateur_fcm_token').delete().eq('token', r.token);
+              if (delErr) {
+                logLine('token_delete_fail', { reqId, tokenHint, message: delErr.message, code: delErr.code });
+              } else {
+                logLine('token_deleted_unregistered', { reqId, tokenHint });
+              }
+            }
+          }
         }
-      }
-    }
-  }
       }
     }
   }
@@ -640,51 +778,61 @@ serve(async (req) => {
       });
       errors.push('WEB_PUSH_VAPID_PUBLIC_KEY / WEB_PUSH_VAPID_PRIVATE_KEY not configured');
     } else {
-      let idx = 0;
-      for (const row of webPushRows) {
-        idx += 1;
-        const endpointHint = row.endpoint.length > 32 ? `${row.endpoint.slice(0, 24)}…` : row.endpoint;
-        const sendStart = Date.now();
-        try {
-          await sendWebPushNoPayload(row, vapidPublicKey, vapidPrivateKey, vapidSubject);
+      const webResults = await Promise.all(
+        webPushRows.map(async (row, idx) => {
+          const endpointHint = row.endpoint.length > 32 ? `${row.endpoint.slice(0, 24)}…` : row.endpoint;
+          const sendStart = Date.now();
+          try {
+            await sendWebPushNoPayload(row, vapidPublicKey, vapidPrivateKey, vapidSubject);
+            void recordPushDelivery(supabase, {
+              notificationId: nid,
+              userId,
+              canal: 'web_push',
+              succes: true,
+              endpoint: row.endpoint,
+              deviceId: row.device_id,
+              userAgent: row.user_agent,
+              platform: row.platform,
+              providerStatus: 'ok',
+              dureeMs: Date.now() - sendStart,
+            });
+            logLine('webpush_ok', { reqId, idx: idx + 1, endpointHint });
+            return { ok: true as const, row, invalid: false, msg: '' };
+          } catch (e) {
+            const msg = String((e as Error).message || e);
+            logLine('webpush_err', { reqId, idx: idx + 1, endpointHint, err: msg.slice(0, 400) });
+            const invalid = isExpiredWebPushError(msg);
+            void recordPushDelivery(supabase, {
+              notificationId: nid,
+              userId,
+              canal: 'web_push',
+              succes: false,
+              endpoint: row.endpoint,
+              deviceId: row.device_id,
+              userAgent: row.user_agent,
+              platform: row.platform,
+              providerStatus: invalid ? 'expired_subscription' : 'error',
+              erreur: msg,
+              invalide: invalid,
+              dureeMs: Date.now() - sendStart,
+            });
+            return { ok: false as const, row, invalid, msg };
+          }
+        }),
+      );
+      for (const r of webResults) {
+        if (r.ok) {
           sent++;
-          await recordPushDelivery(supabase, {
-            notificationId: nid,
-            userId,
-            canal: 'web_push',
-            succes: true,
-            endpoint: row.endpoint,
-            deviceId: row.device_id,
-            userAgent: row.user_agent,
-            platform: row.platform,
-            providerStatus: 'ok',
-            dureeMs: Date.now() - sendStart,
-          });
-          logLine('webpush_ok', { reqId, idx, endpointHint });
-        } catch (e) {
-          const msg = String((e as Error).message || e);
-          errors.push(msg);
-          logLine('webpush_err', { reqId, idx, endpointHint, err: msg.slice(0, 400) });
-          const invalid = isExpiredWebPushError(msg);
-          await recordPushDelivery(supabase, {
-            notificationId: nid,
-            userId,
-            canal: 'web_push',
-            succes: false,
-            endpoint: row.endpoint,
-            deviceId: row.device_id,
-            userAgent: row.user_agent,
-            platform: row.platform,
-            providerStatus: invalid ? 'expired_subscription' : 'error',
-            erreur: msg,
-            invalide: invalid,
-            dureeMs: Date.now() - sendStart,
-          });
-          if (invalid) {
+        } else {
+          errors.push(r.msg);
+          if (r.invalid) {
+            const endpointHint = r.row.endpoint.length > 32
+              ? `${r.row.endpoint.slice(0, 24)}…`
+              : r.row.endpoint;
             const { error: delErr } = await supabase
               .from('utilisateur_web_push_subscription')
               .delete()
-              .eq('endpoint', row.endpoint);
+              .eq('endpoint', r.row.endpoint);
             if (delErr) {
               logLine('webpush_delete_fail', { reqId, endpointHint, message: delErr.message, code: delErr.code });
             } else {

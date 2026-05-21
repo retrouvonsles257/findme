@@ -20,10 +20,13 @@ import {
   getCitizenStatusI18nSuffix,
   getStatutPhase,
 } from '../../features/signalements/utils/citizenStatutValidationUi';
+import { CitizenSignalementMessagerieSection } from '../../features/messagerie/CitizenSignalementMessagerieSection';
 import styles from './SignalementDetailPage.module.css';
 
 interface SignalementDetail {
   id: string;
+  id_utilisateur?: string;
+  id_dossier?: string | null;
   numero_signalement?: string;
   description: string;
   date_observation: string;
@@ -55,6 +58,7 @@ export const CitizenSignalementDetailPage: React.FC = () => {
   const { t } = useI18n();
 
   const [signalement, setSignalement] = useState<SignalementDetail | null>(null);
+  const [responsibleOrgId, setResponsibleOrgId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +86,19 @@ export const CitizenSignalementDetailPage: React.FC = () => {
         if (!sigData) throw new Error(t('citizen.signalementDetail.notFound'));
 
         setSignalement(sigData);
+
+        setResponsibleOrgId(null);
+        const dossierId = sigData.id_dossier as string | undefined;
+        if (dossierId) {
+          const { data: dos } = await (supabase as any)
+            .from('dossier_disparition')
+            .select('id_organisation_responsable')
+            .eq('id', dossierId)
+            .maybeSingle();
+          if (dos?.id_organisation_responsable) {
+            setResponsibleOrgId(dos.id_organisation_responsable);
+          }
+        }
 
         // Récupérer les photos associées
         const { data: photoData } = await (supabase as any)
@@ -122,18 +139,18 @@ export const CitizenSignalementDetailPage: React.FC = () => {
     const label = t(`citizen.${getCitizenStatusI18nSuffix(raw)}`);
     const phase = getStatutPhase(raw);
     if (phase === 'ok') {
-      return { icon: <CheckCircle size={20} />, color: '#0ea5e9', label };
+      return { icon: <CheckCircle size={20} />, color: '#0369a1', label };
     }
     if (phase === 'nok') {
-      return { icon: <XCircle size={20} />, color: '#ef4444', label };
+      return { icon: <XCircle size={20} />, color: '#b91c1c', label };
     }
     if (phase === 'other') {
-      return { icon: <AlertCircle size={20} />, color: '#64748b', label };
+      return { icon: <AlertCircle size={20} />, color: '#475569', label };
     }
     if (phase === 'review') {
-      return { icon: <Eye size={20} />, color: '#f59e0b', label };
+      return { icon: <Eye size={20} />, color: '#b45309', label };
     }
-    return { icon: <AlertCircle size={20} />, color: '#6b7280', label };
+    return { icon: <AlertCircle size={20} />, color: '#64748b', label };
   };
 
   // Niveau de certitude
@@ -293,6 +310,17 @@ export const CitizenSignalementDetailPage: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {signalementId && signalement.id_dossier && (
+          <div className={styles.descriptionSection}>
+            <h3>{t('citizen.dossierPublic.tabMessagerie')}</h3>
+            <CitizenSignalementMessagerieSection
+              signalementId={signalementId}
+              reporterUserId={signalement.id_utilisateur ?? null}
+              responsibleOrgId={responsibleOrgId}
+            />
           </div>
         )}
 
