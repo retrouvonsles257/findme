@@ -18,6 +18,7 @@ import {
 import { getAnalytics, Analytics } from 'firebase/analytics';
 import { envConfig } from './env.config';
 import { APP_LOGO_SRC } from './branding';
+import { resolveNotificationClickUrl } from '../utils/resolveNotificationClickUrl';
 
 // ============================================
 // VARIABLES D'ENVIRONNEMENT
@@ -648,7 +649,10 @@ export const showNotificationFromFcmPayload = (payload: MessagePayload): void =>
   const title = (n?.title as string) || 'RetrouvonsLes';
   const body = (n?.body as string) || '';
   const data = (payload.data || {}) as Record<string, string>;
-  const clickPath = data.clickUrl || '/citizen/notifications';
+  const clickTarget = resolveNotificationClickUrl(
+    data.clickUrl || data.clickPath,
+    '/citizen/notifications',
+  );
   const tag = data.tag || `rll-${Date.now()}`;
 
   const inst = new Notification(title, {
@@ -660,7 +664,7 @@ export const showNotificationFromFcmPayload = (payload: MessagePayload): void =>
     vibrate: [180, 120, 180],
     silent: false,
     requireInteraction: false,
-    data: { clickUrl: clickPath } as NotificationOptions['data'],
+    data: { clickUrl: clickTarget } as NotificationOptions['data'],
   });
 
   setTimeout(() => inst.close(), 8000);
@@ -685,7 +689,7 @@ export const showNotificationFromFcmPayload = (payload: MessagePayload): void =>
   inst.onclick = () => {
     inst.close();
     window.focus();
-    window.location.assign(new URL(clickPath, window.location.origin).href);
+    window.location.assign(clickTarget);
   };
 };
 

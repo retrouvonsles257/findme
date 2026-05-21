@@ -14,6 +14,7 @@ import type {
   NiveauUrgence,
 } from '../../../@types';
 import { StatutAlerte as StatutAlerteEnum } from '../../../@types/enums.types';
+import { NotificationTargets } from '../../../utils/notificationTargets';
 
 // ============================================
 // TYPE DEFINITIONS
@@ -331,6 +332,7 @@ export const updateAlerteStatut = async (
           date_creation: nowIso,
           id_alerte: id,
           id_dossier: (alertCtx as any)?.id_dossier || null,
+          url_action: NotificationTargets.authority.alerte(id),
           donnees_supplementaires: {
             event: 'alerte_lifecycle',
             statut,
@@ -729,10 +731,12 @@ export const diffuserAlerte = async (
     date_creation: dateCreation,
     id_utilisateur: user.id,
     id_alerte: id,
+    url_action: NotificationTargets.citizen.alerts(id),
     donnees_supplementaires: {
       traceId: diffusionTraceId,
       source: 'diffuserAlerte',
       createdAt: dateCreation,
+      event: 'nouvelle_alerte',
     },
   }));
 

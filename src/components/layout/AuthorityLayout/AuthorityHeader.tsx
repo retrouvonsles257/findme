@@ -34,6 +34,7 @@ import { selectUser } from '../../../features/auth/store/authSelectors';
 import { selectCurrentUser } from '../../../features/users/store/userSelectors';
 import { getLanguageName } from '../../../locales';
 import { useCoordinationMessages } from '../../../features/coordination';
+import { resolveNotificationActionPath } from '../../../utils/resolveNotificationActionPath';
 import { useAuth } from '../../../contexts';
 import styles from './AuthorityHeader.module.css';
 
@@ -148,7 +149,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
     message: dbNotif.message,
     lu: dbNotif.lue,
     created_at: dbNotif.date_creation,
-    lien_action: dbNotif.url_action,
+    lien_action: dbNotif.url_action || resolveNotificationActionPath(dbNotif, 'authority'),
     isFromDB: true,
   });
 
@@ -161,7 +162,7 @@ export const AuthorityHeader: React.FC<AuthorityHeaderProps> = ({
       // Utiliser les bons noms de colonnes: date_creation, lue, url_action
       const { data, error } = await (supabase as any)
         .from('notification')
-        .select('id, type_notification, titre, message, lue, date_creation, url_action')
+        .select('id, type_notification, titre, message, lue, date_creation, url_action, id_dossier, id_alerte, donnees_supplementaires')
         .eq('id_utilisateur', notificationUserId)
         .order('date_creation', { ascending: false })
         .limit(10);

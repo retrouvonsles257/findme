@@ -29,6 +29,7 @@ import {
   Inbox,
 } from 'lucide-react';
 import styles from './NotificationsPage.module.css';
+import { resolveNotificationActionPath } from '../../utils/resolveNotificationActionPath';
 
 interface NotificationDB {
   id: string | number;
@@ -70,7 +71,7 @@ export const NotificationsPage: React.FC = () => {
     message: dbNotif.message,
     lu: dbNotif.lue,
     created_at: dbNotif.date_creation,
-    lien_action: dbNotif.url_action,
+    lien_action: dbNotif.url_action || resolveNotificationActionPath(dbNotif, 'authority'),
     priorite: dbNotif.priorite,
     isFromDB: true,
   });

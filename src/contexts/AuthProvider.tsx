@@ -24,28 +24,10 @@ import {
 } from '../config/supabase.config';
 import { AuthContext, AuthContextType } from './AuthContext';
 import { NomRole, StatutCompte } from '../@types/enums.types';
-import { normalizeAppRole, pickAuthJwtRole } from '../services/supabase/auth';
+import { getUserMainRole, normalizeAppRole, pickAuthJwtRole } from '../services/supabase/auth';
 
 interface AuthProviderProps {
   children: ReactNode;
-}
-
-/**
- * Récupérer le rôle via RPC (bypass RLS)
- */
-async function fetchUserRoleViaRPC(userId: string): Promise<string | null> {
-  try {
-    const { data, error } = await (supabase as any).rpc('get_user_main_role', { p_user_id: userId });
-    if (error) {
-
-      return null;
-    }
-    if (data == null) return null;
-    return normalizeAppRole(data as string);
-  } catch (err) {
-    console.error('[AuthProvider] Exception fetching role via RPC:', err);
-    return null;
-  }
 }
 
 /**
@@ -75,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           let raw: string | null = pickAuthJwtRole(currentUser as any);
           if (!raw) {
 
-            raw = await fetchUserRoleViaRPC(currentUser.id);
+            raw = await getUserMainRole(currentUser.id);
           }
           setUserRole(normalizeAppRole(raw) as NomRole);
           setUserStatus(metadata?.statut_compte || 'actif');
@@ -96,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const metadata = updatedSession.user.user_metadata as any;
             let raw: string | null = pickAuthJwtRole(updatedSession.user as any);
             if (!raw && updatedSession.user.id) {
-              raw = await fetchUserRoleViaRPC(updatedSession.user.id);
+              raw = await getUserMainRole(updatedSession.user.id);
             }
             setUserRole(normalizeAppRole(raw) as NomRole);
             setUserStatus(metadata?.statut_compte || 'actif');

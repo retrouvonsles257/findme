@@ -16,6 +16,7 @@ import type {
   DossierStatistics,
 } from '../types';
 import { StatutDossier, NiveauUrgence } from '../../../@types/enums.types';
+import { NotificationTargets } from '../../../utils/notificationTargets';
 
 // ============================================
 // TYPE DEFINITIONS FOR INPUTS
@@ -106,23 +107,29 @@ export async function notifyDossierStatusChange(
       ? 'personne_retrouvee'
       : 'mise_a_jour_dossier';
 
-    const rows = Array.from(recipients).map((idUtilisateur) => ({
-      id_utilisateur: idUtilisateur,
-      type_notification: typeNotification,
-      titre: title,
-      message,
-      canal: 'push',
-      priorite: nextStatus === 'retrouve_vivant' || nextStatus === 'retrouve_decede' ? 'haute' : 'moyenne',
-      lue: false,
-      id_dossier: dossierId,
-      date_creation: nowIso,
-      donnees_supplementaires: {
-        event: 'dossier_status_changed',
-        previous_status: previousStatus,
-        next_status: nextStatus,
-        dossier_id: dossierId,
-      },
-    }));
+    const rows = Array.from(recipients).map((idUtilisateur) => {
+      const isAuthorityRecipient = (authorities || []).some((a: any) => a.id === idUtilisateur);
+      return {
+        id_utilisateur: idUtilisateur,
+        type_notification: typeNotification,
+        titre: title,
+        message,
+        canal: 'push',
+        priorite: nextStatus === 'retrouve_vivant' || nextStatus === 'retrouve_decede' ? 'haute' : 'moyenne',
+        lue: false,
+        id_dossier: dossierId,
+        url_action: isAuthorityRecipient
+          ? NotificationTargets.authority.dossier(dossierId)
+          : NotificationTargets.citizen.dossier(dossierId),
+        date_creation: nowIso,
+        donnees_supplementaires: {
+          event: 'dossier_status_changed',
+          previous_status: previousStatus,
+          next_status: nextStatus,
+          dossier_id: dossierId,
+        },
+      };
+    });
     if (rows.length > 0) {
       await db.from('notification').insert(rows);
     }

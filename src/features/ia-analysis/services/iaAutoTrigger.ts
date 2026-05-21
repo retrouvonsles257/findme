@@ -18,6 +18,7 @@ import {
   updateResultatIAValidation,
 } from './iaAPI';
 import { huggingFaceService, isHuggingFaceConfigured } from '../../../services/huggingFaceService';
+import { NotificationTargets } from '../../../utils/notificationTargets';
 
 // Type-safe Supabase wrapper
 const db = {
@@ -139,12 +140,14 @@ const notifyDossierCreatorIamatchPrioritaire = async (
       canal: 'push',
       lue: false,
       id_dossier: targetDossierId,
+      url_action: NotificationTargets.citizen.dossier(targetDossierId),
       date_creation: new Date().toISOString(),
       donnees_supplementaires: {
         resultat_ia_id: resultatIaId,
         event: 'ia_match_prioritaire_citoyen',
         autre_dossier_label: otherDossierLabel,
         score,
+        dossier_id: targetDossierId,
       },
     });
   } catch (error) {
@@ -205,11 +208,13 @@ const createAuthorityNotification = async (
         priorite,
         canal: 'push',
         lue: false,
+        url_action: NotificationTargets.authority.iaResult(resultatIaId),
         donnees_supplementaires: {
           resultat_ia_id: resultatIaId,
           dossier_id: dossierId,
           score,
           type_match: type,
+          event: 'correspondance_ia',
         },
         date_creation: new Date().toISOString(),
       });
@@ -486,7 +491,12 @@ export const confirmIAResult = async (
         date_creation: new Date().toISOString(),
         id_utilisateur: createurId,
         id_dossier: dossierId,
-        donnees_supplementaires: { resultat_ia_id: resultId },
+        url_action: NotificationTargets.citizen.dossier(dossierId),
+        donnees_supplementaires: {
+          resultat_ia_id: resultId,
+          dossier_id: dossierId,
+          event: 'ia_result_confirmed',
+        },
       });
     }
   }

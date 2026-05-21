@@ -2,6 +2,7 @@
  * Pré-déclarations citoyennes + messagerie texte (MVP).
  */
 import { supabase } from '../../config';
+import { NotificationTargets } from '../../utils/notificationTargets';
 import { TypeAction } from '../../@types/enums.types';
 
 const db = () => (supabase as any);
@@ -372,7 +373,7 @@ async function notifyCitizenSignalementNewMessage(reporterUserId: string, signal
       priorite: 'moyenne',
       lue: false,
       date_creation: nowIso,
-      url_action: `/citizen/my-signalements`,
+      url_action: NotificationTargets.citizen.signalement(signalementId),
       donnees_supplementaires: {
         event: 'signalement_messagerie_message',
         signalement_id: signalementId,
@@ -865,21 +866,40 @@ export async function markPreDeclarationEnExamen(params: {
   });
 }
 
-/** Marque comme lus les messages dont l'auteur n'est pas le lecteur. */
+/** Marque comme lus les messages dont l'auteur n'est pas le lecteur (idempotent). */
 export async function markMessagesReadForViewer(
-  conversationId: string,
+  _conversationId: string,
   viewerId: string,
   messageIdsFromOthers: string[],
 ): Promise<void> {
-  if (messageIdsFromOthers.length === 0) return;
-  for (const id_message of messageIdsFromOthers) {
-    const { error } = await db().from('message_lecture').insert({
-      id_message,
-      id_utilisateur: viewerId,
-      lu_at: new Date().toISOString(),
-    });
-    if (error && (error as any).code !== '23505') throw error;
-  }
+  const uniqueIds = [...new Set(messageIdsFromOthers.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
+  const { data: existing, error: readErr } = await db()
+    .from('message_lecture')
+    .select('id_message')
+    .eq('id_utilisateur', viewerId)
+    .in('id_message', uniqueIds);
+
+  if (readErr) throw readErr;
+
+  const alreadyRead = new Set((existing || []).map((r: { id_message: string }) => r.id_message));
+  const toMark = uniqueIds.filter((id) => !alreadyRead.has(id));
+  if (toMark.length === 0) return;
+
+  const luAt = new Date().toISOString();
+  const { error } = await db()
+    .from('message_lecture')
+    .upsert(
+      toMark.map((id_message) => ({
+        id_message,
+        id_utilisateur: viewerId,
+        lu_at: luAt,
+      })),
+      { onConflict: 'id_message,id_utilisateur', ignoreDuplicates: true },
+    );
+
+  if (error) throw error;
 }
 
 export async function getMessagePieceJointesForMessages(

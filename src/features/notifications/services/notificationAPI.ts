@@ -8,6 +8,7 @@
 
 import { supabase } from '../../../config';
 import type { INotification, NotificationFilter } from '../types';
+import { resolveNotificationActionPath } from '../../../utils/resolveNotificationActionPath';
 
 const db = { from: (table: string) => (supabase.from(table) as any) };
 
@@ -26,7 +27,10 @@ const mapDbToNotification = (n: any): INotification => ({
   read: n.lue,
   readAt: n.date_lecture ? new Date(n.date_lecture) : undefined,
   data: n.donnees_supplementaires,
-  action: n.url_action ? { label: 'Voir', url: n.url_action } : undefined,
+  action: (() => {
+    const url = resolveNotificationActionPath(n, 'citizen');
+    return url ? { label: 'Voir', url } : undefined;
+  })(),
 });
 
 /**

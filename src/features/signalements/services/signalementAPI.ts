@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '../../../config';
+import { NotificationTargets } from '../../../utils/notificationTargets';
 import type {
   Signalement,
   SignalementCreatePayload,
@@ -55,6 +56,7 @@ async function notifyAuthoritiesSignalementModerated(
         priorite: 'moyenne',
         lue: false,
         id_dossier: dossierId,
+        url_action: NotificationTargets.authority.signalement(signalementId),
         date_creation: nowIso,
         donnees_supplementaires: {
           signalement_id: signalementId,
@@ -100,6 +102,7 @@ async function notifyAuthoritiesForNewSignalement(signalementId: string, dossier
       priorite: 'haute',
       lue: false,
       id_dossier: dossierId,
+      url_action: NotificationTargets.authority.signalement(signalementId),
       date_creation: nowIso,
       donnees_supplementaires: { signalement_id: signalementId, dossier_id: dossierId, event: 'signalement_created' },
     }));
@@ -198,7 +201,10 @@ export async function createSignalement(
     lue: false,
     date_creation: dateCreation,
     id_utilisateur: userId,
-    donnees_supplementaires: data?.id ? { signalement_id: data.id } : undefined,
+    url_action: data?.id ? NotificationTargets.citizen.signalement(data.id) : NotificationTargets.citizen.signalements(),
+    donnees_supplementaires: data?.id
+      ? { signalement_id: data.id, event: 'signalement_received' }
+      : undefined,
   });
   if (data?.id && payload.id_dossier) {
     await notifyAuthoritiesForNewSignalement(data.id, payload.id_dossier);
@@ -453,10 +459,12 @@ export async function addSignalementVerification(
       date_creation: nowIso,
       id_utilisateur: ownerId,
       id_dossier: idDossier,
+      url_action: NotificationTargets.citizen.signalement(signalementId),
       donnees_supplementaires: {
         signalement_id: signalementId,
         decision: payload.decision,
         score_confiance: payload.score_confiance,
+        event: 'signalement_validated',
       },
     });
 
